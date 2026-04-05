@@ -1,0 +1,17 @@
+{
+  "name": "not-a-cms",
+  "private": true,
+  "packageManager": "bun@1.2.0",
+  "workspaces": ["packages/*"],
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.7.0",
+    "@types/bun": "latest"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "test": "turbo run test",
+    "test:watch": "turbo run test:watch"
+  }
+}

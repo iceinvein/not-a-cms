@@ -13,6 +13,7 @@ import { createAuth } from "./auth/setup"
 import { getSessionFromRequest } from "./auth/middleware"
 import { createLocalStorage } from "./media/storage"
 import { createMediaHandler } from "./media/handler"
+import { collabWebSocket, type CollabWSData } from "./collab/handler"
 
 type ServerConfig = {
   port?: number
@@ -50,10 +51,19 @@ export function createServer(config: ServerConfig) {
   const mediaHandler = createMediaHandler(storage)
   const port = config.port ?? 4321
 
-  const server = Bun.serve({
+  const server = Bun.serve<CollabWSData>({
     port,
-    async fetch(req: Request) {
+    websocket: collabWebSocket,
+    async fetch(req: Request, server) {
       const url = new URL(req.url)
+
+      // WebSocket upgrade for collaboration
+      if (url.pathname === "/collab") {
+        const docName = url.searchParams.get("doc") ?? "default"
+        const upgraded = server.upgrade<CollabWSData>(req, { data: { docName } })
+        if (upgraded) return undefined as any
+        return new Response("WebSocket upgrade failed", { status: 500 })
+      }
 
       // Auth routes
       if (url.pathname.startsWith("/api/auth")) {

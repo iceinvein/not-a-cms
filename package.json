@@ -11,6 +11,7 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "dev:server": "bun --hot packages/server/src/dev.ts",
     "test": "turbo run test",
     "test:watch": "turbo run test:watch"
   }

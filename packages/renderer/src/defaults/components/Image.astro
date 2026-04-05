@@ -1,0 +1,45 @@
+---
+interface Props {
+  src: string
+  alt: string
+  width?: number
+  height?: number
+  sizes?: string
+  class?: string
+  loading?: "lazy" | "eager"
+  blurDataUrl?: string
+}
+
+const {
+  src,
+  alt,
+  width,
+  height,
+  sizes = "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw",
+  class: className = "",
+  loading = "lazy",
+  blurDataUrl,
+} = Astro.props
+
+// Generate responsive srcset widths
+const widths = [640, 768, 1024, 1280, 1536]
+const srcset = widths
+  .filter((w) => !width || w <= width * 2)
+  .map((w) => `${src}?w=${w} ${w}w`)
+  .join(", ")
+---
+
+<picture>
+  <img
+    src={src}
+    srcset={srcset || undefined}
+    sizes={srcset ? sizes : undefined}
+    alt={alt}
+    width={width}
+    height={height}
+    loading={loading}
+    decoding="async"
+    class:list={["max-w-full h-auto", className]}
+    style={blurDataUrl ? `background-image: url(${blurDataUrl}); background-size: cover;` : undefined}
+  />
+</picture>

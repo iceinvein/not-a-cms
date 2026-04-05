@@ -1,0 +1,40 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro"
+import { ContentEditor } from "../../../components/ContentEditor"
+
+const { collection } = Astro.params
+
+const collections = [
+  { name: "blog_post", label: "Blog Posts" },
+  { name: "page", label: "Pages" },
+]
+
+const current = collections.find(c => c.name === collection)
+const label = current?.label || collection || "Content"
+
+// Define fields per collection (in production, this comes from the schema)
+const fieldsByCollection: Record<string, Record<string, any>> = {
+  blog_post: {
+    title: { type: "text", required: true, maxLength: 200 },
+    slug: { type: "slug", from: "title" },
+    body: { type: "richText" },
+    status: { type: "select", options: ["draft", "published", "archived"], default: "draft" },
+  },
+  page: {
+    title: { type: "text", required: true },
+    slug: { type: "slug", from: "title" },
+    body: { type: "richText" },
+    status: { type: "select", options: ["draft", "published"], default: "draft" },
+  },
+}
+
+const fields = fieldsByCollection[collection || ""] || {}
+---
+<AdminLayout title={`New ${label.replace(/s$/, "")}`} collections={collections}>
+  <ContentEditor
+    client:load
+    collection={collection!}
+    collectionLabel={label}
+    fields={fields}
+  />
+</AdminLayout>

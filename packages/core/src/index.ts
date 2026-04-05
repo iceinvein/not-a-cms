@@ -9,6 +9,7 @@ export { bootstrapTables } from "./db/bootstrap"
 
 // Content
 export { createContentService } from "./content/service"
+export { slugify } from "./content/slugify"
 
 // Types
 export type {

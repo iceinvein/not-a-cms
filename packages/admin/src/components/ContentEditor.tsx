@@ -1,6 +1,19 @@
-import { useState, useEffect } from "react"
-import { Editor } from "@not-a-cms/editor"
-import { slugify } from "@not-a-cms/core"
+import { useState, useEffect, lazy, Suspense } from "react"
+
+// Lazy import to avoid Vite resolving bun:sqlite through the editor's dependency chain
+const Editor = lazy(() => import("@not-a-cms/editor").then(m => ({ default: m.Editor })))
+
+// Inline slugify to avoid pulling @not-a-cms/core (which imports bun:sqlite) into the Vite bundle
+function slugify(text: string): string {
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/[\s]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+}
 
 type FieldDef = {
   type: string
@@ -189,11 +202,13 @@ export function ContentEditor({
 
         return (
           <div className="border border-gray-300 rounded-lg overflow-hidden min-h-[300px]">
-            <Editor
-              content={ptContent}
-              onChange={(blocks) => updateField(name, JSON.stringify(blocks))}
-              placeholder="Type / to insert, or just start writing..."
-            />
+            <Suspense fallback={<div className="p-4 text-gray-400 text-sm">Loading editor...</div>}>
+              <Editor
+                content={ptContent}
+                onChange={(blocks) => updateField(name, JSON.stringify(blocks))}
+                placeholder="Type / to insert, or just start writing..."
+              />
+            </Suspense>
           </div>
         )
       }

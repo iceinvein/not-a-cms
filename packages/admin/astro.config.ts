@@ -14,5 +14,12 @@ export default defineConfig({
         "/health": "http://localhost:4321",
       },
     },
+    optimizeDeps: {
+      exclude: ["@not-a-cms/core", "@not-a-cms/editor"],
+    },
+    ssr: {
+      external: ["@not-a-cms/core"],
+      noExternal: ["@not-a-cms/editor"],
+    },
   },
 })

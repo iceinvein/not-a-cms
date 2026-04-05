@@ -36,12 +36,14 @@ const page = defineCollection({
 
 // --- Boot the server ---
 
+const port = parseInt(process.env.PORT ?? "4321")
+
 const { server } = createServer({
-  port: 4321,
-  database: { url: "dev.db" },
+  port,
+  database: { url: process.env.DATABASE_URL ?? "dev.db" },
   auth: {
-    secret: "dev-secret-do-not-use-in-production-" + "x".repeat(12),
-    baseURL: "http://localhost:4321",
+    secret: process.env.BETTER_AUTH_SECRET ?? "dev-secret-do-not-use-in-production-" + "x".repeat(12),
+    baseURL: process.env.BASE_URL ?? `http://localhost:${port}`,
     magicLink: {
       sendMagicLink: async ({ email, url }) => {
         console.log(`\n  ✉ Magic link for ${email}:`)

@@ -11,6 +11,8 @@ import { createRestHandler } from "./rest/handler"
 import { createSchemaHandler } from "./schema/handler"
 import { createAuth } from "./auth/setup"
 import { getSessionFromRequest } from "./auth/middleware"
+import { createLocalStorage } from "./media/storage"
+import { createMediaHandler } from "./media/handler"
 
 type ServerConfig = {
   port?: number
@@ -23,6 +25,7 @@ type ServerConfig = {
     }
   }
   collections: CollectionDef[]
+  storage?: { provider: "local"; path: string }
 }
 
 export function createServer(config: ServerConfig) {
@@ -43,6 +46,8 @@ export function createServer(config: ServerConfig) {
   const trpcRouter = appRouter(collections)
   const restHandler = createRestHandler(collections)
   const schemaHandler = createSchemaHandler(collections)
+  const storage = createLocalStorage(config.storage ?? { provider: "local", path: "./uploads" })
+  const mediaHandler = createMediaHandler(storage)
   const port = config.port ?? 4321
 
   const server = Bun.serve({
@@ -70,6 +75,12 @@ export function createServer(config: ServerConfig) {
           router: trpcRouter,
           createContext: () => ({ db, session }),
         })
+      }
+
+      // Media routes
+      if (url.pathname.startsWith("/api/media")) {
+        const res = await mediaHandler(req)
+        if (res) return res
       }
 
       // REST routes

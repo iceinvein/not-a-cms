@@ -1,4 +1,6 @@
-import { useState, useCallback } from "react"
+import { useState, useEffect } from "react"
+import { Editor } from "@not-a-cms/editor"
+import { slugify } from "@not-a-cms/core"
 
 type FieldDef = {
   type: string
@@ -31,6 +33,15 @@ export function ContentEditor({
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState("")
+
+  useEffect(() => {
+    if (documentId) {
+      fetch(`${apiBase}/api/${collection}/${documentId}`)
+        .then((res) => res.ok ? res.json() : null)
+        .then((doc) => { if (doc) setData(doc) })
+        .catch(() => {})
+    }
+  }, [documentId, collection, apiBase])
 
   const updateField = (name: string, value: unknown) => {
     setData((prev) => ({ ...prev, [name]: value }))
@@ -78,7 +89,6 @@ export function ContentEditor({
 
     switch (fieldDef.type) {
       case "text":
-      case "slug":
         return (
           <input
             type="text"
@@ -88,6 +98,37 @@ export function ContentEditor({
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         )
+
+      case "slug": {
+        const sourceField = fieldDef.from as string | undefined
+        const handleAutoGenerate = () => {
+          if (sourceField && data[sourceField]) {
+            const generated = slugify(String(data[sourceField]))
+            updateField(name, generated)
+          }
+        }
+
+        return (
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={String(value)}
+              onChange={(e) => updateField(name, e.target.value)}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder={sourceField ? `Auto-generated from ${sourceField}` : ""}
+            />
+            {sourceField && (
+              <button
+                type="button"
+                onClick={handleAutoGenerate}
+                className="px-3 py-2 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap"
+              >
+                Generate
+              </button>
+            )}
+          </div>
+        )
+      }
 
       case "select":
         return (
@@ -136,12 +177,26 @@ export function ContentEditor({
           />
         )
 
-      case "richText":
+      case "richText": {
+        const ptContent = (() => {
+          try {
+            const raw = value as string
+            return raw ? JSON.parse(raw) : undefined
+          } catch {
+            return undefined
+          }
+        })()
+
         return (
-          <div className="border border-gray-300 rounded-lg p-4 min-h-[200px] bg-gray-50 text-sm text-gray-400">
-            Rich text editor will be embedded here
+          <div className="border border-gray-300 rounded-lg overflow-hidden min-h-[300px]">
+            <Editor
+              content={ptContent}
+              onChange={(blocks) => updateField(name, JSON.stringify(blocks))}
+              placeholder="Type / to insert, or just start writing..."
+            />
           </div>
         )
+      }
 
       default:
         return (

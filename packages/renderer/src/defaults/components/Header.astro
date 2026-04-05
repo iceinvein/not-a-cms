@@ -1,0 +1,19 @@
+---
+interface Props {
+  siteName?: string
+  navItems?: Array<{ label: string; href: string }>
+}
+const { siteName = "not-a-cms", navItems = [] } = Astro.props
+---
+<header class="border-b border-gray-200 bg-white">
+  <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+    <a href="/" class="text-lg font-bold text-gray-900">{siteName}</a>
+    {navItems.length > 0 && (
+      <nav class="flex gap-6">
+        {navItems.map(item => (
+          <a href={item.href} class="text-sm text-gray-600 hover:text-gray-900 transition-colors">{item.label}</a>
+        ))}
+      </nav>
+    )}
+  </div>
+</header>

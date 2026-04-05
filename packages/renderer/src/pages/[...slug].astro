@@ -1,0 +1,16 @@
+---
+import DefaultLayout from "../defaults/layouts/default.astro"
+import { renderTextChildren } from "../runtime/block-renderer"
+
+// In production, this fetches from the API using the content fetcher
+// For now, show a placeholder that demonstrates the routing works
+const { slug } = Astro.params
+const slugPath = slug || ""
+---
+<DefaultLayout title={slugPath || "Page"}>
+  <article class="prose prose-gray max-w-none">
+    <p class="text-gray-500">
+      Content for <code>/{slugPath}</code> will be rendered here when connected to the API.
+    </p>
+  </article>
+</DefaultLayout>

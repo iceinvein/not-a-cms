@@ -1,0 +1,28 @@
+---
+import Header from "../components/Header.astro"
+import Footer from "../components/Footer.astro"
+
+interface Props {
+  title: string
+  siteName?: string
+  description?: string
+}
+
+const { title, siteName = "not-a-cms", description = "" } = Astro.props
+---
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title} — {siteName}</title>
+  {description && <meta name="description" content={description} />}
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+<body class="bg-white text-gray-900 min-h-screen flex flex-col">
+  <Header siteName={siteName} />
+  <main class="flex-1 max-w-4xl mx-auto px-4 py-8 w-full">
+    <slot />
+  </main>
+  <Footer siteName={siteName} />
+</body>
+</html>

@@ -1,6 +1,6 @@
 ---
 interface Props {
-  collections?: Array<{ name: string; label: string }>
+  collections?: Array<{ name: string; label?: string; labels?: { singular: string; plural: string } }>
   currentPath: string
 }
 
@@ -10,7 +10,7 @@ const navItems = [
   { href: "/", label: "Dashboard", icon: "📊" },
   ...collections.map(c => ({
     href: `/content/${c.name}`,
-    label: c.label,
+    label: c.labels?.plural ?? c.label ?? c.name,
     icon: "📄",
   })),
   { href: "/media", label: "Media", icon: "🖼️" },

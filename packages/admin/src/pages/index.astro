@@ -1,13 +1,11 @@
 ---
 import AdminLayout from "../layouts/AdminLayout.astro"
 import { DashboardStats } from "../components/DashboardStats"
+import { fetchCollections } from "../lib/schema"
 
-const collections = [
-  { name: "blog_post", label: "Blog Posts" },
-  { name: "page", label: "Pages" },
-]
+const collections = await fetchCollections()
 ---
-<AdminLayout title="Dashboard" collections={collections}>
+<AdminLayout title="Dashboard">
   <div class="space-y-8">
     <section>
       <h2 class="text-lg font-medium text-gray-900 mb-4">Content Overview</h2>
@@ -22,7 +20,7 @@ const collections = [
             href={`/content/${c.name}/new`}
             class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
           >
-            + New {c.label.replace(/s$/, "")}
+            + New {c.labels.singular}
           </a>
         ))}
       </div>

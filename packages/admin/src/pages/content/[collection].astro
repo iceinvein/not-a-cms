@@ -1,0 +1,28 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro"
+import { ContentList } from "../../components/ContentList"
+
+const { collection } = Astro.params
+
+const collections = [
+  { name: "blog_post", label: "Blog Posts" },
+  { name: "page", label: "Pages" },
+]
+
+const current = collections.find(c => c.name === collection)
+const label = current?.label || collection || "Content"
+---
+<AdminLayout title={label} collections={collections}>
+  <div class="space-y-4">
+    <div class="flex items-center justify-between">
+      <p class="text-sm text-gray-500">Manage your {label.toLowerCase()}</p>
+      <a
+        href={`/content/${collection}/new`}
+        class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+      >
+        + New
+      </a>
+    </div>
+    <ContentList client:load collection={collection!} collectionLabel={label} />
+  </div>
+</AdminLayout>

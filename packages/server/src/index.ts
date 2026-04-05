@@ -8,6 +8,7 @@ import {
 } from "@not-a-cms/core"
 import { appRouter } from "./trpc/router"
 import { createRestHandler } from "./rest/handler"
+import { createSchemaHandler } from "./schema/handler"
 import { createAuth } from "./auth/setup"
 import { getSessionFromRequest } from "./auth/middleware"
 
@@ -41,6 +42,7 @@ export function createServer(config: ServerConfig) {
 
   const trpcRouter = appRouter(collections)
   const restHandler = createRestHandler(collections)
+  const schemaHandler = createSchemaHandler(collections)
   const port = config.port ?? 4321
 
   const server = Bun.serve({
@@ -51,6 +53,12 @@ export function createServer(config: ServerConfig) {
       // Auth routes
       if (url.pathname.startsWith("/api/auth")) {
         return auth.handler(req)
+      }
+
+      // Schema metadata
+      if (url.pathname.startsWith("/api/_schema")) {
+        const res = await schemaHandler(req)
+        if (res) return res
       }
 
       // tRPC routes

@@ -1,0 +1,12 @@
+---
+import AdminLayout from "../layouts/AdminLayout.astro"
+import { MediaLibrary } from "../components/MediaLibrary"
+
+const collections = [
+  { name: "blog_post", label: "Blog Posts" },
+  { name: "page", label: "Pages" },
+]
+---
+<AdminLayout title="Media Library" collections={collections}>
+  <MediaLibrary client:load />
+</AdminLayout>

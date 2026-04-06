@@ -54,6 +54,7 @@ export function ContentEditor({
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState("")
+  const [versionKey, setVersionKey] = useState(0)
 
   useEffect(() => {
     if (documentId) {
@@ -98,6 +99,7 @@ export function ContentEditor({
       }
 
       setSaved(true)
+      setVersionKey(k => k + 1)
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -312,6 +314,7 @@ export function ContentEditor({
           <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-2">
             <h3 className="font-medium text-sm text-gray-900">Version History</h3>
             <VersionHistory
+              key={versionKey}
               collection={collection}
               documentId={documentId}
               apiBase={apiBase}

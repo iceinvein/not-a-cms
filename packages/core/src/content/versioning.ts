@@ -23,10 +23,11 @@ export function createVersioningService(db: AppDatabase) {
     const id = crypto.randomUUID()
     const now = new Date().toISOString()
 
-    const rows = db.all<{ max_v: number | null }>(
+    type MaxResult = { max_v: number | null }
+    const rows = db.all<MaxResult>(
       sql`SELECT MAX(version_number) as max_v FROM _versions WHERE collection = ${collection} AND document_id = ${documentId}`,
     )
-    const maxV = (rows[0] as any)?.max_v ?? 0
+    const maxV = (rows as MaxResult[])[0]?.max_v ?? 0
     const versionNumber = maxV + 1
 
     const dataJson = JSON.stringify(data)
@@ -42,14 +43,14 @@ export function createVersioningService(db: AppDatabase) {
     const rows = db.all<VersionRow>(
       sql`SELECT * FROM _versions WHERE collection = ${collection} AND document_id = ${documentId} ORDER BY version_number DESC`,
     )
-    return (rows as any[]).map(parseVersionRow)
+    return (rows as VersionRow[]).map(parseVersionRow)
   }
 
   function getVersion(versionId: string): VersionRecord | null {
     const rows = db.all<VersionRow>(
       sql`SELECT * FROM _versions WHERE id = ${versionId}`,
     )
-    const row = (rows as any[])[0]
+    const row = (rows as VersionRow[])[0]
     if (!row) return null
     return parseVersionRow(row)
   }
@@ -57,7 +58,7 @@ export function createVersioningService(db: AppDatabase) {
   return { createVersion, listVersions, getVersion }
 }
 
-function parseVersionRow(row: any): VersionRecord {
+function parseVersionRow(row: VersionRow): VersionRecord {
   return {
     ...row,
     data: typeof row.data === "string" ? JSON.parse(row.data) : row.data,

@@ -1,4 +1,4 @@
-import type { CollectionDef } from "@not-a-cms/core"
+import type { CollectionDef, VersioningService } from "@not-a-cms/core"
 import type { createContentService } from "@not-a-cms/core"
 
 export type CollectionEntry = {
@@ -16,7 +16,7 @@ function json(data: unknown, status = 200) {
 
 export function createRestHandler(
   collections: Map<string, CollectionEntry>,
-  versioning?: { createVersion: Function; listVersions: Function; getVersion: Function },
+  versioning?: VersioningService,
 ) {
   return async function handler(req: Request): Promise<Response | null> {
     const url = new URL(req.url)

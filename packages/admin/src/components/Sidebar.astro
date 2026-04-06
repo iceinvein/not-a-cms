@@ -50,8 +50,22 @@ const navItems = [
     </ul>
   </nav>
 
-  <div class="p-3 border-t border-gray-200">
-    <a href="/settings" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50">
+  <div class="p-3 border-t border-gray-200 space-y-1">
+    <a href="/webhooks" class:list={[
+      "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+      currentPath === "/webhooks"
+        ? "bg-blue-50 text-blue-700 font-medium"
+        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
+    ]}>
+      <span>🔗</span>
+      <span>Webhooks</span>
+    </a>
+    <a href="/settings" class:list={[
+      "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+      currentPath === "/settings"
+        ? "bg-blue-50 text-blue-700 font-medium"
+        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
+    ]}>
       <span>⚙️</span>
       <span>Settings</span>
     </a>

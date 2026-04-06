@@ -7,5 +7,6 @@ import "./commands/dev"
 import "./commands/generate"
 import "./commands/migrate"
 import "./commands/build"
+import "./commands/import"
 
 runCLI(Bun.argv)

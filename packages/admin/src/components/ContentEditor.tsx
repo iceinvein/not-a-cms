@@ -1,5 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from "react"
 import { VersionHistory } from "./VersionHistory"
+import { PreviewLink } from "./PreviewLink"
 import { ToastProvider, useToast } from "./Toast"
 import { ErrorBoundary } from "./ErrorBoundary"
 
@@ -315,6 +316,13 @@ function ContentEditorInner({
               apiBase={apiBase}
               onRestore={handleRestore}
             />
+          </div>
+        )}
+
+        {documentId && (
+          <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-2">
+            <h3 className="font-medium text-sm text-gray-900">Preview</h3>
+            <PreviewLink collection={collection} documentId={documentId} apiBase={apiBase} />
           </div>
         )}
       </div>

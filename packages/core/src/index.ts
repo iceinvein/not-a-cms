@@ -2,6 +2,9 @@
 export { field } from "./schema/field"
 export { defineCollection } from "./schema/collection"
 
+// Roles
+export { filterFieldsByRole } from "./roles/field-filter"
+
 // Database
 export { createDatabase, type AppDatabase, type DatabaseConfig } from "./db/connection"
 export { generateTable } from "./db/generate-table"
@@ -20,6 +23,23 @@ export { createVersioningService, type VersioningService, type VersionRecord } f
 
 // Search
 export { createSearchService, extractTextFromPortableText, type SearchService, type SearchResult } from "./content/search"
+
+// Scheduler
+export { createScheduler, type Scheduler } from "./content/scheduler"
+
+// Webhooks
+export { createWebhookStore, type WebhookStore } from "./webhooks/store"
+export { createWebhookService, type WebhookService } from "./webhooks/service"
+export type { WebhookConfig, WebhookDelivery, WebhookEvent } from "./webhooks/types"
+
+// Preview
+export { createPreviewTokenService, type PreviewTokenService } from "./preview/tokens"
+
+// Settings
+export { createSettingsService, type SettingsService } from "./settings/service"
+
+// Import
+export { parseWXR, htmlToPortableText } from "./import/wordpress"
 
 // Types
 export type {

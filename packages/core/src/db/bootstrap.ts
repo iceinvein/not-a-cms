@@ -57,4 +57,40 @@ export function bootstrapTables(db: AppDatabase, collections: CollectionDef[]) {
     body_text,
     tokenize='porter unicode61'
   )`)}`)
+
+  db.run(sql`${sql.raw(`CREATE TABLE IF NOT EXISTS _webhooks (
+    id TEXT PRIMARY KEY,
+    url TEXT NOT NULL,
+    events TEXT NOT NULL,
+    collection TEXT,
+    secret TEXT,
+    active INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL
+  )`)}`)
+
+  db.run(sql`${sql.raw(`CREATE TABLE IF NOT EXISTS _webhook_logs (
+    id TEXT PRIMARY KEY,
+    webhook_id TEXT NOT NULL,
+    event TEXT NOT NULL,
+    status INTEGER NOT NULL,
+    request_body TEXT NOT NULL,
+    response_body TEXT,
+    attempts INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL
+  )`)}`)
+
+  db.run(sql`${sql.raw(`CREATE TABLE IF NOT EXISTS _preview_tokens (
+    id TEXT PRIMARY KEY,
+    token TEXT NOT NULL UNIQUE,
+    collection TEXT NOT NULL,
+    document_id TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  )`)}`)
+
+  db.run(sql`${sql.raw(`CREATE TABLE IF NOT EXISTS _settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  )`)}`)
 }

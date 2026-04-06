@@ -6,6 +6,11 @@ import {
   bootstrapTables,
   createVersioningService,
   createSearchService,
+  createScheduler,
+  createWebhookStore,
+  createWebhookService,
+  createPreviewTokenService,
+  createSettingsService,
   type CollectionDef,
 } from "@not-a-cms/core"
 import { appRouter } from "./trpc/router"
@@ -17,6 +22,9 @@ import { createLocalStorage } from "./media/storage"
 import { createImageOptimizer } from "./media/optimizer"
 import { createMediaHandler } from "./media/handler"
 import { collabWebSocket, type CollabWSData } from "./collab/handler"
+import { createPreviewHandler } from "./preview/handler"
+import { buildGraphQLSchema } from "./graphql/schema"
+import { createGraphQLHandler } from "./graphql/handler"
 
 type ServerConfig = {
   port?: number
@@ -41,6 +49,8 @@ export function createServer(config: ServerConfig) {
 
   const versioning = createVersioningService(db)
   const search = createSearchService(db)
+  const webhookStore = createWebhookStore(db)
+  const webhookService = createWebhookService(webhookStore)
 
   // Build collection registry
   const collections = new Map()
@@ -50,8 +60,15 @@ export function createServer(config: ServerConfig) {
     collections.set(def.name, { def, table, service })
   }
 
+  const settingsService = createSettingsService(db)
+  const previewTokenService = createPreviewTokenService(db)
+  const previewHandler = createPreviewHandler(previewTokenService, collections)
+
+  const graphqlSchema = buildGraphQLSchema(collections)
+  const graphqlHandler = createGraphQLHandler(graphqlSchema)
+
   const trpcRouter = appRouter(collections)
-  const restHandler = createRestHandler(collections, versioning, search)
+  const restHandler = createRestHandler(collections, versioning, search, webhookStore, settingsService)
   const schemaHandler = createSchemaHandler(collections)
   const storagePath = config.storage?.path ?? "./uploads"
   const optimizer = createImageOptimizer(storagePath)
@@ -84,6 +101,11 @@ export function createServer(config: ServerConfig) {
         if (res) return res
       }
 
+      // GraphQL
+      if (url.pathname.startsWith("/graphql")) {
+        return graphqlHandler(req)
+      }
+
       // tRPC routes
       if (url.pathname.startsWith("/trpc")) {
         const session = await getSessionFromRequest(auth, req)
@@ -93,6 +115,12 @@ export function createServer(config: ServerConfig) {
           router: trpcRouter,
           createContext: () => ({ db, session }),
         })
+      }
+
+      // Preview routes
+      if (url.pathname.startsWith("/api/_preview")) {
+        const res = await previewHandler(req)
+        if (res) return res
       }
 
       // Media routes
@@ -116,11 +144,21 @@ export function createServer(config: ServerConfig) {
     },
   })
 
+  const scheduler = createScheduler(collections)
+  setInterval(async () => {
+    try {
+      const promoted = await scheduler.promoteScheduled()
+      if (promoted.length > 0 && !process.env.QUIET) {
+        console.log(`  Scheduled publishing: promoted ${promoted.length} post(s)`)
+      }
+    } catch {}
+  }, 60_000)
+
   if (!process.env.QUIET) {
     console.log(`not-a-cms API server on http://localhost:${server.port}`)
   }
 
-  return { server, db, collections, versioning, search, trpcRouter }
+  return { server, db, collections, versioning, search, trpcRouter, webhookStore, webhookService, previewTokenService, settingsService }
 }
 
 // Re-exports for external consumers

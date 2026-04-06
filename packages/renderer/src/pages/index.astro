@@ -1,0 +1,38 @@
+---
+import DefaultLayout from "../defaults/layouts/default.astro"
+import { createContentFetcher } from "../runtime/content-fetcher"
+
+const apiBase = import.meta.env.PUBLIC_API_BASE || "http://localhost:4321"
+const fetcher = createContentFetcher({ apiBase })
+
+let posts: Array<{ title?: string; slug?: string; excerpt?: string; created_at?: string; status?: string }> = []
+try {
+  const allPosts = await fetcher.list("blog_post", { limit: 20 })
+  posts = allPosts.filter((p) => p.status === "published")
+} catch {
+  // API may not be running during build
+}
+---
+<DefaultLayout title="Home">
+  <h1 class="text-4xl font-bold mb-8">Latest Posts</h1>
+
+  {posts.length === 0 ? (
+    <p class="text-gray-500">No published posts yet.</p>
+  ) : (
+    <div class="space-y-8">
+      {posts.map((post) => (
+        <article class="border-b border-gray-200 pb-8 last:border-0">
+          <h2 class="text-2xl font-semibold mb-2">
+            <a href={`/${post.slug || post.title}`} class="hover:text-blue-600 transition-colors">
+              {post.title}
+            </a>
+          </h2>
+          {post.excerpt && <p class="text-gray-600 mb-2">{post.excerpt}</p>}
+          <time class="text-sm text-gray-400">
+            {post.created_at ? new Date(post.created_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : ""}
+          </time>
+        </article>
+      ))}
+    </div>
+  )}
+</DefaultLayout>

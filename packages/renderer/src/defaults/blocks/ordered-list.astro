@@ -1,0 +1,18 @@
+---
+import { renderTextChildren } from "../../runtime/block-renderer"
+const { block } = Astro.props
+const items = block.items || []
+---
+<ol class="list-decimal pl-6 my-4 space-y-1">
+  {items.map((item: any[]) => (
+    <li>
+      {item.map((child: any) => {
+        if (child.type === "paragraph") {
+          const html = renderTextChildren(child.children || [])
+          return <span set:html={html} />
+        }
+        return null
+      })}
+    </li>
+  ))}
+</ol>

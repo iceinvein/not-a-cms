@@ -1,0 +1,19 @@
+{
+  "name": "not-a-cms",
+  "private": true,
+  "packageManager": "bun@1.2.0",
+  "workspaces": ["packages/*"],
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.7.0",
+    "@types/bun": "latest"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "bun scripts/dev.ts",
+    "dev:server": "bun --hot packages/server/src/dev.ts",
+    "dev:admin": "cd packages/admin && bunx astro dev --port 4322",
+    "test": "turbo run test",
+    "test:watch": "turbo run test:watch"
+  }
+}

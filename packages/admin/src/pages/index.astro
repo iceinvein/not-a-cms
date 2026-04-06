@@ -1,0 +1,29 @@
+---
+import AdminLayout from "../layouts/AdminLayout.astro"
+import { DashboardStats } from "../components/DashboardStats"
+import { fetchCollections } from "../lib/schema"
+
+const collections = await fetchCollections()
+---
+<AdminLayout title="Dashboard">
+  <div class="space-y-8">
+    <section>
+      <h2 class="text-lg font-medium text-gray-900 mb-4">Content Overview</h2>
+      <DashboardStats client:load />
+    </section>
+
+    <section>
+      <h2 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h2>
+      <div class="flex gap-3">
+        {collections.map(c => (
+          <a
+            href={`/content/${c.name}/new`}
+            class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+          >
+            + New {c.labels.singular}
+          </a>
+        ))}
+      </div>
+    </section>
+  </div>
+</AdminLayout>

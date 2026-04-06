@@ -1,0 +1,15 @@
+---
+import { renderTextChildren } from "../../runtime/block-renderer"
+const { block } = Astro.props
+// blockquote children can be nested blocks (paragraphs)
+const children = block.children || []
+---
+<blockquote class="border-l-4 border-gray-300 pl-4 my-4 italic text-gray-700">
+  {children.map((child: any) => {
+    if (child.type === "paragraph") {
+      const html = renderTextChildren(child.children || [])
+      return <p set:html={html} />
+    }
+    return null
+  })}
+</blockquote>

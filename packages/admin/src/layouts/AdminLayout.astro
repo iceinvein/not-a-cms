@@ -1,0 +1,56 @@
+---
+import Sidebar from "../components/Sidebar.astro"
+import { fetchCollections } from "../lib/schema"
+
+interface Props {
+  title: string
+}
+
+const { title } = Astro.props
+const currentPath = Astro.url.pathname
+const collections = await fetchCollections()
+
+// Auth check — skip for login and auth callback pages
+const isAuthPage = currentPath === "/login" || currentPath.startsWith("/auth/")
+if (!isAuthPage) {
+  try {
+    const sessionRes = await fetch("http://localhost:4321/api/auth/get-session", {
+      headers: { cookie: Astro.request.headers.get("cookie") || "" },
+    })
+    const session = await sessionRes.json()
+    if (!session?.user) {
+      return Astro.redirect("/login")
+    }
+  } catch {
+    // Allow access if API is unreachable (dev convenience)
+  }
+}
+---
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title} — not-a-cms</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div class="flex">
+    <Sidebar collections={collections} currentPath={currentPath} />
+
+    <main class="flex-1 min-h-screen">
+      <header class="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+        <h1 class="text-xl font-semibold text-gray-900">{title}</h1>
+        <div class="flex items-center gap-4">
+          <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-sm">
+            👤
+          </div>
+        </div>
+      </header>
+
+      <div class="p-8">
+        <slot />
+      </div>
+    </main>
+  </div>
+</body>
+</html>

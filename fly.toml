@@ -1,0 +1,22 @@
+app = "not-a-cms"
+primary_region = "ord"
+
+[build]
+
+[env]
+  PORT = "4321"
+
+[http_service]
+  internal_port = 4321
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[mounts]
+  source = "cms_data"
+  destination = "/app/data"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

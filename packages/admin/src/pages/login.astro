@@ -1,0 +1,9 @@
+---
+import AuthLayout from "../layouts/AuthLayout.astro"
+import { LoginForm } from "../components/LoginForm"
+---
+<AuthLayout title="Sign In">
+  <h2 class="text-lg font-semibold text-gray-900 mb-2">Sign in to your account</h2>
+  <p class="text-sm text-gray-500 mb-6">Enter your email to receive a magic link</p>
+  <LoginForm client:load />
+</AuthLayout>

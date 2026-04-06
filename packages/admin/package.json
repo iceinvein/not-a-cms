@@ -1,0 +1,25 @@
+{
+  "name": "@not-a-cms/admin",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --port 4321",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^5.18.1",
+    "@astrojs/react": "^5.0.2",
+    "@astrojs/tailwind": "^6.0.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^3.4.19",
+    "@not-a-cms/core": "workspace:*",
+    "@not-a-cms/editor": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0"
+  }
+}

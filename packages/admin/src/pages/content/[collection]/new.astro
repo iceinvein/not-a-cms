@@ -1,0 +1,20 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro"
+import { ContentEditor } from "../../../components/ContentEditor"
+import { fetchCollection } from "../../../lib/schema"
+
+const { collection } = Astro.params
+const schema = await fetchCollection(collection!)
+
+if (!schema) return Astro.redirect("/")
+
+const label = schema.labels.singular
+---
+<AdminLayout title={`New ${label}`}>
+  <ContentEditor
+    client:load
+    collection={collection!}
+    collectionLabel={label}
+    fields={schema.fields}
+  />
+</AdminLayout>

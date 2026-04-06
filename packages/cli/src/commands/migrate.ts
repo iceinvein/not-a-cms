@@ -7,10 +7,16 @@ registerCommand({
   description: "Run database migrations",
   async run(args) {
     const subcommand = args[0] || "run"
-
     const configPath = join(process.cwd(), "not-a-cms.config.ts")
+
     if (!existsSync(configPath)) {
       console.error("No not-a-cms.config.ts found")
+      process.exit(1)
+    }
+
+    const migrationsDir = join(process.cwd(), "migrations")
+    if (!existsSync(migrationsDir)) {
+      console.error("No migrations/ directory found. Run 'not-a-cms generate migration' first.")
       process.exit(1)
     }
 
@@ -18,34 +24,39 @@ registerCommand({
       const config = await import(configPath)
       const dbUrl = config.default?.database?.url ?? "data.db"
 
+      const { createDatabase, createMigrator } = await import("@not-a-cms/core")
+      const db = createDatabase({ url: dbUrl })
+      const migrator = createMigrator(db, migrationsDir)
+      migrator.init()
+
       switch (subcommand) {
         case "run": {
-          console.log(`Running migrations on ${dbUrl}...`)
+          const status = migrator.status()
+          if (status.pending.length === 0) {
+            console.log("No pending migrations.")
+            return
+          }
 
-          const { createDatabase, bootstrapTables } = await import("@not-a-cms/core")
-          const db = createDatabase({ url: dbUrl })
-          const collections = config.default?.collections ?? []
-
-          bootstrapTables(db, collections)
-          console.log(`Bootstrapped ${collections.length} table(s)`)
+          console.log(`Applying ${status.pending.length} migration(s)...`)
+          const result = migrator.run()
+          for (const name of result.applied) {
+            console.log(`  Applied: ${name}`)
+          }
           console.log("Done.")
           break
         }
 
         case "status": {
+          const status = migrator.status()
           console.log(`Database: ${dbUrl}`)
-          console.log(`Checking migration status...`)
-          if (existsSync(dbUrl)) {
-            console.log("Database file exists")
-          } else {
-            console.log("No database file yet — will be created on first run")
+          console.log(`Applied: ${status.applied.length}`)
+          for (const name of status.applied) {
+            console.log(`  [applied] ${name}`)
           }
-          break
-        }
-
-        case "rollback": {
-          console.log("Rollback is not yet supported.")
-          console.log("Restore from a database backup instead.")
+          console.log(`Pending: ${status.pending.length}`)
+          for (const name of status.pending) {
+            console.log(`  [pending] ${name}`)
+          }
           break
         }
 
@@ -54,9 +65,8 @@ registerCommand({
   Usage: not-a-cms migrate [subcommand]
 
   Subcommands:
-    run         Run pending migrations (default)
+    run         Apply pending migrations (default)
     status      Show migration status
-    rollback    Revert last migration (not yet supported)
 `)
       }
     } catch (err: any) {

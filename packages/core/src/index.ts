@@ -7,6 +7,10 @@ export { createDatabase, type AppDatabase, type DatabaseConfig } from "./db/conn
 export { generateTable } from "./db/generate-table"
 export { bootstrapTables } from "./db/bootstrap"
 
+// Migrations
+export { createMigrator, type Migrator } from "./db/migrator"
+export { generateMigrationSQL, generateCreateTableSQL } from "./db/schema-generator"
+
 // Content
 export { createContentService } from "./content/service"
 export { slugify } from "./content/slugify"

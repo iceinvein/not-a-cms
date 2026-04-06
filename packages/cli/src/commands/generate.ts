@@ -1,5 +1,5 @@
 import { registerCommand } from "../router"
-import { existsSync } from "node:fs"
+import { existsSync, writeFileSync, mkdirSync } from "node:fs"
 import { join } from "node:path"
 
 registerCommand({
@@ -9,11 +9,17 @@ registerCommand({
     const subcommand = args[0]
 
     if (subcommand === "types") {
-      console.log("Generating TypeScript types from schema...")
+      console.log("Types are auto-generated from your schema at runtime.")
+      console.log("No separate type generation step needed with TypeScript-first schemas.")
+      return
+    }
 
+    if (subcommand === "migration") {
+      const migrationName = args[1] || "schema"
       const configPath = join(process.cwd(), "not-a-cms.config.ts")
+
       if (!existsSync(configPath)) {
-        console.error("No not-a-cms.config.ts found")
+        console.error("No not-a-cms.config.ts found in current directory")
         process.exit(1)
       }
 
@@ -21,28 +27,37 @@ registerCommand({
         const config = await import(configPath)
         const collections = config.default?.collections ?? []
 
-        console.log(`Found ${collections.length} collection(s):`)
-        for (const col of collections) {
-          console.log(`  - ${col.name} (${Object.keys(col.fields).length} fields)`)
+        if (collections.length === 0) {
+          console.error("No collections defined in config")
+          process.exit(1)
         }
-        console.log("\nTypes are auto-generated from your schema at runtime.")
-        console.log("No separate type generation step needed with TypeScript-first schemas.")
+
+        const { generateMigrationSQL } = await import("@not-a-cms/core")
+        const sql = generateMigrationSQL(collections)
+
+        const migrationsDir = join(process.cwd(), "migrations")
+        mkdirSync(migrationsDir, { recursive: true })
+
+        const timestamp = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14)
+        const filename = `${timestamp}_${migrationName}.sql`
+        const filepath = join(migrationsDir, filename)
+
+        writeFileSync(filepath, sql)
+        console.log(`Created migration: migrations/${filename}`)
+        console.log(`Run 'not-a-cms migrate' to apply it.`)
       } catch (err: any) {
-        console.error("Failed to load config:", err.message)
+        console.error("Failed to generate migration:", err.message)
         process.exit(1)
       }
-    } else if (subcommand === "migration") {
-      console.log("Generating migration from schema changes...")
-      console.log("\nRun: bunx drizzle-kit generate")
-      console.log("Then: not-a-cms migrate")
-    } else {
-      console.log(`
+      return
+    }
+
+    console.log(`
   Usage: not-a-cms generate <subcommand>
 
   Subcommands:
-    types       Show schema type info (types are auto-generated at runtime)
-    migration   Generate a SQL migration from schema changes
+    types           Show schema type info (types are auto-generated at runtime)
+    migration [name]  Generate a SQL migration from current schema
 `)
-    }
   },
 })

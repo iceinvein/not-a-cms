@@ -1,4 +1,4 @@
-import type { CollectionDef, VersioningService } from "@not-a-cms/core"
+import type { CollectionDef, VersioningService, WebhookStore } from "@not-a-cms/core"
 import type { createContentService } from "@not-a-cms/core"
 
 export type CollectionEntry = {
@@ -18,6 +18,7 @@ export function createRestHandler(
   collections: Map<string, CollectionEntry>,
   versioning?: VersioningService,
   search?: { query: (term: string, collection?: string) => Array<{ collection: string; document_id: string }> },
+  webhookStore?: WebhookStore,
 ) {
   return async function handler(req: Request): Promise<Response | null> {
     const url = new URL(req.url)
@@ -36,6 +37,41 @@ export function createRestHandler(
 
     const collectionName = segments[0]
     const id = segments[1] ?? null
+    const method = req.method.toUpperCase()
+
+    // Webhook management: /api/_webhooks
+    if (collectionName === "_webhooks" && webhookStore) {
+      if (id === null) {
+        if (method === "GET") return json({ data: webhookStore.list() })
+        if (method === "POST") {
+          const body = await req.json()
+          const hook = webhookStore.create(body)
+          return json(hook, 201)
+        }
+        return json({ error: "Method not allowed" }, 405)
+      } else {
+        if (method === "GET") {
+          // Check for /api/_webhooks/:id/logs
+          if (segments.length === 3 && segments[2] === "logs") {
+            return json({ data: webhookStore.getDeliveryLogs(id) })
+          }
+          const hook = webhookStore.getById(id)
+          if (!hook) return json({ error: "Webhook not found" }, 404)
+          return json(hook)
+        }
+        if (method === "PATCH") {
+          const body = await req.json()
+          const updated = webhookStore.update(id, body)
+          if (!updated) return json({ error: "Webhook not found" }, 404)
+          return json(updated)
+        }
+        if (method === "DELETE") {
+          webhookStore.remove(id)
+          return json({ deleted: true })
+        }
+        return json({ error: "Method not allowed" }, 405)
+      }
+    }
 
     const entry = collections.get(collectionName)
     if (!entry) {
@@ -43,7 +79,6 @@ export function createRestHandler(
     }
 
     const service = entry.service
-    const method = req.method.toUpperCase()
 
     try {
       // Slug lookup: /api/:collection/slug/:slug

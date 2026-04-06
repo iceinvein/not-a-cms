@@ -7,6 +7,8 @@ import {
   createVersioningService,
   createSearchService,
   createScheduler,
+  createWebhookStore,
+  createWebhookService,
   type CollectionDef,
 } from "@not-a-cms/core"
 import { appRouter } from "./trpc/router"
@@ -42,6 +44,8 @@ export function createServer(config: ServerConfig) {
 
   const versioning = createVersioningService(db)
   const search = createSearchService(db)
+  const webhookStore = createWebhookStore(db)
+  const webhookService = createWebhookService(webhookStore)
 
   // Build collection registry
   const collections = new Map()
@@ -52,7 +56,7 @@ export function createServer(config: ServerConfig) {
   }
 
   const trpcRouter = appRouter(collections)
-  const restHandler = createRestHandler(collections, versioning, search)
+  const restHandler = createRestHandler(collections, versioning, search, webhookStore)
   const schemaHandler = createSchemaHandler(collections)
   const storagePath = config.storage?.path ?? "./uploads"
   const optimizer = createImageOptimizer(storagePath)
@@ -131,7 +135,7 @@ export function createServer(config: ServerConfig) {
     console.log(`not-a-cms API server on http://localhost:${server.port}`)
   }
 
-  return { server, db, collections, versioning, search, trpcRouter }
+  return { server, db, collections, versioning, search, trpcRouter, webhookStore, webhookService }
 }
 
 // Re-exports for external consumers

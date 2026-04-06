@@ -1,16 +1,50 @@
 ---
 import DefaultLayout from "../defaults/layouts/default.astro"
-import { renderTextChildren } from "../runtime/block-renderer"
+import { createContentFetcher } from "../runtime/content-fetcher"
+import { portableTextToHtml } from "../runtime/channel"
 
-// In production, this fetches from the API using the content fetcher
-// For now, show a placeholder that demonstrates the routing works
+const apiBase = import.meta.env.PUBLIC_API_BASE || "http://localhost:4321"
+const fetcher = createContentFetcher({ apiBase })
+
 const { slug } = Astro.params
 const slugPath = slug || ""
+
+// Try each collection until we find a match
+let post = null
+const collections = ["blog_post", "page"]
+
+for (const collection of collections) {
+  try {
+    post = await fetcher.getBySlug(collection, slugPath)
+    if (post) break
+  } catch {
+    // Continue to next collection
+  }
+}
+
+if (!post) {
+  return Astro.redirect("/404")
+}
+
+// Parse body from Portable Text JSON
+let bodyHtml = ""
+if (post.body) {
+  try {
+    const blocks = typeof post.body === "string" ? JSON.parse(post.body) : post.body
+    bodyHtml = portableTextToHtml(blocks)
+  } catch {
+    bodyHtml = "<p>Error rendering content.</p>"
+  }
+}
 ---
-<DefaultLayout title={slugPath || "Page"}>
+<DefaultLayout title={String(post.title || slugPath)}>
   <article class="prose prose-gray max-w-none">
-    <p class="text-gray-500">
-      Content for <code>/{slugPath}</code> will be rendered here when connected to the API.
-    </p>
+    <h1>{post.title}</h1>
+    {post.created_at && (
+      <time class="text-sm text-gray-400 block mb-8">
+        {new Date(post.created_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+      </time>
+    )}
+    <Fragment set:html={bodyHtml} />
   </article>
 </DefaultLayout>

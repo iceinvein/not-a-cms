@@ -1,4 +1,4 @@
-import type { CollectionDef, VersioningService, WebhookStore } from "@not-a-cms/core"
+import type { CollectionDef, VersioningService, WebhookStore, SettingsService } from "@not-a-cms/core"
 import type { createContentService } from "@not-a-cms/core"
 
 export type CollectionEntry = {
@@ -19,6 +19,7 @@ export function createRestHandler(
   versioning?: VersioningService,
   search?: { query: (term: string, collection?: string) => Array<{ collection: string; document_id: string }> },
   webhookStore?: WebhookStore,
+  settingsService?: SettingsService,
 ) {
   return async function handler(req: Request): Promise<Response | null> {
     const url = new URL(req.url)
@@ -71,6 +72,26 @@ export function createRestHandler(
         }
         return json({ error: "Method not allowed" }, 405)
       }
+    }
+
+    // Settings: /api/_settings
+    if (collectionName === "_settings" && settingsService) {
+      if (method === "GET") {
+        const prefix = url.searchParams.get("prefix") || undefined
+        return json({ data: settingsService.getAll(prefix) })
+      }
+      if (method === "PUT" || method === "POST") {
+        const body = await req.json()
+        for (const [key, value] of Object.entries(body)) {
+          settingsService.set(key, String(value))
+        }
+        return json({ ok: true })
+      }
+      if (method === "DELETE" && id) {
+        settingsService.remove(id)
+        return json({ deleted: true })
+      }
+      return json({ error: "Method not allowed" }, 405)
     }
 
     const entry = collections.get(collectionName)

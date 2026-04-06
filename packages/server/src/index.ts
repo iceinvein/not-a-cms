@@ -10,6 +10,7 @@ import {
   createWebhookStore,
   createWebhookService,
   createPreviewTokenService,
+  createSettingsService,
   type CollectionDef,
 } from "@not-a-cms/core"
 import { appRouter } from "./trpc/router"
@@ -59,6 +60,7 @@ export function createServer(config: ServerConfig) {
     collections.set(def.name, { def, table, service })
   }
 
+  const settingsService = createSettingsService(db)
   const previewTokenService = createPreviewTokenService(db)
   const previewHandler = createPreviewHandler(previewTokenService, collections)
 
@@ -66,7 +68,7 @@ export function createServer(config: ServerConfig) {
   const graphqlHandler = createGraphQLHandler(graphqlSchema)
 
   const trpcRouter = appRouter(collections)
-  const restHandler = createRestHandler(collections, versioning, search, webhookStore)
+  const restHandler = createRestHandler(collections, versioning, search, webhookStore, settingsService)
   const schemaHandler = createSchemaHandler(collections)
   const storagePath = config.storage?.path ?? "./uploads"
   const optimizer = createImageOptimizer(storagePath)
@@ -156,7 +158,7 @@ export function createServer(config: ServerConfig) {
     console.log(`not-a-cms API server on http://localhost:${server.port}`)
   }
 
-  return { server, db, collections, versioning, search, trpcRouter, webhookStore, webhookService, previewTokenService }
+  return { server, db, collections, versioning, search, trpcRouter, webhookStore, webhookService, previewTokenService, settingsService }
 }
 
 // Re-exports for external consumers

@@ -5,6 +5,7 @@ import {
   createContentService,
   bootstrapTables,
   createVersioningService,
+  createSearchService,
   type CollectionDef,
 } from "@not-a-cms/core"
 import { appRouter } from "./trpc/router"
@@ -38,17 +39,18 @@ export function createServer(config: ServerConfig) {
   bootstrapTables(db, config.collections)
 
   const versioning = createVersioningService(db)
+  const search = createSearchService(db)
 
   // Build collection registry
   const collections = new Map()
   for (const def of config.collections) {
     const table = generateTable(def)
-    const service = createContentService(db, def, table, versioning)
+    const service = createContentService(db, def, table, versioning, search)
     collections.set(def.name, { def, table, service })
   }
 
   const trpcRouter = appRouter(collections)
-  const restHandler = createRestHandler(collections, versioning)
+  const restHandler = createRestHandler(collections, versioning, search)
   const schemaHandler = createSchemaHandler(collections)
   const storage = createLocalStorage(config.storage ?? { provider: "local", path: "./uploads" })
   const mediaHandler = createMediaHandler(storage)
@@ -115,7 +117,7 @@ export function createServer(config: ServerConfig) {
     console.log(`not-a-cms API server on http://localhost:${server.port}`)
   }
 
-  return { server, db, collections, versioning, trpcRouter }
+  return { server, db, collections, versioning, search, trpcRouter }
 }
 
 // Re-exports for external consumers

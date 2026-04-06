@@ -17,6 +17,7 @@ function json(data: unknown, status = 200) {
 export function createRestHandler(
   collections: Map<string, CollectionEntry>,
   versioning?: VersioningService,
+  search?: { query: (term: string, collection?: string) => Array<{ collection: string; document_id: string }> },
 ) {
   return async function handler(req: Request): Promise<Response | null> {
     const url = new URL(req.url)
@@ -69,6 +70,15 @@ export function createRestHandler(
       // Collection-level routes: GET (list) and POST (create)
       if (id === null) {
         if (method === "GET") {
+          const searchTerm = url.searchParams.get("search")
+          if (searchTerm && search) {
+            const hits = search.query(searchTerm, collectionName)
+            const docs = await Promise.all(
+              hits.map((hit) => service.findById(hit.document_id)),
+            )
+            return json({ data: docs.filter(Boolean) })
+          }
+
           const limit = url.searchParams.has("limit")
             ? Number(url.searchParams.get("limit"))
             : undefined

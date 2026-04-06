@@ -14,6 +14,9 @@ export { slugify } from "./content/slugify"
 // Versioning
 export { createVersioningService, type VersioningService, type VersionRecord } from "./content/versioning"
 
+// Search
+export { createSearchService, extractTextFromPortableText, type SearchService, type SearchResult } from "./content/search"
+
 // Types
 export type {
   FieldDef,

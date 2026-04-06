@@ -1,0 +1,61 @@
+import { test, expect, describe, beforeEach, afterEach } from "bun:test"
+import { unlinkSync } from "node:fs"
+import { createDatabase } from "../../src/db/connection"
+import { bootstrapTables } from "../../src/db/bootstrap"
+import { createSettingsService } from "../../src/settings/service"
+
+const testDbPath = "test-settings.db"
+let db: ReturnType<typeof createDatabase>
+let settings: ReturnType<typeof createSettingsService>
+
+describe("createSettingsService", () => {
+  beforeEach(() => {
+    db = createDatabase({ url: testDbPath })
+    bootstrapTables(db, [])
+    settings = createSettingsService(db)
+  })
+
+  afterEach(() => {
+    try { unlinkSync(testDbPath) } catch {}
+    try { unlinkSync(testDbPath + "-wal") } catch {}
+    try { unlinkSync(testDbPath + "-shm") } catch {}
+  })
+
+  test("get() returns null for non-existent key", () => {
+    expect(settings.get("missing")).toBeNull()
+  })
+
+  test("set() and get() round-trip a value", () => {
+    settings.set("theme.color", "#ff0000")
+    expect(settings.get("theme.color")).toBe("#ff0000")
+  })
+
+  test("set() overwrites existing value", () => {
+    settings.set("theme.color", "#ff0000")
+    settings.set("theme.color", "#00ff00")
+    expect(settings.get("theme.color")).toBe("#00ff00")
+  })
+
+  test("getAll() returns all settings", () => {
+    settings.set("theme.color", "red")
+    settings.set("theme.font", "sans-serif")
+    settings.set("other.key", "value")
+    const all = settings.getAll()
+    expect(Object.keys(all)).toHaveLength(3)
+  })
+
+  test("getAll() filters by prefix", () => {
+    settings.set("theme.color", "red")
+    settings.set("theme.font", "sans-serif")
+    settings.set("other.key", "value")
+    const themed = settings.getAll("theme.")
+    expect(Object.keys(themed)).toHaveLength(2)
+    expect(themed["theme.color"]).toBe("red")
+  })
+
+  test("remove() deletes a setting", () => {
+    settings.set("theme.color", "red")
+    settings.remove("theme.color")
+    expect(settings.get("theme.color")).toBeNull()
+  })
+})

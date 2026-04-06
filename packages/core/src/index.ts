@@ -35,6 +35,9 @@ export type { WebhookConfig, WebhookDelivery, WebhookEvent } from "./webhooks/ty
 // Preview
 export { createPreviewTokenService, type PreviewTokenService } from "./preview/tokens"
 
+// Settings
+export { createSettingsService, type SettingsService } from "./settings/service"
+
 // Import
 export { parseWXR, htmlToPortableText } from "./import/wordpress"
 

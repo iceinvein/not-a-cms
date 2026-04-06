@@ -10,22 +10,26 @@ const args = Bun.argv.slice(2)
 const apiPort = args.find(a => a.startsWith("--port="))?.split("=")[1] ?? process.env.PORT ?? "4321"
 const adminPort = args.find(a => a.startsWith("--admin-port="))?.split("=")[1] ?? process.env.ADMIN_PORT ?? "4322"
 
-// Start API server (quiet — we print our own banner)
+console.log("  Starting API server...")
+
+// Start API server (quiet banner, but show errors)
 const api = Bun.spawn(["bun", "--hot", "packages/server/src/dev.ts"], {
   env: { ...process.env, PORT: apiPort, QUIET: "1" },
-  stdout: "ignore",
+  stdout: "inherit",
   stderr: "inherit",
 })
 
 // Wait for API to be ready
 await waitForServer(`http://localhost:${apiPort}/health`, 10_000)
 
-// Start Admin UI (quiet)
+console.log("  Starting admin UI...")
+
+// Start Admin UI (suppress Astro's verbose startup, keep errors)
 const admin = Bun.spawn(["bunx", "astro", "dev", "--port", adminPort], {
   cwd: "packages/admin",
   env: { ...process.env },
   stdout: "ignore",
-  stderr: "inherit",
+  stderr: "ignore",
 })
 
 // Wait for admin to be ready

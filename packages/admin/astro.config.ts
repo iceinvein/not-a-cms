@@ -9,9 +9,27 @@ export default defineConfig({
   vite: {
     server: {
       proxy: {
-        "/api": "http://localhost:4321",
-        "/trpc": "http://localhost:4321",
-        "/health": "http://localhost:4321",
+        "/api": {
+          target: "http://localhost:4321",
+          changeOrigin: true,
+          configure: (proxy: any) => {
+            proxy.on("error", () => {})  // Suppress ECONNREFUSED noise
+          },
+        },
+        "/trpc": {
+          target: "http://localhost:4321",
+          changeOrigin: true,
+          configure: (proxy: any) => {
+            proxy.on("error", () => {})
+          },
+        },
+        "/health": {
+          target: "http://localhost:4321",
+          changeOrigin: true,
+          configure: (proxy: any) => {
+            proxy.on("error", () => {})
+          },
+        },
       },
     },
     optimizeDeps: {

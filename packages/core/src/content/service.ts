@@ -2,6 +2,7 @@ import { eq, and } from "drizzle-orm"
 import type { AppDatabase } from "../db/connection"
 import type { CollectionDef, HookContext } from "../types"
 import { runHook } from "./hooks"
+import { extractTextFromPortableText } from "./search"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyTable = any
@@ -17,6 +18,7 @@ export function createContentService(
   collection: CollectionDef,
   table: AnyTable,
   versioning?: { createVersion: (collection: string, docId: string, data: Record<string, unknown>, action: "save" | "publish") => unknown },
+  search?: { index: (collection: string, docId: string, title: string, bodyText: string) => void; remove: (collection: string, docId: string) => void },
 ) {
   const ctx: HookContext = { collection: collection.name, db }
 
@@ -35,6 +37,10 @@ export function createContentService(
 
     if (versioning) {
       versioning.createVersion(collection.name, id, saved, "save")
+    }
+
+    if (search) {
+      search.index(collection.name, id, String(saved.title ?? ""), extractTextFromPortableText(saved.body))
     }
 
     return saved
@@ -100,6 +106,10 @@ export function createContentService(
       versioning.createVersion(collection.name, id, updated, action as "save" | "publish")
     }
 
+    if (search) {
+      search.index(collection.name, id, String(updated.title ?? ""), extractTextFromPortableText(updated.body))
+    }
+
     return updated
   }
 
@@ -108,6 +118,9 @@ export function createContentService(
     if (!existing) return false
 
     await runHook("beforeDelete", collection.hooks, existing, ctx)
+    if (search) {
+      search.remove(collection.name, id)
+    }
     db.delete(table).where(eq(table.id, id)).run()
     await runHook("afterDelete", collection.hooks, existing, ctx)
 

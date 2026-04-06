@@ -12,14 +12,39 @@ export function DashboardStats({ apiBase = "" }: { apiBase?: string }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // In a real setup, this would fetch from the API
-    // For now, show placeholder stats
-    setStats([
-      { name: "blog_post", label: "Blog Posts", count: 0, recentCount: 0 },
-      { name: "page", label: "Pages", count: 0, recentCount: 0 },
-    ])
-    setLoading(false)
-  }, [])
+    async function fetchStats() {
+      try {
+        const schemaRes = await fetch(`${apiBase}/api/_schema`)
+        if (!schemaRes.ok) throw new Error("Failed to fetch schema")
+        const schema = await schemaRes.json()
+
+        const results: CollectionStat[] = await Promise.all(
+          schema.collections.map(async (col: { name: string; labels?: { plural?: string } }) => {
+            const listRes = await fetch(`${apiBase}/api/${col.name}`)
+            const listData = listRes.ok ? await listRes.json() : { data: [] }
+            const items = listData.data || []
+
+            const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+            const recentCount = items.filter((item: any) => item.created_at && item.created_at > oneWeekAgo).length
+
+            return {
+              name: col.name,
+              label: col.labels?.plural || col.name,
+              count: items.length,
+              recentCount,
+            }
+          }),
+        )
+
+        setStats(results)
+      } catch {
+        setStats([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchStats()
+  }, [apiBase])
 
   if (loading) {
     return <div className="text-gray-400 text-sm">Loading...</div>

@@ -96,6 +96,7 @@ function ContentEditorInner({
         return
       }
 
+      setData(result)
       addToast("Saved successfully", "success")
       setVersionKey(k => k + 1)
     } catch (err: any) {

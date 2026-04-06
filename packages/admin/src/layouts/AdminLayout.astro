@@ -17,12 +17,19 @@ if (!isAuthPage) {
     const sessionRes = await fetch("http://localhost:4321/api/auth/get-session", {
       headers: { cookie: Astro.request.headers.get("cookie") || "" },
     })
-    const session = await sessionRes.json()
-    if (!session?.user) {
+    if (sessionRes.ok) {
+      const session = await sessionRes.json()
+      if (!session?.user) {
+        return Astro.redirect("/login")
+      }
+    } else {
       return Astro.redirect("/login")
     }
   } catch {
-    // Allow access if API is unreachable (dev convenience)
+    // API unreachable (e.g. admin started before API) — allow access in dev
+    if (import.meta.env.PROD) {
+      return Astro.redirect("/login")
+    }
   }
 }
 ---

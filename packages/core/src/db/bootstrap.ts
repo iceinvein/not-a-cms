@@ -78,4 +78,13 @@ export function bootstrapTables(db: AppDatabase, collections: CollectionDef[]) {
     attempts INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL
   )`)}`)
+
+  db.run(sql`${sql.raw(`CREATE TABLE IF NOT EXISTS _preview_tokens (
+    id TEXT PRIMARY KEY,
+    token TEXT NOT NULL UNIQUE,
+    collection TEXT NOT NULL,
+    document_id TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  )`)}`)
 }

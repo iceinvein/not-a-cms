@@ -22,6 +22,8 @@ import { createImageOptimizer } from "./media/optimizer"
 import { createMediaHandler } from "./media/handler"
 import { collabWebSocket, type CollabWSData } from "./collab/handler"
 import { createPreviewHandler } from "./preview/handler"
+import { buildGraphQLSchema } from "./graphql/schema"
+import { createGraphQLHandler } from "./graphql/handler"
 
 type ServerConfig = {
   port?: number
@@ -60,6 +62,9 @@ export function createServer(config: ServerConfig) {
   const previewTokenService = createPreviewTokenService(db)
   const previewHandler = createPreviewHandler(previewTokenService, collections)
 
+  const graphqlSchema = buildGraphQLSchema(collections)
+  const graphqlHandler = createGraphQLHandler(graphqlSchema)
+
   const trpcRouter = appRouter(collections)
   const restHandler = createRestHandler(collections, versioning, search, webhookStore)
   const schemaHandler = createSchemaHandler(collections)
@@ -92,6 +97,11 @@ export function createServer(config: ServerConfig) {
       if (url.pathname.startsWith("/api/_schema")) {
         const res = await schemaHandler(req)
         if (res) return res
+      }
+
+      // GraphQL
+      if (url.pathname.startsWith("/graphql")) {
+        return graphqlHandler(req)
       }
 
       // tRPC routes

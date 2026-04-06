@@ -10,37 +10,38 @@ const args = Bun.argv.slice(2)
 const apiPort = args.find(a => a.startsWith("--port="))?.split("=")[1] ?? process.env.PORT ?? "4321"
 const adminPort = args.find(a => a.startsWith("--admin-port="))?.split("=")[1] ?? process.env.ADMIN_PORT ?? "4322"
 
-console.log(`
-  ┌─────────────────────────────────────────┐
-  │           not-a-cms dev mode            │
-  ├─────────────────────────────────────────┤
-  │  API:     http://localhost:${apiPort.padEnd(5)}        │
-  │  Admin:   http://localhost:${adminPort.padEnd(5)}        │
-  │  Health:  http://localhost:${apiPort}/health  │
-  └─────────────────────────────────────────┘
-`)
-
-// Start API server
+// Start API server (quiet — we print our own banner)
 const api = Bun.spawn(["bun", "--hot", "packages/server/src/dev.ts"], {
-  env: { ...process.env, PORT: apiPort },
-  stdout: "inherit",
+  env: { ...process.env, PORT: apiPort, QUIET: "1" },
+  stdout: "ignore",
   stderr: "inherit",
 })
 
 // Wait for API to be ready
 await waitForServer(`http://localhost:${apiPort}/health`, 10_000)
 
-// Start Admin UI
+// Start Admin UI (quiet)
 const admin = Bun.spawn(["bunx", "astro", "dev", "--port", adminPort], {
   cwd: "packages/admin",
   env: { ...process.env },
-  stdout: "inherit",
+  stdout: "ignore",
   stderr: "inherit",
 })
 
+// Wait for admin to be ready
+await waitForServer(`http://localhost:${adminPort}`, 15_000)
+
 console.log(`
-  Ready! Open http://localhost:${adminPort} in your browser.
-  Press Ctrl+C to stop.
+  not-a-cms dev server ready
+
+  Open:     http://localhost:${adminPort}
+
+  Admin:    http://localhost:${adminPort}
+  API:      http://localhost:${apiPort}/api
+  Health:   http://localhost:${apiPort}/health
+  Collab:   ws://localhost:${apiPort}/collab
+
+  Ctrl+C to stop.
 `)
 
 // Handle shutdown

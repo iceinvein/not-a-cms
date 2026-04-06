@@ -54,19 +54,14 @@ const { server } = createServer({
   collections: [blogPost, page],
 })
 
-console.log(`
-  Admin:    http://localhost:${server.port}/admin    (coming soon)
-  API:      http://localhost:${server.port}/api
-  Health:   http://localhost:${server.port}/health
-  Auth:     http://localhost:${server.port}/api/auth
+if (!process.env.QUIET) {
+  console.log(`
+  API running on http://localhost:${server.port}
 
-  Collections:
-    - blog_post  →  /api/blog_post
-    - page       →  /api/page
-
-  Try it:
-    curl http://localhost:${server.port}/api/blog_post
-    curl -X POST http://localhost:${server.port}/api/blog_post \\
-      -H "Content-Type: application/json" \\
-      -d '{"title":"Hello World","slug":"hello-world","status":"draft"}'
-`)
+    REST:     http://localhost:${server.port}/api/{collection}
+    Schema:   http://localhost:${server.port}/api/_schema
+    Health:   http://localhost:${server.port}/health
+    Auth:     http://localhost:${server.port}/api/auth
+    Collab:   ws://localhost:${server.port}/collab
+  `)
+}

@@ -108,7 +108,9 @@ export function createServer(config: ServerConfig) {
     },
   })
 
-  console.log(`not-a-cms server running at http://localhost:${server.port}`)
+  if (!process.env.QUIET) {
+    console.log(`not-a-cms API server on http://localhost:${server.port}`)
+  }
 
   return { server, db, collections, trpcRouter }
 }

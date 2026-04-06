@@ -2,6 +2,9 @@
 export { field } from "./schema/field"
 export { defineCollection } from "./schema/collection"
 
+// Roles
+export { filterFieldsByRole } from "./roles/field-filter"
+
 // Database
 export { createDatabase, type AppDatabase, type DatabaseConfig } from "./db/connection"
 export { generateTable } from "./db/generate-table"

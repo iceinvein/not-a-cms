@@ -4,8 +4,9 @@ import { PreviewLink } from "./PreviewLink"
 import { ToastProvider, useToast } from "./Toast"
 import { ErrorBoundary } from "./ErrorBoundary"
 
-// Lazy import to avoid Vite resolving bun:sqlite through the editor's dependency chain
+// Lazy imports to avoid Vite resolving bun:sqlite through dependency chains
 const Editor = lazy(() => import("@not-a-cms/editor").then(m => ({ default: m.Editor })))
+const PageBuilder = lazy(() => import("./builder/PageBuilder").then(m => ({ default: m.PageBuilder })))
 
 // Inline slugify to avoid pulling @not-a-cms/core (which imports bun:sqlite) into the Vite bundle
 function slugify(text: string): string {
@@ -203,6 +204,29 @@ function ContentEditorInner({
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         )
+
+      case "pageLayout": {
+        const layoutValue = (() => {
+          try {
+            const raw = value as string
+            return raw ? JSON.parse(raw) : undefined
+          } catch {
+            return undefined
+          }
+        })()
+
+        return (
+          <div style={{ minHeight: "600px" }}>
+            <Suspense fallback={<div className="p-4 text-gray-400 text-sm">Loading page builder...</div>}>
+              <PageBuilder
+                initialLayout={layoutValue}
+                onChange={(layout) => updateField(name, JSON.stringify(layout))}
+                apiBase={apiBase}
+              />
+            </Suspense>
+          </div>
+        )
+      }
 
       case "richText": {
         const ptContent = (() => {

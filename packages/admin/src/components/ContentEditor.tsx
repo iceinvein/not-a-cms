@@ -1,4 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from "react"
+import { VersionHistory } from "./VersionHistory"
 
 // Lazy import to avoid Vite resolving bun:sqlite through the editor's dependency chain
 const Editor = lazy(() => import("@not-a-cms/editor").then(m => ({ default: m.Editor })))
@@ -102,6 +103,11 @@ export function ContentEditor({
     } finally {
       setSaving(false)
     }
+  }
+
+  const handleRestore = (versionData: Record<string, unknown>) => {
+    setData(versionData)
+    setSaved(false)
   }
 
   const renderField = (name: string, fieldDef: FieldDef) => {
@@ -299,6 +305,18 @@ export function ContentEditor({
                 {renderField(name, def)}
               </div>
             ))}
+          </div>
+        )}
+
+        {documentId && (
+          <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-2">
+            <h3 className="font-medium text-sm text-gray-900">Version History</h3>
+            <VersionHistory
+              collection={collection}
+              documentId={documentId}
+              apiBase={apiBase}
+              onRestore={handleRestore}
+            />
           </div>
         )}
       </div>

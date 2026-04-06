@@ -9,6 +9,7 @@ import {
   createScheduler,
   createWebhookStore,
   createWebhookService,
+  createPreviewTokenService,
   type CollectionDef,
 } from "@not-a-cms/core"
 import { appRouter } from "./trpc/router"
@@ -20,6 +21,7 @@ import { createLocalStorage } from "./media/storage"
 import { createImageOptimizer } from "./media/optimizer"
 import { createMediaHandler } from "./media/handler"
 import { collabWebSocket, type CollabWSData } from "./collab/handler"
+import { createPreviewHandler } from "./preview/handler"
 
 type ServerConfig = {
   port?: number
@@ -54,6 +56,9 @@ export function createServer(config: ServerConfig) {
     const service = createContentService(db, def, table, versioning, search)
     collections.set(def.name, { def, table, service })
   }
+
+  const previewTokenService = createPreviewTokenService(db)
+  const previewHandler = createPreviewHandler(previewTokenService, collections)
 
   const trpcRouter = appRouter(collections)
   const restHandler = createRestHandler(collections, versioning, search, webhookStore)
@@ -100,6 +105,12 @@ export function createServer(config: ServerConfig) {
         })
       }
 
+      // Preview routes
+      if (url.pathname.startsWith("/api/_preview")) {
+        const res = await previewHandler(req)
+        if (res) return res
+      }
+
       // Media routes
       if (url.pathname.startsWith("/api/media")) {
         const res = await mediaHandler(req)
@@ -135,7 +146,7 @@ export function createServer(config: ServerConfig) {
     console.log(`not-a-cms API server on http://localhost:${server.port}`)
   }
 
-  return { server, db, collections, versioning, search, trpcRouter, webhookStore, webhookService }
+  return { server, db, collections, versioning, search, trpcRouter, webhookStore, webhookService, previewTokenService }
 }
 
 // Re-exports for external consumers

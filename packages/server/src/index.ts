@@ -4,6 +4,7 @@ import {
   generateTable,
   createContentService,
   bootstrapTables,
+  createVersioningService,
   type CollectionDef,
 } from "@not-a-cms/core"
 import { appRouter } from "./trpc/router"
@@ -36,11 +37,13 @@ export function createServer(config: ServerConfig) {
   // Bootstrap tables for dev convenience
   bootstrapTables(db, config.collections)
 
+  const versioning = createVersioningService(db)
+
   // Build collection registry
   const collections = new Map()
   for (const def of config.collections) {
     const table = generateTable(def)
-    const service = createContentService(db, def, table)
+    const service = createContentService(db, def, table, versioning)
     collections.set(def.name, { def, table, service })
   }
 
@@ -112,7 +115,7 @@ export function createServer(config: ServerConfig) {
     console.log(`not-a-cms API server on http://localhost:${server.port}`)
   }
 
-  return { server, db, collections, trpcRouter }
+  return { server, db, collections, versioning, trpcRouter }
 }
 
 // Re-exports for external consumers

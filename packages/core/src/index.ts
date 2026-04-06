@@ -11,6 +11,9 @@ export { bootstrapTables } from "./db/bootstrap"
 export { createContentService } from "./content/service"
 export { slugify } from "./content/slugify"
 
+// Versioning
+export { createVersioningService, type VersioningService, type VersionRecord } from "./content/versioning"
+
 // Types
 export type {
   FieldDef,

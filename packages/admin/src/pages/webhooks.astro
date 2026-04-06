@@ -1,0 +1,8 @@
+---
+import AdminLayout from "../layouts/AdminLayout.astro"
+import { WebhookManager } from "../components/WebhookManager"
+---
+<AdminLayout title="Webhooks">
+  <p class="text-sm text-gray-500 mb-6">Configure outbound webhooks for content lifecycle events.</p>
+  <WebhookManager client:load />
+</AdminLayout>

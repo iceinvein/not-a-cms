@@ -6,6 +6,7 @@ import {
   bootstrapTables,
   createVersioningService,
   createSearchService,
+  createScheduler,
   type CollectionDef,
 } from "@not-a-cms/core"
 import { appRouter } from "./trpc/router"
@@ -115,6 +116,16 @@ export function createServer(config: ServerConfig) {
       return new Response("Not Found", { status: 404 })
     },
   })
+
+  const scheduler = createScheduler(collections)
+  setInterval(async () => {
+    try {
+      const promoted = await scheduler.promoteScheduled()
+      if (promoted.length > 0 && !process.env.QUIET) {
+        console.log(`  Scheduled publishing: promoted ${promoted.length} post(s)`)
+      }
+    } catch {}
+  }, 60_000)
 
   if (!process.env.QUIET) {
     console.log(`not-a-cms API server on http://localhost:${server.port}`)

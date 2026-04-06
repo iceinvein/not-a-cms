@@ -48,7 +48,7 @@ export function createServer(config: ServerConfig) {
   }
 
   const trpcRouter = appRouter(collections)
-  const restHandler = createRestHandler(collections)
+  const restHandler = createRestHandler(collections, versioning)
   const schemaHandler = createSchemaHandler(collections)
   const storage = createLocalStorage(config.storage ?? { provider: "local", path: "./uploads" })
   const mediaHandler = createMediaHandler(storage)

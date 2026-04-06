@@ -29,6 +29,9 @@ export { createWebhookStore, type WebhookStore } from "./webhooks/store"
 export { createWebhookService, type WebhookService } from "./webhooks/service"
 export type { WebhookConfig, WebhookDelivery, WebhookEvent } from "./webhooks/types"
 
+// Import
+export { parseWXR, htmlToPortableText } from "./import/wordpress"
+
 // Types
 export type {
   FieldDef,

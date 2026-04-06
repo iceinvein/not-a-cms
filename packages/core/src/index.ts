@@ -24,6 +24,11 @@ export { createSearchService, extractTextFromPortableText, type SearchService, t
 // Scheduler
 export { createScheduler, type Scheduler } from "./content/scheduler"
 
+// Webhooks
+export { createWebhookStore, type WebhookStore } from "./webhooks/store"
+export { createWebhookService, type WebhookService } from "./webhooks/service"
+export type { WebhookConfig, WebhookDelivery, WebhookEvent } from "./webhooks/types"
+
 // Types
 export type {
   FieldDef,

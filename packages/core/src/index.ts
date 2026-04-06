@@ -21,6 +21,9 @@ export { createVersioningService, type VersioningService, type VersionRecord } f
 // Search
 export { createSearchService, extractTextFromPortableText, type SearchService, type SearchResult } from "./content/search"
 
+// Scheduler
+export { createScheduler, type Scheduler } from "./content/scheduler"
+
 // Types
 export type {
   FieldDef,

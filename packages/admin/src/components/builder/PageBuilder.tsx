@@ -3,6 +3,9 @@ import {
   DndContext,
   DragOverlay,
   pointerWithin,
+  useSensors,
+  useSensor,
+  PointerSensor,
   type DragStartEvent,
   type DragEndEvent,
 } from "@dnd-kit/core"
@@ -40,6 +43,15 @@ export function PageBuilder({ initialLayout, onChange, apiBase }: PageBuilderPro
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null)
   const [activeDragId, setActiveDragId] = useState<string | null>(null)
   const [activeBreakpoint, setActiveBreakpoint] = useState<Breakpoint>("desktop")
+
+  // Require 5px of movement before starting drag, so clicks pass through to onClick
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    })
+  )
 
   // Sync layout changes upstream
   const updateLayout = useCallback(
@@ -255,6 +267,7 @@ export function PageBuilder({ initialLayout, onChange, apiBase }: PageBuilderPro
 
   return (
     <DndContext
+      sensors={sensors}
       collisionDetection={pointerWithin}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}

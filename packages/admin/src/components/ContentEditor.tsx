@@ -56,15 +56,18 @@ function ContentEditorInner({
     return { ...defaults, ...initialData }
   })
   const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(!!documentId)
   const [versionKey, setVersionKey] = useState(0)
   const { addToast } = useToast()
 
   useEffect(() => {
     if (documentId) {
+      setLoading(true)
       fetch(`${apiBase}/api/${collection}/${documentId}`)
         .then((res) => res.ok ? res.json() : null)
         .then((doc) => { if (doc) setData(doc) })
         .catch(() => {})
+        .finally(() => setLoading(false))
     }
   }, [documentId, collection, apiBase])
 
@@ -279,6 +282,14 @@ function ContentEditorInner({
   const mainFields = Object.entries(fields).filter(
     ([name]) => !sidebarFields.some(([sn]) => sn === name)
   )
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12 text-sm text-gray-400">
+        Loading...
+      </div>
+    )
+  }
 
   return (
     <div className="flex gap-8">

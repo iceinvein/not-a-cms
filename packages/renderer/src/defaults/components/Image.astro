@@ -1,45 +1,43 @@
 ---
-interface Props {
+type Props = {
   src: string
   alt: string
   width?: number
   height?: number
-  sizes?: string
+  blurDataURL?: string
+  variants?: Array<{ width: number; format: string; path: string }>
   class?: string
-  loading?: "lazy" | "eager"
-  blurDataUrl?: string
 }
 
-const {
-  src,
-  alt,
-  width,
-  height,
-  sizes = "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw",
-  class: className = "",
-  loading = "lazy",
-  blurDataUrl,
-} = Astro.props
+const { src, alt, width, height, blurDataURL, variants, class: className } = Astro.props
 
-// Generate responsive srcset widths
-const widths = [640, 768, 1024, 1280, 1536]
-const srcset = widths
-  .filter((w) => !width || w <= width * 2)
-  .map((w) => `${src}?w=${w} ${w}w`)
-  .join(", ")
+const webpVariants = (variants || [])
+  .filter((v) => v.format === "webp")
+  .sort((a, b) => a.width - b.width)
+
+const avifVariants = (variants || [])
+  .filter((v) => v.format === "avif")
+  .sort((a, b) => a.width - b.width)
+
+const buildSrcset = (vs: typeof webpVariants) =>
+  vs.map((v) => `${v.path} ${v.width}w`).join(", ")
 ---
 
 <picture>
+  {avifVariants.length > 0 && (
+    <source type="image/avif" srcset={buildSrcset(avifVariants)} sizes="(max-width: 768px) 100vw, 768px" />
+  )}
+  {webpVariants.length > 0 && (
+    <source type="image/webp" srcset={buildSrcset(webpVariants)} sizes="(max-width: 768px) 100vw, 768px" />
+  )}
   <img
     src={src}
-    srcset={srcset || undefined}
-    sizes={srcset ? sizes : undefined}
     alt={alt}
     width={width}
     height={height}
-    loading={loading}
+    loading="lazy"
     decoding="async"
-    class:list={["max-w-full h-auto", className]}
-    style={blurDataUrl ? `background-image: url(${blurDataUrl}); background-size: cover;` : undefined}
+    class={className}
+    style={blurDataURL ? `background-image:url(${blurDataURL});background-size:cover` : undefined}
   />
 </picture>

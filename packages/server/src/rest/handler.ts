@@ -124,7 +124,9 @@ export function createRestHandler(
 
       return json({ error: "Method not allowed" }, 405)
     } catch (err: any) {
-      return json({ error: err.message }, 500)
+      const message = err.message || "Internal server error"
+      const status = err.message?.includes("not found") ? 404 : 500
+      return json({ error: message, collection: collectionName }, status)
     }
   }
 }

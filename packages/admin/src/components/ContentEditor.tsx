@@ -1,5 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from "react"
 import { VersionHistory } from "./VersionHistory"
+import { ToastProvider, useToast } from "./Toast"
+import { ErrorBoundary } from "./ErrorBoundary"
 
 // Lazy import to avoid Vite resolving bun:sqlite through the editor's dependency chain
 const Editor = lazy(() => import("@not-a-cms/editor").then(m => ({ default: m.Editor })))
@@ -35,7 +37,7 @@ type Props = {
   apiBase?: string
 }
 
-export function ContentEditor({
+function ContentEditorInner({
   collection,
   collectionLabel,
   fields,
@@ -52,9 +54,8 @@ export function ContentEditor({
     return { ...defaults, ...initialData }
   })
   const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const [error, setError] = useState("")
   const [versionKey, setVersionKey] = useState(0)
+  const { addToast } = useToast()
 
   useEffect(() => {
     if (documentId) {
@@ -67,13 +68,10 @@ export function ContentEditor({
 
   const updateField = (name: string, value: unknown) => {
     setData((prev) => ({ ...prev, [name]: value }))
-    setSaved(false)
   }
 
   const handleSave = async (publish = false) => {
     setSaving(true)
-    setError("")
-    setSaved(false)
 
     try {
       const payload = { ...data }
@@ -91,17 +89,17 @@ export function ContentEditor({
 
       if (!res.ok) throw new Error("Failed to save")
 
-      const saved = await res.json()
+      const result = await res.json()
 
-      if (!documentId && saved.id) {
-        window.location.href = `/content/${collection}/${saved.id}`
+      if (!documentId && result.id) {
+        window.location.href = `/content/${collection}/${result.id}`
         return
       }
 
-      setSaved(true)
+      addToast("Saved successfully", "success")
       setVersionKey(k => k + 1)
     } catch (err: any) {
-      setError(err.message)
+      addToast(err.message, "error")
     } finally {
       setSaving(false)
     }
@@ -109,7 +107,6 @@ export function ContentEditor({
 
   const handleRestore = (versionData: Record<string, unknown>) => {
     setData(versionData)
-    setSaved(false)
   }
 
   const renderField = (name: string, fieldDef: FieldDef) => {
@@ -275,9 +272,6 @@ export function ContentEditor({
         <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
           <h3 className="font-medium text-sm text-gray-900">Publish</h3>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          {saved && <p className="text-sm text-green-600">Saved successfully</p>}
-
           <div className="flex gap-2">
             <button
               onClick={() => handleSave(false)}
@@ -324,5 +318,15 @@ export function ContentEditor({
         )}
       </div>
     </div>
+  )
+}
+
+export function ContentEditor(props: Props) {
+  return (
+    <ErrorBoundary>
+      <ToastProvider>
+        <ContentEditorInner {...props} />
+      </ToastProvider>
+    </ErrorBoundary>
   )
 }

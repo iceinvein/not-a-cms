@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { SearchBar } from "./SearchBar"
+import { ContentListSkeleton } from "./LoadingSkeleton"
 
 type ContentItem = {
   id: string
@@ -76,9 +77,12 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-400">
-        Loading...
-      </div>
+      <>
+        <div className="mb-4">
+          <SearchBar onSearch={handleSearch} placeholder={`Search ${collectionLabel.toLowerCase()}...`} />
+        </div>
+        <ContentListSkeleton />
+      </>
     )
   }
 

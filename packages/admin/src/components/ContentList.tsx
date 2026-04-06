@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { SearchBar } from "./SearchBar"
 
 type ContentItem = {
   id: string
@@ -19,15 +20,13 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
   const [items, setItems] = useState<ContentItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [searchTerm, setSearchTerm] = useState("")
 
-  useEffect(() => {
-    fetchItems()
-  }, [collection])
-
-  const fetchItems = async () => {
+  const fetchItems = async (search?: string) => {
     setLoading(true)
     try {
-      const res = await fetch(`${apiBase}/api/${collection}`)
+      const params = search ? `?search=${encodeURIComponent(search)}` : ""
+      const res = await fetch(`${apiBase}/api/${collection}${params}`)
       if (!res.ok) throw new Error("Failed to fetch")
       const data = await res.json()
       setItems(data.data || [])
@@ -36,6 +35,14 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
     } finally {
       setLoading(false)
     }
+  }
+
+  useEffect(() => {
+    fetchItems(searchTerm || undefined)
+  }, [collection, searchTerm])
+
+  const handleSearch = (term: string) => {
+    setSearchTerm(term)
   }
 
   const handleDelete = async (id: string) => {
@@ -83,68 +90,71 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
     )
   }
 
-  if (items.length === 0) {
-    return (
-      <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-        <p className="text-gray-400 mb-4">No {collectionLabel.toLowerCase()} yet</p>
-        <a
-          href={`/content/${collection}/new`}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
-        >
-          + Create your first one
-        </a>
-      </div>
-    )
-  }
-
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      <table className="w-full">
-        <thead>
-          <tr className="border-b border-gray-200 bg-gray-50">
-            <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-            <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-            <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Updated</th>
-            <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-100">
-          {items.map((item) => (
-            <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-              <td className="px-6 py-4">
-                <a
-                  href={`/content/${collection}/${item.id}`}
-                  className="text-sm font-medium text-gray-900 hover:text-blue-600"
-                >
-                  {String(item.title || item.id)}
-                </a>
-              </td>
-              <td className="px-6 py-4">
-                <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${statusBadge(item.status as string)}`}>
-                  {String(item.status || "draft")}
-                </span>
-              </td>
-              <td className="px-6 py-4 text-sm text-gray-500">
-                {formatDate(item.updated_at as string)}
-              </td>
-              <td className="px-6 py-4 text-right">
-                <a
-                  href={`/content/${collection}/${item.id}`}
-                  className="text-sm text-blue-600 hover:text-blue-800 mr-3"
-                >
-                  Edit
-                </a>
-                <button
-                  onClick={() => handleDelete(item.id)}
-                  className="text-sm text-red-600 hover:text-red-800"
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <>
+      <div className="mb-4">
+        <SearchBar onSearch={handleSearch} placeholder={`Search ${collectionLabel.toLowerCase()}...`} />
+      </div>
+      {items.length === 0 ? (
+        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+          <p className="text-gray-400 mb-4">No {collectionLabel.toLowerCase()} yet</p>
+          <a
+            href={`/content/${collection}/new`}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
+          >
+            + Create your first one
+          </a>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-200 bg-gray-50">
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Updated</th>
+                <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {items.map((item) => (
+                <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4">
+                    <a
+                      href={`/content/${collection}/${item.id}`}
+                      className="text-sm font-medium text-gray-900 hover:text-blue-600"
+                    >
+                      {String(item.title || item.id)}
+                    </a>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${statusBadge(item.status as string)}`}>
+                      {String(item.status || "draft")}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    {formatDate(item.updated_at as string)}
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <a
+                      href={`/content/${collection}/${item.id}`}
+                      className="text-sm text-blue-600 hover:text-blue-800 mr-3"
+                    >
+                      Edit
+                    </a>
+                    <button
+                      onClick={() => handleDelete(item.id)}
+                      className="text-sm text-red-600 hover:text-red-800"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
   )
 }

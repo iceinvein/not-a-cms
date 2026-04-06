@@ -1,5 +1,6 @@
-import { mkdirSync, existsSync, unlinkSync } from "node:fs"
+import { mkdirSync, existsSync, unlinkSync, rmSync } from "node:fs"
 import { join } from "node:path"
+import type { ImageOptimizer, ImageVariant } from "./optimizer"
 
 export type StorageConfig = {
   provider: "local"
@@ -13,9 +14,15 @@ export type MediaRecord = {
   size: number
   path: string
   uploadedAt: string
+  width?: number
+  height?: number
+  blurDataURL?: string
+  variants?: ImageVariant[]
 }
 
-export function createLocalStorage(config: StorageConfig) {
+const IMAGE_MIMES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp", "image/avif", "image/svg+xml"])
+
+export function createLocalStorage(config: StorageConfig, optimizer?: ImageOptimizer) {
   const baseDir = config.path
   if (!existsSync(baseDir)) mkdirSync(baseDir, { recursive: true })
 
@@ -40,6 +47,19 @@ export function createLocalStorage(config: StorageConfig) {
         uploadedAt: new Date().toISOString(),
       }
 
+      // Optimize images
+      if (optimizer && IMAGE_MIMES.has(file.type) && file.type !== "image/svg+xml") {
+        try {
+          const result = await optimizer.processImage(filePath, id)
+          record.width = result.width
+          record.height = result.height
+          record.blurDataURL = result.blurDataURL
+          record.variants = result.variants
+        } catch {
+          // Optimization failed — serve original
+        }
+      }
+
       records.set(id, record)
       return record
     },
@@ -56,6 +76,7 @@ export function createLocalStorage(config: StorageConfig) {
       const record = records.get(id)
       if (!record) return false
       try { unlinkSync(record.path) } catch {}
+      try { rmSync(join(baseDir, id), { recursive: true }) } catch {}
       records.delete(id)
       return true
     },

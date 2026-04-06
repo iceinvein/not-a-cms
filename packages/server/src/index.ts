@@ -14,6 +14,7 @@ import { createSchemaHandler } from "./schema/handler"
 import { createAuth } from "./auth/setup"
 import { getSessionFromRequest } from "./auth/middleware"
 import { createLocalStorage } from "./media/storage"
+import { createImageOptimizer } from "./media/optimizer"
 import { createMediaHandler } from "./media/handler"
 import { collabWebSocket, type CollabWSData } from "./collab/handler"
 
@@ -52,7 +53,9 @@ export function createServer(config: ServerConfig) {
   const trpcRouter = appRouter(collections)
   const restHandler = createRestHandler(collections, versioning, search)
   const schemaHandler = createSchemaHandler(collections)
-  const storage = createLocalStorage(config.storage ?? { provider: "local", path: "./uploads" })
+  const storagePath = config.storage?.path ?? "./uploads"
+  const optimizer = createImageOptimizer(storagePath)
+  const storage = createLocalStorage(config.storage ?? { provider: "local", path: storagePath }, optimizer)
   const mediaHandler = createMediaHandler(storage)
   const port = config.port ?? 4321
 

@@ -40,7 +40,8 @@ export function createContentService(
     }
 
     if (search) {
-      search.index(collection.name, id, String(saved.title ?? ""), extractTextFromPortableText(saved.body))
+      const { title, bodyText } = extractIndexableText(saved)
+      search.index(collection.name, id, title, bodyText)
     }
 
     return saved
@@ -107,7 +108,8 @@ export function createContentService(
     }
 
     if (search) {
-      search.index(collection.name, id, String(updated.title ?? ""), extractTextFromPortableText(updated.body))
+      const { title, bodyText } = extractIndexableText(updated)
+      search.index(collection.name, id, title, bodyText)
     }
 
     return updated
@@ -125,6 +127,16 @@ export function createContentService(
     await runHook("afterDelete", collection.hooks, existing, ctx)
 
     return true
+  }
+
+  function extractIndexableText(doc: Record<string, unknown>): { title: string; bodyText: string } {
+    const textParts: string[] = []
+    const richParts: string[] = []
+    for (const [name, fieldDef] of Object.entries(collection.fields)) {
+      if (fieldDef.type === "text" && doc[name]) textParts.push(String(doc[name]))
+      if (fieldDef.type === "richText" && doc[name]) richParts.push(extractTextFromPortableText(doc[name]))
+    }
+    return { title: textParts.join(" "), bodyText: richParts.join(" ") }
   }
 
   return { create, findById, findMany, update, remove }

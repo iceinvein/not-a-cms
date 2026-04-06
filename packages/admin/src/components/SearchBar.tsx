@@ -15,7 +15,7 @@ export function SearchBar({ onSearch, placeholder = "Search..." }: Props) {
       onSearch(value)
     }, 300)
     return () => { if (timerRef.current) clearTimeout(timerRef.current) }
-  }, [value])
+  }, [value, onSearch])
 
   return (
     <div className="relative">

@@ -28,7 +28,10 @@ export function createSearchService(db: AppDatabase) {
   }
 
   function query(searchTerm: string, collection?: string): SearchResult[] {
-    const ftsQuery = searchTerm.trim().split(/\s+/).map(t => `"${t}"*`).join(" ")
+    const trimmed = searchTerm.trim()
+    if (!trimmed) return []
+
+    const ftsQuery = trimmed.split(/\s+/).map(t => `"${t.replace(/"/g, '""')}"*`).join(" ")
 
     let sqlQuery
     if (collection) {

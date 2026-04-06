@@ -96,15 +96,21 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
         <SearchBar onSearch={handleSearch} placeholder={`Search ${collectionLabel.toLowerCase()}...`} />
       </div>
       {items.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <p className="text-gray-400 mb-4">No {collectionLabel.toLowerCase()} yet</p>
-          <a
-            href={`/content/${collection}/new`}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
-          >
-            + Create your first one
-          </a>
-        </div>
+        searchTerm ? (
+          <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+            <p className="text-gray-400">No results for "{searchTerm}"</p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+            <p className="text-gray-400 mb-4">No {collectionLabel.toLowerCase()} yet</p>
+            <a
+              href={`/content/${collection}/new`}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
+            >
+              + Create your first one
+            </a>
+          </div>
+        )
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <table className="w-full">

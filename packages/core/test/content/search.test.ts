@@ -4,7 +4,7 @@ import { createDatabase } from "../../src/db/connection"
 import { bootstrapTables } from "../../src/db/bootstrap"
 import { defineCollection } from "../../src/schema/collection"
 import { field } from "../../src/schema/field"
-import { createSearchService } from "../../src/content/search"
+import { createSearchService, extractTextFromPortableText } from "../../src/content/search"
 
 const testDbPath = "test-search.db"
 
@@ -82,5 +82,53 @@ describe("createSearchService", () => {
     search.remove("blog_post", "doc-1")
     const results = search.query("Hello")
     expect(results).toHaveLength(0)
+  })
+})
+
+describe("extractTextFromPortableText", () => {
+  test("extracts text from paragraph blocks", () => {
+    const blocks = [
+      {
+        type: "paragraph",
+        children: [
+          { type: "text", value: "Hello " },
+          { type: "text", value: "world", marks: ["bold"] },
+        ],
+      },
+    ]
+    expect(extractTextFromPortableText(blocks)).toBe("Hello  world")
+  })
+
+  test("extracts text from JSON string input", () => {
+    const json = JSON.stringify([
+      { type: "paragraph", children: [{ type: "text", value: "From string" }] },
+    ])
+    expect(extractTextFromPortableText(json)).toBe("From string")
+  })
+
+  test("returns empty string for null/undefined", () => {
+    expect(extractTextFromPortableText(null)).toBe("")
+    expect(extractTextFromPortableText(undefined)).toBe("")
+  })
+
+  test("returns empty string for non-array", () => {
+    expect(extractTextFromPortableText({ not: "an array" })).toBe("")
+  })
+
+  test("handles nested list items", () => {
+    const blocks = [
+      {
+        type: "bulletList",
+        items: [
+          [{ type: "paragraph", children: [{ type: "text", value: "Item 1" }] }],
+          [{ type: "paragraph", children: [{ type: "text", value: "Item 2" }] }],
+        ],
+      },
+    ]
+    expect(extractTextFromPortableText(blocks)).toBe("Item 1 Item 2")
+  })
+
+  test("returns original string for non-JSON string", () => {
+    expect(extractTextFromPortableText("plain text")).toBe("plain text")
   })
 })

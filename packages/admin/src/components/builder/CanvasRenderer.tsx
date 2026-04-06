@@ -1,13 +1,13 @@
 import { useDroppable } from "@dnd-kit/core"
-import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable"
-import { CSS } from "@dnd-kit/utilities"
-import type { PageSection, PageComponent, ComponentDef } from "../../lib/builder-types"
+import type { PageSection, PageComponent, ComponentDef, GridArea } from "../../lib/builder-types"
+import { GridCanvas } from "./GridCanvas"
 
 type CanvasRendererProps = {
   section: PageSection
   componentDefs: Map<string, ComponentDef>
   selectedComponentId: string | null
   onSelectComponent: (id: string | null) => void
+  onUpdateGridArea: (componentId: string, gridArea: GridArea) => void
 }
 
 export function CanvasRenderer({
@@ -15,90 +15,117 @@ export function CanvasRenderer({
   componentDefs,
   selectedComponentId,
   onSelectComponent,
+  onUpdateGridArea,
 }: CanvasRendererProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: `section-${section._id}`,
     data: { type: "section", sectionId: section._id },
   })
 
-  const componentIds = section.children.map((c) => c._id)
+  const { grid } = section
+
+  // Compute the max row extent for visual grid lines
+  const maxRow = Math.max(
+    2,
+    ...section.children.map((c) => c.gridArea.row + c.gridArea.rowSpan),
+  )
 
   return (
     <div
       ref={setNodeRef}
-      className={`min-h-[200px] rounded-lg border-2 border-dashed transition-colors ${
+      className={`relative min-h-[200px] rounded-lg border-2 border-dashed transition-colors ${
         isOver ? "border-blue-400 bg-blue-50/30" : "border-gray-200 bg-white"
       }`}
-      style={{
-        display: "grid",
-        gridTemplateColumns: `repeat(${section.grid.columns}, 1fr)`,
-        gap: `${section.grid.gap}px`,
-        padding: `${section.grid.gap}px`,
-        minHeight: section.children.length === 0 ? "200px" : undefined,
-      }}
+      style={{ padding: `${grid.gap}px` }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onSelectComponent(null)
       }}
     >
+      {/* Visual grid lines overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-10"
+        style={{
+          display: "grid",
+          gridTemplateColumns: `repeat(${grid.columns}, 1fr)`,
+          gridAutoRows: `${grid.rowHeight}px`,
+          gap: `${grid.gap}px`,
+          padding: `${grid.gap}px`,
+        }}
+      >
+        {Array.from({ length: grid.columns * maxRow }, (_, i) => (
+          <div key={i} className="border border-gray-400 rounded-sm" />
+        ))}
+      </div>
+
+      {/* Component grid */}
       {section.children.length === 0 ? (
         <div
-          className="col-span-full flex items-center justify-center text-sm text-gray-400 py-12"
-          style={{ gridColumn: `1 / -1` }}
+          className="flex items-center justify-center text-sm text-gray-400 py-12"
+          style={{ minHeight: "200px" }}
         >
           Drag components here or click one from the palette
         </div>
       ) : (
-        <SortableContext items={componentIds} strategy={verticalListSortingStrategy}>
-          {section.children.map((component) => (
-            <SortableComponent
-              key={component._id}
-              component={component}
-              definition={componentDefs.get(component.component)}
-              isSelected={component._id === selectedComponentId}
-              onSelect={() => onSelectComponent(component._id)}
-            />
-          ))}
-        </SortableContext>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: `repeat(${grid.columns}, 1fr)`,
+            gridAutoRows: `${grid.rowHeight}px`,
+            gap: `${grid.gap}px`,
+            position: "relative",
+          }}
+        >
+          {section.children.map((component) => {
+            const isSelected = component._id === selectedComponentId
+            return (
+              <div
+                key={component._id}
+                style={{
+                  gridColumn: `${component.gridArea.column} / span ${component.gridArea.columnSpan}`,
+                  gridRow: `${component.gridArea.row} / span ${component.gridArea.rowSpan}`,
+                  zIndex: isSelected ? 10 : 1,
+                }}
+              >
+                <GridCanvas
+                  grid={grid}
+                  gridArea={component.gridArea}
+                  onGridAreaChange={(area) => onUpdateGridArea(component._id, area)}
+                  isSelected={isSelected}
+                >
+                  <ComponentCard
+                    component={component}
+                    definition={componentDefs.get(component.component)}
+                    isSelected={isSelected}
+                    onSelect={() => onSelectComponent(component._id)}
+                  />
+                </GridCanvas>
+              </div>
+            )
+          })}
+        </div>
       )}
     </div>
   )
 }
 
-type SortableComponentProps = {
+type ComponentCardProps = {
   component: PageComponent
   definition: ComponentDef | undefined
   isSelected: boolean
   onSelect: () => void
 }
 
-function SortableComponent({ component, definition, isSelected, onSelect }: SortableComponentProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: component._id,
-    data: { type: "canvas-item", component },
-  })
-
-  const style = {
-    gridColumn: `${component.gridArea.column} / span ${component.gridArea.columnSpan}`,
-    gridRow: `${component.gridArea.row} / span ${component.gridArea.rowSpan}`,
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  }
-
+function ComponentCard({ component, definition, isSelected, onSelect }: ComponentCardProps) {
   const label = definition?.label ?? component.component
   const preview = getPreviewText(component, definition)
 
   return (
     <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
       onClick={(e) => {
         e.stopPropagation()
         onSelect()
       }}
-      className={`rounded-lg border-2 p-3 cursor-grab transition-colors ${
+      className={`h-full rounded-lg border-2 p-3 cursor-grab transition-colors ${
         isSelected
           ? "border-blue-500 bg-blue-50/50 shadow-sm"
           : "border-gray-200 bg-white hover:border-gray-300"
@@ -119,7 +146,6 @@ function SortableComponent({ component, definition, isSelected, onSelect }: Sort
 function getPreviewText(component: PageComponent, definition: ComponentDef | undefined): string {
   if (!definition) return ""
 
-  // Find the first text-type prop with a value
   for (const [propName, propDef] of Object.entries(definition.props)) {
     if (propDef.type === "text" && component.props[propName]) {
       const val = String(component.props[propName])

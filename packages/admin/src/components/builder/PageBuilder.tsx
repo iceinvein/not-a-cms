@@ -11,6 +11,7 @@ import {
   type PageLayout,
   type PageComponent,
   type ComponentDef,
+  type GridArea,
   createEmptyLayout,
   createEmptySection,
   createComponentInstance,
@@ -164,6 +165,18 @@ export function PageBuilder({ initialLayout, onChange, apiBase }: PageBuilderPro
     if (selectedComponentId === id) setSelectedComponentId(null)
   }
 
+  const updateGridArea = (componentId: string, gridArea: GridArea) => {
+    updateLayout((prev) => ({
+      ...prev,
+      sections: prev.sections.map((s) => ({
+        ...s,
+        children: s.children.map((c) =>
+          c._id === componentId ? { ...c, gridArea } : c,
+        ),
+      })),
+    }))
+  }
+
   // --- DnD handlers ---
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -272,6 +285,7 @@ export function PageBuilder({ initialLayout, onChange, apiBase }: PageBuilderPro
                 componentDefs={componentDefs}
                 selectedComponentId={selectedComponentId}
                 onSelectComponent={setSelectedComponentId}
+                onUpdateGridArea={updateGridArea}
               />
             </div>
           ) : (

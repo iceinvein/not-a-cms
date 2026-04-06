@@ -1,5 +1,5 @@
 import { useState } from "react"
-import type { PageComponent, ComponentDef, ComponentPropDef } from "../../lib/builder-types"
+import type { PageComponent, ComponentDef, ComponentPropDef, GridArea } from "../../lib/builder-types"
 import { StyleEditor } from "./StyleEditor"
 
 type ComponentConfiguratorProps = {
@@ -15,7 +15,7 @@ export function ComponentConfigurator({
   onChange,
   onDelete,
 }: ComponentConfiguratorProps) {
-  const [activeTab, setActiveTab] = useState<"props" | "style">("props")
+  const [activeTab, setActiveTab] = useState<"props" | "style" | "position">("props")
 
   const updateProp = (propName: string, value: unknown) => {
     onChange({
@@ -57,6 +57,16 @@ export function ComponentConfigurator({
         >
           Style
         </button>
+        <button
+          onClick={() => setActiveTab("position")}
+          className={`px-3 py-1.5 text-xs font-medium transition-colors border-b-2 -mb-px ${
+            activeTab === "position"
+              ? "border-blue-500 text-blue-600"
+              : "border-transparent text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          Position
+        </button>
       </div>
 
       {activeTab === "props" ? (
@@ -71,10 +81,15 @@ export function ComponentConfigurator({
             />
           ))}
         </div>
-      ) : (
+      ) : activeTab === "style" ? (
         <StyleEditor
           style={component.style}
           onChange={(style) => onChange({ ...component, style })}
+        />
+      ) : (
+        <PositionEditor
+          gridArea={component.gridArea}
+          onChange={(gridArea) => onChange({ ...component, gridArea })}
         />
       )}
     </div>
@@ -173,4 +188,65 @@ function PropEditor({ name, def, value, onChange }: PropEditorProps) {
     default:
       return null
   }
+}
+
+type PositionEditorProps = {
+  gridArea: GridArea
+  onChange: (gridArea: GridArea) => void
+}
+
+function PositionEditor({ gridArea, onChange }: PositionEditorProps) {
+  const update = (field: keyof GridArea, value: number) => {
+    onChange({ ...gridArea, [field]: Math.max(1, value) })
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Column</label>
+          <input
+            type="number"
+            min={1}
+            value={gridArea.column}
+            onChange={(e) => update("column", Number(e.target.value))}
+            className="w-full px-2.5 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Col Span</label>
+          <input
+            type="number"
+            min={1}
+            value={gridArea.columnSpan}
+            onChange={(e) => update("columnSpan", Number(e.target.value))}
+            className="w-full px-2.5 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Row</label>
+          <input
+            type="number"
+            min={1}
+            value={gridArea.row}
+            onChange={(e) => update("row", Number(e.target.value))}
+            className="w-full px-2.5 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Row Span</label>
+          <input
+            type="number"
+            min={1}
+            value={gridArea.rowSpan}
+            onChange={(e) => update("rowSpan", Number(e.target.value))}
+            className="w-full px-2.5 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+      <p className="text-xs text-gray-400">
+        Drag component edges on the canvas to resize, or drag the component to reposition.
+      </p>
+    </div>
+  )
 }

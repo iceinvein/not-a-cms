@@ -6,8 +6,9 @@
 **Phase A: Wire It Together** — Complete
 **Phase B: Production Essentials** — Complete
 **Phase C: The Differentiators** — Complete
+**Phase D: Visual Site Builder** — Complete
 
-106 commits, 221 tests, 6 packages. GraphQL auto-generated from schemas (Pothos + graphql-yoga). Webhook system with HMAC signing, retry, and delivery logs. Scheduled publishing via 60s cron. Shareable preview links with token-based access. Role-based field visibility. Theme customizer with color/font/layout settings persisted to DB. MJML email channel renderer. WordPress WXR import CLI. All built on top of Phase B's production foundation.
+220 tests, 6 packages. Visual page builder with drag-and-drop component canvas (@dnd-kit), component registry with REST API, CSS Grid positioning with resize handles, visual CSS editor (layout/spacing/typography/background/border), responsive breakpoints (desktop/tablet/mobile) with per-device overrides and media query generation. New `pageLayout` field type stores pages as Portable Text-like JSON. Auto-migration adds missing columns to existing tables.
 
 ---
 
@@ -73,19 +74,19 @@
 
 ---
 
-## Phase D: Visual Site Builder (M2)
+## Phase D: Visual Site Builder (DONE)
 
 > Goal: Non-technical users can build pages visually.
 
-- [ ] **D1: Component registry in admin** — Developers register components via defineComponent(). Admin shows available components in a palette. Drag components onto a canvas.
+- [x] **D1: Component registry in admin** — `defineComponent()` declarations passed to server config. `/api/_components` REST endpoint returns registry. Admin palette groups components by category. New `field.pageLayout()` field type.
 
-- [ ] **D2: Visual page builder** — Drag-and-drop page assembly from registered components. Reorder, configure props, preview. Saves as a Portable Text-like structure with component references.
+- [x] **D2: Visual page builder** — @dnd-kit drag-and-drop canvas. Three-column layout: palette | canvas | configurator. Components placed on CSS Grid sections. Props edited via type-specific inputs. Saves as Portable Text-like JSON. Server-side page renderer converts layout to HTML.
 
-- [ ] **D3: Visual CSS editor** — Webflow-style CSS controls. Flexbox/Grid visual toggles. Spacing, typography, colors. Generates real CSS classes. Class-based system for reuse.
+- [x] **D3: Visual CSS editor** — StyleEditor with 5 category tabs (layout, spacing, typography, background, border). Style compiler generates CSS from style objects. Inline styles flow through to renderer output.
 
-- [ ] **D4: Free grid positioning** — Squarespace Fluid Engine-style independent block positioning. Dense grid, no cascade reflow. Overlapping elements.
+- [x] **D4: Free grid positioning** — GridCanvas with resize handles (right/bottom/corner). Snap-to-grid drag repositioning. Visual grid lines overlay. Numeric position controls. Z-index for overlapping.
 
-- [ ] **D5: Responsive breakpoints** — Mobile, tablet, desktop breakpoint controls. Per-breakpoint overrides for layout and visibility. Preview at each breakpoint.
+- [x] **D5: Responsive breakpoints** — BreakpointSwitcher (desktop 1280px, tablet 768px, mobile 375px). Canvas resizes to active breakpoint. Per-breakpoint grid position overrides and hide toggles. Renderer generates `@media` queries.
 
 ---
 

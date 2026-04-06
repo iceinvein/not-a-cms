@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import {
   DndContext,
   DragOverlay,
@@ -29,6 +29,7 @@ type PageBuilderProps = {
 export function PageBuilder({ initialLayout, onChange, apiBase }: PageBuilderProps) {
   const [layout, setLayout] = useState<PageLayout>(() => initialLayout ?? createEmptyLayout())
   const [componentDefs, setComponentDefs] = useState<Map<string, ComponentDef>>(new Map())
+  const [componentDefsLoading, setComponentDefsLoading] = useState(true)
   const [activeSectionId, setActiveSectionId] = useState<string | null>(
     () => layout.sections[0]?._id ?? null,
   )
@@ -49,6 +50,7 @@ export function PageBuilder({ initialLayout, onChange, apiBase }: PageBuilderPro
 
   // Load component definitions
   useEffect(() => {
+    setComponentDefsLoading(true)
     fetch(`${apiBase}/api/_components`)
       .then((res) => res.json())
       .then((list: ComponentDef[]) => {
@@ -57,7 +59,19 @@ export function PageBuilder({ initialLayout, onChange, apiBase }: PageBuilderPro
         setComponentDefs(map)
       })
       .catch(() => {})
+      .finally(() => setComponentDefsLoading(false))
   }, [apiBase])
+
+  // Group component defs by category for the palette
+  const groupedComponents = useMemo(() => {
+    const grouped: Record<string, ComponentDef[]> = {}
+    for (const def of componentDefs.values()) {
+      const category = def.category ?? "general"
+      if (!grouped[category]) grouped[category] = []
+      grouped[category].push(def)
+    }
+    return grouped
+  }, [componentDefs])
 
   // --- Section operations ---
 
@@ -71,15 +85,20 @@ export function PageBuilder({ initialLayout, onChange, apiBase }: PageBuilderPro
   }
 
   const removeSection = (id: string) => {
+    let fallbackId: string | null = null
     updateLayout((prev) => {
       const filtered = prev.sections.filter((s) => s._id !== id)
       if (filtered.length === 0) return prev
+      fallbackId = filtered[0]._id
       return { ...prev, sections: filtered }
     })
-    if (activeSectionId === id) {
-      setActiveSectionId(layout.sections.find((s) => s._id !== id)?._id ?? null)
-      setSelectedComponentId(null)
-    }
+    setActiveSectionId((current) => {
+      if (current === id) {
+        setSelectedComponentId(null)
+        return fallbackId
+      }
+      return current
+    })
   }
 
   const renameSection = (id: string, label: string) => {
@@ -235,7 +254,8 @@ export function PageBuilder({ initialLayout, onChange, apiBase }: PageBuilderPro
             onRenameSection={renameSection}
           />
           <ComponentPalette
-            apiBase={apiBase}
+            components={groupedComponents}
+            loading={componentDefsLoading}
             onAddComponent={addComponentToSection}
           />
         </div>

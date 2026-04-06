@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react"
 import { useDraggable } from "@dnd-kit/core"
 import type { ComponentDef } from "../../lib/builder-types"
 
@@ -42,34 +41,17 @@ function iconForComponent(icon?: string): string {
 }
 
 type ComponentPaletteProps = {
-  apiBase: string
+  components: Record<string, ComponentDef[]>
+  loading?: boolean
   onAddComponent: (component: ComponentDef) => void
-  onComponentsLoaded?: (components: ComponentDef[]) => void
 }
 
-export function ComponentPalette({ apiBase, onAddComponent, onComponentsLoaded }: ComponentPaletteProps) {
-  const [grouped, setGrouped] = useState<Record<string, ComponentDef[]>>({})
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetch(`${apiBase}/api/_components?grouped=true`)
-      .then((res) => res.json())
-      .then((data: Record<string, ComponentDef[]>) => {
-        setGrouped(data)
-        if (onComponentsLoaded) {
-          const all = Object.values(data).flat()
-          onComponentsLoaded(all)
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [apiBase])
-
+export function ComponentPalette({ components, loading, onAddComponent }: ComponentPaletteProps) {
   if (loading) {
     return <div className="text-sm text-gray-400 p-3">Loading components...</div>
   }
 
-  const categories = Object.keys(grouped)
+  const categories = Object.keys(components)
   if (categories.length === 0) {
     return <div className="text-sm text-gray-400 p-3">No components registered.</div>
   }
@@ -85,7 +67,7 @@ export function ComponentPalette({ apiBase, onAddComponent, onComponentsLoaded }
             {category}
           </h4>
           <div className="space-y-1">
-            {grouped[category].map((component) => (
+            {components[category].map((component) => (
               <PaletteItem
                 key={component.name}
                 component={component}

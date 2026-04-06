@@ -51,6 +51,14 @@ function escapeAttr(value: string): string {
     .replace(/>/g, "&gt;")
 }
 
+export function escapeHtml(str: string): string {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+}
+
 function renderComponent(component: PageComponent, renderers: ComponentRendererMap): string {
   const renderer = renderers[component.component]
   if (!renderer) {

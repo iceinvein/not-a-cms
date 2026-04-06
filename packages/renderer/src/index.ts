@@ -4,7 +4,7 @@ export { resolveBlockComponent, renderTextChildren, DEFAULT_BLOCK_MAP, type PTBl
 export { renderRSSFeed, portableTextToHtml, renderJSONChannel, type RSSItem, type RSSFeedConfig } from "./runtime/channel"
 
 // Page Builder
-export { renderPageLayout, type ComponentRenderer, type ComponentRendererMap } from "./runtime/page-renderer"
+export { renderPageLayout, escapeHtml, type ComponentRenderer, type ComponentRendererMap } from "./runtime/page-renderer"
 
 // Theme
 export { defineTheme, type ThemeDefinition, type ThemeSettings, type DefinedTheme } from "./theme/define-theme"

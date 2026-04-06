@@ -42,7 +42,14 @@ export function ContentEditor({
   documentId,
   apiBase = "",
 }: Props) {
-  const [data, setData] = useState<Record<string, unknown>>(initialData || {})
+  // Initialize with defaults from field definitions
+  const [data, setData] = useState<Record<string, unknown>>(() => {
+    const defaults: Record<string, unknown> = {}
+    for (const [name, def] of Object.entries(fields)) {
+      if (def.default !== undefined) defaults[name] = def.default
+    }
+    return { ...defaults, ...initialData }
+  })
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState("")

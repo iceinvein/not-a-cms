@@ -108,4 +108,42 @@ describe("renderPageLayout", () => {
     expect(html).toContain("background-color:#1a1a2e")
     expect(html).toContain("color:#fff")
   })
+
+  test("renders responsive media queries for tablet overrides", () => {
+    const layoutWithResponsive = {
+      _type: "page" as const,
+      sections: [{
+        _type: "section" as const,
+        _id: "s1",
+        grid: { columns: 12, rowHeight: 60, gap: 16 },
+        children: [{
+          _type: "component" as const,
+          _id: "c1",
+          component: "hero",
+          props: { headline: "Hello", subheadline: "World" },
+          gridArea: { column: 1, columnSpan: 6, row: 1, rowSpan: 1 },
+          responsive: {
+            tablet: { gridArea: { columnSpan: 12 } },
+            mobile: { hidden: true },
+          },
+        }],
+      }],
+    }
+    const html = renderPageLayout(layoutWithResponsive, componentRenderers)
+    expect(html).toContain("@media(max-width:768px)")
+    expect(html).toContain("grid-column:1 / span 12")
+    expect(html).toContain("@media(max-width:375px)")
+    expect(html).toContain("display:none")
+  })
+
+  test("no style tag when no responsive overrides", () => {
+    const html = renderPageLayout(sampleLayout, componentRenderers)
+    expect(html).not.toContain("<style>")
+  })
+
+  test("renders data-id attribute on components", () => {
+    const html = renderPageLayout(sampleLayout, componentRenderers)
+    expect(html).toContain('data-id="c1"')
+    expect(html).toContain('data-id="c2"')
+  })
 })

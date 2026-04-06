@@ -1,5 +1,5 @@
 import { useDroppable } from "@dnd-kit/core"
-import type { PageSection, PageComponent, ComponentDef, GridArea } from "../../lib/builder-types"
+import type { PageSection, PageComponent, ComponentDef, GridArea, Breakpoint } from "../../lib/builder-types"
 import { GridCanvas } from "./GridCanvas"
 
 type CanvasRendererProps = {
@@ -8,6 +8,20 @@ type CanvasRendererProps = {
   selectedComponentId: string | null
   onSelectComponent: (id: string | null) => void
   onUpdateGridArea: (componentId: string, gridArea: GridArea) => void
+  activeBreakpoint: Breakpoint
+}
+
+function getEffectiveGridArea(component: PageComponent, breakpoint: Breakpoint): GridArea {
+  const base = component.gridArea
+  if (breakpoint === "desktop") return base
+  const overrides = component.responsive?.[breakpoint]?.gridArea
+  if (!overrides) return base
+  return { ...base, ...overrides }
+}
+
+function isHiddenAtBreakpoint(component: PageComponent, breakpoint: Breakpoint): boolean {
+  if (breakpoint === "desktop") return false
+  return component.responsive?.[breakpoint]?.hidden ?? false
 }
 
 export function CanvasRenderer({
@@ -16,6 +30,7 @@ export function CanvasRenderer({
   selectedComponentId,
   onSelectComponent,
   onUpdateGridArea,
+  activeBreakpoint,
 }: CanvasRendererProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: `section-${section._id}`,
@@ -77,28 +92,45 @@ export function CanvasRenderer({
         >
           {section.children.map((component) => {
             const isSelected = component._id === selectedComponentId
+            const effectiveGrid = getEffectiveGridArea(component, activeBreakpoint)
+            const hidden = isHiddenAtBreakpoint(component, activeBreakpoint)
             return (
               <div
                 key={component._id}
                 style={{
-                  gridColumn: `${component.gridArea.column} / span ${component.gridArea.columnSpan}`,
-                  gridRow: `${component.gridArea.row} / span ${component.gridArea.rowSpan}`,
+                  gridColumn: `${effectiveGrid.column} / span ${effectiveGrid.columnSpan}`,
+                  gridRow: `${effectiveGrid.row} / span ${effectiveGrid.rowSpan}`,
                   zIndex: isSelected ? 10 : 1,
+                  ...(hidden ? { opacity: 0.3 } : {}),
                 }}
               >
-                <GridCanvas
-                  grid={grid}
-                  gridArea={component.gridArea}
-                  onGridAreaChange={(area) => onUpdateGridArea(component._id, area)}
-                  isSelected={isSelected}
-                >
-                  <ComponentCard
-                    component={component}
-                    definition={componentDefs.get(component.component)}
+                {hidden ? (
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onSelectComponent(component._id)
+                    }}
+                    className={`h-full rounded-lg border-2 border-dashed p-3 cursor-pointer flex items-center justify-center text-xs text-gray-400 ${
+                      isSelected ? "border-blue-400 bg-blue-50/30" : "border-gray-300 bg-gray-50"
+                    }`}
+                  >
+                    Hidden on {activeBreakpoint}
+                  </div>
+                ) : (
+                  <GridCanvas
+                    grid={grid}
+                    gridArea={effectiveGrid}
+                    onGridAreaChange={(area) => onUpdateGridArea(component._id, area)}
                     isSelected={isSelected}
-                    onSelect={() => onSelectComponent(component._id)}
-                  />
-                </GridCanvas>
+                  >
+                    <ComponentCard
+                      component={component}
+                      definition={componentDefs.get(component.component)}
+                      isSelected={isSelected}
+                      onSelect={() => onSelectComponent(component._id)}
+                    />
+                  </GridCanvas>
+                )}
               </div>
             )
           })}

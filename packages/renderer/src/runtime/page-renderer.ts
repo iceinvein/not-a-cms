@@ -17,6 +17,12 @@ type GridArea = {
   rowSpan: number
 }
 
+type ResponsiveOverrides = {
+  gridArea?: Partial<GridArea>
+  style?: { className?: string; styles?: Record<string, string> }
+  hidden?: boolean
+}
+
 type PageComponent = {
   _type: "component"
   _id: string
@@ -24,6 +30,10 @@ type PageComponent = {
   props: Record<string, unknown>
   gridArea: GridArea
   style?: { className?: string; styles?: Record<string, string> }
+  responsive?: {
+    tablet?: ResponsiveOverrides
+    mobile?: ResponsiveOverrides
+  }
 }
 
 type PageSection = {
@@ -84,7 +94,7 @@ function renderComponent(component: PageComponent, renderers: ComponentRendererM
     ? ` class="${escapeAttr(component.style.className)}"`
     : ""
 
-  return `<div data-component="${escapeAttr(component.component)}" style="${inlineStyles.join(";")}"${classAttr}>${content}</div>`
+  return `<div data-component="${escapeAttr(component.component)}" data-id="${escapeAttr(component._id)}" style="${inlineStyles.join(";")}"${classAttr}>${content}</div>`
 }
 
 function renderSection(section: PageSection, renderers: ComponentRendererMap): string {
@@ -118,12 +128,73 @@ function renderSection(section: PageSection, renderers: ComponentRendererMap): s
   return `<section style="${gridStyle.join(";")}"${labelAttr}${classAttr}>${childrenHtml}</section>`
 }
 
+const BREAKPOINT_MAX_WIDTHS: Record<string, number> = {
+  tablet: 768,
+  mobile: 375,
+}
+
+function renderResponsiveStyles(layout: PageLayout): string {
+  const breakpointRules: Record<string, string[]> = {
+    tablet: [],
+    mobile: [],
+  }
+
+  for (const section of layout.sections) {
+    for (const component of section.children) {
+      if (!component.responsive) continue
+
+      for (const bp of ["tablet", "mobile"] as const) {
+        const overrides = component.responsive[bp]
+        if (!overrides) continue
+
+        const rules: string[] = []
+
+        if (overrides.hidden) {
+          rules.push("display:none")
+        }
+
+        if (overrides.gridArea) {
+          const merged = { ...component.gridArea, ...overrides.gridArea }
+          rules.push(`grid-column:${merged.column} / span ${merged.columnSpan}`)
+          rules.push(`grid-row:${merged.row} / span ${merged.rowSpan}`)
+        }
+
+        if (overrides.style?.styles) {
+          for (const [prop, val] of Object.entries(overrides.style.styles)) {
+            rules.push(`${prop}:${val}`)
+          }
+        }
+
+        if (rules.length > 0) {
+          breakpointRules[bp].push(
+            `[data-id="${escapeAttr(component._id)}"]{${rules.join(";")}}`
+          )
+        }
+      }
+    }
+  }
+
+  const parts: string[] = []
+  for (const bp of ["tablet", "mobile"]) {
+    if (breakpointRules[bp].length > 0) {
+      parts.push(
+        `@media(max-width:${BREAKPOINT_MAX_WIDTHS[bp]}px){${breakpointRules[bp].join("")}}`
+      )
+    }
+  }
+
+  return parts.length > 0 ? `<style>${parts.join("")}</style>` : ""
+}
+
 export function renderPageLayout(layout: PageLayout, renderers: ComponentRendererMap): string {
   if (!layout.sections || layout.sections.length === 0) {
     return ""
   }
 
-  return layout.sections
+  const responsiveStyles = renderResponsiveStyles(layout)
+  const sectionsHtml = layout.sections
     .map((section) => renderSection(section, renderers))
     .join("")
+
+  return responsiveStyles + sectionsHtml
 }

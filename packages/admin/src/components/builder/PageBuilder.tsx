@@ -12,6 +12,8 @@ import {
   type PageComponent,
   type ComponentDef,
   type GridArea,
+  type Breakpoint,
+  BREAKPOINTS,
   createEmptyLayout,
   createEmptySection,
   createComponentInstance,
@@ -20,6 +22,7 @@ import { ComponentPalette } from "./ComponentPalette"
 import { ComponentConfigurator } from "./ComponentConfigurator"
 import { SectionManager } from "./SectionManager"
 import { CanvasRenderer } from "./CanvasRenderer"
+import { BreakpointSwitcher } from "./BreakpointSwitcher"
 
 type PageBuilderProps = {
   initialLayout: PageLayout | undefined
@@ -36,6 +39,7 @@ export function PageBuilder({ initialLayout, onChange, apiBase }: PageBuilderPro
   )
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null)
   const [activeDragId, setActiveDragId] = useState<string | null>(null)
+  const [activeBreakpoint, setActiveBreakpoint] = useState<Breakpoint>("desktop")
 
   // Sync layout changes upstream
   const updateLayout = useCallback(
@@ -275,8 +279,17 @@ export function PageBuilder({ initialLayout, onChange, apiBase }: PageBuilderPro
 
         {/* Center: Canvas */}
         <div className="flex-1 overflow-y-auto">
+          <div className="sticky top-0 z-20 bg-gray-50/80 backdrop-blur-sm border-b border-gray-200 py-2 flex justify-center mb-4">
+            <BreakpointSwitcher active={activeBreakpoint} onChange={setActiveBreakpoint} />
+          </div>
           {activeSection ? (
-            <div>
+            <div
+              className="mx-auto"
+              style={{
+                maxWidth: BREAKPOINTS[activeBreakpoint].maxWidth + "px",
+                transition: "max-width 0.3s ease",
+              }}
+            >
               <div className="text-xs text-gray-400 mb-2 px-1">
                 {activeSection.label || "Untitled section"} — {activeSection.children.length} component{activeSection.children.length !== 1 ? "s" : ""}
               </div>
@@ -286,6 +299,7 @@ export function PageBuilder({ initialLayout, onChange, apiBase }: PageBuilderPro
                 selectedComponentId={selectedComponentId}
                 onSelectComponent={setSelectedComponentId}
                 onUpdateGridArea={updateGridArea}
+                activeBreakpoint={activeBreakpoint}
               />
             </div>
           ) : (
@@ -304,6 +318,7 @@ export function PageBuilder({ initialLayout, onChange, apiBase }: PageBuilderPro
                 definition={selectedDef}
                 onChange={updateComponent}
                 onDelete={() => deleteComponent(selectedComponent._id)}
+                activeBreakpoint={activeBreakpoint}
               />
             </div>
           ) : (

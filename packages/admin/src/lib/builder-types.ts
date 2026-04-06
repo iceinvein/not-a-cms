@@ -72,6 +72,16 @@ export type ComponentDef = {
   props: Record<string, ComponentPropDef>
 }
 
+export type Breakpoint = "desktop" | "tablet" | "mobile"
+
+export const BREAKPOINTS: Record<Breakpoint, { label: string; maxWidth: number; icon: string }> = {
+  desktop: { label: "Desktop", maxWidth: 1280, icon: "monitor" },
+  tablet: { label: "Tablet", maxWidth: 768, icon: "tablet" },
+  mobile: { label: "Mobile", maxWidth: 375, icon: "smartphone" },
+}
+
+export const BREAKPOINT_ORDER: Breakpoint[] = ["desktop", "tablet", "mobile"]
+
 export const DEFAULT_GRID: GridConfig = {
   columns: 12,
   rowHeight: 60,

@@ -49,4 +49,12 @@ export function bootstrapTables(db: AppDatabase, collections: CollectionDef[]) {
   db.run(sql`${sql.raw(
     `CREATE INDEX IF NOT EXISTS idx_versions_lookup ON _versions(collection, document_id, version_number DESC)`
   )}`)
+
+  db.run(sql`${sql.raw(`CREATE VIRTUAL TABLE IF NOT EXISTS content_fts USING fts5(
+    collection,
+    document_id,
+    title,
+    body_text,
+    tokenize='porter unicode61'
+  )`)}`)
 }

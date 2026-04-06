@@ -43,6 +43,7 @@ export { parseWXR, htmlToPortableText } from "./import/wordpress"
 
 // Builder
 export { createComponentRegistry, type ComponentRegistry, type RegistryComponentDef } from "./builder/registry"
+export { compileStyles, compileInlineStyle } from "./builder/style-compiler"
 export {
   type PageLayout, type PageSection, type PageComponent,
   type GridConfig, type GridArea, type StyleOverrides, type ResponsiveOverrides,

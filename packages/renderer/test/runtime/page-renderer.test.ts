@@ -86,4 +86,26 @@ describe("renderPageLayout", () => {
     const html = renderPageLayout(empty, componentRenderers)
     expect(html).toBe("")
   })
+
+  test("applies component inline styles", () => {
+    const layoutWithStyles = {
+      _type: "page" as const,
+      sections: [{
+        _type: "section" as const,
+        _id: "s1",
+        grid: { columns: 12, rowHeight: 60, gap: 16 },
+        children: [{
+          _type: "component" as const,
+          _id: "c1",
+          component: "hero",
+          props: { headline: "Styled", subheadline: "Sub" },
+          gridArea: { column: 1, columnSpan: 12, row: 1, rowSpan: 1 },
+          style: { styles: { "background-color": "#1a1a2e", "color": "#fff" } },
+        }],
+      }],
+    }
+    const html = renderPageLayout(layoutWithStyles, componentRenderers)
+    expect(html).toContain("background-color:#1a1a2e")
+    expect(html).toContain("color:#fff")
+  })
 })

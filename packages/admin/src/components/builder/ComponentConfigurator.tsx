@@ -1,4 +1,6 @@
+import { useState } from "react"
 import type { PageComponent, ComponentDef, ComponentPropDef } from "../../lib/builder-types"
+import { StyleEditor } from "./StyleEditor"
 
 type ComponentConfiguratorProps = {
   component: PageComponent
@@ -13,6 +15,8 @@ export function ComponentConfigurator({
   onChange,
   onDelete,
 }: ComponentConfiguratorProps) {
+  const [activeTab, setActiveTab] = useState<"props" | "style">("props")
+
   const updateProp = (propName: string, value: unknown) => {
     onChange({
       ...component,
@@ -32,17 +36,47 @@ export function ComponentConfigurator({
         </button>
       </div>
 
-      <div className="space-y-3">
-        {Object.entries(definition.props).map(([propName, propDef]) => (
-          <PropEditor
-            key={propName}
-            name={propName}
-            def={propDef}
-            value={component.props[propName] ?? propDef.default ?? ""}
-            onChange={(value) => updateProp(propName, value)}
-          />
-        ))}
+      <div className="flex gap-1 border-b border-gray-200 mb-3">
+        <button
+          onClick={() => setActiveTab("props")}
+          className={`px-3 py-1.5 text-xs font-medium transition-colors border-b-2 -mb-px ${
+            activeTab === "props"
+              ? "border-blue-500 text-blue-600"
+              : "border-transparent text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          Properties
+        </button>
+        <button
+          onClick={() => setActiveTab("style")}
+          className={`px-3 py-1.5 text-xs font-medium transition-colors border-b-2 -mb-px ${
+            activeTab === "style"
+              ? "border-blue-500 text-blue-600"
+              : "border-transparent text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          Style
+        </button>
       </div>
+
+      {activeTab === "props" ? (
+        <div className="space-y-3">
+          {Object.entries(definition.props).map(([propName, propDef]) => (
+            <PropEditor
+              key={propName}
+              name={propName}
+              def={propDef}
+              value={component.props[propName] ?? propDef.default ?? ""}
+              onChange={(value) => updateProp(propName, value)}
+            />
+          ))}
+        </div>
+      ) : (
+        <StyleEditor
+          style={component.style}
+          onChange={(style) => onChange({ ...component, style })}
+        />
+      )}
     </div>
   )
 }

@@ -21,10 +21,21 @@ export function createContentFetcher(config: FetchConfig) {
   const { apiBase } = config
 
   return {
-    async list(collection: string, opts?: { limit?: number; offset?: number; where?: Record<string, unknown> }): Promise<ContentItem[]> {
+    async list(collection: string, opts?: {
+      limit?: number
+      offset?: number
+      where?: Record<string, unknown>
+      search?: string
+    }): Promise<ContentItem[]> {
       const params = new URLSearchParams()
       if (opts?.limit) params.set("limit", String(opts.limit))
       if (opts?.offset) params.set("offset", String(opts.offset))
+      if (opts?.search) params.set("search", opts.search)
+      if (opts?.where) {
+        for (const [key, value] of Object.entries(opts.where)) {
+          params.set(`where[${key}]`, String(value))
+        }
+      }
 
       const url = `${apiBase}/api/${collection}${params.toString() ? "?" + params.toString() : ""}`
       const res = await fetch(url)
@@ -41,10 +52,10 @@ export function createContentFetcher(config: FetchConfig) {
     },
 
     async getBySlug(collection: string, slug: string): Promise<ContentItem | null> {
-      // Fetch all with slug filter — the REST API supports where params
-      // In production, add a dedicated slug endpoint
-      const items = await this.list(collection, { limit: 1 })
-      return items.find((item) => item.slug === slug) ?? null
+      const res = await fetch(`${apiBase}/api/${collection}/slug/${slug}`)
+      if (res.status === 404) return null
+      if (!res.ok) throw new Error(`Failed to fetch ${collection}/slug/${slug}: ${res.status}`)
+      return res.json()
     },
   }
 }

@@ -46,6 +46,17 @@ export function createRestHandler(
     const method = req.method.toUpperCase()
 
     try {
+      // Slug lookup: /api/:collection/slug/:slug
+      if (segments.length === 3 && segments[1] === "slug") {
+        const slug = segments[2]
+        if (method === "GET") {
+          const docs = await service.findMany({ where: { slug }, limit: 1 })
+          if (docs.length === 0) return json({ error: "Not found" }, 404)
+          return json(docs[0])
+        }
+        return json({ error: "Method not allowed" }, 405)
+      }
+
       // Version routes: /api/:collection/:id/versions
       if (segments.length === 3 && segments[2] === "versions" && versioning) {
         const docId = segments[1]
@@ -85,7 +96,15 @@ export function createRestHandler(
           const offset = url.searchParams.has("offset")
             ? Number(url.searchParams.get("offset"))
             : undefined
-          const data = await service.findMany({ limit, offset })
+
+          // Where filters from query params
+          const where: Record<string, unknown> = {}
+          for (const [key, val] of url.searchParams.entries()) {
+            const match = key.match(/^where\[(.+)\]$/)
+            if (match) where[match[1]] = val
+          }
+
+          const data = await service.findMany({ limit, offset, where: Object.keys(where).length > 0 ? where : undefined })
           return json({ data })
         }
 

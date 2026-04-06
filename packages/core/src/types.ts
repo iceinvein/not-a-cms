@@ -69,6 +69,10 @@ export type GroupFieldDef = BaseFieldDef & {
   fields: Record<string, FieldDef>;
 };
 
+export type PageLayoutFieldDef = BaseFieldDef & {
+  type: "pageLayout";
+};
+
 export type FieldDef =
   | TextFieldDef
   | SlugFieldDef
@@ -80,7 +84,8 @@ export type FieldDef =
   | RelationFieldDef
   | MediaFieldDef
   | ArrayFieldDef
-  | GroupFieldDef;
+  | GroupFieldDef
+  | PageLayoutFieldDef;
 
 export type ContentStatus = "draft" | "in_review" | "published" | "archived";
 

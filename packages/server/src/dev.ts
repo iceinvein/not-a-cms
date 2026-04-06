@@ -29,10 +29,58 @@ const page = defineCollection({
   fields: {
     title: field.text({ required: true }),
     slug: field.slug({ from: "title" }),
-    body: field.richText(),
+    layout: field.pageLayout(),
     status: field.select(["draft", "published"], { default: "draft" }),
   },
 })
+
+// --- Sample components for the visual builder ---
+
+const sampleComponents = [
+  {
+    name: "hero",
+    label: "Hero Section",
+    category: "sections",
+    icon: "layout",
+    props: {
+      headline: { type: "text" as const, default: "Welcome", label: "Headline" },
+      subheadline: { type: "text" as const, label: "Subheadline" },
+      backgroundImage: { type: "media" as const, label: "Background Image" },
+    },
+  },
+  {
+    name: "text_block",
+    label: "Text Block",
+    category: "content",
+    icon: "type",
+    props: {
+      content: { type: "text" as const, label: "Content" },
+      alignment: { type: "select" as const, options: ["left", "center", "right"], default: "left", label: "Alignment" },
+    },
+  },
+  {
+    name: "image_block",
+    label: "Image",
+    category: "content",
+    icon: "image",
+    props: {
+      src: { type: "media" as const, label: "Image" },
+      alt: { type: "text" as const, label: "Alt Text" },
+      caption: { type: "text" as const, label: "Caption" },
+    },
+  },
+  {
+    name: "cta",
+    label: "Call to Action",
+    category: "actions",
+    icon: "mouse-pointer",
+    props: {
+      label: { type: "text" as const, default: "Get Started", label: "Button Label" },
+      url: { type: "text" as const, label: "URL" },
+      variant: { type: "select" as const, options: ["primary", "secondary", "outline"], default: "primary", label: "Style" },
+    },
+  },
+]
 
 // --- Boot the server ---
 
@@ -52,6 +100,7 @@ const { server } = createServer({
     },
   },
   collections: [blogPost, page],
+  components: sampleComponents,
 })
 
 if (!process.env.QUIET) {

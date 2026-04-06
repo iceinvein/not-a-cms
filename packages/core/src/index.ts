@@ -41,6 +41,15 @@ export { createSettingsService, type SettingsService } from "./settings/service"
 // Import
 export { parseWXR, htmlToPortableText } from "./import/wordpress"
 
+// Builder
+export { createComponentRegistry, type ComponentRegistry, type RegistryComponentDef } from "./builder/registry"
+export { compileStyles, compileInlineStyle } from "./builder/style-compiler"
+export {
+  type PageLayout, type PageSection, type PageComponent,
+  type GridConfig, type GridArea, type StyleOverrides, type ResponsiveOverrides,
+  DEFAULT_GRID, createEmptySection, createEmptyLayout,
+} from "./builder/types"
+
 // Types
 export type {
   FieldDef,
@@ -55,6 +64,7 @@ export type {
   MediaFieldDef,
   ArrayFieldDef,
   GroupFieldDef,
+  PageLayoutFieldDef,
   CollectionDef,
   CollectionHooks,
   ContentHook,

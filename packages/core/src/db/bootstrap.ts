@@ -34,6 +34,21 @@ export function bootstrapTables(db: AppDatabase, collections: CollectionDef[]) {
     }
 
     db.run(sql`${sql.raw(`CREATE TABLE IF NOT EXISTS ${collection.name} (${columns.join(", ")})`)}`)
+
+    // Check for missing columns and add them (handles schema evolution on existing DBs)
+    const existingCols = db.all(sql`${sql.raw(`PRAGMA table_info(${collection.name})`)}`) as Array<{ name: string }>
+    const existingColNames = new Set(existingCols.map(c => c.name))
+
+    for (const [name, fieldDef] of Object.entries(collection.fields)) {
+      const colName = camelToSnake(name)
+      const effectiveName = (fieldDef.type === "relation" || fieldDef.type === "media") ? `${colName}_id` : colName
+      if (existingColNames.has(effectiveName)) continue
+
+      let colType = "TEXT"
+      if (fieldDef.type === "number" || fieldDef.type === "boolean") colType = "INTEGER"
+
+      db.run(sql`${sql.raw(`ALTER TABLE ${collection.name} ADD COLUMN ${effectiveName} ${colType}`)}`)
+    }
   }
 
   db.run(sql`${sql.raw(`CREATE TABLE IF NOT EXISTS _versions (

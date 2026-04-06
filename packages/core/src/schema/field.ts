@@ -10,6 +10,7 @@ import type {
   MediaFieldDef,
   ArrayFieldDef,
   GroupFieldDef,
+  PageLayoutFieldDef,
   FieldDef,
   FieldAccess,
 } from "../types";
@@ -169,6 +170,15 @@ export const field = {
     return {
       type: "group",
       fields,
+      required,
+      ...(access !== undefined && { access }),
+    };
+  },
+
+  pageLayout(opts: BaseOpts = {}): PageLayoutFieldDef {
+    const { required = false, access } = opts;
+    return {
+      type: "pageLayout",
       required,
       ...(access !== undefined && { access }),
     };

@@ -11,8 +11,10 @@ import {
   createWebhookService,
   createPreviewTokenService,
   createSettingsService,
+  createComponentRegistry,
   type CollectionDef,
 } from "@not-a-cms/core"
+import { createComponentHandler } from "./builder/component-handler"
 import { appRouter } from "./trpc/router"
 import { createRestHandler } from "./rest/handler"
 import { createSchemaHandler } from "./schema/handler"
@@ -38,6 +40,13 @@ type ServerConfig = {
   }
   collections: CollectionDef[]
   storage?: { provider: "local"; path: string }
+  components?: Array<{
+    name: string
+    label: string
+    category?: string
+    icon?: string
+    props: Record<string, any>
+  }>
 }
 
 export function createServer(config: ServerConfig) {
@@ -74,6 +83,8 @@ export function createServer(config: ServerConfig) {
   const optimizer = createImageOptimizer(storagePath)
   const storage = createLocalStorage(config.storage ?? { provider: "local", path: storagePath }, optimizer)
   const mediaHandler = createMediaHandler(storage)
+  const componentRegistry = createComponentRegistry(config.components ?? [])
+  const componentHandler = createComponentHandler(componentRegistry)
   const port = config.port ?? 4321
 
   const server = Bun.serve<CollabWSData>({
@@ -123,6 +134,12 @@ export function createServer(config: ServerConfig) {
         if (res) return res
       }
 
+      // Component registry
+      if (url.pathname.startsWith("/api/_components")) {
+        const res = await componentHandler(req)
+        if (res) return res
+      }
+
       // Media routes
       if (url.pathname.startsWith("/api/media")) {
         const res = await mediaHandler(req)
@@ -158,7 +175,7 @@ export function createServer(config: ServerConfig) {
     console.log(`not-a-cms API server on http://localhost:${server.port}`)
   }
 
-  return { server, db, collections, versioning, search, trpcRouter, webhookStore, webhookService, previewTokenService, settingsService }
+  return { server, db, collections, versioning, search, trpcRouter, webhookStore, webhookService, previewTokenService, settingsService, componentRegistry }
 }
 
 // Re-exports for external consumers

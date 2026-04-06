@@ -125,3 +125,16 @@ describe("field.group", () => {
     expect(f.required).toBe(false);
   });
 });
+
+describe("field.pageLayout", () => {
+  test("field.pageLayout() returns correct type", () => {
+    const f = field.pageLayout();
+    expect(f.type).toBe("pageLayout");
+    expect(f.required).toBe(false);
+  });
+
+  test("field.pageLayout({ required: true }) sets required", () => {
+    const f = field.pageLayout({ required: true });
+    expect(f.required).toBe(true);
+  });
+});

@@ -242,7 +242,7 @@ function ContentEditorInner({
         })()
 
         return (
-          <div className="border border-[rgba(255,255,255,0.1)] rounded-lg overflow-hidden min-h-[300px] [&_.ProseMirror]:text-[#fafafa] [&_.ProseMirror]:bg-transparent">
+          <div className="rounded-lg min-h-[300px] [&_.ProseMirror]:text-[#fafafa] [&_.ProseMirror]:bg-transparent [&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-[250px] [&_.ProseMirror]:px-4 [&_.ProseMirror]:py-3 [&_.ProseMirror_p.is-editor-empty:first-child::before]:text-[#52525b] [&_.ProseMirror_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)] [&_.ProseMirror_p.is-editor-empty:first-child::before]:float-left [&_.ProseMirror_p.is-editor-empty:first-child::before]:pointer-events-none [&_.ProseMirror_p.is-editor-empty:first-child::before]:h-0 border border-[rgba(255,255,255,0.08)] focus-within:border-[rgba(255,255,255,0.15)] transition-colors bg-[#0a0a0c]">
             <Suspense fallback={<div className="p-4 text-[#52525b] text-sm">Loading editor...</div>}>
               <Editor
                 content={ptContent}

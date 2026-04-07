@@ -12,20 +12,21 @@ export function BubbleToolbar({ editor }: BubbleToolbarProps) {
     border: "none",
     borderRadius: "4px",
     cursor: "pointer",
-    fontWeight: active ? 700 : 400,
-    background: active ? "#e2e8f0" : "transparent",
-    fontSize: "14px",
+    fontWeight: active ? 600 : 400,
+    background: active ? "rgba(255,255,255,0.1)" : "transparent",
+    color: active ? "#fafafa" : "#a1a1aa",
+    fontSize: "13px",
   })
 
   return (
     <div style={{
       display: "flex",
       gap: "2px",
-      background: "white",
-      border: "1px solid #e2e8f0",
+      background: "#18181b",
+      border: "1px solid rgba(255,255,255,0.08)",
       borderRadius: "8px",
       padding: "4px",
-      boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+      boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
     }}>
       <button
         onClick={() => editor.chain().focus().toggleBold().run()}
@@ -56,7 +57,7 @@ export function BubbleToolbar({ editor }: BubbleToolbarProps) {
       >
         🔗
       </button>
-      <div style={{ width: "1px", background: "#e2e8f0", margin: "0 4px" }} />
+      <div style={{ width: "1px", background: "rgba(255,255,255,0.08)", margin: "0 4px" }} />
       <button
         onClick={() => editor.chain().focus().setHeading({ level: 1 }).run()}
         style={btnStyle(editor.isActive("heading", { level: 1 }))}

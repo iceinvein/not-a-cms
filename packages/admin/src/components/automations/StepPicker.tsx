@@ -66,13 +66,17 @@ export function StepPicker({ onSelect, onCancel }: Props) {
   const actions = STEP_OPTIONS.filter((o) => o.section === "action")
 
   return (
-    <div className="absolute z-10 mt-1 w-72 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
+    <div
+      className="absolute z-10 mt-1 w-72 bg-white rounded-xl border border-gray-200 shadow-lg"
+      onClick={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+    >
       <div className="p-3 border-b border-gray-100 flex items-center justify-between">
         <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Add step</span>
         <button onClick={onCancel} className="text-gray-400 hover:text-gray-600 text-sm leading-none">✕</button>
       </div>
 
-      <div className="p-2">
+      <div className="p-2" style={{ maxHeight: '260px', overflowY: 'auto' }}>
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-2 py-1">Logic</p>
         {logic.map((opt) => (
           <button

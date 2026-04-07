@@ -38,10 +38,11 @@ export function RunList({ flowId, apiBase = "", steps }: Props) {
   useEffect(() => {
     setLoading(true)
     fetch(`${apiBase}/api/_flows/${flowId}/runs?limit=${PAGE_SIZE}&offset=${offset}`)
-      .then((r) => (r.ok ? r.json() : []))
-      .then((data: FlowRun[]) => {
-        setRuns(data)
-        setHasMore(data.length === PAGE_SIZE)
+      .then((r) => (r.ok ? r.json() : { data: [] }))
+      .then((json: { data: FlowRun[] }) => {
+        const runs = json.data ?? []
+        setRuns(runs)
+        setHasMore(runs.length === PAGE_SIZE)
       })
       .catch(() => setRuns([]))
       .finally(() => setLoading(false))

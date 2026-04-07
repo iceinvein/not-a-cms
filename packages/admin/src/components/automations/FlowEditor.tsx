@@ -184,7 +184,7 @@ export function FlowEditor({ flowId, apiBase = "" }: Props) {
       {tab === "editor" ? (
         <div className="flex gap-4 items-start">
           {/* Canvas panel */}
-          <div className="flex-1 bg-gray-50 rounded-xl border border-gray-200 min-h-[500px] overflow-y-auto">
+          <div className="flex-1 bg-gray-50 rounded-xl border border-gray-200 min-h-[500px]">
             <FlowCanvas
               trigger={localTrigger}
               steps={localSteps}

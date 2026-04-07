@@ -19,6 +19,7 @@ export function createContentService(
   table: AnyTable,
   versioning?: { createVersion: (collection: string, docId: string, data: Record<string, unknown>, action: "save" | "publish") => unknown },
   search?: { index: (collection: string, docId: string, title: string, bodyText: string) => void; remove: (collection: string, docId: string) => void },
+  automations?: { dispatch: (event: string, collection: string, doc: Record<string, unknown>) => void },
 ) {
   const ctx: HookContext = { collection: collection.name, db }
 
@@ -43,6 +44,8 @@ export function createContentService(
       const { title, bodyText } = extractIndexableText(saved)
       search.index(collection.name, id, title, bodyText)
     }
+
+    automations?.dispatch("content.created", collection.name, saved)
 
     return saved
   }
@@ -88,6 +91,8 @@ export function createContentService(
       throw new Error(`Document with id "${id}" not found in collection "${collection.name}"`)
     }
 
+    const wasPublished = existing.status === "published"
+
     let doc: Record<string, unknown> = await runHook(
       "beforeSave",
       collection.hooks,
@@ -112,6 +117,13 @@ export function createContentService(
       search.index(collection.name, id, title, bodyText)
     }
 
+    const isNowPublished = updated.status === "published"
+    if (!wasPublished && isNowPublished) {
+      automations?.dispatch("content.published", collection.name, updated)
+    } else {
+      automations?.dispatch("content.updated", collection.name, updated)
+    }
+
     return updated
   }
 
@@ -125,6 +137,8 @@ export function createContentService(
     }
     db.delete(table).where(eq(table.id, id)).run()
     await runHook("afterDelete", collection.hooks, existing, ctx)
+
+    automations?.dispatch("content.deleted", collection.name, existing)
 
     return true
   }

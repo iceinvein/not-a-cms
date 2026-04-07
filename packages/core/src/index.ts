@@ -44,6 +44,7 @@ export { parseWXR, htmlToPortableText } from "./import/wordpress"
 // Automations
 export { createFlowStore, type FlowStore } from "./automations/store"
 export { createFlowEngine, resolvePayloadPath, interpolate, evaluateCondition, type FlowEngine } from "./automations/engine"
+export { matchesCron, createAutomationCron, type AutomationCron } from "./automations/cron"
 export type {
   Flow, FlowTrigger, FlowStep, ConditionStep, ActionStep, ActionType,
   ConditionRule, ConditionOperator, FlowRun, FlowRunStep, FlowRunStatus,

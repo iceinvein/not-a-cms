@@ -67,13 +67,13 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
 
   const statusBadge = (status?: string) => {
     const colors: Record<string, string> = {
-      draft: "bg-gray-100 text-gray-700",
-      published: "bg-green-100 text-green-700",
-      archived: "bg-yellow-100 text-yellow-700",
-      in_review: "bg-blue-100 text-blue-700",
-      scheduled: "bg-purple-100 text-purple-700",
+      draft: "bg-[rgba(255,255,255,0.05)] text-[#71717a]",
+      published: "bg-[rgba(34,197,94,0.1)] text-[#22c55e]",
+      archived: "bg-[rgba(245,158,11,0.1)] text-[#f59e0b]",
+      in_review: "bg-[rgba(255,255,255,0.08)] text-[#a1a1aa]",
+      scheduled: "bg-[rgba(245,158,11,0.1)] text-[#f59e0b]",
     }
-    return colors[status || ""] || "bg-gray-100 text-gray-700"
+    return colors[status || ""] || "bg-[rgba(255,255,255,0.05)] text-[#71717a]"
   }
 
   if (loading) {
@@ -89,7 +89,7 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
 
   if (error) {
     return (
-      <div className="bg-red-50 rounded-xl border border-red-200 p-4 text-red-600 text-sm">
+      <div className="bg-[rgba(239,68,68,0.1)] rounded-xl border border-[rgba(239,68,68,0.2)] p-4 text-[#ef4444] text-sm">
         {error}
       </div>
     )
@@ -102,38 +102,38 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
       </div>
       {items.length === 0 ? (
         searchTerm ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-            <p className="text-gray-400">No results for "{searchTerm}"</p>
+          <div className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] p-12 text-center">
+            <p className="text-[#52525b]">No results for "{searchTerm}"</p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-            <p className="text-gray-400 mb-4">No {collectionLabel.toLowerCase()} yet</p>
+          <div className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] p-12 text-center">
+            <p className="text-[#52525b] mb-4">No {collectionLabel.toLowerCase()} yet</p>
             <a
               href={`/content/${collection}/new`}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[#fafafa] text-[#0a0a0c] rounded-md text-sm font-medium hover:bg-[#e4e4e7]"
             >
               + Create your first one
             </a>
           </div>
         )
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] overflow-hidden">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Updated</th>
-                <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <tr className="border-b border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.05)]">
+                <th className="text-left px-6 py-3 text-xs font-medium text-[#71717a] uppercase tracking-wider">Title</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-[#71717a] uppercase tracking-wider">Status</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-[#71717a] uppercase tracking-wider">Updated</th>
+                <th className="text-right px-6 py-3 text-xs font-medium text-[#71717a] uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-[rgba(255,255,255,0.06)]">
               {items.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={item.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
                   <td className="px-6 py-4">
                     <a
                       href={`/content/${collection}/${item.id}`}
-                      className="text-sm font-medium text-gray-900 hover:text-blue-600"
+                      className="text-sm font-medium text-[#fafafa] hover:text-[#fafafa]"
                     >
                       {String(item.title || item.id)}
                     </a>
@@ -143,19 +143,19 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
                       {String(item.status || "draft")}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
+                  <td className="px-6 py-4 text-sm text-[#71717a]">
                     {formatDate(item.updated_at as string)}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <a
                       href={`/content/${collection}/${item.id}`}
-                      className="text-sm text-blue-600 hover:text-blue-800 mr-3"
+                      className="text-sm text-[#a1a1aa] hover:text-[#fafafa] mr-3"
                     >
                       Edit
                     </a>
                     <button
                       onClick={() => handleDelete(item.id)}
-                      className="text-sm text-red-600 hover:text-red-800"
+                      className="text-sm text-[#52525b] hover:text-[#ef4444]"
                     >
                       Delete
                     </button>

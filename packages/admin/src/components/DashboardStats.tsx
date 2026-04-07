@@ -47,7 +47,7 @@ export function DashboardStats({ apiBase = "" }: { apiBase?: string }) {
   }, [apiBase])
 
   if (loading) {
-    return <div className="text-gray-400 text-sm">Loading...</div>
+    return <div className="text-[#52525b] text-sm">Loading...</div>
   }
 
   return (
@@ -56,20 +56,19 @@ export function DashboardStats({ apiBase = "" }: { apiBase?: string }) {
         <a
           key={stat.name}
           href={`/content/${stat.name}`}
-          className="bg-white rounded-xl border border-gray-200 p-6 hover:border-blue-300 hover:shadow-sm transition-all"
+          className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] p-6 hover:border-[rgba(255,255,255,0.12)] transition-all"
         >
           <div className="flex items-center justify-between mb-4">
-            <span className="text-2xl">📄</span>
-            <span className="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded-full">
+            <span className="text-xs text-[#52525b] bg-[rgba(255,255,255,0.05)] px-2 py-1 rounded-full">
               {stat.recentCount} this week
             </span>
           </div>
-          <div className="text-3xl font-bold text-gray-900">{stat.count}</div>
-          <div className="text-sm text-gray-500 mt-1">{stat.label}</div>
+          <div className="text-3xl font-bold text-[#fafafa]">{stat.count}</div>
+          <div className="text-sm text-[#71717a] mt-1">{stat.label}</div>
         </a>
       ))}
 
-      <div className="bg-white rounded-xl border border-gray-200 border-dashed p-6 flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-all cursor-pointer">
+      <div className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] border-dashed p-6 flex flex-col items-center justify-center text-[#52525b] hover:text-[#71717a] hover:border-[rgba(255,255,255,0.1)] transition-all cursor-pointer">
         <span className="text-2xl mb-2">+</span>
         <span className="text-sm">New Content</span>
       </div>

@@ -39,22 +39,18 @@ if (!isAuthPage) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{title} — not-a-cms</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 </head>
-<body class="bg-gray-50 min-h-screen">
-  <div class="flex">
+<body class="bg-[#0a0a0c] text-[#a1a1aa] font-sans min-h-screen">
+  <div class="flex min-h-screen">
     <Sidebar collections={collections} currentPath={currentPath} />
-
     <main class="flex-1 min-h-screen">
-      <header class="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
-        <h1 class="text-xl font-semibold text-gray-900">{title}</h1>
-        <div class="flex items-center gap-4">
-          <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-sm">
-            👤
-          </div>
-        </div>
+      <header class="px-6 py-5">
+        <h1 class="text-base font-semibold text-[#fafafa]">{title}</h1>
       </header>
-
-      <div class="p-8">
+      <div class="px-6 pb-6">
         <slot />
       </div>
     </main>

@@ -67,37 +67,37 @@ export function StepPicker({ onSelect, onCancel }: Props) {
 
   return (
     <div
-      className="absolute z-10 mt-1 w-72 bg-white rounded-xl border border-gray-200 shadow-lg"
+      className="absolute z-10 mt-1 w-72 bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.08)] shadow-[0_8px_30px_rgba(0,0,0,0.5)]"
       onClick={(e) => e.stopPropagation()}
       onMouseDown={(e) => e.stopPropagation()}
     >
-      <div className="p-3 border-b border-gray-100 flex items-center justify-between">
-        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Add step</span>
-        <button onClick={onCancel} className="text-gray-400 hover:text-gray-600 text-sm leading-none">✕</button>
+      <div className="p-3 border-b border-[rgba(255,255,255,0.06)] flex items-center justify-between">
+        <span className="text-xs font-semibold text-[#71717a] uppercase tracking-wide">Add step</span>
+        <button onClick={onCancel} className="text-[#52525b] hover:text-[#a1a1aa] text-sm leading-none">✕</button>
       </div>
 
       <div className="p-2" style={{ maxHeight: '260px', overflowY: 'auto' }}>
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-2 py-1">Logic</p>
+        <p className="text-xs font-semibold text-[#52525b] uppercase tracking-wide px-2 py-1">Logic</p>
         {logic.map((opt) => (
           <button
             key={opt.type}
             onClick={() => onSelect(opt.type)}
-            className="w-full text-left px-3 py-2 rounded-lg hover:bg-amber-50 border-l-2 border-l-transparent hover:border-l-amber-400 transition-colors"
+            className="w-full text-left px-3 py-2 rounded-lg hover:bg-[rgba(245,158,11,0.05)] border-l-2 border-l-transparent hover:border-l-[#f59e0b] transition-colors"
           >
-            <p className="text-sm font-medium text-gray-800">{opt.label}</p>
-            <p className="text-xs text-gray-500">{opt.description}</p>
+            <p className="text-sm font-medium text-[#e4e4e7]">{opt.label}</p>
+            <p className="text-xs text-[#71717a]">{opt.description}</p>
           </button>
         ))}
 
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-2 py-1 mt-2">Actions</p>
+        <p className="text-xs font-semibold text-[#52525b] uppercase tracking-wide px-2 py-1 mt-2">Actions</p>
         {actions.map((opt) => (
           <button
             key={opt.type}
             onClick={() => onSelect(opt.type)}
-            className="w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50 border-l-2 border-l-transparent hover:border-l-blue-400 transition-colors"
+            className="w-full text-left px-3 py-2 rounded-lg hover:bg-[rgba(255,255,255,0.03)] border-l-2 border-l-transparent hover:border-l-[#fafafa] transition-colors"
           >
-            <p className="text-sm font-medium text-gray-800">{opt.label}</p>
-            <p className="text-xs text-gray-500">{opt.description}</p>
+            <p className="text-sm font-medium text-[#e4e4e7]">{opt.label}</p>
+            <p className="text-xs text-[#71717a]">{opt.description}</p>
           </button>
         ))}
       </div>

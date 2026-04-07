@@ -10,13 +10,19 @@ const { title } = Astro.props
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{title} — not-a-cms</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
-  <div class="w-full max-w-md">
-    <div class="text-center mb-8">
-      <h1 class="text-2xl font-bold text-gray-900">not-a-cms</h1>
+<body class="bg-[#0a0a0c] text-[#a1a1aa] font-sans min-h-screen flex items-center justify-center p-4">
+  <div class="w-full max-w-sm">
+    <div class="flex flex-col items-center gap-2 mb-6">
+      <div class="w-10 h-10 bg-[#fafafa] rounded-lg flex items-center justify-center">
+        <span class="text-[#0a0a0c] text-lg font-bold leading-none">N</span>
+      </div>
+      <span class="text-base font-semibold text-[#fafafa]">not-a-cms</span>
     </div>
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+    <div class="bg-[#18181b] rounded-lg border border-[rgba(255,255,255,0.06)] p-8">
       <slot />
     </div>
   </div>

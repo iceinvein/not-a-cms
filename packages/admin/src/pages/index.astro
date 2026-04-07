@@ -8,17 +8,17 @@ const collections = await fetchCollections()
 <AdminLayout title="Dashboard">
   <div class="space-y-8">
     <section>
-      <h2 class="text-lg font-medium text-gray-900 mb-4">Content Overview</h2>
+      <h2 class="text-lg font-medium text-[#fafafa] mb-4">Content Overview</h2>
       <DashboardStats client:load />
     </section>
 
     <section>
-      <h2 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h2>
+      <h2 class="text-lg font-medium text-[#fafafa] mb-4">Quick Actions</h2>
       <div class="flex gap-3">
         {collections.map(c => (
           <a
             href={`/content/${c.name}/new`}
-            class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+            class="inline-flex items-center gap-2 px-4 py-2 bg-[#fafafa] text-[#0a0a0c] rounded-md text-sm font-medium hover:bg-[#e4e4e7] transition-colors"
           >
             + New {c.labels.singular}
           </a>

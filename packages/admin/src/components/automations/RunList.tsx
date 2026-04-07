@@ -12,9 +12,9 @@ const PAGE_SIZE = 20
 
 function statusBadge(status: string) {
   const base = "inline-block text-xs px-2 py-0.5 rounded-full font-medium"
-  if (status === "completed") return `${base} bg-green-100 text-green-700`
-  if (status === "failed") return `${base} bg-red-100 text-red-700`
-  return `${base} bg-gray-100 text-gray-500`
+  if (status === "completed") return `${base} bg-[rgba(34,197,94,0.1)] text-[#22c55e]`
+  if (status === "failed") return `${base} bg-[rgba(239,68,68,0.1)] text-[#ef4444]`
+  return `${base} bg-[rgba(255,255,255,0.05)] text-[#71717a]`
 }
 
 function formatDuration(started: string, finished?: string): string {
@@ -53,7 +53,7 @@ export function RunList({ flowId, apiBase = "", steps }: Props) {
       <div className="flex flex-col gap-3">
         <button
           onClick={() => setSelectedRunId(null)}
-          className="self-start text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+          className="self-start text-sm text-[#a1a1aa] hover:text-[#fafafa] flex items-center gap-1"
         >
           ← Back to runs
         </button>
@@ -68,42 +68,42 @@ export function RunList({ flowId, apiBase = "", steps }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] overflow-hidden">
       {loading ? (
-        <p className="text-gray-400 text-sm text-center py-12">Loading runs…</p>
+        <p className="text-[#52525b] text-sm text-center py-12">Loading runs…</p>
       ) : runs.length === 0 ? (
         <div className="text-center py-16">
-          <p className="text-gray-400 text-sm">No runs yet.</p>
-          <p className="text-gray-300 text-xs mt-1">Runs will appear here when the flow is triggered.</p>
+          <p className="text-[#52525b] text-sm">No runs yet.</p>
+          <p className="text-[#3f3f46] text-xs mt-1">Runs will appear here when the flow is triggered.</p>
         </div>
       ) : (
         <>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <tr className="border-b border-[rgba(255,255,255,0.06)] text-xs font-semibold text-[#71717a] uppercase tracking-wide">
                 <th className="text-left px-4 py-3">Timestamp</th>
                 <th className="text-left px-4 py-3">Trigger event</th>
                 <th className="text-left px-4 py-3">Status</th>
                 <th className="text-left px-4 py-3">Duration</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-[rgba(255,255,255,0.06)]">
               {runs.map((run) => (
                 <tr
                   key={run.id}
                   onClick={() => setSelectedRunId(run.id)}
-                  className="hover:bg-gray-50 cursor-pointer transition-colors"
+                  className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                 >
-                  <td className="px-4 py-3 text-gray-700 whitespace-nowrap">
+                  <td className="px-4 py-3 text-[#a1a1aa] whitespace-nowrap">
                     {formatTimestamp(run.started_at)}
                   </td>
-                  <td className="px-4 py-3 text-gray-500 font-mono text-xs">
+                  <td className="px-4 py-3 text-[#71717a] font-mono text-xs">
                     {run.trigger_event}
                   </td>
                   <td className="px-4 py-3">
                     <span className={statusBadge(run.status)}>{run.status}</span>
                   </td>
-                  <td className="px-4 py-3 text-gray-500">
+                  <td className="px-4 py-3 text-[#71717a]">
                     {formatDuration(run.started_at, run.finished_at)}
                   </td>
                 </tr>
@@ -111,21 +111,21 @@ export function RunList({ flowId, apiBase = "", steps }: Props) {
             </tbody>
           </table>
 
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+          <div className="flex items-center justify-between px-4 py-3 border-t border-[rgba(255,255,255,0.06)]">
             <button
               disabled={offset === 0}
               onClick={() => setOffset((o) => Math.max(0, o - PAGE_SIZE))}
-              className="text-sm text-gray-500 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="text-sm text-[#71717a] hover:text-[#fafafa] disabled:opacity-30 disabled:cursor-not-allowed"
             >
               ← Previous
             </button>
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-[#52525b]">
               Showing {offset + 1}–{offset + runs.length}
             </span>
             <button
               disabled={!hasMore}
               onClick={() => setOffset((o) => o + PAGE_SIZE)}
-              className="text-sm text-gray-500 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="text-sm text-[#71717a] hover:text-[#fafafa] disabled:opacity-30 disabled:cursor-not-allowed"
             >
               Next →
             </button>

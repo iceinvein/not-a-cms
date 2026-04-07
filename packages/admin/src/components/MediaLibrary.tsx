@@ -50,7 +50,7 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-[#fafafa] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#e4e4e7] disabled:opacity-50 transition-colors"
         >
           {uploading ? "Uploading..." : "+ Upload Files"}
         </button>
@@ -62,26 +62,26 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
           onChange={handleUpload}
           className="hidden"
         />
-        <span className="text-sm text-gray-500">{items.length} files</span>
+        <span className="text-sm text-[#71717a]">{items.length} files</span>
       </div>
 
       {items.length === 0 ? (
         <div
           onClick={() => fileInputRef.current?.click()}
-          className="bg-white rounded-xl border-2 border-dashed border-gray-300 p-12 text-center cursor-pointer hover:border-blue-400 transition-colors"
+          className="bg-[rgba(255,255,255,0.05)] rounded-xl border-2 border-dashed border-[rgba(255,255,255,0.06)] p-12 text-center cursor-pointer hover:border-[rgba(255,255,255,0.2)] transition-colors"
         >
           <div className="text-4xl mb-3">🖼️</div>
-          <p className="text-gray-500 mb-1">No media files yet</p>
-          <p className="text-sm text-gray-400">Click to upload or drag files here</p>
+          <p className="text-[#71717a] mb-1">No media files yet</p>
+          <p className="text-sm text-[#52525b]">Click to upload or drag files here</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {items.map((item) => (
             <div
               key={item.id}
-              className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-sm transition-shadow group"
+              className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] overflow-hidden transition-shadow group"
             >
-              <div className="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
+              <div className="aspect-square bg-[rgba(255,255,255,0.05)] flex items-center justify-center overflow-hidden">
                 {item.mimetype.startsWith("image/") ? (
                   <img
                     src={item.url}
@@ -93,8 +93,8 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
                 )}
               </div>
               <div className="p-3">
-                <p className="text-xs font-medium text-gray-900 truncate">{item.filename}</p>
-                <p className="text-xs text-gray-400">{formatSize(item.size)}</p>
+                <p className="text-xs font-medium text-[#fafafa] truncate">{item.filename}</p>
+                <p className="text-xs text-[#52525b]">{formatSize(item.size)}</p>
               </div>
             </div>
           ))}

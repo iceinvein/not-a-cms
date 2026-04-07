@@ -68,10 +68,10 @@ function makeStep(type: string): FlowStep {
 
 function runStatusColors(status: string): string {
   switch (status) {
-    case "completed": return "border-green-400 bg-green-50"
-    case "failed": return "border-red-400 bg-red-50"
-    case "skipped": return "border-gray-300 bg-gray-50"
-    default: return "border-gray-300 bg-white"
+    case "completed": return "border-[rgba(34,197,94,0.3)] bg-[rgba(34,197,94,0.05)]"
+    case "failed": return "border-[rgba(239,68,68,0.3)] bg-[rgba(239,68,68,0.05)]"
+    case "skipped": return "border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)]"
+    default: return "border-[rgba(255,255,255,0.1)] bg-[#18181b]"
   }
 }
 
@@ -100,8 +100,8 @@ export function FlowCanvas({
       {/* Trigger block */}
       <button
         onClick={onSelectTrigger}
-        className={`w-80 px-4 py-3 rounded-xl border-2 bg-blue-600 text-white text-sm font-medium text-center transition-all shadow-sm ${
-          selectedStepId === null ? "border-blue-800 ring-2 ring-blue-300" : "border-blue-600 hover:border-blue-800"
+        className={`w-80 px-4 py-3 rounded-xl border-2 bg-[#fafafa] text-[#0a0a0c] text-sm font-medium text-center transition-all ${
+          selectedStepId === null ? "border-[#fafafa] ring-2 ring-[rgba(255,255,255,0.15)]" : "border-[#fafafa] hover:border-[#e4e4e7]"
         }`}
       >
         <p className="text-xs font-semibold uppercase tracking-wide opacity-75 mb-0.5">Trigger</p>
@@ -111,10 +111,10 @@ export function FlowCanvas({
       {/* Add button after trigger (index = -1, we use 0 for "before first step") */}
       {!readOnly && (
         <div className="relative flex flex-col items-center">
-          <div className="w-0.5 h-6 bg-gray-300" />
+          <div className="w-0.5 h-6 bg-[rgba(255,255,255,0.1)]" />
           <button
             onClick={() => setPickerIndex(pickerIndex === 0 ? null : 0)}
-            className="w-7 h-7 rounded-full bg-gray-100 border border-gray-200 text-gray-400 hover:bg-blue-50 hover:text-blue-500 hover:border-blue-200 text-sm flex items-center justify-center transition-colors"
+            className="w-7 h-7 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)] text-[#71717a] hover:bg-[rgba(255,255,255,0.08)] hover:text-[#a1a1aa] hover:border-[rgba(255,255,255,0.15)] text-sm flex items-center justify-center transition-colors"
           >
             +
           </button>
@@ -133,16 +133,16 @@ export function FlowCanvas({
         const isSelected = selectedStepId === step.id
         const isCondition = step.type === "condition"
 
-        let blockClasses = "w-80 px-4 py-3 rounded-xl border-2 text-sm transition-all text-left relative shadow-sm"
+        let blockClasses = "w-80 px-4 py-3 rounded-xl border-2 text-sm transition-all text-left relative"
         if (readOnly && runStep) {
           blockClasses += ` ${runStatusColors(runStep.status)}`
         } else if (isCondition) {
-          blockClasses += " border-amber-300 bg-amber-50 hover:border-amber-400"
+          blockClasses += " border-[rgba(245,158,11,0.3)] bg-[rgba(245,158,11,0.05)] hover:border-[#f59e0b]"
         } else {
-          blockClasses += " border-gray-200 bg-white hover:border-gray-300"
+          blockClasses += " border-[rgba(255,255,255,0.06)] bg-[#18181b] hover:border-[rgba(255,255,255,0.1)]"
         }
         if (isSelected) {
-          blockClasses += " border-blue-500 ring-2 ring-blue-200"
+          blockClasses += " border-[#fafafa] ring-2 ring-[rgba(255,255,255,0.15)]"
         }
 
         return (
@@ -153,23 +153,23 @@ export function FlowCanvas({
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-0.5">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[#52525b] mb-0.5">
                     {isCondition ? "Condition" : "Action"}
                   </p>
-                  <p className="font-medium text-gray-800">{stepLabel(step)}</p>
+                  <p className="font-medium text-[#e4e4e7]">{stepLabel(step)}</p>
                 </div>
                 {readOnly && runStep && (
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                    runStep.status === "completed" ? "bg-green-100 text-green-700" :
-                    runStep.status === "failed" ? "bg-red-100 text-red-700" :
-                    "bg-gray-100 text-gray-500"
+                    runStep.status === "completed" ? "bg-[rgba(34,197,94,0.1)] text-[#22c55e]" :
+                    runStep.status === "failed" ? "bg-[rgba(239,68,68,0.1)] text-[#ef4444]" :
+                    "bg-[rgba(255,255,255,0.05)] text-[#71717a]"
                   }`}>
                     {runStep.status}
                   </span>
                 )}
               </div>
               {isCondition && (runStep?.branch_taken) && (
-                <p className="text-xs text-amber-600 mt-1">Branch: {runStep.branch_taken}</p>
+                <p className="text-xs text-[#f59e0b] mt-1">Branch: {runStep.branch_taken}</p>
               )}
             </button>
 
@@ -177,7 +177,7 @@ export function FlowCanvas({
               <div className="flex items-center gap-2 mt-1">
                 <button
                   onClick={() => onRemoveStep(step.id)}
-                  className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+                  className="text-xs text-[#52525b] hover:text-[#ef4444] transition-colors"
                 >
                   Remove
                 </button>
@@ -186,12 +186,12 @@ export function FlowCanvas({
 
             {/* Connector + Add button */}
             <div className="relative flex flex-col items-center">
-              <div className="w-0.5 h-6 bg-gray-300" />
+              <div className="w-0.5 h-6 bg-[rgba(255,255,255,0.1)]" />
               {!readOnly && (
                 <>
                   <button
                     onClick={() => setPickerIndex(pickerIndex === index + 1 ? null : index + 1)}
-                    className="w-7 h-7 rounded-full bg-gray-100 border border-gray-200 text-gray-400 hover:bg-blue-50 hover:text-blue-500 hover:border-blue-200 text-sm flex items-center justify-center transition-colors"
+                    className="w-7 h-7 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)] text-[#71717a] hover:bg-[rgba(255,255,255,0.08)] hover:text-[#a1a1aa] hover:border-[rgba(255,255,255,0.15)] text-sm flex items-center justify-center transition-colors"
                   >
                     +
                   </button>
@@ -203,7 +203,7 @@ export function FlowCanvas({
                   )}
                 </>
               )}
-              {readOnly && <div className="w-0.5 h-6 bg-gray-300" />}
+              {readOnly && <div className="w-0.5 h-6 bg-[rgba(255,255,255,0.1)]" />}
             </div>
           </div>
         )
@@ -212,12 +212,12 @@ export function FlowCanvas({
       {/* Empty state hint */}
       {steps.length === 0 && !readOnly && (
         <div className="text-center max-w-[240px] mx-auto py-2">
-          <p className="text-sm text-gray-400">Click the trigger to configure when this flow runs, then use <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-100 border border-gray-200 text-xs text-gray-500">+</span> to add steps.</p>
+          <p className="text-sm text-[#52525b]">Click the trigger to configure when this flow runs, then use <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)] text-xs text-[#71717a]">+</span> to add steps.</p>
         </div>
       )}
 
       {/* End node */}
-      <div className="px-4 py-1.5 rounded-full bg-gray-200 text-xs text-gray-500 font-medium">End</div>
+      <div className="px-4 py-1.5 rounded-full bg-[rgba(255,255,255,0.05)] text-xs text-[#52525b] font-medium">End</div>
     </div>
   )
 }

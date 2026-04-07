@@ -11,8 +11,8 @@ type Props = {
 }
 
 const inputClass =
-  "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-const labelClass = "block text-xs font-medium text-gray-600 mb-1"
+  "w-full border border-[rgba(255,255,255,0.1)] rounded-lg px-3 py-2 text-sm bg-[#18181b] text-[#fafafa] placeholder:text-[#52525b] focus:border-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-0"
+const labelClass = "block text-xs font-medium text-[#a1a1aa] mb-1"
 const sectionClass = "flex flex-col gap-3"
 
 const CRON_PRESETS = [
@@ -111,7 +111,7 @@ function TriggerConfig({
               <button
                 key={preset.value}
                 onClick={() => onUpdateTrigger({ type: "schedule.cron", cron: preset.value })}
-                className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                className="text-xs px-2 py-1 rounded bg-[rgba(255,255,255,0.05)] text-[#71717a] hover:bg-[rgba(255,255,255,0.08)] transition-colors"
               >
                 {preset.label}
               </button>
@@ -168,21 +168,21 @@ function ConditionConfig({
       <div className="flex flex-col gap-2">
         <p className={labelClass}>Rules</p>
         {step.rules.length === 0 && (
-          <p className="text-xs text-gray-400 italic">No rules yet. Add one below.</p>
+          <p className="text-xs text-[#52525b] italic">No rules yet. Add one below.</p>
         )}
         {step.rules.map((rule, i) => (
-          <div key={i} className="bg-gray-50 rounded-lg border border-gray-200 p-2 flex flex-col gap-2">
+          <div key={i} className="bg-[rgba(255,255,255,0.05)] rounded-lg border border-[rgba(255,255,255,0.06)] p-2 flex flex-col gap-2">
             <div className="flex gap-2 items-center">
               <input
                 type="text"
                 value={rule.field}
                 onChange={(e) => updateRule(i, { field: e.target.value })}
                 placeholder="Field path"
-                className="flex-1 border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="flex-1 border border-[rgba(255,255,255,0.1)] rounded px-2 py-1 text-xs bg-[#18181b] text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[rgba(255,255,255,0.2)]"
               />
               <button
                 onClick={() => removeRule(i)}
-                className="text-red-400 hover:text-red-600 text-xs"
+                className="text-[#52525b] hover:text-[#ef4444] text-xs"
               >
                 Remove
               </button>
@@ -190,7 +190,7 @@ function ConditionConfig({
             <select
               value={rule.operator}
               onChange={(e) => updateRule(i, { operator: e.target.value as ConditionOperator })}
-              className="border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="border border-[rgba(255,255,255,0.1)] rounded px-2 py-1 text-xs bg-[#18181b] text-[#fafafa] focus:outline-none focus:border-[rgba(255,255,255,0.2)]"
             >
               {OPERATORS.map((op) => (
                 <option key={op.value} value={op.value}>
@@ -203,13 +203,13 @@ function ConditionConfig({
               value={String(rule.value)}
               onChange={(e) => updateRule(i, { value: e.target.value })}
               placeholder="Value"
-              className="border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="border border-[rgba(255,255,255,0.1)] rounded px-2 py-1 text-xs bg-[#18181b] text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[rgba(255,255,255,0.2)]"
             />
           </div>
         ))}
         <button
           onClick={addRule}
-          className="text-xs text-blue-600 hover:text-blue-800 self-start mt-1"
+          className="text-xs text-[#a1a1aa] hover:text-[#fafafa] self-start mt-1"
         >
           + Add rule
         </button>
@@ -402,7 +402,7 @@ function ActionConfig({
         </div>
       )}
 
-      <p className="text-xs text-gray-400 italic">
+      <p className="text-xs text-[#52525b] italic">
         Use {"{{payload.field.path}}"} to reference trigger data.
       </p>
     </div>
@@ -426,19 +426,19 @@ export function StepConfigurator({
     : null
 
   const borderAccent = showTriggerConfig
-    ? "border-l-4 border-l-blue-500"
+    ? "border-l-4 border-l-[#fafafa]"
     : selectedStep?.type === "condition"
-    ? "border-l-4 border-l-amber-400"
+    ? "border-l-4 border-l-[#f59e0b]"
     : selectedStep
-    ? "border-l-4 border-l-gray-400"
+    ? "border-l-4 border-l-[#52525b]"
     : ""
 
   return (
-    <div className={`bg-white rounded-xl border border-gray-200 p-4 ${borderAccent}`}>
+    <div className={`bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] p-4 ${borderAccent}`}>
       {title && (
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-sm">✕</button>
+          <h3 className="text-sm font-semibold text-[#fafafa]">{title}</h3>
+          <button onClick={onClose} className="text-[#52525b] hover:text-[#a1a1aa] text-sm">✕</button>
         </div>
       )}
 
@@ -449,7 +449,7 @@ export function StepConfigurator({
       ) : selectedStep ? (
         <ActionConfig step={selectedStep as ActionStep} onUpdateStep={onUpdateStep} />
       ) : (
-        <p className="text-sm text-gray-400 text-center py-4">
+        <p className="text-sm text-[#52525b] text-center py-4">
           Select a step to configure it, or click the trigger to change it.
         </p>
       )}

@@ -111,22 +111,22 @@ export function FlowEditor({ flowId, apiBase = "" }: Props) {
   const selectedStep = localSteps.find((s) => s.id === selectedStepId) ?? null
 
   if (loading) {
-    return <p className="text-gray-400 text-sm">Loading flow...</p>
+    return <p className="text-[#52525b] text-sm">Loading flow...</p>
   }
 
   if (!flow) {
-    return <p className="text-red-500 text-sm">Flow not found.</p>
+    return <p className="text-[#ef4444] text-sm">Flow not found.</p>
   }
 
   return (
     <div className="flex flex-col gap-4">
       {/* Top bar */}
-      <div className="bg-white rounded-xl border border-gray-200 px-4 py-3 flex items-center gap-4">
+      <div className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] px-4 py-3 flex items-center gap-4">
         <input
           type="text"
           value={localName}
           onChange={(e) => setLocalName(e.target.value)}
-          className="flex-1 text-base font-semibold text-gray-900 border-none outline-none bg-transparent placeholder-gray-300"
+          className="flex-1 text-base font-semibold text-[#fafafa] border-none outline-none bg-transparent placeholder:text-[#52525b]"
           placeholder="Flow name"
         />
 
@@ -135,8 +135,8 @@ export function FlowEditor({ flowId, apiBase = "" }: Props) {
             onClick={handleToggle}
             className={`text-xs px-3 py-1 rounded-full font-medium transition-colors ${
               localActive
-                ? "bg-green-100 text-green-700 hover:bg-green-200"
-                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                ? "bg-[rgba(34,197,94,0.1)] text-[#22c55e]"
+                : "bg-[rgba(255,255,255,0.05)] text-[#71717a]"
             }`}
           >
             {localActive ? "Active" : "Inactive"}
@@ -144,13 +144,13 @@ export function FlowEditor({ flowId, apiBase = "" }: Props) {
         </div>
 
         {/* Tab switcher */}
-        <div className="flex border border-gray-200 rounded-lg overflow-hidden">
+        <div className="flex border border-[rgba(255,255,255,0.1)] rounded-lg overflow-hidden">
           <button
             onClick={() => setTab("editor")}
             className={`px-3 py-1.5 text-sm transition-colors ${
               tab === "editor"
-                ? "bg-blue-600 text-white"
-                : "text-gray-600 hover:bg-gray-50"
+                ? "bg-[#fafafa] text-[#0a0a0c]"
+                : "text-[#71717a] hover:bg-[rgba(255,255,255,0.05)]"
             }`}
           >
             Editor
@@ -159,8 +159,8 @@ export function FlowEditor({ flowId, apiBase = "" }: Props) {
             onClick={() => setTab("runs")}
             className={`px-3 py-1.5 text-sm transition-colors ${
               tab === "runs"
-                ? "bg-blue-600 text-white"
-                : "text-gray-600 hover:bg-gray-50"
+                ? "bg-[#fafafa] text-[#0a0a0c]"
+                : "text-[#71717a] hover:bg-[rgba(255,255,255,0.05)]"
             }`}
           >
             Runs
@@ -170,13 +170,13 @@ export function FlowEditor({ flowId, apiBase = "" }: Props) {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+          className="px-4 py-2 bg-[#fafafa] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#e4e4e7] disabled:opacity-50"
         >
           {saving ? "Saving…" : "Save"}
         </button>
 
         {savedAt && (
-          <span className="text-xs text-gray-400">Saved at {savedAt}</span>
+          <span className="text-xs text-[#52525b]">Saved at {savedAt}</span>
         )}
       </div>
 
@@ -184,7 +184,7 @@ export function FlowEditor({ flowId, apiBase = "" }: Props) {
       {tab === "editor" ? (
         <div className="flex gap-4 items-start">
           {/* Canvas panel */}
-          <div className="flex-1 bg-gray-50 rounded-xl border border-gray-200 min-h-[500px]" style={{ backgroundImage: 'radial-gradient(circle, #e5e7eb 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
+          <div className="flex-1 bg-[#0a0a0c] rounded-xl border border-[rgba(255,255,255,0.06)] min-h-[500px]" style={{ backgroundImage: 'radial-gradient(circle, #27272a 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
             <FlowCanvas
               trigger={localTrigger}
               steps={localSteps}

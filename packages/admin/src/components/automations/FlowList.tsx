@@ -72,63 +72,63 @@ export function FlowList({ apiBase = "" }: Props) {
     fetchFlows()
   }
 
-  if (loading) return <p className="text-gray-400 text-sm">Loading automations...</p>
+  if (loading) return <p className="text-[#52525b] text-sm">Loading automations...</p>
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold text-gray-900">Flows</h2>
+        <h2 className="text-lg font-semibold text-[#fafafa]">Flows</h2>
         <button
           onClick={handleCreate}
           disabled={creating}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+          className="px-4 py-2 bg-[#fafafa] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#e4e4e7] disabled:opacity-50"
         >
           {creating ? "Creating…" : "+ New Flow"}
         </button>
       </div>
 
       {flows.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-400">
+        <div className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] p-12 text-center text-[#52525b]">
           No flows yet. Create one to get started.
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+        <div className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] divide-y divide-[rgba(255,255,255,0.06)]">
           {flows.map((flow) => (
             <div key={flow.id} className="p-4 flex items-center justify-between">
               <div>
                 <a
                   href={`/automations/${flow.id}`}
-                  className="text-sm font-medium text-gray-900 hover:text-blue-600"
+                  className="text-sm font-medium text-[#fafafa] hover:text-[#a1a1aa]"
                 >
                   {flow.name}
                 </a>
                 <div className="flex gap-2 mt-1 items-center flex-wrap">
-                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                  <span className="text-xs bg-[rgba(255,255,255,0.05)] text-[#71717a] px-2 py-0.5 rounded-full">
                     {triggerBadgeLabel(flow.trigger)}
                   </span>
-                  <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+                  <span className="text-xs bg-[rgba(255,255,255,0.05)] text-[#71717a] px-2 py-0.5 rounded-full">
                     {flow.steps?.length ?? 0} steps
                   </span>
                   {flow.description && (
-                    <span className="text-xs text-gray-400">{flow.description}</span>
+                    <span className="text-xs text-[#52525b]">{flow.description}</span>
                   )}
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-xs text-gray-400">{new Date(flow.updated_at).toLocaleDateString()}</span>
+                <span className="text-xs text-[#52525b]">{new Date(flow.updated_at).toLocaleDateString()}</span>
                 <button
                   onClick={() => handleToggle(flow)}
                   className={`text-xs px-2 py-1 rounded-full font-medium transition-colors ${
                     flow.active
-                      ? "bg-green-100 text-green-700 hover:bg-green-200"
-                      : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                      ? "bg-[rgba(34,197,94,0.1)] text-[#22c55e]"
+                      : "bg-[rgba(255,255,255,0.05)] text-[#71717a]"
                   }`}
                 >
                   {flow.active ? "Active" : "Inactive"}
                 </button>
                 <button
                   onClick={() => handleDelete(flow)}
-                  className="text-xs text-red-600 hover:text-red-800"
+                  className="text-xs text-[#52525b] hover:text-[#ef4444]"
                 >
                   Delete
                 </button>

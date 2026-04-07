@@ -82,7 +82,7 @@ export function StepPicker({ onSelect, onCancel }: Props) {
           <button
             key={opt.type}
             onClick={() => onSelect(opt.type)}
-            className="w-full text-left px-3 py-2 rounded-lg hover:bg-amber-50 transition-colors"
+            className="w-full text-left px-3 py-2 rounded-lg hover:bg-amber-50 border-l-2 border-l-transparent hover:border-l-amber-400 transition-colors"
           >
             <p className="text-sm font-medium text-gray-800">{opt.label}</p>
             <p className="text-xs text-gray-500">{opt.description}</p>
@@ -94,7 +94,7 @@ export function StepPicker({ onSelect, onCancel }: Props) {
           <button
             key={opt.type}
             onClick={() => onSelect(opt.type)}
-            className="w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors"
+            className="w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50 border-l-2 border-l-transparent hover:border-l-blue-400 transition-colors"
           >
             <p className="text-sm font-medium text-gray-800">{opt.label}</p>
             <p className="text-xs text-gray-500">{opt.description}</p>

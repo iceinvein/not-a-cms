@@ -48,11 +48,9 @@ function isContentTrigger(type: FlowTrigger["type"]): boolean {
 function TriggerConfig({
   trigger,
   onUpdateTrigger,
-  onClose,
 }: {
   trigger: FlowTrigger
   onUpdateTrigger: (trigger: FlowTrigger) => void
-  onClose: () => void
 }) {
   const handleTypeChange = (type: FlowTrigger["type"]) => {
     if (type === "schedule.cron") {
@@ -122,12 +120,6 @@ function TriggerConfig({
         </div>
       )}
 
-      <button
-        onClick={onClose}
-        className="mt-1 text-xs text-gray-400 hover:text-gray-600 self-start"
-      >
-        Close
-      </button>
     </div>
   )
 }
@@ -135,11 +127,9 @@ function TriggerConfig({
 function ConditionConfig({
   step,
   onUpdateStep,
-  onClose,
 }: {
   step: ConditionStep
   onUpdateStep: (id: string, updates: Partial<FlowStep>) => void
-  onClose: () => void
 }) {
   const updateRule = (index: number, updates: Partial<ConditionRule>) => {
     const rules = step.rules.map((r, i) => (i === index ? { ...r, ...updates } : r))
@@ -224,13 +214,6 @@ function ConditionConfig({
           + Add rule
         </button>
       </div>
-
-      <button
-        onClick={onClose}
-        className="mt-1 text-xs text-gray-400 hover:text-gray-600 self-start"
-      >
-        Close
-      </button>
     </div>
   )
 }
@@ -238,11 +221,9 @@ function ConditionConfig({
 function ActionConfig({
   step,
   onUpdateStep,
-  onClose,
 }: {
   step: ActionStep
   onUpdateStep: (id: string, updates: Partial<FlowStep>) => void
-  onClose: () => void
 }) {
   const [jsonErrors, setJsonErrors] = useState<Record<string, boolean>>({})
 
@@ -424,13 +405,6 @@ function ActionConfig({
       <p className="text-xs text-gray-400 italic">
         Use {"{{payload.field.path}}"} to reference trigger data.
       </p>
-
-      <button
-        onClick={onClose}
-        className="mt-1 text-xs text-gray-400 hover:text-gray-600 self-start"
-      >
-        Close
-      </button>
     </div>
   )
 }
@@ -451,18 +425,29 @@ export function StepConfigurator({
     ? "Action"
     : null
 
+  const borderAccent = showTriggerConfig
+    ? "border-l-4 border-l-blue-500"
+    : selectedStep?.type === "condition"
+    ? "border-l-4 border-l-amber-400"
+    : selectedStep
+    ? "border-l-4 border-l-gray-400"
+    : ""
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4">
+    <div className={`bg-white rounded-xl border border-gray-200 p-4 ${borderAccent}`}>
       {title && (
-        <h3 className="text-sm font-semibold text-gray-800 mb-4">{title}</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-sm">✕</button>
+        </div>
       )}
 
       {showTriggerConfig ? (
-        <TriggerConfig trigger={trigger} onUpdateTrigger={onUpdateTrigger} onClose={onClose} />
+        <TriggerConfig trigger={trigger} onUpdateTrigger={onUpdateTrigger} />
       ) : selectedStep?.type === "condition" ? (
-        <ConditionConfig step={selectedStep} onUpdateStep={onUpdateStep} onClose={onClose} />
+        <ConditionConfig step={selectedStep} onUpdateStep={onUpdateStep} />
       ) : selectedStep ? (
-        <ActionConfig step={selectedStep as ActionStep} onUpdateStep={onUpdateStep} onClose={onClose} />
+        <ActionConfig step={selectedStep as ActionStep} onUpdateStep={onUpdateStep} />
       ) : (
         <p className="text-sm text-gray-400 text-center py-4">
           Select a step to configure it, or click the trigger to change it.

@@ -5,16 +5,17 @@ type Props = {
   apiBase?: string
 }
 
+const triggerLabels: Record<string, string> = {
+  "content.created": "Content Created",
+  "content.updated": "Content Updated",
+  "content.published": "Content Published",
+  "content.deleted": "Content Deleted",
+  "webhook.received": "Webhook",
+  "schedule.cron": "Scheduled",
+}
+
 function triggerBadgeLabel(trigger: FlowTrigger): string {
-  switch (trigger.type) {
-    case "content.created": return "content.created"
-    case "content.updated": return "content.updated"
-    case "content.published": return "content.published"
-    case "content.deleted": return "content.deleted"
-    case "webhook.received": return "webhook"
-    case "schedule.cron": return `cron: ${trigger.cron}`
-    default: return "unknown"
-  }
+  return triggerLabels[trigger.type] ?? trigger.type
 }
 
 export function FlowList({ apiBase = "" }: Props) {
@@ -101,9 +102,12 @@ export function FlowList({ apiBase = "" }: Props) {
                 >
                   {flow.name}
                 </a>
-                <div className="flex gap-2 mt-1">
+                <div className="flex gap-2 mt-1 items-center flex-wrap">
                   <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
                     {triggerBadgeLabel(flow.trigger)}
+                  </span>
+                  <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+                    {flow.steps?.length ?? 0} steps
                   </span>
                   {flow.description && (
                     <span className="text-xs text-gray-400">{flow.description}</span>
@@ -111,6 +115,7 @@ export function FlowList({ apiBase = "" }: Props) {
                 </div>
               </div>
               <div className="flex items-center gap-3">
+                <span className="text-xs text-gray-400">{new Date(flow.updated_at).toLocaleDateString()}</span>
                 <button
                   onClick={() => handleToggle(flow)}
                   className={`text-xs px-2 py-1 rounded-full font-medium transition-colors ${
@@ -121,12 +126,6 @@ export function FlowList({ apiBase = "" }: Props) {
                 >
                   {flow.active ? "Active" : "Inactive"}
                 </button>
-                <a
-                  href={`/automations/${flow.id}`}
-                  className="text-xs text-blue-600 hover:text-blue-800"
-                >
-                  Edit
-                </a>
                 <button
                   onClick={() => handleDelete(flow)}
                   className="text-xs text-red-600 hover:text-red-800"

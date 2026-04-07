@@ -72,9 +72,10 @@ export function RunList({ flowId, apiBase = "", steps }: Props) {
       {loading ? (
         <p className="text-gray-400 text-sm text-center py-12">Loading runs…</p>
       ) : runs.length === 0 ? (
-        <p className="text-gray-400 text-sm text-center py-12">
-          No runs yet. Trigger the flow to see execution history.
-        </p>
+        <div className="text-center py-16">
+          <p className="text-gray-400 text-sm">No runs yet.</p>
+          <p className="text-gray-300 text-xs mt-1">Runs will appear here when the flow is triggered.</p>
+        </div>
       ) : (
         <>
           <table className="w-full text-sm">

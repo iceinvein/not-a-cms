@@ -100,7 +100,7 @@ export function FlowCanvas({
       {/* Trigger block */}
       <button
         onClick={onSelectTrigger}
-        className={`w-64 px-4 py-3 rounded-xl border-2 bg-blue-600 text-white text-sm font-medium text-center transition-all ${
+        className={`w-80 px-4 py-3 rounded-xl border-2 bg-blue-600 text-white text-sm font-medium text-center transition-all shadow-sm ${
           selectedStepId === null ? "border-blue-800 ring-2 ring-blue-300" : "border-blue-600 hover:border-blue-800"
         }`}
       >
@@ -111,10 +111,10 @@ export function FlowCanvas({
       {/* Add button after trigger (index = -1, we use 0 for "before first step") */}
       {!readOnly && (
         <div className="relative flex flex-col items-center">
-          <div className="w-px h-6 bg-gray-300" />
+          <div className="w-0.5 h-6 bg-gray-300" />
           <button
             onClick={() => setPickerIndex(pickerIndex === 0 ? null : 0)}
-            className="w-6 h-6 rounded-full border-2 border-dashed border-gray-400 text-gray-400 hover:border-blue-500 hover:text-blue-500 text-sm flex items-center justify-center transition-colors"
+            className="w-7 h-7 rounded-full bg-gray-100 border border-gray-200 text-gray-400 hover:bg-blue-50 hover:text-blue-500 hover:border-blue-200 text-sm flex items-center justify-center transition-colors"
           >
             +
           </button>
@@ -133,7 +133,7 @@ export function FlowCanvas({
         const isSelected = selectedStepId === step.id
         const isCondition = step.type === "condition"
 
-        let blockClasses = "w-64 px-4 py-3 rounded-xl border-2 text-sm transition-all text-left relative"
+        let blockClasses = "w-80 px-4 py-3 rounded-xl border-2 text-sm transition-all text-left relative shadow-sm"
         if (readOnly && runStep) {
           blockClasses += ` ${runStatusColors(runStep.status)}`
         } else if (isCondition) {
@@ -177,7 +177,7 @@ export function FlowCanvas({
               <div className="flex items-center gap-2 mt-1">
                 <button
                   onClick={() => onRemoveStep(step.id)}
-                  className="text-xs text-red-400 hover:text-red-600"
+                  className="text-xs text-gray-400 hover:text-red-500 transition-colors"
                 >
                   Remove
                 </button>
@@ -186,12 +186,12 @@ export function FlowCanvas({
 
             {/* Connector + Add button */}
             <div className="relative flex flex-col items-center">
-              <div className="w-px h-6 bg-gray-300" />
+              <div className="w-0.5 h-6 bg-gray-300" />
               {!readOnly && (
                 <>
                   <button
                     onClick={() => setPickerIndex(pickerIndex === index + 1 ? null : index + 1)}
-                    className="w-6 h-6 rounded-full border-2 border-dashed border-gray-400 text-gray-400 hover:border-blue-500 hover:text-blue-500 text-sm flex items-center justify-center transition-colors"
+                    className="w-7 h-7 rounded-full bg-gray-100 border border-gray-200 text-gray-400 hover:bg-blue-50 hover:text-blue-500 hover:border-blue-200 text-sm flex items-center justify-center transition-colors"
                   >
                     +
                   </button>
@@ -203,16 +203,21 @@ export function FlowCanvas({
                   )}
                 </>
               )}
-              {readOnly && <div className="w-px h-6 bg-gray-300" />}
+              {readOnly && <div className="w-0.5 h-6 bg-gray-300" />}
             </div>
           </div>
         )
       })}
 
+      {/* Empty state hint */}
+      {steps.length === 0 && !readOnly && (
+        <div className="text-center max-w-[240px] mx-auto py-2">
+          <p className="text-sm text-gray-400">Click the trigger to configure when this flow runs, then use <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-100 border border-gray-200 text-xs text-gray-500">+</span> to add steps.</p>
+        </div>
+      )}
+
       {/* End node */}
-      <div className="w-16 h-16 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-400">
-        End
-      </div>
+      <div className="px-4 py-1.5 rounded-full bg-gray-200 text-xs text-gray-500 font-medium">End</div>
     </div>
   )
 }

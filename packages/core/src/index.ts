@@ -41,6 +41,14 @@ export { createSettingsService, type SettingsService } from "./settings/service"
 // Import
 export { parseWXR, htmlToPortableText } from "./import/wordpress"
 
+// Automations
+export { createFlowStore, type FlowStore } from "./automations/store"
+export type {
+  Flow, FlowTrigger, FlowStep, ConditionStep, ActionStep, ActionType,
+  ConditionRule, ConditionOperator, FlowRun, FlowRunStep, FlowRunStatus,
+  FlowRunStepStatus, CreateFlowInput, TriggerPayload,
+} from "./automations/types"
+
 // Builder
 export { createComponentRegistry, type ComponentRegistry, type RegistryComponentDef } from "./builder/registry"
 export { compileStyles, compileInlineStyle } from "./builder/style-compiler"

@@ -108,4 +108,14 @@ export function bootstrapTables(db: AppDatabase, collections: CollectionDef[]) {
     value TEXT NOT NULL,
     updated_at TEXT NOT NULL
   )`)}`)
+
+  db.run(sql`${sql.raw(`CREATE TABLE IF NOT EXISTS _flows (id TEXT PRIMARY KEY, name TEXT NOT NULL, description TEXT, trigger TEXT NOT NULL, steps TEXT NOT NULL, active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)`)}`)
+
+  db.run(sql`${sql.raw(`CREATE TABLE IF NOT EXISTS _flow_runs (id TEXT PRIMARY KEY, flow_id TEXT NOT NULL REFERENCES _flows(id) ON DELETE CASCADE, trigger_event TEXT NOT NULL, trigger_payload TEXT, status TEXT NOT NULL, started_at TEXT NOT NULL, finished_at TEXT, error TEXT)`)}`)
+
+  db.run(sql`${sql.raw(`CREATE INDEX IF NOT EXISTS idx_flow_runs_flow_id ON _flow_runs(flow_id, started_at DESC)`)}`)
+
+  db.run(sql`${sql.raw(`CREATE TABLE IF NOT EXISTS _flow_run_steps (id TEXT PRIMARY KEY, run_id TEXT NOT NULL REFERENCES _flow_runs(id) ON DELETE CASCADE, step_id TEXT NOT NULL, status TEXT NOT NULL, input TEXT, output TEXT, branch_taken TEXT, started_at TEXT NOT NULL, finished_at TEXT, error TEXT)`)}`)
+
+  db.run(sql`${sql.raw(`CREATE INDEX IF NOT EXISTS idx_flow_run_steps_run_id ON _flow_run_steps(run_id)`)}`)
 }

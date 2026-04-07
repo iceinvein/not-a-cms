@@ -1,0 +1,8 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro"
+import { FlowList } from "../../components/automations/FlowList"
+---
+<AdminLayout title="Automations">
+  <p class="text-sm text-gray-500 mb-6">Create event-driven workflows to automate content operations.</p>
+  <FlowList client:load />
+</AdminLayout>

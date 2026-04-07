@@ -12,8 +12,12 @@ import {
   createPreviewTokenService,
   createSettingsService,
   createComponentRegistry,
+  createFlowStore,
+  createFlowEngine,
+  createAutomationCron,
   type CollectionDef,
 } from "@not-a-cms/core"
+import { createAutomationHandler } from "./automations/handler"
 import { createComponentHandler } from "./builder/component-handler"
 import { appRouter } from "./trpc/router"
 import { createRestHandler } from "./rest/handler"
@@ -61,11 +65,25 @@ export function createServer(config: ServerConfig) {
   const webhookStore = createWebhookStore(db)
   const webhookService = createWebhookService(webhookStore)
 
+  const flowStore = createFlowStore(db)
+  const flowEngine = createFlowEngine(flowStore)
+  const automationHandler = createAutomationHandler(flowStore, flowEngine)
+  const automationCron = createAutomationCron(flowStore, flowEngine)
+
   // Build collection registry
   const collections = new Map()
   for (const def of config.collections) {
     const table = generateTable(def)
-    const service = createContentService(db, def, table, versioning, search)
+    const service = createContentService(db, def, table, versioning, search, {
+      dispatch: (event, collection, doc) => {
+        const matchingFlows = flowStore.getActiveFlowsByTrigger(event)
+        for (const flow of matchingFlows) {
+          const trigger = flow.trigger as { type: string; collection?: string }
+          if (trigger.collection && trigger.collection !== collection) continue
+          flowEngine.executeFlow(flow, { event, collection, document: doc }).catch(() => {})
+        }
+      },
+    })
     collections.set(def.name, { def, table, service })
   }
 
@@ -146,6 +164,12 @@ export function createServer(config: ServerConfig) {
         if (res) return res
       }
 
+      // Automation routes
+      if (url.pathname.startsWith("/api/_flows")) {
+        const res = await automationHandler(req)
+        if (res) return res
+      }
+
       // REST routes
       if (url.pathname.startsWith("/api/")) {
         const res = await restHandler(req)
@@ -169,13 +193,16 @@ export function createServer(config: ServerConfig) {
         console.log(`  Scheduled publishing: promoted ${promoted.length} post(s)`)
       }
     } catch {}
+    try {
+      await automationCron.tick()
+    } catch {}
   }, 60_000)
 
   if (!process.env.QUIET) {
     console.log(`not-a-cms API server on http://localhost:${server.port}`)
   }
 
-  return { server, db, collections, versioning, search, trpcRouter, webhookStore, webhookService, previewTokenService, settingsService, componentRegistry }
+  return { server, db, collections, versioning, search, trpcRouter, webhookStore, webhookService, previewTokenService, settingsService, componentRegistry, flowStore, flowEngine }
 }
 
 // Re-exports for external consumers

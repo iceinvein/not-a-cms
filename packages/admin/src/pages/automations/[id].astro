@@ -1,0 +1,9 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro"
+import { FlowEditor } from "../../components/automations/FlowEditor"
+const { id } = Astro.params
+---
+<AdminLayout title="Edit Flow">
+  <a href="/automations" class="text-sm text-blue-600 hover:text-blue-800 mb-4 inline-block">&larr; Back to Automations</a>
+  <FlowEditor flowId={id!} client:load />
+</AdminLayout>

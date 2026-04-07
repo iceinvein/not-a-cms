@@ -49,15 +49,15 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
   }, [toast.id, onDismiss])
 
   const colors: Record<ToastType, string> = {
-    success: "bg-green-600",
-    error: "bg-red-600",
-    info: "bg-gray-800",
+    success: "bg-[rgba(34,197,94,0.15)] text-[#22c55e] border border-[rgba(34,197,94,0.2)]",
+    error: "bg-[rgba(239,68,68,0.15)] text-[#ef4444] border border-[rgba(239,68,68,0.2)]",
+    info: "bg-[#18181b] text-[#a1a1aa] border border-[rgba(255,255,255,0.06)]",
   }
 
   return (
-    <div className={`${colors[toast.type]} text-white px-4 py-3 rounded-lg shadow-lg text-sm font-medium flex items-center gap-3`}>
+    <div className={`${colors[toast.type]} px-4 py-3 rounded-lg text-sm font-medium flex items-center gap-3`}>
       <span>{toast.message}</span>
-      <button onClick={() => onDismiss(toast.id)} className="text-white/70 hover:text-white">
+      <button onClick={() => onDismiss(toast.id)} className="opacity-70 hover:opacity-100">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
         </svg>

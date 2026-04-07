@@ -126,7 +126,7 @@ function ContentEditorInner({
             value={String(value)}
             onChange={(e) => updateField(name, e.target.value)}
             maxLength={fieldDef.maxLength}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-0"
           />
         )
 
@@ -145,14 +145,14 @@ function ContentEditorInner({
               type="text"
               value={String(value)}
               onChange={(e) => updateField(name, e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex-1 px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-0"
               placeholder={sourceField ? `Auto-generated from ${sourceField}` : ""}
             />
             {sourceField && (
               <button
                 type="button"
                 onClick={handleAutoGenerate}
-                className="px-3 py-2 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap"
+                className="px-3 py-2 text-xs border border-[rgba(255,255,255,0.1)] text-[#a1a1aa] rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors whitespace-nowrap"
               >
                 Generate
               </button>
@@ -166,7 +166,7 @@ function ContentEditorInner({
           <select
             value={String(value)}
             onChange={(e) => updateField(name, e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-[#18181b] text-[#fafafa] focus:border-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-0"
           >
             <option value="">Select...</option>
             {(fieldDef.options || []).map((opt: string) => (
@@ -181,7 +181,7 @@ function ContentEditorInner({
             type="number"
             value={Number(value) || ""}
             onChange={(e) => updateField(name, Number(e.target.value))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-0"
           />
         )
 
@@ -192,9 +192,9 @@ function ContentEditorInner({
               type="checkbox"
               checked={Boolean(value)}
               onChange={(e) => updateField(name, e.target.checked)}
-              className="rounded border-gray-300"
+              className="rounded border-[rgba(255,255,255,0.1)]"
             />
-            <span className="text-sm text-gray-700">Enabled</span>
+            <span className="text-sm text-[#a1a1aa]">Enabled</span>
           </label>
         )
 
@@ -204,7 +204,7 @@ function ContentEditorInner({
             type="datetime-local"
             value={String(value).slice(0, 16)}
             onChange={(e) => updateField(name, new Date(e.target.value).toISOString())}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-0"
           />
         )
 
@@ -220,7 +220,7 @@ function ContentEditorInner({
 
         return (
           <div style={{ minHeight: "600px" }}>
-            <Suspense fallback={<div className="p-4 text-gray-400 text-sm">Loading page builder...</div>}>
+            <Suspense fallback={<div className="p-4 text-[#52525b] text-sm">Loading page builder...</div>}>
               <PageBuilder
                 initialLayout={layoutValue}
                 onChange={(layout) => updateField(name, JSON.stringify(layout))}
@@ -242,8 +242,8 @@ function ContentEditorInner({
         })()
 
         return (
-          <div className="border border-gray-300 rounded-lg overflow-hidden min-h-[300px]">
-            <Suspense fallback={<div className="p-4 text-gray-400 text-sm">Loading editor...</div>}>
+          <div className="border border-[rgba(255,255,255,0.1)] rounded-lg overflow-hidden min-h-[300px] [&_.ProseMirror]:text-[#fafafa] [&_.ProseMirror]:bg-transparent">
+            <Suspense fallback={<div className="p-4 text-[#52525b] text-sm">Loading editor...</div>}>
               <Editor
                 content={ptContent}
                 onChange={(blocks) => updateField(name, JSON.stringify(blocks))}
@@ -260,7 +260,7 @@ function ContentEditorInner({
             type="text"
             value={String(value)}
             onChange={(e) => updateField(name, e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-0"
           />
         )
     }
@@ -285,7 +285,7 @@ function ContentEditorInner({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12 text-sm text-gray-400">
+      <div className="flex items-center justify-center py-12 text-sm text-[#52525b]">
         Loading...
       </div>
     )
@@ -296,9 +296,9 @@ function ContentEditorInner({
       <div className="flex-1 space-y-6">
         {mainFields.map(([name, def]) => (
           <div key={name}>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-[#a1a1aa] mb-1">
               {fieldLabel(name)}
-              {def.required && <span className="text-red-500 ml-1">*</span>}
+              {def.required && <span className="text-[#ef4444] ml-1">*</span>}
             </label>
             {renderField(name, def)}
           </div>
@@ -306,21 +306,21 @@ function ContentEditorInner({
       </div>
 
       <div className="w-72 space-y-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
-          <h3 className="font-medium text-sm text-gray-900">Publish</h3>
+        <div className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] p-4 space-y-4">
+          <h3 className="font-medium text-sm text-[#fafafa]">Publish</h3>
 
           <div className="flex gap-2">
             <button
               onClick={() => handleSave(false)}
               disabled={saving}
-              className="flex-1 py-2 px-3 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50 transition-colors"
+              className="flex-1 py-2 px-3 border border-[rgba(255,255,255,0.06)] text-[#a1a1aa] rounded-lg text-sm font-medium hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 transition-colors"
             >
               {saving ? "Saving..." : "Save Draft"}
             </button>
             <button
               onClick={() => handleSave(true)}
               disabled={saving}
-              className="flex-1 py-2 px-3 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              className="flex-1 py-2 px-3 bg-[#fafafa] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#e4e4e7] disabled:opacity-50 transition-colors"
             >
               Publish
             </button>
@@ -328,11 +328,11 @@ function ContentEditorInner({
         </div>
 
         {sidebarFields.length > 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
-            <h3 className="font-medium text-sm text-gray-900">Details</h3>
+          <div className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] p-4 space-y-4">
+            <h3 className="font-medium text-sm text-[#fafafa]">Details</h3>
             {sidebarFields.map(([name, def]) => (
               <div key={name}>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
+                <label className="block text-xs font-medium text-[#71717a] mb-1">
                   {fieldLabel(name)}
                 </label>
                 {renderField(name, def)}
@@ -342,8 +342,8 @@ function ContentEditorInner({
         )}
 
         {documentId && (
-          <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-2">
-            <h3 className="font-medium text-sm text-gray-900">Version History</h3>
+          <div className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] p-4 space-y-2">
+            <h3 className="font-medium text-sm text-[#fafafa]">Version History</h3>
             <VersionHistory
               key={versionKey}
               collection={collection}
@@ -355,8 +355,8 @@ function ContentEditorInner({
         )}
 
         {documentId && (
-          <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-2">
-            <h3 className="font-medium text-sm text-gray-900">Preview</h3>
+          <div className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] p-4 space-y-2">
+            <h3 className="font-medium text-sm text-[#fafafa]">Preview</h3>
             <PreviewLink collection={collection} documentId={documentId} apiBase={apiBase} />
           </div>
         )}

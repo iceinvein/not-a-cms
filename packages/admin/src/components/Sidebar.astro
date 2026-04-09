@@ -29,8 +29,8 @@ function linkClass(href: string) {
   style="width: 190px;"
 >
   <!-- Header -->
-  <div class="flex items-center gap-2 px-3 py-4 border-b border-[rgba(255,255,255,0.06)]">
-    <div class="w-6 h-6 bg-[#fafafa] rounded flex items-center justify-center flex-shrink-0">
+  <div class="sidebar-header flex items-center gap-2 px-3 py-4 border-b border-[rgba(255,255,255,0.06)]">
+    <div id="sidebar-logo" class="w-6 h-6 bg-[#fafafa] rounded flex items-center justify-center flex-shrink-0 cursor-pointer">
       <span class="text-[#0a0a0c] text-xs font-bold leading-none">N</span>
     </div>
     <span id="sidebar-label" class="text-sm font-semibold text-[#fafafa] truncate flex-1">not-a-cms</span>
@@ -58,7 +58,7 @@ function linkClass(href: string) {
   </div>
 
   <!-- Main nav -->
-  <nav class="flex-1 px-3 py-1 space-y-0.5">
+  <nav class="sidebar-nav flex-1 px-3 py-1 space-y-0.5">
     <!-- Dashboard -->
     <a href="/" class={linkClass("/")}>
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sidebar-icon flex-shrink-0">
@@ -97,7 +97,7 @@ function linkClass(href: string) {
   </nav>
 
   <!-- Bottom nav -->
-  <div class="px-3 py-2 border-t border-[rgba(255,255,255,0.06)] space-y-0.5">
+  <div class="sidebar-nav px-3 py-2 border-t border-[rgba(255,255,255,0.06)] space-y-0.5">
     <a href="/automations" class={linkClass("/automations")}>
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sidebar-icon flex-shrink-0">
         <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -129,37 +129,75 @@ function linkClass(href: string) {
 <script>
   const sidebar = document.getElementById('sidebar') as HTMLElement
   const toggle = document.getElementById('sidebar-toggle') as HTMLElement
+  const logo = document.getElementById('sidebar-logo') as HTMLElement
   const isCollapsed = localStorage.getItem('nacms-sidebar-collapsed') === 'true'
 
   function collapse() {
     sidebar.style.width = '48px'
     sidebar.dataset.expanded = 'false'
+    // Hide text elements
     sidebar.querySelectorAll('.sidebar-text').forEach((el: Element) => (el as HTMLElement).style.display = 'none')
     const label = document.getElementById('sidebar-label')
     const search = document.getElementById('sidebar-search')
     if (label) label.style.display = 'none'
     if (search) search.style.display = 'none'
-    const chevron = toggle.querySelector('svg')
-    if (chevron) chevron.style.transform = 'rotate(180deg)'
+    // Hide toggle button (logo becomes the expand trigger)
+    toggle.style.display = 'none'
+    // Center header
+    const header = sidebar.querySelector('.sidebar-header') as HTMLElement
+    if (header) header.style.justifyContent = 'center'
+    // Center nav links (remove left padding, center icon)
+    sidebar.querySelectorAll('.sidebar-link').forEach((el: Element) => {
+      const link = el as HTMLElement
+      link.style.justifyContent = 'center'
+      link.style.padding = '6px 0'
+    })
+    // Center nav containers
+    sidebar.querySelectorAll('.sidebar-nav').forEach((el: Element) => {
+      const nav = el as HTMLElement
+      nav.style.padding = '4px 8px'
+    })
     localStorage.setItem('nacms-sidebar-collapsed', 'true')
   }
 
   function expand() {
     sidebar.style.width = '190px'
     sidebar.dataset.expanded = 'true'
+    // Show text
     sidebar.querySelectorAll('.sidebar-text').forEach((el: Element) => (el as HTMLElement).style.display = '')
     const label = document.getElementById('sidebar-label')
     const search = document.getElementById('sidebar-search')
     if (label) label.style.display = ''
     if (search) search.style.display = ''
-    const chevron = toggle.querySelector('svg')
-    if (chevron) chevron.style.transform = ''
+    // Show toggle
+    toggle.style.display = ''
+    // Reset header
+    const header = sidebar.querySelector('.sidebar-header') as HTMLElement
+    if (header) header.style.justifyContent = ''
+    // Reset nav links
+    sidebar.querySelectorAll('.sidebar-link').forEach((el: Element) => {
+      const link = el as HTMLElement
+      link.style.justifyContent = ''
+      link.style.padding = ''
+    })
+    // Reset nav containers
+    sidebar.querySelectorAll('.sidebar-nav').forEach((el: Element) => {
+      const nav = el as HTMLElement
+      nav.style.padding = ''
+    })
     localStorage.setItem('nacms-sidebar-collapsed', 'false')
   }
 
   if (isCollapsed) collapse()
+
+  // Toggle button expands/collapses
   toggle.addEventListener('click', () => {
     if (sidebar.dataset.expanded === 'true') collapse()
     else expand()
+  })
+
+  // When collapsed, clicking the logo expands
+  logo.addEventListener('click', () => {
+    if (sidebar.dataset.expanded === 'false') expand()
   })
 </script>

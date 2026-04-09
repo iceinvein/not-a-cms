@@ -24,9 +24,7 @@ function linkClass(href: string) {
 
 <aside
   id="sidebar"
-  data-expanded="true"
   class="w-[190px] bg-[#111113] border-r border-[rgba(255,255,255,0.06)] min-h-screen flex flex-col flex-shrink-0 transition-all duration-200 overflow-hidden"
-  style="width: 190px;"
 >
   <!-- Header -->
   <div class="sidebar-header flex items-center gap-2 px-3 py-4 border-b border-[rgba(255,255,255,0.06)]">
@@ -127,77 +125,29 @@ function linkClass(href: string) {
 </aside>
 
 <script>
-  const sidebar = document.getElementById('sidebar') as HTMLElement
   const toggle = document.getElementById('sidebar-toggle') as HTMLElement
   const logo = document.getElementById('sidebar-logo') as HTMLElement
-  const isCollapsed = localStorage.getItem('nacms-sidebar-collapsed') === 'true'
+
+  function isCollapsed() {
+    return document.documentElement.classList.contains('sidebar-collapsed')
+  }
 
   function collapse() {
-    sidebar.style.width = '48px'
-    sidebar.dataset.expanded = 'false'
-    // Hide text elements
-    sidebar.querySelectorAll('.sidebar-text').forEach((el: Element) => (el as HTMLElement).style.display = 'none')
-    const label = document.getElementById('sidebar-label')
-    const search = document.getElementById('sidebar-search')
-    if (label) label.style.display = 'none'
-    if (search) search.style.display = 'none'
-    // Hide toggle button (logo becomes the expand trigger)
-    toggle.style.display = 'none'
-    // Center header
-    const header = sidebar.querySelector('.sidebar-header') as HTMLElement
-    if (header) header.style.justifyContent = 'center'
-    // Center nav links (remove left padding, center icon)
-    sidebar.querySelectorAll('.sidebar-link').forEach((el: Element) => {
-      const link = el as HTMLElement
-      link.style.justifyContent = 'center'
-      link.style.padding = '6px 0'
-    })
-    // Center nav containers
-    sidebar.querySelectorAll('.sidebar-nav').forEach((el: Element) => {
-      const nav = el as HTMLElement
-      nav.style.padding = '4px 8px'
-    })
+    document.documentElement.classList.add('sidebar-collapsed')
     localStorage.setItem('nacms-sidebar-collapsed', 'true')
   }
 
   function expand() {
-    sidebar.style.width = '190px'
-    sidebar.dataset.expanded = 'true'
-    // Show text
-    sidebar.querySelectorAll('.sidebar-text').forEach((el: Element) => (el as HTMLElement).style.display = '')
-    const label = document.getElementById('sidebar-label')
-    const search = document.getElementById('sidebar-search')
-    if (label) label.style.display = ''
-    if (search) search.style.display = ''
-    // Show toggle
-    toggle.style.display = ''
-    // Reset header
-    const header = sidebar.querySelector('.sidebar-header') as HTMLElement
-    if (header) header.style.justifyContent = ''
-    // Reset nav links
-    sidebar.querySelectorAll('.sidebar-link').forEach((el: Element) => {
-      const link = el as HTMLElement
-      link.style.justifyContent = ''
-      link.style.padding = ''
-    })
-    // Reset nav containers
-    sidebar.querySelectorAll('.sidebar-nav').forEach((el: Element) => {
-      const nav = el as HTMLElement
-      nav.style.padding = ''
-    })
+    document.documentElement.classList.remove('sidebar-collapsed')
     localStorage.setItem('nacms-sidebar-collapsed', 'false')
   }
 
-  if (isCollapsed) collapse()
-
-  // Toggle button expands/collapses
   toggle.addEventListener('click', () => {
-    if (sidebar.dataset.expanded === 'true') collapse()
-    else expand()
+    if (isCollapsed()) expand()
+    else collapse()
   })
 
-  // When collapsed, clicking the logo expands
   logo.addEventListener('click', () => {
-    if (sidebar.dataset.expanded === 'false') expand()
+    if (isCollapsed()) expand()
   })
 </script>

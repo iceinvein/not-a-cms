@@ -47,6 +47,28 @@ body {
   color: #fafafa;
 }
 
+/* Sidebar collapsed state (applied instantly via <head> script to prevent flash) */
+.sidebar-collapsed #sidebar {
+  width: 48px;
+}
+.sidebar-collapsed #sidebar .sidebar-text,
+.sidebar-collapsed #sidebar #sidebar-label,
+.sidebar-collapsed #sidebar #sidebar-search,
+.sidebar-collapsed #sidebar #sidebar-toggle {
+  display: none;
+}
+.sidebar-collapsed #sidebar .sidebar-header {
+  justify-content: center;
+}
+.sidebar-collapsed #sidebar .sidebar-link {
+  justify-content: center;
+  padding: 6px 0;
+}
+.sidebar-collapsed #sidebar .sidebar-nav {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
 /* ProseMirror / Tiptap editor dark theme */
 .ProseMirror:focus {
   outline: none;

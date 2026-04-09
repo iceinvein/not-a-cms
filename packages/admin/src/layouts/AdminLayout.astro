@@ -42,6 +42,11 @@ if (!isAuthPage) {
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script is:inline>
+    if (localStorage.getItem('nacms-sidebar-collapsed') === 'true') {
+      document.documentElement.classList.add('sidebar-collapsed')
+    }
+  </script>
 </head>
 <body class="bg-[#0a0a0c] text-[#a1a1aa] font-sans min-h-screen">
   <div class="flex min-h-screen">

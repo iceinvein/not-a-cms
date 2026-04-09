@@ -47,24 +47,29 @@ body {
   color: #fafafa;
 }
 
+/* Sidebar width (CSS-controlled to avoid Tailwind specificity conflicts) */
+.sidebar-root {
+  width: 190px;
+}
+
 /* Sidebar collapsed state (applied instantly via <head> script to prevent flash) */
-.sidebar-collapsed #sidebar {
+.sidebar-collapsed .sidebar-root {
   width: 48px;
 }
-.sidebar-collapsed #sidebar .sidebar-text,
-.sidebar-collapsed #sidebar #sidebar-label,
-.sidebar-collapsed #sidebar #sidebar-search,
-.sidebar-collapsed #sidebar #sidebar-toggle {
+.sidebar-collapsed .sidebar-root .sidebar-text,
+.sidebar-collapsed .sidebar-root #sidebar-label,
+.sidebar-collapsed .sidebar-root #sidebar-search,
+.sidebar-collapsed .sidebar-root #sidebar-toggle {
   display: none;
 }
-.sidebar-collapsed #sidebar .sidebar-header {
+.sidebar-collapsed .sidebar-root .sidebar-header {
   justify-content: center;
 }
-.sidebar-collapsed #sidebar .sidebar-link {
+.sidebar-collapsed .sidebar-root .sidebar-link {
   justify-content: center;
   padding: 6px 0;
 }
-.sidebar-collapsed #sidebar .sidebar-nav {
+.sidebar-collapsed .sidebar-root .sidebar-nav {
   padding-left: 8px;
   padding-right: 8px;
 }

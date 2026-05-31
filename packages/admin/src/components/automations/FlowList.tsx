@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react"
 import type { Flow, FlowTrigger } from "./flow-types"
+import { EmptyState, ErrorState, LoadingState } from "../AdminState"
+import { adminApiFetch, messageForAdminResponse } from "../../lib/api"
 
 type Props = {
   apiBase?: string
@@ -22,27 +24,34 @@ export function FlowList({ apiBase = "" }: Props) {
   const [flows, setFlows] = useState<Flow[]>([])
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
+  const [error, setError] = useState("")
 
   useEffect(() => {
     fetchFlows()
   }, [])
 
   const fetchFlows = async () => {
+    setError("")
     try {
-      const res = await fetch(`${apiBase}/api/_flows`)
+      const res = await adminApiFetch(apiBase, "/api/_flows")
       if (res.ok) {
         const data = await res.json()
         setFlows(data.data || [])
+      } else {
+        setError(messageForAdminResponse(res, "Could not load automations."))
       }
-    } catch {} finally {
+    } catch {
+      setError("Could not reach the server.")
+    } finally {
       setLoading(false)
     }
   }
 
   const handleCreate = async () => {
     setCreating(true)
+    setError("")
     try {
-      const res = await fetch(`${apiBase}/api/_flows`, {
+      const res = await adminApiFetch(apiBase, "/api/_flows", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -55,42 +64,50 @@ export function FlowList({ apiBase = "" }: Props) {
       if (res.ok) {
         const flow: Flow = await res.json()
         window.location.href = `/automations/${flow.id}`
+      } else {
+        setError("Failed to create flow. The server returned an error.")
       }
+    } catch {
+      setError("Could not reach the server. Make sure the API is running.")
     } finally {
       setCreating(false)
     }
   }
 
   const handleToggle = async (flow: Flow) => {
-    await fetch(`${apiBase}/api/_flows/${flow.id}/toggle`, { method: "POST" })
+    await adminApiFetch(apiBase, `/api/_flows/${flow.id}/toggle`, { method: "POST" })
     fetchFlows()
   }
 
   const handleDelete = async (flow: Flow) => {
     if (!confirm(`Delete flow "${flow.name}"?`)) return
-    await fetch(`${apiBase}/api/_flows/${flow.id}`, { method: "DELETE" })
+    await adminApiFetch(apiBase, `/api/_flows/${flow.id}`, { method: "DELETE" })
     fetchFlows()
   }
 
-  if (loading) return <p className="text-[#52525b] text-sm">Loading automations...</p>
+  if (loading) return <LoadingState title="Loading automations" description="Fetching flow definitions." />
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold text-[#fafafa]">Flows</h2>
+    <div className="space-y-8">
+      <div className="flex justify-end">
         <button
           onClick={handleCreate}
           disabled={creating}
-          className="px-4 py-2 bg-[#fafafa] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#e4e4e7] disabled:opacity-50"
+          className="px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4a57c] disabled:opacity-50 transition-colors"
         >
-          {creating ? "Creating…" : "+ New Flow"}
+          {creating ? "Creating..." : "+ New Flow"}
         </button>
       </div>
 
+      {error && (
+        <ErrorState title="Automation action failed" description={error} action={<button onClick={fetchFlows} className="px-3 py-1.5 text-sm font-medium text-[#fafafa] bg-[rgba(255,255,255,0.08)] rounded-md hover:bg-[rgba(255,255,255,0.12)] transition-colors">Try again</button>} />
+      )}
+
       {flows.length === 0 ? (
-        <div className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] p-12 text-center text-[#52525b]">
-          No flows yet. Create one to get started.
-        </div>
+        <EmptyState
+          title="No automation flows yet"
+          description="Flows run when content events happen. Send notifications, transform data, or trigger external services."
+        />
       ) : (
         <div className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] divide-y divide-[rgba(255,255,255,0.06)]">
           {flows.map((flow) => (
@@ -98,7 +115,7 @@ export function FlowList({ apiBase = "" }: Props) {
               <div>
                 <a
                   href={`/automations/${flow.id}`}
-                  className="text-sm font-medium text-[#fafafa] hover:text-[#a1a1aa]"
+                  className="text-sm font-medium text-[#fafafa] hover:text-[#c9956b] transition-colors"
                 >
                   {flow.name}
                 </a>
@@ -128,7 +145,7 @@ export function FlowList({ apiBase = "" }: Props) {
                 </button>
                 <button
                   onClick={() => handleDelete(flow)}
-                  className="text-xs text-[#52525b] hover:text-[#ef4444]"
+                  className="text-xs text-[#52525b] hover:text-[#ef4444] transition-colors"
                 >
                   Delete
                 </button>

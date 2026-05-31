@@ -6,7 +6,9 @@
  * for local development and testing.
  */
 import { createServer } from "./index"
-import { defineCollection, field } from "@not-a-cms/core"
+import { ConfigLoadError, defineCollection, field, loadConfig } from "@not-a-cms/core"
+import { createServerConfigFromCMSConfig } from "./config"
+import type { StorageConfig } from "./media/storage"
 
 // --- Sample collections for development ---
 
@@ -18,9 +20,20 @@ const blogPost = defineCollection({
     slug: field.slug({ from: "title" }),
     excerpt: field.text({ multiline: true, maxLength: 500 }),
     body: field.richText(),
-    status: field.select(["draft", "published", "archived"], { default: "draft" }),
+    author: field.relation("author"),
+    coverImage: field.media({ accept: ["image/*"] }),
+    status: field.select(["draft", "in_review", "published", "archived", "scheduled"], { default: "draft" }),
     publishedAt: field.datetime(),
     tags: field.array(field.text()),
+  },
+})
+
+const author = defineCollection({
+  name: "author",
+  labels: { singular: "Author", plural: "Authors" },
+  fields: {
+    name: field.text({ required: true }),
+    bio: field.text({ multiline: true }),
   },
 })
 
@@ -29,8 +42,10 @@ const page = defineCollection({
   fields: {
     title: field.text({ required: true }),
     slug: field.slug({ from: "title" }),
+    author: field.relation("author"),
     layout: field.pageLayout(),
-    status: field.select(["draft", "published"], { default: "draft" }),
+    status: field.select(["draft", "in_review", "published", "archived", "scheduled"], { default: "draft" }),
+    publishedAt: field.datetime(),
   },
 })
 
@@ -84,24 +99,8 @@ const sampleComponents = [
 
 // --- Boot the server ---
 
-const port = parseInt(process.env.PORT ?? "4321")
-
-const { server } = createServer({
-  port,
-  database: { url: process.env.DATABASE_URL ?? "dev.db" },
-  auth: {
-    secret: process.env.BETTER_AUTH_SECRET ?? "dev-secret-do-not-use-in-production-" + "x".repeat(12),
-    baseURL: process.env.BASE_URL ?? `http://localhost:${port}`,
-    magicLink: {
-      sendMagicLink: async ({ email, url }) => {
-        console.log(`\n  ✉ Magic link for ${email}:`)
-        console.log(`    ${url}\n`)
-      },
-    },
-  },
-  collections: [blogPost, page],
-  components: sampleComponents,
-})
+const e2eMagicLinks = new Map<string, string>()
+const { server } = createServer(await resolveDevServerConfig())
 
 if (!process.env.QUIET) {
   console.log(`
@@ -113,4 +112,86 @@ if (!process.env.QUIET) {
     Auth:     http://localhost:${server.port}/api/auth
     Collab:   ws://localhost:${server.port}/collab
   `)
+}
+
+function resolveDevStorage(): StorageConfig {
+  const provider = process.env.STORAGE_PROVIDER
+  if (provider === "s3" || provider === "r2") {
+    return {
+      provider,
+      path: process.env.MEDIA_INDEX_PATH ?? process.env.STORAGE_INDEX_PATH ?? "./uploads",
+      bucket: process.env.S3_BUCKET,
+      endpoint: process.env.S3_ENDPOINT,
+      region: process.env.S3_REGION ?? process.env.AWS_REGION,
+      accessKeyId: process.env.S3_ACCESS_KEY_ID ?? process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY ?? process.env.AWS_SECRET_ACCESS_KEY,
+      publicUrl: process.env.S3_PUBLIC_URL,
+      prefix: process.env.S3_PREFIX,
+    }
+  }
+
+  return {
+    provider: "local",
+    path: process.env.MEDIA_STORAGE_PATH ?? process.env.UPLOADS_DIR ?? "./uploads",
+  }
+}
+
+async function resolveDevServerConfig() {
+  try {
+    const projectConfig = await loadConfig({ cwd: process.cwd() })
+    return createServerConfigFromCMSConfig(projectConfig, process.env)
+  } catch (error) {
+    if (error instanceof ConfigLoadError && error.code === "CONFIG_NOT_FOUND") {
+      return createSampleDevServerConfig()
+    }
+    throw error
+  }
+}
+
+function createSampleDevServerConfig() {
+  const port = parseInt(process.env.PORT ?? "4321")
+  const corsOrigins = (process.env.CORS_ORIGINS ?? "http://localhost:4322,http://localhost:3000")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+  const oauth = {
+    ...(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
+      ? { github: { clientId: process.env.GITHUB_CLIENT_ID, clientSecret: process.env.GITHUB_CLIENT_SECRET } }
+      : {}),
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ? { google: { clientId: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET } }
+      : {}),
+  }
+
+  return {
+    port,
+    database: { url: process.env.DATABASE_URL ?? "dev.db" },
+    auth: {
+      secret: process.env.BETTER_AUTH_SECRET ?? "dev-secret-do-not-use-in-production-" + "x".repeat(12),
+      baseURL: process.env.BASE_URL ?? `http://localhost:${port}`,
+      trustedOrigins: corsOrigins,
+      magicLink: {
+        sendMagicLink: async ({ email, url }: { email: string; url: string }) => {
+          if (process.env.E2E_TEST_AUTH === "1") {
+            e2eMagicLinks.set(email, url)
+          }
+          console.log(`\n  Magic link for ${email}:`)
+          console.log(`    ${url}\n`)
+        },
+      },
+      ...(Object.keys(oauth).length > 0 ? { oauth } : {}),
+    },
+    storage: resolveDevStorage(),
+    collections: [author, blogPost, page],
+    components: sampleComponents,
+    cors: { origins: corsOrigins },
+    ...(process.env.E2E_TEST_AUTH === "1"
+      ? {
+          testAuth: {
+            enabled: true,
+            getMagicLink: (email: string) => e2eMagicLinks.get(email) ?? null,
+          },
+        }
+      : {}),
+  }
 }

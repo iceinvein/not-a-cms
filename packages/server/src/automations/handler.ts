@@ -76,6 +76,14 @@ export function createAutomationHandler(store: FlowStore, engine: FlowEngine) {
         return json({ data: runs })
       }
 
+      // POST /api/_flows/:id/runs/:runId/retry — replay a failed run
+      if (segments.length === 4 && segments[1] === "runs" && segments[3] === "retry" && method === "POST") {
+        const flow = store.getFlowById(id)
+        if (!flow) return json({ error: "Flow not found" }, 404)
+        const retryRunId = await engine.retryRun(flow, segments[2])
+        return json({ runId: retryRunId })
+      }
+
       // GET /api/_flows/:id/runs/:runId — get run detail with steps
       if (segments.length === 3 && segments[1] === "runs" && method === "GET") {
         const runId = segments[2]

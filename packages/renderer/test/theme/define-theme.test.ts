@@ -52,4 +52,16 @@ describe("defineTheme", () => {
     })
     expect(theme.getDefault("layout", "anything")).toBeNull()
   })
+
+  test("defines component renderer overrides as part of the theme manifest", () => {
+    const theme = defineTheme({
+      name: "starter",
+      version: "1.0.0",
+      components: {
+        hero: (props) => `<h1>${props.headline}</h1>`,
+      },
+    })
+
+    expect(theme.components?.hero({ headline: "Custom Hero" })).toBe("<h1>Custom Hero</h1>")
+  })
 })

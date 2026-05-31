@@ -11,11 +11,23 @@ type Props = {
 
 const { src, alt, width, height, blurDataURL, variants, class: className } = Astro.props
 
-const webpVariants = (variants || [])
+const sourceWidths = [640, 768, 1024, 1280, 1536].filter((candidate) => !width || candidate <= width)
+const canBuildMediaVariantUrls = /^\/api\/media\/[^/]+\/file$/.test(src)
+
+const generatedVariants = canBuildMediaVariantUrls
+  ? sourceWidths.flatMap((sourceWidth) => [
+    { width: sourceWidth, format: "avif", path: `${src}?w=${sourceWidth}&format=avif` },
+    { width: sourceWidth, format: "webp", path: `${src}?w=${sourceWidth}&format=webp` },
+  ])
+  : []
+
+const responsiveVariants = (variants?.length ? variants : generatedVariants)
+
+const webpVariants = responsiveVariants
   .filter((v) => v.format === "webp")
   .sort((a, b) => a.width - b.width)
 
-const avifVariants = (variants || [])
+const avifVariants = responsiveVariants
   .filter((v) => v.format === "avif")
   .sort((a, b) => a.width - b.width)
 

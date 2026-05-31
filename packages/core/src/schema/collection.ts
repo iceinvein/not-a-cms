@@ -1,4 +1,4 @@
-import type { CollectionDef, CollectionHooks, FieldDef } from "../types";
+import type { CollectionAccess, CollectionDef, CollectionHooks, FieldDef } from "../types";
 
 type DefineCollectionInput = {
   name: string;
@@ -7,6 +7,7 @@ type DefineCollectionInput = {
     plural: string;
   };
   fields: Record<string, FieldDef>;
+  access?: CollectionAccess;
   hooks?: CollectionHooks;
 };
 
@@ -34,7 +35,7 @@ function pluralize(singular: string): string {
 }
 
 export function defineCollection(input: DefineCollectionInput): CollectionDef {
-  const { name, labels, fields, hooks } = input;
+  const { name, labels, fields, access, hooks } = input;
 
   if (!/^[a-z][a-z0-9_]*$/.test(name)) {
     throw new Error("Collection name must be snake_case");
@@ -47,6 +48,7 @@ export function defineCollection(input: DefineCollectionInput): CollectionDef {
     name,
     labels: { singular, plural },
     fields,
+    ...(access !== undefined && { access }),
     ...(hooks !== undefined && { hooks }),
   };
 }

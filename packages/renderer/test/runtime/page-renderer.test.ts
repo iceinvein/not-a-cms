@@ -1,5 +1,5 @@
 import { test, expect, describe } from "bun:test"
-import { renderPageLayout } from "../../src/runtime/page-renderer"
+import { renderPageLayout, resolveComponentRenderers } from "../../src/runtime/page-renderer"
 
 const sampleLayout = {
   _type: "page" as const,
@@ -109,6 +109,36 @@ describe("renderPageLayout", () => {
     expect(html).toContain("color:#fff")
   })
 
+  test("drops unsafe style properties and values", () => {
+    const layoutWithUnsafeStyles = {
+      _type: "page" as const,
+      sections: [{
+        _type: "section" as const,
+        _id: "s1",
+        grid: { columns: 12, rowHeight: 60, gap: 16 },
+        children: [{
+          _type: "component" as const,
+          _id: "c1",
+          component: "hero",
+          props: { headline: "Styled", subheadline: "Sub" },
+          gridArea: { column: 1, columnSpan: 12, row: 1, rowSpan: 1 },
+          style: {
+            styles: {
+              "background-color": "red;position:fixed",
+              "background-image": "url(javascript:alert(1))",
+              "color": "#fff",
+            },
+          },
+        }],
+      }],
+    }
+    const html = renderPageLayout(layoutWithUnsafeStyles, componentRenderers)
+    expect(html).toContain("color:#fff")
+    expect(html).not.toContain("position:fixed")
+    expect(html).not.toContain("javascript:")
+    expect(html).not.toContain("background-image")
+  })
+
   test("renders responsive media queries for tablet overrides", () => {
     const layoutWithResponsive = {
       _type: "page" as const,
@@ -136,6 +166,30 @@ describe("renderPageLayout", () => {
     expect(html).toContain("display:none")
   })
 
+  test("drops unsafe responsive style overrides", () => {
+    const layoutWithResponsive = {
+      _type: "page" as const,
+      sections: [{
+        _type: "section" as const,
+        _id: "s1",
+        grid: { columns: 12, rowHeight: 60, gap: 16 },
+        children: [{
+          _type: "component" as const,
+          _id: "c1",
+          component: "hero",
+          props: { headline: "Hello", subheadline: "World" },
+          gridArea: { column: 1, columnSpan: 6, row: 1, rowSpan: 1 },
+          responsive: {
+            tablet: { style: { styles: { color: "red;background:url(javascript:alert(1))" } } },
+          },
+        }],
+      }],
+    }
+    const html = renderPageLayout(layoutWithResponsive, componentRenderers)
+    expect(html).not.toContain("javascript:")
+    expect(html).not.toContain("background:url")
+  })
+
   test("no style tag when no responsive overrides", () => {
     const html = renderPageLayout(sampleLayout, componentRenderers)
     expect(html).not.toContain("<style>")
@@ -145,5 +199,25 @@ describe("renderPageLayout", () => {
     const html = renderPageLayout(sampleLayout, componentRenderers)
     expect(html).toContain('data-id="c1"')
     expect(html).toContain('data-id="c2"')
+  })
+
+  test("merges theme component overrides with safe fallback to defaults", () => {
+    const renderers = resolveComponentRenderers(componentRenderers, {
+      hero: (props) => `<section class="theme-hero">${props.headline}</section>`,
+    })
+    const html = renderPageLayout(sampleLayout, renderers)
+
+    expect(html).toContain('class="theme-hero"')
+    expect(html).toContain('class="text-block"')
+  })
+
+  test("ignores invalid theme component overrides", () => {
+    const renderers = resolveComponentRenderers(componentRenderers, {
+      hero: "not a renderer" as any,
+    })
+    const html = renderPageLayout(sampleLayout, renderers)
+
+    expect(html).toContain('class="hero"')
+    expect(html).toContain('class="text-block"')
   })
 })

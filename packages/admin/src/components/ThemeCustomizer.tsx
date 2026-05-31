@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react"
+import { ErrorState, LoadingState } from "./AdminState"
+import { adminApiFetch, messageForAdminResponse } from "../lib/api"
 
 type Props = {
   apiBase?: string
@@ -24,9 +26,10 @@ export function ThemeCustomizer({ apiBase = "" }: Props) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState("")
 
   useEffect(() => {
-    fetch(`${apiBase}/api/_settings?prefix=theme.`)
+    adminApiFetch(apiBase, "/api/_settings?prefix=theme.")
       .then((r) => r.ok ? r.json() : { data: {} })
       .then((res) => setSettings({ ...DEFAULTS, ...res.data }))
       .catch(() => {})
@@ -35,15 +38,21 @@ export function ThemeCustomizer({ apiBase = "" }: Props) {
 
   const handleSave = async () => {
     setSaving(true)
+    setSaveError("")
     try {
-      await fetch(`${apiBase}/api/_settings`, {
+      const res = await adminApiFetch(apiBase, "/api/_settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(settings),
       })
+      if (!res.ok) throw new Error(messageForAdminResponse(res, "Could not save settings."))
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
-    } catch {} finally { setSaving(false) }
+    } catch (err: any) {
+      setSaveError(err.message || "Could not save settings. Make sure the API is running.")
+    } finally {
+      setSaving(false)
+    }
   }
 
   const update = (key: string, value: string) => {
@@ -51,29 +60,33 @@ export function ThemeCustomizer({ apiBase = "" }: Props) {
     setSaved(false)
   }
 
-  if (loading) return <p className="text-[#52525b] text-sm">Loading theme settings...</p>
+  if (loading) return <LoadingState title="Loading theme settings" description="Fetching saved theme controls." />
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold text-[#fafafa]">Theme Settings</h2>
-        <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-[#fafafa] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#e4e4e7] disabled:opacity-50">
+        <h2 className="text-base font-semibold text-[#fafafa]">Theme Settings</h2>
+        <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4a57c] disabled:opacity-50 transition-colors">
           {saving ? "Saving..." : saved ? "Saved!" : "Save Changes"}
         </button>
       </div>
+
+      {saveError && (
+        <ErrorState compact title="Theme settings were not saved" description={saveError} />
+      )}
 
       <div className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] p-6 space-y-6">
         <div>
           <label className="block text-sm font-medium text-[#a1a1aa] mb-1">Primary Color</label>
           <div className="flex gap-3 items-center">
             <input type="color" value={settings["theme.primaryColor"]} onChange={(e) => update("theme.primaryColor", e.target.value)} className="w-10 h-10 rounded border border-[rgba(255,255,255,0.1)] cursor-pointer bg-transparent" />
-            <input type="text" value={settings["theme.primaryColor"]} onChange={(e) => update("theme.primaryColor", e.target.value)} className="flex-1 px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-0" />
+            <input type="text" value={settings["theme.primaryColor"]} onChange={(e) => update("theme.primaryColor", e.target.value)} className="flex-1 px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c9956b] focus:outline-none focus:ring-0" />
           </div>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-[#a1a1aa] mb-1">Font Family</label>
-          <select value={settings["theme.fontFamily"]} onChange={(e) => update("theme.fontFamily", e.target.value)} className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-[#18181b] text-[#fafafa] focus:border-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-0">
+          <select value={settings["theme.fontFamily"]} onChange={(e) => update("theme.fontFamily", e.target.value)} className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-[#18181b] text-[#fafafa] focus:border-[#c9956b] focus:outline-none focus:ring-0">
             <option value="system-ui, -apple-system, sans-serif">System (Default)</option>
             <option value="Georgia, serif">Georgia (Serif)</option>
             <option value="'Inter', sans-serif">Inter</option>
@@ -84,7 +97,7 @@ export function ThemeCustomizer({ apiBase = "" }: Props) {
 
         <div>
           <label className="block text-sm font-medium text-[#a1a1aa] mb-1">Header Style</label>
-          <select value={settings["theme.headerStyle"]} onChange={(e) => update("theme.headerStyle", e.target.value)} className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-[#18181b] text-[#fafafa] focus:border-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-0">
+          <select value={settings["theme.headerStyle"]} onChange={(e) => update("theme.headerStyle", e.target.value)} className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-[#18181b] text-[#fafafa] focus:border-[#c9956b] focus:outline-none focus:ring-0">
             <option value="simple">Simple</option>
             <option value="centered">Centered</option>
             <option value="minimal">Minimal</option>
@@ -93,7 +106,7 @@ export function ThemeCustomizer({ apiBase = "" }: Props) {
 
         <div>
           <label className="block text-sm font-medium text-[#a1a1aa] mb-1">Max Content Width</label>
-          <select value={settings["theme.maxWidth"]} onChange={(e) => update("theme.maxWidth", e.target.value)} className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-[#18181b] text-[#fafafa] focus:border-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-0">
+          <select value={settings["theme.maxWidth"]} onChange={(e) => update("theme.maxWidth", e.target.value)} className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-[#18181b] text-[#fafafa] focus:border-[#c9956b] focus:outline-none focus:ring-0">
             <option value="2xl">Narrow (2xl)</option>
             <option value="4xl">Medium (4xl)</option>
             <option value="6xl">Wide (6xl)</option>

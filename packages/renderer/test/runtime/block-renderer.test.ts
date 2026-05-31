@@ -75,8 +75,17 @@ describe("renderTextChildren", () => {
     const result = renderTextChildren([{
       type: "text",
       value: "link",
-      marks: [{ type: "link", href: 'javascript:"alert(1)' }],
+      marks: [{ type: "link", href: 'https://example.com/"quoted' }],
     }])
     expect(result).toContain("&quot;")
+  })
+
+  test("replaces unsafe link protocols", () => {
+    const result = renderTextChildren([{
+      type: "text",
+      value: "link",
+      marks: [{ type: "link", href: "javascript:alert(1)" }],
+    }])
+    expect(result).toBe('<a href="#">link</a>')
   })
 })

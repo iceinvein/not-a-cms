@@ -4,5 +4,6 @@
     "outDir": "./dist",
     "rootDir": "./src"
   },
-  "include": ["src/**/*.ts", "test/**/*.ts"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["dist", ".turbo", "test", "**/*.test.ts", "tmp*.db"]
 }

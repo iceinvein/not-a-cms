@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react"
 import type { FlowStep, FlowRun } from "./flow-types"
 import { RunDetail } from "./RunDetail"
+import { EmptyState, LoadingState } from "../AdminState"
+import { adminApiFetch } from "../../lib/api"
 
 type Props = {
   flowId: string
@@ -37,7 +39,7 @@ export function RunList({ flowId, apiBase = "", steps }: Props) {
 
   useEffect(() => {
     setLoading(true)
-    fetch(`${apiBase}/api/_flows/${flowId}/runs?limit=${PAGE_SIZE}&offset=${offset}`)
+    adminApiFetch(apiBase, `/api/_flows/${flowId}/runs?limit=${PAGE_SIZE}&offset=${offset}`)
       .then((r) => (r.ok ? r.json() : { data: [] }))
       .then((json: { data: FlowRun[] }) => {
         const runs = json.data ?? []
@@ -62,6 +64,7 @@ export function RunList({ flowId, apiBase = "", steps }: Props) {
           runId={selectedRunId}
           apiBase={apiBase}
           steps={steps}
+          onRetry={setSelectedRunId}
         />
       </div>
     )
@@ -70,12 +73,9 @@ export function RunList({ flowId, apiBase = "", steps }: Props) {
   return (
     <div className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] overflow-hidden">
       {loading ? (
-        <p className="text-[#52525b] text-sm text-center py-12">Loading runs…</p>
+        <div className="p-5"><LoadingState compact title="Loading runs" description="Fetching recent executions." /></div>
       ) : runs.length === 0 ? (
-        <div className="text-center py-16">
-          <p className="text-[#52525b] text-sm">No runs yet.</p>
-          <p className="text-[#3f3f46] text-xs mt-1">Runs will appear here when the flow is triggered.</p>
-        </div>
+        <div className="p-5"><EmptyState compact title="No runs yet" description="Runs will appear here when this flow is triggered." /></div>
       ) : (
         <>
           <table className="w-full text-sm">

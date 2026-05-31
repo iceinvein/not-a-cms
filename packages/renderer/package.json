@@ -5,12 +5,24 @@
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
+  "files": [
+    "src",
+    "astro.config.ts",
+    "tailwind.config.mjs"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./astro.config": "./astro.config.ts",
+    "./astro.config.ts": "./astro.config.ts",
+    "./package.json": "./package.json"
+  },
   "scripts": {
     "dev": "astro dev --port 3000",
-    "build": "astro build",
+    "build": "bun --bun astro build",
     "preview": "astro preview",
     "test": "bun test",
-    "test:watch": "bun test --watch"
+    "test:watch": "bun test --watch",
+    "typecheck": "astro check"
   },
   "dependencies": {
     "@astrojs/tailwind": "^6.0.0",
@@ -20,6 +32,7 @@
     "tailwindcss": "^3.4.0"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/mjml": "^5.0.0"
   }
 }

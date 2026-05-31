@@ -7,7 +7,7 @@ bunx not-a-cms init my-site
 cd my-site && bun install && bun run dev
 ```
 
-**Admin:** `http://localhost:4321/admin` | **Site:** `http://localhost:4321` | **API:** `http://localhost:4321/api`
+**Admin:** `http://localhost:4322` | **Site:** `http://localhost:3000` | **API:** `http://localhost:4321/api`
 
 ---
 
@@ -20,7 +20,7 @@ WordPress powers 43% of the web — but it was designed in 2003. We built not-a-
 | **Content storage** | HTML strings in `wp_posts` | Typed JSON (Portable Text) |
 | **Schema** | One mega-table for everything | Per-collection SQL tables |
 | **Editor** | Gutenberg (controversial) | Tiptap + slash commands + Y.js collab |
-| **Auth** | Passwords (brute-force target #1) | Passwordless (passkey + magic link) |
+| **Auth** | Passwords (brute-force target #1) | Passwordless magic links, optional OAuth |
 | **API** | REST (+ WPGraphQL plugin) | tRPC + REST + GraphQL |
 | **Runtime** | PHP | Bun (TypeScript-native) |
 | **Real-time** | No | Y.js CRDTs (offline-capable) |
@@ -28,7 +28,7 @@ WordPress powers 43% of the web — but it was designed in 2003. We built not-a-
 
 ## Core Principles
 
-- **Passwordless only** — no passwords anywhere. Passkeys, magic links, OAuth.
+- **Passwordless only** — no passwords anywhere. Magic links ship today; OAuth is config-driven; passkeys are planned.
 - **JSON over HTML** — content stored as Portable Text, rendered per channel (web, email, RSS).
 - **TypeScript end-to-end** — schema defines types that flow from database to frontend.
 - **Self-hosted, zero vendor lock-in** — your data, your database, deploy anywhere.
@@ -80,7 +80,7 @@ export const blogPost = defineCollection({
     coverImage: field.media({ accept: ["image/*"] }),
     author: field.relation("user"),
     tags: field.array(field.text()),
-    status: field.select(["draft", "published", "archived"], {
+    status: field.select(["draft", "in_review", "published", "archived"], {
       default: "draft",
     }),
     publishedAt: field.datetime(),
@@ -133,10 +133,23 @@ export default defineConfig({
     provider: "local",         // or "s3", "r2"
     path: "./uploads",
   },
+  // S3-compatible object storage keeps the media index local and stores
+  // uploaded binaries in the configured bucket.
+  // storage: {
+  //   provider: "r2",
+  //   path: ".media-index",
+  //   bucket: process.env.S3_BUCKET,
+  //   endpoint: process.env.S3_ENDPOINT,
+  //   region: "auto",
+  //   accessKeyId: process.env.S3_ACCESS_KEY_ID,
+  //   secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+  //   prefix: "uploads",
+  // },
   auth: {
-    methods: ["passkey", "magic-link", "oauth"],
+    methods: ["magic-link", "oauth"],
     oauth: {
       github: { clientId: "...", clientSecret: "..." },
+      google: { clientId: "...", clientSecret: "..." },
     },
     magicLink: {
       from: "login@mysite.com",
@@ -150,6 +163,19 @@ export default defineConfig({
   },
 })
 ```
+
+Storage can also be configured for the bundled dev server through environment variables:
+
+| Variable | Purpose |
+|---|---|
+| `STORAGE_PROVIDER` | `local`, `s3`, or `r2` |
+| `MEDIA_STORAGE_PATH` | Local upload directory for `local` storage |
+| `MEDIA_INDEX_PATH` | Local media index directory for S3/R2 metadata |
+| `S3_BUCKET` | Object storage bucket name |
+| `S3_ENDPOINT` | S3-compatible endpoint, required for R2/minio-style providers |
+| `S3_REGION` | Signing region, use `auto` for R2 |
+| `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` | Object storage credentials |
+| `S3_PREFIX` | Optional object key prefix |
 
 ---
 
@@ -179,6 +205,14 @@ curl -X PATCH http://localhost:4321/api/blog_post/:id \
 # Delete
 curl -X DELETE http://localhost:4321/api/blog_post/:id
 ```
+
+Generated OpenAPI documentation is available from the running API server:
+
+```bash
+curl http://localhost:4321/api/_docs/openapi.json
+```
+
+The document is generated from the configured collections and includes REST paths, field schemas, cookie auth requirements, and standard error responses.
 
 ### tRPC (internal, fully typed)
 
@@ -366,14 +400,14 @@ Settings surface in the admin as a visual customizer panel.
 
 ## Authentication
 
-Passwordless only. No password field exists anywhere in the system.
+Passwordless only. No password field exists anywhere in the system. Magic links are always enabled, and GitHub/Google OAuth buttons appear on the admin login screen when their provider credentials are configured. Passkey/WebAuthn support is planned, but it is not exposed in the UI until the server plugin, database tables, and client registration flow are wired end to end.
 
 | Method | Description |
 |---|---|
-| **Passkey / WebAuthn** | Biometric or hardware key (primary, phishing-resistant) |
 | **Magic Link** | One-time email link (universal fallback) |
-| **OAuth** | GitHub, Google, configurable |
-| **API Keys** | Scoped, expiring tokens for headless/machine access |
+| **OAuth** | GitHub and Google when configured |
+| **Passkey / WebAuthn** | Planned |
+| **API Keys** | Planned scoped, expiring tokens for headless/machine access |
 
 ### Roles
 
@@ -393,7 +427,7 @@ Roles support collection-level and field-level overrides for fine-grained access
 
 ```bash
 not-a-cms init [name]              # Scaffold a new project
-not-a-cms dev [--port=4321]        # Start dev server
+not-a-cms dev [--port=4321]        # Start API, admin, and renderer
 not-a-cms build [--static]         # Production build
 not-a-cms generate types           # Show schema type info
 not-a-cms generate migration       # Generate SQL migration
@@ -494,19 +528,32 @@ export default defineAdminPanel({
 
 ## Deployment
 
+The production runtime is a Bun server with three deployable surfaces: the API server, the admin Astro app, and the public renderer Astro app. Start with:
+
+- [Deployment guide](docs/deployment.md) for Bun, Docker, reverse proxy, CORS, storage, and backups.
+- [Configuration reference](docs/configuration.md) for required environment variables and config file fields.
+- [Security checklist](docs/security.md) for secrets, auth, TLS, media, roles, and operations.
+
+Minimum production environment:
+
 ```bash
-# Docker
-not-a-cms build && docker build -t my-site .
-
-# Fly.io
-fly launch
-
-# Any VPS
-not-a-cms build
-scp -r dist/ user@server:/app/
+PORT=4321
+BASE_URL=https://cms.example.com
+CORS_ORIGINS=https://admin.example.com,https://www.example.com
+DATABASE_URL=/var/lib/not-a-cms/data.db
+BETTER_AUTH_SECRET=<64+ random characters>
+MEDIA_STORAGE_PATH=/var/lib/not-a-cms/uploads
 ```
 
-The server runs on Bun — any host that supports Bun or Docker works.
+Then build and run:
+
+```bash
+bun install --frozen-lockfile
+bun run build
+bun ./dist/not-a-cms.config.js
+```
+
+The server runs on Bun, so any host that supports Bun or Docker works. Put it behind HTTPS before accepting real logins.
 
 ---
 
@@ -518,7 +565,7 @@ git clone https://github.com/your-org/not-a-cms.git
 cd not-a-cms
 bun install
 
-# Run tests (134 tests across 6 packages)
+# Run tests
 bun run test
 
 # Start dev

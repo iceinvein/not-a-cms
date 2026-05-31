@@ -1,8 +1,11 @@
 ---
 import AdminLayout from "../../layouts/AdminLayout.astro"
 import { FlowList } from "../../components/automations/FlowList"
+import { getAdminApiBase } from "../../lib/api"
+
+const apiBase = getAdminApiBase()
 ---
 <AdminLayout title="Automations">
-  <p class="text-sm text-[#71717a] mb-6">Create event-driven workflows to automate content operations.</p>
-  <FlowList client:load />
+  <p class="text-sm text-[#52525b] mb-8">Create event-driven workflows to automate content operations.</p>
+  <FlowList client:load apiBase={apiBase} />
 </AdminLayout>

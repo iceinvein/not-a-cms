@@ -1,9 +1,12 @@
 ---
 import AuthLayout from "../layouts/AuthLayout.astro"
 import { LoginForm } from "../components/LoginForm"
+import { getAdminApiBase } from "../lib/api"
+
+const apiBase = getAdminApiBase()
 ---
 <AuthLayout title="Sign In">
   <h2 class="text-lg font-semibold text-[#fafafa] mb-2">Sign in to your account</h2>
   <p class="text-sm text-[#71717a] mb-6">Enter your email to receive a magic link</p>
-  <LoginForm client:load />
+  <LoginForm client:load apiBase={apiBase} />
 </AuthLayout>

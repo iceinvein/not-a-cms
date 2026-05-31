@@ -2,15 +2,15 @@ import { Node, mergeAttributes } from "@tiptap/core"
 import { ReactNodeViewRenderer } from "@tiptap/react"
 import type { ComponentType } from "react"
 
-type BlockFieldDef = {
+export type BlockFieldDef = {
   type: "text" | "number" | "boolean" | "select"
   default?: unknown
   options?: string[]
 }
 
-type BlockSchema = Record<string, BlockFieldDef>
+export type BlockSchema = Record<string, BlockFieldDef>
 
-type BlockDefinition = {
+export type BlockDefinition = {
   name: string
   label: string
   icon?: string
@@ -20,7 +20,7 @@ type BlockDefinition = {
   toPortableText?: (attrs: Record<string, unknown>) => Record<string, unknown>
 }
 
-type DefinedBlock = BlockDefinition & {
+export type DefinedBlock = BlockDefinition & {
   extension: ReturnType<typeof Node.create>
 }
 

@@ -13,6 +13,12 @@ type VersionRecord = {
 
 type VersionRow = Omit<VersionRecord, "data"> & { data: string }
 
+export type VersionChange = {
+  field: string
+  before: unknown
+  after: unknown
+}
+
 export function createVersioningService(db: AppDatabase) {
   function createVersion(
     collection: string,
@@ -56,6 +62,25 @@ export function createVersioningService(db: AppDatabase) {
   }
 
   return { createVersion, listVersions, getVersion }
+}
+
+export function compareVersionData(
+  current: Record<string, unknown>,
+  version: Record<string, unknown>,
+): VersionChange[] {
+  const ignored = new Set(["id", "created_at", "updated_at"])
+  const fields = new Set([...Object.keys(current), ...Object.keys(version)])
+  const changes: VersionChange[] = []
+
+  for (const field of fields) {
+    if (ignored.has(field)) continue
+    const before = current[field]
+    const after = version[field]
+    if (JSON.stringify(before) === JSON.stringify(after)) continue
+    changes.push({ field, before, after })
+  }
+
+  return changes
 }
 
 function parseVersionRow(row: VersionRow): VersionRecord {

@@ -43,7 +43,7 @@ function stepLabel(step: FlowStep): string {
     case "action.delete_content": return "Delete Content"
     case "action.log": return "Log"
     case "action.transform": return "Transform"
-    default: return step.type
+    default: return "Step"
   }
 }
 

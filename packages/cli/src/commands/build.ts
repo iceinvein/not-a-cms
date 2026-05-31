@@ -1,22 +1,18 @@
 import { registerCommand } from "../router"
-import { existsSync } from "node:fs"
-import { join } from "node:path"
+import { loadConfig, resolveConfigPath } from "@not-a-cms/core"
 
 registerCommand({
   name: "build",
   description: "Build for production",
   async run(args) {
-    const configPath = join(process.cwd(), "not-a-cms.config.ts")
-    if (!existsSync(configPath)) {
-      console.error("No not-a-cms.config.ts found")
-      process.exit(1)
-    }
-
     console.log("Building not-a-cms for production...\n")
 
     const isStatic = args.includes("--static")
 
     try {
+      await loadConfig({ cwd: process.cwd() })
+      const configPath = resolveConfigPath({ cwd: process.cwd() })
+
       // Build the server bundle
       console.log("  Building server...")
       const serverResult = await Bun.build({

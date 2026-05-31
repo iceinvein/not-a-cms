@@ -1,5 +1,6 @@
 import type { PTBlock, PTTextNode } from "./block-renderer"
-import { renderTextChildren } from "./block-renderer"
+import { renderTextChildren, sanitizeUrl } from "./block-renderer"
+import type { ChannelConfig } from "@not-a-cms/core"
 
 // --- RSS Channel ---
 
@@ -16,6 +17,74 @@ type RSSFeedConfig = {
   description: string
   siteUrl: string
   language?: string
+}
+
+type ChannelRuntimeInput = {
+  site?: {
+    name?: string
+    url?: string
+  }
+  channels?: ChannelConfig
+}
+
+type ResolvedChannelConfig = {
+  siteUrl: string
+  rss: Required<NonNullable<ChannelConfig["rss"]>>
+}
+
+const DEFAULT_RSS = {
+  title: "not-a-cms",
+  description: "A site powered by not-a-cms",
+  language: "en",
+  collection: "blog_post",
+  itemPath: "/blog/:slug",
+}
+
+const SETTING_KEYS = {
+  rssTitle: "channel.rss.title",
+  rssDescription: "channel.rss.description",
+  rssLanguage: "channel.rss.language",
+  rssCollection: "channel.rss.collection",
+  rssItemPath: "channel.rss.itemPath",
+} as const
+
+export function resolveChannelConfig(
+  input: ChannelRuntimeInput = {},
+  settings: Record<string, string> = {},
+): ResolvedChannelConfig {
+  const configured = input.channels?.rss ?? {}
+  const siteUrl = normalizeSiteUrl(input.site?.url ?? "http://localhost:3000")
+  return {
+    siteUrl,
+    rss: {
+      title: settingOrConfig(settings, SETTING_KEYS.rssTitle, configured.title, input.site?.name ?? DEFAULT_RSS.title),
+      description: settingOrConfig(settings, SETTING_KEYS.rssDescription, configured.description, DEFAULT_RSS.description),
+      language: settingOrConfig(settings, SETTING_KEYS.rssLanguage, configured.language, DEFAULT_RSS.language),
+      collection: settingOrConfig(settings, SETTING_KEYS.rssCollection, configured.collection, DEFAULT_RSS.collection),
+      itemPath: settingOrConfig(settings, SETTING_KEYS.rssItemPath, configured.itemPath, DEFAULT_RSS.itemPath),
+    },
+  }
+}
+
+export function parseChannelConfig(value: string | undefined): ChannelRuntimeInput {
+  if (!value) return {}
+  try {
+    const parsed = JSON.parse(value)
+    return isRecord(parsed) ? parsed as ChannelRuntimeInput : {}
+  } catch {
+    return {}
+  }
+}
+
+export function buildChannelItemLink(siteUrl: string, itemPath: string, item: { id?: string; slug?: string }): string {
+  const base = normalizeSiteUrl(siteUrl)
+  const path = itemPath.startsWith("/") ? itemPath : `/${itemPath}`
+  const slug = encodeURIComponent(String(item.slug || item.id || ""))
+  const id = encodeURIComponent(String(item.id || item.slug || ""))
+  const rendered = path
+    .replace(/:slug\b/g, slug)
+    .replace(/:id\b/g, id)
+  return `${base}${rendered}`
 }
 
 export function renderRSSFeed(config: RSSFeedConfig, items: RSSItem[]): string {
@@ -68,7 +137,7 @@ export function portableTextToHtml(blocks: PTBlock[]): string {
         case "divider":
           return "<hr />"
         case "image":
-          return `<img src="${escapeXml(String(block.src || block.url || ""))}" alt="${escapeXml(String(block.alt || ""))}" />`
+          return `<img src="${escapeXml(sanitizeUrl(block.src || block.url || "", { allowDataImage: true }))}" alt="${escapeXml(String(block.alt || ""))}" />`
         default:
           return ""
       }
@@ -92,4 +161,23 @@ function escapeXml(str: string): string {
     .replace(/'/g, "&apos;")
 }
 
-export type { RSSItem, RSSFeedConfig }
+function settingOrConfig(
+  settings: Record<string, string>,
+  key: string,
+  configured: string | undefined,
+  fallback: string,
+): string {
+  const value = settings[key] ?? configured ?? fallback
+  return String(value).trim() || fallback
+}
+
+function normalizeSiteUrl(url: string): string {
+  const trimmed = url.trim() || "http://localhost:3000"
+  return trimmed.replace(/\/+$/, "")
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+}
+
+export type { RSSItem, RSSFeedConfig, ChannelRuntimeInput, ResolvedChannelConfig }

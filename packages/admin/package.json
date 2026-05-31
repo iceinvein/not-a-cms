@@ -3,10 +3,23 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
+  "files": [
+    "src",
+    "public",
+    "astro.config.ts",
+    "tailwind.config.mjs"
+  ],
+  "exports": {
+    "./astro.config": "./astro.config.ts",
+    "./astro.config.ts": "./astro.config.ts",
+    "./package.json": "./package.json"
+  },
   "scripts": {
     "dev": "astro dev --port 4321",
-    "build": "astro build",
-    "preview": "astro preview"
+    "build": "bun --bun astro build",
+    "test": "bun test",
+    "preview": "astro preview",
+    "typecheck": "astro check"
   },
   "dependencies": {
     "@astrojs/react": "^5.0.2",

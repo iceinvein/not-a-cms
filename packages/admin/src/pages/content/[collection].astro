@@ -1,23 +1,30 @@
 ---
 import AdminLayout from "../../layouts/AdminLayout.astro"
 import { ContentList } from "../../components/ContentList"
+import { getAdminApiBase } from "../../lib/api"
 import { fetchCollection } from "../../lib/schema"
 
 const { collection } = Astro.params
-const schema = await fetchCollection(collection!)
-const label = schema?.labels.plural || collection || "Content"
+const schema = await fetchCollection(collection!, { cookie: Astro.request.headers.get("cookie") || "" })
+const apiBase = getAdminApiBase()
+
+// Humanize snake_case/kebab-case fallback: "blog_posts" → "Blog Posts"
+function humanize(str: string): string {
+  return str.replace(/[-_]/g, " ").replace(/\b\w/g, c => c.toUpperCase())
+}
+const label = schema?.labels.plural || humanize(collection || "Content")
 ---
 <AdminLayout title={label}>
-  <div class="space-y-4">
+  <div class="space-y-6">
     <div class="flex items-center justify-between">
-      <p class="text-sm text-[#71717a]">Manage your {label.toLowerCase()}</p>
+      <p class="text-sm text-[#52525b]">Manage your {label.toLowerCase()}</p>
       <a
         href={`/content/${collection}/new`}
-        class="inline-flex items-center gap-2 px-4 py-2 bg-[#fafafa] text-[#0a0a0c] rounded-md text-sm font-medium hover:bg-[#e4e4e7] transition-colors"
+        class="inline-flex items-center gap-2 px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-md text-sm font-medium hover:bg-[#d4a57c] transition-colors"
       >
         + New
       </a>
     </div>
-    <ContentList client:load collection={collection!} collectionLabel={label} />
+    <ContentList client:load collection={collection!} collectionLabel={label} apiBase={apiBase} />
   </div>
 </AdminLayout>

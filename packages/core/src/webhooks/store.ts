@@ -2,6 +2,8 @@ import { sql } from "drizzle-orm"
 import type { AppDatabase } from "../db/connection"
 import type { WebhookConfig, WebhookDelivery, WebhookEvent } from "./types"
 
+const RESPONSE_BODY_LIMIT = 2048
+
 type CreateWebhookInput = {
   url: string
   events: WebhookEvent[]
@@ -43,10 +45,12 @@ export function createWebhookStore(db: AppDatabase) {
     return true
   }
 
-  function logDelivery(input: Omit<WebhookDelivery, "id" | "created_at">): void {
+  function logDelivery(input: Omit<WebhookDelivery, "id" | "created_at">): WebhookDelivery {
     const id = crypto.randomUUID()
     const now = new Date().toISOString()
-    db.run(sql`INSERT INTO _webhook_logs (id, webhook_id, event, status, request_body, response_body, attempts, created_at) VALUES (${id}, ${input.webhook_id}, ${input.event}, ${input.status}, ${input.request_body}, ${input.response_body ?? null}, ${input.attempts}, ${now})`)
+    const responseBody = truncateBody(input.response_body)
+    db.run(sql`INSERT INTO _webhook_logs (id, webhook_id, event, status, request_body, response_body, attempts, created_at) VALUES (${id}, ${input.webhook_id}, ${input.event}, ${input.status}, ${input.request_body}, ${responseBody ?? null}, ${input.attempts}, ${now})`)
+    return getDeliveryLog(id)!
   }
 
   function getDeliveryLogs(webhookId: string, limit = 50): WebhookDelivery[] {
@@ -54,11 +58,21 @@ export function createWebhookStore(db: AppDatabase) {
     return rows as WebhookDelivery[]
   }
 
-  return { create, list, getById, update, remove, logDelivery, getDeliveryLogs }
+  function getDeliveryLog(id: string): WebhookDelivery | null {
+    const rows = db.all(sql`SELECT * FROM _webhook_logs WHERE id = ${id}`)
+    return (rows as WebhookDelivery[])[0] ?? null
+  }
+
+  return { create, list, getById, update, remove, logDelivery, getDeliveryLogs, getDeliveryLog }
 }
 
 function parseRow(row: any): WebhookConfig {
   return { ...row, events: typeof row.events === "string" ? JSON.parse(row.events) : row.events, active: Boolean(row.active) }
+}
+
+function truncateBody(value: string | undefined): string | undefined {
+  if (value === undefined) return undefined
+  return value.length > RESPONSE_BODY_LIMIT ? value.slice(0, RESPONSE_BODY_LIMIT) : value
 }
 
 export type WebhookStore = ReturnType<typeof createWebhookStore>

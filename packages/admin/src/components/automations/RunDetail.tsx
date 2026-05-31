@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react"
 import type { FlowStep, FlowRun, FlowRunStep } from "./flow-types"
 import { FlowCanvas } from "./FlowCanvas"
+import { ErrorState, LoadingState } from "../AdminState"
+import { adminApiFetch } from "../../lib/api"
 
 type Props = {
   flowId: string
   runId: string
   apiBase?: string
   steps: FlowStep[]
+  onRetry?: (runId: string) => void
 }
 
 function statusBadge(status: string) {
@@ -99,14 +102,16 @@ function StepDetailPanel({ runStep, steps }: { runStep: FlowRunStep; steps: Flow
   )
 }
 
-export function RunDetail({ flowId, runId, apiBase = "", steps }: Props) {
+export function RunDetail({ flowId, runId, apiBase = "", steps, onRetry }: Props) {
   const [run, setRun] = useState<FlowRun | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedStepId, setSelectedStepId] = useState<string | null>(null)
+  const [retrying, setRetrying] = useState(false)
+  const [retryError, setRetryError] = useState("")
 
   useEffect(() => {
     setLoading(true)
-    fetch(`${apiBase}/api/_flows/${flowId}/runs/${runId}`)
+    adminApiFetch(apiBase, `/api/_flows/${flowId}/runs/${runId}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data: FlowRun | null) => setRun(data))
       .catch(() => setRun(null))
@@ -114,11 +119,11 @@ export function RunDetail({ flowId, runId, apiBase = "", steps }: Props) {
   }, [flowId, runId, apiBase])
 
   if (loading) {
-    return <p className="text-[#52525b] text-sm text-center py-12">Loading run details…</p>
+    return <LoadingState title="Loading run details" description="Fetching step inputs, outputs, and timing." />
   }
 
   if (!run) {
-    return <p className="text-[#ef4444] text-sm text-center py-12">Run not found.</p>
+    return <ErrorState title="Run not found" description="The run may have been removed or is no longer available." />
   }
 
   const runStepsForCanvas = (run.steps ?? []).map((rs) => ({
@@ -128,6 +133,21 @@ export function RunDetail({ flowId, runId, apiBase = "", steps }: Props) {
   }))
 
   const selectedRunStep = run.steps?.find((rs) => rs.step_id === selectedStepId) ?? null
+
+  const handleRetry = async () => {
+    setRetrying(true)
+    setRetryError("")
+    try {
+      const res = await adminApiFetch(apiBase, `/api/_flows/${flowId}/runs/${runId}/retry`, { method: "POST" })
+      if (!res.ok) throw new Error("Could not retry run.")
+      const body = await res.json()
+      if (typeof body.runId === "string") onRetry?.(body.runId)
+    } catch (err: any) {
+      setRetryError(err.message || "Could not retry run.")
+    } finally {
+      setRetrying(false)
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -151,6 +171,16 @@ export function RunDetail({ flowId, runId, apiBase = "", steps }: Props) {
           <p className="text-xs text-[#71717a] mb-0.5">Status</p>
           <span className={statusBadge(run.status)}>{run.status}</span>
         </div>
+        {run.status === "failed" && (
+          <button
+            type="button"
+            onClick={handleRetry}
+            disabled={retrying}
+            className="ml-auto px-3 py-1.5 bg-[#c9956b] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4a57c] disabled:opacity-50 transition-colors"
+          >
+            {retrying ? "Retrying..." : "Retry Run"}
+          </button>
+        )}
       </div>
 
       {/* Error banner */}
@@ -159,6 +189,10 @@ export function RunDetail({ flowId, runId, apiBase = "", steps }: Props) {
           <span className="font-semibold">Error: </span>
           {run.error}
         </div>
+      )}
+
+      {retryError && (
+        <ErrorState compact title="Retry failed" description={retryError} />
       )}
 
       {/* Main: canvas + detail panel */}

@@ -20,12 +20,12 @@ export function SectionManager({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-1">
+        <h3 className="text-xs font-semibold text-[#71717a] uppercase tracking-wider px-1">
           Sections
         </h3>
         <button
           onClick={onAddSection}
-          className="text-xs text-blue-600 hover:text-blue-800 transition-colors px-2 py-0.5 rounded hover:bg-blue-50"
+          className="text-xs text-[#a1a1aa] hover:text-[#fafafa] transition-colors px-2 py-0.5 rounded hover:bg-[rgba(255,255,255,0.05)]"
         >
           + Add
         </button>
@@ -40,8 +40,8 @@ export function SectionManager({
               onClick={() => onSelectSection(section._id)}
               className={`flex items-center justify-between px-2.5 py-2 rounded-lg cursor-pointer transition-colors ${
                 isActive
-                  ? "bg-blue-50 border border-blue-200"
-                  : "border border-transparent hover:bg-gray-50"
+                  ? "bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.1)]"
+                  : "border border-transparent hover:bg-[rgba(255,255,255,0.03)]"
               }`}
             >
               <input
@@ -50,10 +50,10 @@ export function SectionManager({
                 placeholder="Untitled section"
                 onClick={(e) => e.stopPropagation()}
                 onChange={(e) => onRenameSection(section._id, e.target.value)}
-                className="bg-transparent text-sm text-gray-700 font-medium outline-none flex-1 min-w-0"
+                className="bg-transparent text-sm text-[#a1a1aa] font-medium outline-none flex-1 min-w-0 placeholder:text-[#52525b]"
               />
               <div className="flex items-center gap-1 ml-2 shrink-0">
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-[#52525b]">
                   {section.children.length}
                 </span>
                 {sections.length > 1 && (
@@ -62,7 +62,7 @@ export function SectionManager({
                       e.stopPropagation()
                       onRemoveSection(section._id)
                     }}
-                    className="text-gray-300 hover:text-red-500 transition-colors p-0.5 text-xs"
+                    className="text-[#52525b] hover:text-red-400 transition-colors p-0.5 text-xs"
                     title="Remove section"
                   >
                     ×

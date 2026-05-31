@@ -1,8 +1,11 @@
 ---
 import AdminLayout from "../layouts/AdminLayout.astro"
 import { WebhookManager } from "../components/WebhookManager"
+import { getAdminApiBase } from "../lib/api"
+
+const apiBase = getAdminApiBase()
 ---
 <AdminLayout title="Webhooks">
-  <p class="text-sm text-gray-500 mb-6">Configure outbound webhooks for content lifecycle events.</p>
-  <WebhookManager client:load />
+  <p class="text-sm text-[#52525b] mb-8">Configure outbound webhooks for content lifecycle events.</p>
+  <WebhookManager client:load apiBase={apiBase} />
 </AdminLayout>

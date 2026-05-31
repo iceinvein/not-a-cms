@@ -1,3 +1,5 @@
+import type { ComponentRendererMap } from "../runtime/page-renderer"
+
 type ThemeSettingField = {
   type: "color" | "text" | "select" | "boolean" | "media" | "array"
   default?: unknown
@@ -14,6 +16,9 @@ type ThemeDefinition = {
   description?: string
   author?: string
   settings?: ThemeSettings
+  components?: ComponentRendererMap
+  layouts?: Record<string, string>
+  styles?: string[]
 }
 
 type DefinedTheme = ThemeDefinition & {

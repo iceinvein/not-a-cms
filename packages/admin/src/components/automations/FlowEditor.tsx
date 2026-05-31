@@ -3,6 +3,8 @@ import type { Flow, FlowStep, FlowTrigger } from "./flow-types"
 import { FlowCanvas } from "./FlowCanvas"
 import { StepConfigurator } from "./StepConfigurator"
 import { RunList } from "./RunList"
+import { ErrorState, LoadingState } from "../AdminState"
+import { adminApiFetch } from "../../lib/api"
 
 type Props = {
   flowId: string
@@ -30,7 +32,7 @@ export function FlowEditor({ flowId, apiBase = "" }: Props) {
 
   const fetchFlow = async () => {
     try {
-      const res = await fetch(`${apiBase}/api/_flows/${flowId}`)
+      const res = await adminApiFetch(apiBase, `/api/_flows/${flowId}`)
       if (res.ok) {
         const data: Flow = await res.json()
         setFlow(data)
@@ -48,7 +50,7 @@ export function FlowEditor({ flowId, apiBase = "" }: Props) {
     if (!flow) return
     setSaving(true)
     try {
-      const res = await fetch(`${apiBase}/api/_flows/${flowId}`, {
+      const res = await adminApiFetch(apiBase, `/api/_flows/${flowId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -69,7 +71,7 @@ export function FlowEditor({ flowId, apiBase = "" }: Props) {
 
   const handleToggle = async () => {
     if (!flow) return
-    const res = await fetch(`${apiBase}/api/_flows/${flowId}/toggle`, { method: "POST" })
+    const res = await adminApiFetch(apiBase, `/api/_flows/${flowId}/toggle`, { method: "POST" })
     if (res.ok) {
       const updated: Flow = await res.json()
       setFlow(updated)
@@ -111,11 +113,11 @@ export function FlowEditor({ flowId, apiBase = "" }: Props) {
   const selectedStep = localSteps.find((s) => s.id === selectedStepId) ?? null
 
   if (loading) {
-    return <p className="text-[#52525b] text-sm">Loading flow...</p>
+    return <LoadingState title="Loading flow" description="Fetching automation configuration." />
   }
 
   if (!flow) {
-    return <p className="text-[#ef4444] text-sm">Flow not found.</p>
+    return <ErrorState title="Flow not found" description="This automation may have been deleted or is no longer available." />
   }
 
   return (

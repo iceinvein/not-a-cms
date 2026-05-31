@@ -1,15 +1,21 @@
 ---
 import DefaultLayout from "../../defaults/layouts/default.astro"
-import { portableTextToHtml } from "../../runtime/channel"
+import { renderDocumentContent } from "../../runtime/document-renderer"
 
 const { token } = Astro.params
 const apiBase = import.meta.env.PUBLIC_API_BASE || "http://localhost:4321"
+const collection = Astro.url.searchParams.get("collection")
+const documentId = Astro.url.searchParams.get("documentId")
 
 let post = null
 let error = null
 
 try {
-  const res = await fetch(`${apiBase}/api/_preview/validate/${token}`)
+  const params = new URLSearchParams()
+  if (collection) params.set("collection", collection)
+  if (documentId) params.set("documentId", documentId)
+  const query = params.toString()
+  const res = await fetch(`${apiBase}/api/_preview/validate/${token}${query ? `?${query}` : ""}`)
   if (res.ok) {
     post = await res.json()
   } else {
@@ -20,15 +26,7 @@ try {
   error = "Failed to load preview"
 }
 
-let bodyHtml = ""
-if (post?.body) {
-  try {
-    const blocks = typeof post.body === "string" ? JSON.parse(post.body) : post.body
-    bodyHtml = portableTextToHtml(blocks)
-  } catch {
-    bodyHtml = "<p>Error rendering content.</p>"
-  }
-}
+const rendered = post ? renderDocumentContent(post) : { isPageLayout: false, html: "" }
 ---
 <DefaultLayout title={post ? `Preview: ${post.title}` : "Preview"}>
   {error ? (
@@ -41,10 +39,16 @@ if (post?.body) {
       <div class="bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-2 mb-8 text-sm text-yellow-800">
         This is a preview. This content has not been published yet.
       </div>
-      <article class="prose prose-gray max-w-none">
-        <h1>{post.title}</h1>
-        <Fragment set:html={bodyHtml} />
-      </article>
+      {rendered.isPageLayout ? (
+        <div class="page-layout">
+          <Fragment set:html={rendered.html} />
+        </div>
+      ) : (
+        <article class="prose prose-gray max-w-none">
+          <h1>{post.title}</h1>
+          <Fragment set:html={rendered.html} />
+        </article>
+      )}
     </div>
   ) : null}
 </DefaultLayout>

@@ -1,22 +1,40 @@
 ---
 import DefaultLayout from "../defaults/layouts/default.astro"
 import { createContentFetcher } from "../runtime/content-fetcher"
+import { renderDocumentContent } from "../runtime/document-renderer"
 
 const apiBase = import.meta.env.PUBLIC_API_BASE || "http://localhost:4321"
 const fetcher = createContentFetcher({ apiBase })
 
 let posts: Array<{ title?: string; slug?: string; excerpt?: string; created_at?: string; status?: string }> = []
+let homepage: any = null
+let homepageRendered = { isPageLayout: false, html: "" }
 try {
-  const allPosts = await fetcher.list("blog_post", { limit: 20 })
+  const resolvedHomepage = await fetcher.resolvePath("/")
+  homepage = resolvedHomepage?.document ?? null
+  if (homepage) homepageRendered = renderDocumentContent(homepage)
+  const allPosts = homepage ? [] : await fetcher.list("blog_post", { limit: 20 })
   posts = allPosts.filter((p) => p.status === "published")
 } catch {
   // API may not be running during build
 }
 ---
 <DefaultLayout title="Home">
-  <h1 class="text-4xl font-bold mb-8">Latest Posts</h1>
-
-  {posts.length === 0 ? (
+  {homepage ? (
+    homepageRendered.isPageLayout ? (
+      <div class="page-layout">
+        <Fragment set:html={homepageRendered.html} />
+      </div>
+    ) : (
+      <article class="prose prose-gray max-w-none">
+        <h1>{homepage.title}</h1>
+        <Fragment set:html={homepageRendered.html} />
+      </article>
+    )
+  ) : (
+  <>
+    <h1 class="text-4xl font-bold mb-8">Latest Posts</h1>
+    {posts.length === 0 ? (
     <p class="text-gray-500">No published posts yet.</p>
   ) : (
     <div class="space-y-8">
@@ -34,5 +52,7 @@ try {
         </article>
       ))}
     </div>
+  )}
+  </>
   )}
 </DefaultLayout>

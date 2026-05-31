@@ -1,77 +1,200 @@
-import { useState, useEffect } from "react"
+import { useEffect, useMemo, useState } from "react"
+import { Clock3, FileText, Image, PenLine } from "lucide-react"
+import { EmptyState, ErrorState, LoadingState } from "./AdminState"
+import { adminApiFetch, messageForAdminResponse } from "../lib/api"
 
-type CollectionStat = {
+export type DashboardCollectionMetric = {
   name: string
   label: string
-  count: number
-  recentCount: number
+  total: number
+  drafts: number
+  inReview: number
+  published: number
+  scheduled: number
 }
 
-export function DashboardStats({ apiBase = "" }: { apiBase?: string }) {
-  const [stats, setStats] = useState<CollectionStat[]>([])
-  const [loading, setLoading] = useState(true)
+export type DashboardAuditEvent = {
+  id: string
+  action: string
+  summary: string | null
+  collection: string | null
+  documentId: string | null
+  createdAt: string
+}
+
+export type DashboardMetrics = {
+  collections: DashboardCollectionMetric[]
+  media: { total: number }
+  recentAudit: DashboardAuditEvent[]
+  totals?: {
+    content: number
+    drafts: number
+    inReview: number
+    published: number
+    scheduled: number
+  }
+}
+
+type Props = {
+  apiBase?: string
+  initialMetrics?: DashboardMetrics
+}
+
+export function DashboardStats({ apiBase = "", initialMetrics }: Props) {
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(initialMetrics ?? null)
+  const [loading, setLoading] = useState(!initialMetrics)
+  const [error, setError] = useState("")
+
+  const fetchMetrics = async () => {
+    setLoading(true)
+    setError("")
+    try {
+      const res = await adminApiFetch(apiBase, "/api/_metrics")
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error && res.status !== 401 && res.status !== 403
+        ? data.error
+        : messageForAdminResponse(res, "Failed to load dashboard metrics"))
+      setMetrics(data)
+    } catch (err: any) {
+      setError(err.message || "Failed to load dashboard metrics")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    async function fetchStats() {
-      try {
-        const schemaRes = await fetch(`${apiBase}/api/_schema`)
-        if (!schemaRes.ok) throw new Error("Failed to fetch schema")
-        const schema = await schemaRes.json()
-
-        const results: CollectionStat[] = await Promise.all(
-          schema.collections.map(async (col: { name: string; labels?: { plural?: string } }) => {
-            const listRes = await fetch(`${apiBase}/api/${col.name}`)
-            const listData = listRes.ok ? await listRes.json() : { data: [] }
-            const items = listData.data || []
-
-            const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-            const recentCount = items.filter((item: any) => item.created_at && item.created_at > oneWeekAgo).length
-
-            return {
-              name: col.name,
-              label: col.labels?.plural || col.name,
-              count: items.length,
-              recentCount,
-            }
-          }),
-        )
-
-        setStats(results)
-      } catch {
-        setStats([])
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchStats()
+    if (initialMetrics) return
+    fetchMetrics()
   }, [apiBase])
 
+  const needsReview = useMemo(
+    () => (metrics?.collections ?? []).filter((collection) => collection.inReview > 0),
+    [metrics],
+  )
+
   if (loading) {
-    return <div className="text-[#52525b] text-sm">Loading...</div>
+    return (
+      <div className="space-y-5">
+        <LoadingState title="Loading dashboard metrics" description="Collecting content, media, and activity totals." />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-32 rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b] p-5 animate-pulse" />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <ErrorState
+        title={error === "Sign in to continue." || error.startsWith("You do not have permission") ? "Permission needed" : "Dashboard metrics unavailable"}
+        description={error}
+        action={<button type="button" onClick={fetchMetrics} className="rounded-md bg-[rgba(255,255,255,0.08)] px-3 py-1.5 text-sm font-medium text-[#fafafa] hover:bg-[rgba(255,255,255,0.12)]">Try again</button>}
+      />
+    )
+  }
+
+  if (!metrics || metrics.collections.length === 0) {
+    return (
+      <EmptyState title="No collections yet" description="Dashboard metrics will appear after collections are registered." />
+    )
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {stats.map((stat) => (
-        <a
-          key={stat.name}
-          href={`/content/${stat.name}`}
-          className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] p-6 hover:border-[rgba(255,255,255,0.12)] transition-all"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-xs text-[#52525b] bg-[rgba(255,255,255,0.05)] px-2 py-1 rounded-full">
-              {stat.recentCount} this week
-            </span>
-          </div>
-          <div className="text-3xl font-bold text-[#fafafa]">{stat.count}</div>
-          <div className="text-sm text-[#71717a] mt-1">{stat.label}</div>
-        </a>
-      ))}
+    <div className="space-y-8">
+      <section className="space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-sm font-medium uppercase tracking-wider text-[#71717a]">Content Health</h2>
+          <p className="text-sm text-[#71717a]">{metrics.totals?.content ?? totalContent(metrics.collections)} total content items</p>
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {metrics.collections.map((collection) => (
+            <a
+              key={collection.name}
+              href={`/content/${collection.name}`}
+              className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b] p-5 transition-colors hover:border-[rgba(201,149,107,0.24)]"
+            >
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <span className="text-sm font-medium text-[#fafafa]">{collection.label}</span>
+                <FileText className="h-4 w-4 text-[#71717a]" />
+              </div>
+              <p className="text-2xl font-semibold text-[#fafafa]">{collection.total} total</p>
+              <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-[#71717a]">
+                <span>{collection.drafts} drafts</span>
+                <span>{collection.inReview} in review</span>
+                <span>{collection.published} published</span>
+                <span>{collection.scheduled} scheduled</span>
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
 
-      <div className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] border-dashed p-6 flex flex-col items-center justify-center text-[#52525b] hover:text-[#71717a] hover:border-[rgba(255,255,255,0.1)] transition-all cursor-pointer">
-        <span className="text-2xl mb-2">+</span>
-        <span className="text-sm">New Content</span>
-      </div>
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b] p-5">
+          <div className="mb-4 flex items-center gap-2">
+            <PenLine className="h-4 w-4 text-[#c9956b]" />
+            <h3 className="text-sm font-medium text-[#fafafa]">Needs review</h3>
+          </div>
+          {needsReview.length === 0 ? (
+            <p className="text-sm text-[#71717a]">No content is waiting for review.</p>
+          ) : (
+            <div className="divide-y divide-[rgba(255,255,255,0.06)]">
+              {needsReview.map((collection) => (
+                <a
+                  key={collection.name}
+                  href={`/content/${collection.name}?where=${encodeURIComponent(JSON.stringify({ status: "in_review" }))}`}
+                  className="flex items-center justify-between gap-3 py-3 text-sm"
+                >
+                  <span className="text-[#a1a1aa]">{collection.label}</span>
+                  <span className="rounded-full bg-[rgba(201,149,107,0.12)] px-2 py-0.5 text-xs text-[#c9956b]">{collection.inReview}</span>
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b] p-5">
+          <div className="mb-4 flex items-center gap-2">
+            <Image className="h-4 w-4 text-[#71717a]" />
+            <h3 className="text-sm font-medium text-[#fafafa]">Media</h3>
+          </div>
+          <p className="text-2xl font-semibold text-[#fafafa]">{metrics.media.total} assets</p>
+          <a href="/media" className="mt-3 inline-flex text-sm text-[#c9956b] hover:text-[#d4a57c]">Open library</a>
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b] p-5">
+        <div className="mb-4 flex items-center gap-2">
+          <Clock3 className="h-4 w-4 text-[#71717a]" />
+          <h3 className="text-sm font-medium text-[#fafafa]">Recent activity</h3>
+        </div>
+        {metrics.recentAudit.length === 0 ? (
+          <p className="text-sm text-[#71717a]">No recent activity yet.</p>
+        ) : (
+          <div className="divide-y divide-[rgba(255,255,255,0.06)]">
+            {metrics.recentAudit.map((event) => (
+              <div key={event.id} className="py-3">
+                <p className="text-sm text-[#a1a1aa]">{event.summary || event.action}</p>
+                <p className="mt-1 text-xs text-[#52525b]">{event.collection || "system"} · {formatDate(event.createdAt)}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   )
+}
+
+function totalContent(collections: DashboardCollectionMetric[]) {
+  return collections.reduce((sum, collection) => sum + collection.total, 0)
+}
+
+function formatDate(value: string) {
+  return new Date(value).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })
 }

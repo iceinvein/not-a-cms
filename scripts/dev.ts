@@ -15,7 +15,12 @@ console.log("  Starting API server...")
 
 // Start API server (quiet banner, but show errors)
 const api = Bun.spawn(["bun", "--hot", "packages/server/src/dev.ts"], {
-  env: { ...process.env, PORT: apiPort, QUIET: "1" },
+  env: {
+    ...process.env,
+    PORT: apiPort,
+    QUIET: "1",
+    CORS_ORIGINS: `http://localhost:${adminPort},http://localhost:${rendererPort}`,
+  },
   stdout: "inherit",
   stderr: "inherit",
 })
@@ -28,7 +33,7 @@ console.log("  Starting admin UI...")
 // Start Admin UI (suppress Astro's verbose startup, keep errors)
 const admin = Bun.spawn(["bunx", "astro", "dev", "--port", adminPort], {
   cwd: "packages/admin",
-  env: { ...process.env },
+  env: { ...process.env, PUBLIC_API_BASE: `http://localhost:${apiPort}`, PUBLIC_SITE_BASE: `http://localhost:${rendererPort}` },
   stdout: "ignore",
   stderr: "ignore",
 })

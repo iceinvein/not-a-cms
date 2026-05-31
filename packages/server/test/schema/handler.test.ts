@@ -12,6 +12,7 @@ const blogPost = defineCollection({
     title: field.text({ required: true, maxLength: 200 }),
     slug: field.slug({ from: "title" }),
     body: field.richText(),
+    secret: field.text({ access: { read: ["admin"] } }),
     status: field.select(["draft", "published"], { default: "draft" }),
   },
 })
@@ -24,6 +25,14 @@ const page = defineCollection({
   },
 })
 
+const lockedPage = defineCollection({
+  name: "locked_page",
+  access: { read: ["admin"] },
+  fields: {
+    title: field.text({ required: true }),
+  },
+})
+
 describe("schema API", () => {
   let baseUrl: string
   let server: ReturnType<typeof createServer>
@@ -33,7 +42,7 @@ describe("schema API", () => {
       port: 0,
       database: { url: testDbPath },
       auth: { secret: "a".repeat(32), baseURL: "http://localhost", magicLink: { sendMagicLink: async () => {} } },
-      collections: [blogPost, page],
+      collections: [blogPost, page, lockedPage],
     })
     baseUrl = `http://localhost:${server.server.port}`
   })
@@ -73,5 +82,18 @@ describe("schema API", () => {
   test("GET /api/_schema/:unknown returns 404", async () => {
     const res = await fetch(`${baseUrl}/api/_schema/nonexistent`)
     expect(res.status).toBe(404)
+  })
+
+  test("query string role cannot reveal admin-only fields", async () => {
+    const res = await fetch(`${baseUrl}/api/_schema/blog_post?role=admin`)
+    expect(res.status).toBe(200)
+    const data = await res.json()
+    expect(data.fields.secret).toBeUndefined()
+  })
+
+  test("hides collections the session role cannot read", async () => {
+    const res = await fetch(`${baseUrl}/api/_schema`)
+    const data = await res.json()
+    expect(data.collections.map((collection: { name: string }) => collection.name)).not.toContain("locked_page")
   })
 })

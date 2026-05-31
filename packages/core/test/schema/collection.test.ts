@@ -1,6 +1,7 @@
 import { test, expect, describe } from "bun:test";
 import { field } from "../../src/schema/field";
 import { defineCollection } from "../../src/schema/collection";
+import { defineConfig } from "../../src/config";
 
 describe("defineCollection", () => {
   test("creates a collection definition with all fields and verifies name, labels, field types", () => {
@@ -105,5 +106,26 @@ describe("defineCollection", () => {
     expect(() => defineCollection({ name: "blog_post", fields: {} })).not.toThrow();
     expect(() => defineCollection({ name: "article", fields: {} })).not.toThrow();
     expect(() => defineCollection({ name: "blog_post_v2", fields: {} })).not.toThrow();
+  });
+});
+
+describe("defineConfig", () => {
+  test("preserves CMS project configuration", () => {
+    const blogPost = defineCollection({
+      name: "blog_post",
+      fields: {},
+    });
+
+    const config = defineConfig({
+      site: { name: "Example", url: "https://example.com" },
+      database: { provider: "sqlite", url: "data.db" },
+      storage: { provider: "local", path: "./uploads" },
+      auth: { methods: ["magic-link"] },
+      collections: [blogPost],
+    });
+
+    expect(config.collections[0]?.name).toBe("blog_post");
+    expect(config.database.url).toBe("data.db");
+    expect(config.auth.methods).toContain("magic-link");
   });
 });

@@ -58,7 +58,7 @@ export function renderTextChildren(children: PTTextNode[]): string {
                 break
             }
           } else if (mark.type === "link") {
-            const href = escapeHtml(mark.href || "")
+            const href = escapeHtml(sanitizeUrl(mark.href || ""))
             const target = mark.target ? ` target="${escapeHtml(mark.target)}"` : ""
             html = `<a href="${href}"${target}>${html}</a>`
           }
@@ -76,6 +76,28 @@ function escapeHtml(str: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
+}
+
+export function sanitizeUrl(value: unknown, opts: { allowDataImage?: boolean } = {}): string {
+  const url = String(value ?? "").trim()
+  if (!url) return "#"
+  if (url.startsWith("/") || url.startsWith("#") || url.startsWith("./") || url.startsWith("../")) {
+    return url
+  }
+  if (opts.allowDataImage && /^data:image\/[a-z0-9.+-]+;base64,/i.test(url)) {
+    return url
+  }
+
+  try {
+    const parsed = new URL(url)
+    if (["http:", "https:", "mailto:", "tel:"].includes(parsed.protocol)) {
+      return url
+    }
+  } catch {
+    return "#"
+  }
+
+  return "#"
 }
 
 export { DEFAULT_BLOCK_MAP, type PTBlock, type PTTextNode, type BlockComponentMap }

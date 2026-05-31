@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { adminApiFetch } from "../lib/api"
 
 type Props = {
   collection: string
@@ -9,42 +10,93 @@ type Props = {
 
 export function PreviewLink({ collection, documentId, apiBase = "", siteBase = "http://localhost:3000" }: Props) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState<"generate" | "regenerate" | "revoke" | null>(null)
   const [copied, setCopied] = useState(false)
+  const [message, setMessage] = useState("")
 
-  const handleGenerate = async () => {
-    setLoading(true)
+  const previewPath = (token: string) => {
+    const params = new URLSearchParams({ collection, documentId })
+    return `${siteBase}/preview/${token}?${params.toString()}`
+  }
+
+  const handleGenerate = async (regenerate = false) => {
+    setLoading(regenerate ? "regenerate" : "generate")
+    setMessage("")
     try {
-      const res = await fetch(`${apiBase}/api/_preview/generate`, {
+      const res = await adminApiFetch(apiBase, "/api/_preview/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ collection, documentId, regenerate }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setPreviewUrl(previewPath(data.token))
+        setMessage(regenerate ? "Preview link regenerated" : "Preview link ready")
+      }
+    } catch {
+      setMessage("Failed to generate preview")
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  const handleRevoke = async () => {
+    setLoading("revoke")
+    setMessage("")
+    try {
+      const res = await adminApiFetch(apiBase, "/api/_preview/revoke", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ collection, documentId }),
       })
-      if (res.ok) {
-        const data = await res.json()
-        const url = `${siteBase}/preview/${data.token}`
-        setPreviewUrl(url)
-      }
-    } catch {} finally { setLoading(false) }
+      if (!res.ok) throw new Error("Failed to revoke preview")
+      setPreviewUrl(null)
+      setCopied(false)
+      setMessage("Preview link revoked")
+    } catch {
+      setMessage("Failed to revoke preview")
+    } finally {
+      setLoading(null)
+    }
   }
 
   const handleCopy = async () => {
     if (previewUrl) {
       await navigator.clipboard.writeText(previewUrl)
       setCopied(true)
+      setMessage("Copied preview link")
       setTimeout(() => setCopied(false), 2000)
     }
   }
 
   if (!previewUrl) {
     return (
-      <button
-        onClick={handleGenerate}
-        disabled={loading}
-        className="w-full py-2 text-xs font-medium text-[#a1a1aa] border border-[rgba(255,255,255,0.06)] rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
-      >
-        {loading ? "Generating..." : "Generate Preview Link"}
-      </button>
+      <div className="space-y-2">
+        <button
+          onClick={() => handleGenerate(false)}
+          disabled={loading !== null}
+          className="w-full py-2 text-xs font-medium text-[#a1a1aa] border border-[rgba(255,255,255,0.06)] rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
+        >
+          {loading === "generate" ? "Generating..." : "Generate Preview Link"}
+        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => handleGenerate(true)}
+            disabled={loading !== null}
+            className="py-1.5 text-xs font-medium text-[#71717a] border border-[rgba(255,255,255,0.06)] rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
+          >
+            {loading === "regenerate" ? "Regenerating..." : "Regenerate"}
+          </button>
+          <button
+            onClick={handleRevoke}
+            disabled={loading !== null}
+            className="py-1.5 text-xs font-medium text-[#71717a] border border-[rgba(255,255,255,0.06)] rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
+          >
+            {loading === "revoke" ? "Revoking..." : "Revoke"}
+          </button>
+        </div>
+        {message && <p className="text-xs text-[#71717a]">{message}</p>}
+      </div>
     )
   }
 
@@ -72,6 +124,23 @@ export function PreviewLink({ collection, documentId, apiBase = "", siteBase = "
       >
         Open Preview
       </a>
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          onClick={() => handleGenerate(true)}
+          disabled={loading !== null}
+          className="py-1.5 text-xs font-medium text-[#a1a1aa] border border-[rgba(255,255,255,0.06)] rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
+        >
+          {loading === "regenerate" ? "Regenerating..." : "Regenerate"}
+        </button>
+        <button
+          onClick={handleRevoke}
+          disabled={loading !== null}
+          className="py-1.5 text-xs font-medium text-[#f59e0b] border border-[rgba(245,158,11,0.2)] rounded-lg hover:bg-[rgba(245,158,11,0.06)] transition-colors disabled:opacity-50"
+        >
+          {loading === "revoke" ? "Revoking..." : "Revoke"}
+        </button>
+      </div>
+      {message && <p className="text-xs text-[#71717a]">{message}</p>}
     </div>
   )
 }

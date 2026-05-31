@@ -1,5 +1,6 @@
 import { test, expect, describe } from "bun:test"
 import { defineBlock } from "../../src/blocks/define-block"
+import { collectManifestBlockExtensions, resolveEditorBlocksFromExtensions } from "../../src/blocks"
 
 // Minimal mock component for tests (no actual React rendering needed)
 const MockEditor = () => null
@@ -61,5 +62,48 @@ describe("defineBlock", () => {
     expect(block1.extension.name).toBe("block-a")
     expect(block2.extension.name).toBe("block-b")
     expect(block1.extension).not.toBe(block2.extension)
+  })
+
+  test("resolves editor blocks from extension manifests", () => {
+    const heroBlock = defineBlock({
+      name: "hero",
+      label: "Hero",
+      schema: { heading: { type: "text" } },
+      editor: MockEditor,
+    })
+    const ctaBlock = defineBlock({
+      name: "cta",
+      label: "CTA",
+      schema: { text: { type: "text" } },
+      editor: MockEditor,
+    })
+
+    const blocks = resolveEditorBlocksFromExtensions([
+      { name: "marketing", blocks: [heroBlock] },
+      { name: "sales", editor: { blocks: [ctaBlock] } },
+    ])
+
+    expect(blocks.map((block) => block.name)).toEqual(["hero", "cta"])
+    expect(collectManifestBlockExtensions([{ blocks }]).map((extension) => extension.name)).toEqual(["hero", "cta"])
+  })
+
+  test("keeps the first editor block when manifests declare duplicate names", () => {
+    const first = defineBlock({
+      name: "hero",
+      label: "Hero",
+      schema: { heading: { type: "text", default: "First" } },
+      editor: MockEditor,
+    })
+    const duplicate = defineBlock({
+      name: "hero",
+      label: "Duplicate Hero",
+      schema: { heading: { type: "text", default: "Second" } },
+      editor: MockEditor,
+    })
+
+    const blocks = resolveEditorBlocksFromExtensions([{ blocks: [first] }, { blocks: [duplicate] }])
+
+    expect(blocks).toHaveLength(1)
+    expect(blocks[0].label).toBe("Hero")
   })
 })

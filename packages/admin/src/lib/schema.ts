@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:4321"
+import { adminApiUrl, createAdminFetchInit, type AdminApiFetchOptions } from "./api"
 
 export type SchemaCollection = {
   name: string
@@ -6,9 +6,9 @@ export type SchemaCollection = {
   fields: Record<string, any>
 }
 
-export async function fetchCollections(): Promise<SchemaCollection[]> {
+export async function fetchCollections(options: AdminApiFetchOptions = {}): Promise<SchemaCollection[]> {
   try {
-    const res = await fetch(`${API_BASE}/api/_schema`)
+    const res = await fetch(adminApiUrl("/api/_schema"), createAdminFetchInit(options))
     if (!res.ok) return []
     const data = await res.json()
     return data.collections ?? []
@@ -17,9 +17,9 @@ export async function fetchCollections(): Promise<SchemaCollection[]> {
   }
 }
 
-export async function fetchCollection(name: string): Promise<SchemaCollection | null> {
+export async function fetchCollection(name: string, options: AdminApiFetchOptions = {}): Promise<SchemaCollection | null> {
   try {
-    const res = await fetch(`${API_BASE}/api/_schema/${name}`)
+    const res = await fetch(adminApiUrl(`/api/_schema/${encodeURIComponent(name)}`), createAdminFetchInit(options))
     if (!res.ok) return null
     return res.json()
   } catch {

@@ -3,6 +3,13 @@ export type FieldAccess = {
   write?: string[];
 };
 
+export type CollectionAccess = {
+  read?: string[];
+  create?: string[];
+  update?: string[];
+  delete?: string[];
+};
+
 export type BaseFieldDef = {
   type: string;
   required: boolean;
@@ -87,7 +94,7 @@ export type FieldDef =
   | GroupFieldDef
   | PageLayoutFieldDef;
 
-export type ContentStatus = "draft" | "in_review" | "published" | "archived";
+export type ContentStatus = "draft" | "in_review" | "published" | "archived" | "scheduled";
 
 export type HookContext = {
   collection: string;
@@ -115,5 +122,6 @@ export type CollectionDef = {
     plural: string;
   };
   fields: Record<string, FieldDef>;
+  access?: CollectionAccess;
   hooks?: CollectionHooks;
 };

@@ -1,5 +1,5 @@
 import type { FlowStore } from "./store"
-import type { Flow, FlowStep, ConditionStep, ActionStep, ConditionRule } from "./types"
+import type { Flow, FlowRun, FlowStep, ConditionStep, ActionStep, ConditionRule } from "./types"
 
 export function resolvePayloadPath(payload: Record<string, unknown>, path: string): unknown {
   const cleanPath = path.startsWith("payload.") ? path.slice("payload.".length) : path
@@ -153,21 +153,22 @@ export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = 
     let currentPayload = triggerPayload
     try {
       while (currentStep) {
+        const step: FlowStep = currentStep
         const stepInput = JSON.stringify(currentPayload)
-        if (currentStep.type === "condition") {
-          const result = evaluateConditionStep(currentStep, currentPayload)
+        if (step.type === "condition") {
+          const result = evaluateConditionStep(step, currentPayload)
           const branchTaken = result ? "true" : "false"
-          store.recordStep({ run_id: run.id, step_id: currentStep.id, status: "completed", input: stepInput, output: stepInput, branch_taken: branchTaken })
-          const nextId = result ? currentStep.branches.true : currentStep.branches.false
+          store.recordStep({ run_id: run.id, step_id: step.id, status: "completed", input: stepInput, output: stepInput, branch_taken: branchTaken })
+          const nextId: string | null | undefined = result ? step.branches.true : step.branches.false
           currentStep = nextId ? resolveStepById(flow.steps, nextId) : undefined
         } else {
           try {
-            const output = await executeActionStep(currentStep, currentPayload)
-            store.recordStep({ run_id: run.id, step_id: currentStep.id, status: "completed", input: stepInput, output: JSON.stringify(output) })
+            const output = await executeActionStep(step, currentPayload)
+            store.recordStep({ run_id: run.id, step_id: step.id, status: "completed", input: stepInput, output: JSON.stringify(output) })
             currentPayload = output
-            currentStep = currentStep.next ? resolveStepById(flow.steps, currentStep.next) : undefined
+            currentStep = step.next ? resolveStepById(flow.steps, step.next) : undefined
           } catch (err: any) {
-            store.recordStep({ run_id: run.id, step_id: currentStep.id, status: "failed", input: stepInput, error: err.message })
+            store.recordStep({ run_id: run.id, step_id: step.id, status: "failed", input: stepInput, error: err.message })
             store.completeRun(run.id, "failed", err.message)
             return run.id
           }
@@ -180,7 +181,27 @@ export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = 
     return run.id
   }
 
-  return { executeFlow }
+  async function retryRun(flow: Flow, runOrId: FlowRun | string): Promise<string> {
+    const run = typeof runOrId === "string" ? store.getRun(runOrId) : runOrId
+    if (!run) throw new Error("Run not found")
+    if (run.flow_id !== flow.id) throw new Error("Run does not belong to this flow")
+    if (run.status !== "failed") throw new Error("Only failed runs can be retried")
+
+    let payload: Record<string, unknown> = {}
+    if (run.trigger_payload) {
+      try {
+        const parsed = JSON.parse(run.trigger_payload)
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          payload = parsed as Record<string, unknown>
+        }
+      } catch {
+        payload = { value: run.trigger_payload }
+      }
+    }
+    return executeFlow(flow, { ...payload, retriedFromRunId: run.id })
+  }
+
+  return { executeFlow, retryRun }
 }
 
 export type FlowEngine = ReturnType<typeof createFlowEngine>

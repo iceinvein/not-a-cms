@@ -8,14 +8,24 @@ type Props = {
 export function SearchBar({ onSearch, placeholder = "Search..." }: Props) {
   const [value, setValue] = useState("")
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hasMountedRef = useRef(false)
+  const onSearchRef = useRef(onSearch)
 
   useEffect(() => {
+    onSearchRef.current = onSearch
+  }, [onSearch])
+
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true
+      return
+    }
     if (timerRef.current) clearTimeout(timerRef.current)
     timerRef.current = setTimeout(() => {
-      onSearch(value)
+      onSearchRef.current(value)
     }, 300)
     return () => { if (timerRef.current) clearTimeout(timerRef.current) }
-  }, [value, onSearch])
+  }, [value])
 
   return (
     <div className="relative">
@@ -27,7 +37,7 @@ export function SearchBar({ onSearch, placeholder = "Search..." }: Props) {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder}
-        className="w-full pl-10 pr-4 py-2 bg-transparent border border-[rgba(255,255,255,0.1)] rounded-lg text-sm text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:ring-0 focus:border-[rgba(255,255,255,0.2)]"
+        className="w-full pl-10 pr-4 py-2 bg-transparent border border-[rgba(255,255,255,0.1)] rounded-lg text-sm text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:ring-0 focus:border-[#c9956b]"
       />
       {value && (
         <button

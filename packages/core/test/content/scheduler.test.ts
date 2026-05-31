@@ -15,7 +15,7 @@ const blogPost = defineCollection({
   labels: { singular: "Blog Post", plural: "Blog Posts" },
   fields: {
     title: field.text({ required: true }),
-    status: field.select(["draft", "published", "scheduled"], { default: "draft" }),
+    status: field.select(["draft", "in_review", "published", "archived", "scheduled"], { default: "draft" }),
     publishedAt: field.datetime(),
   },
 })
@@ -66,5 +66,43 @@ describe("createScheduler", () => {
     const scheduler = createScheduler(collections)
     const promoted = await scheduler.promoteScheduled()
     expect(promoted).toHaveLength(0)
+  })
+
+  test("promoteScheduled() publishes due draft and review posts with ISO publish timestamps", async () => {
+    const due = "2026-05-31T05:00:00.000Z"
+    const future = "2026-05-31T05:00:00.001Z"
+
+    await service.create({ title: "Due Draft", status: "draft", publishedAt: due })
+    await service.create({ title: "Due Review", status: "in_review", publishedAt: due })
+    await service.create({ title: "Future Draft", status: "draft", publishedAt: future })
+    await service.create({ title: "Archived Draft", status: "archived", publishedAt: due })
+
+    const collections = new Map()
+    collections.set("blog_post", { def: blogPost, table: generateTable(blogPost), service })
+
+    const scheduler = createScheduler(collections)
+    const promoted = await scheduler.promoteScheduled(new Date(due))
+
+    expect(promoted.map((doc) => doc.title).sort()).toEqual(["Due Draft", "Due Review"])
+
+    const all = await service.findMany()
+    expect(all.find((doc) => doc.title === "Due Draft")?.status).toBe("published")
+    expect(all.find((doc) => doc.title === "Due Review")?.status).toBe("published")
+    expect(all.find((doc) => doc.title === "Future Draft")?.status).toBe("draft")
+    expect(all.find((doc) => doc.title === "Archived Draft")?.status).toBe("archived")
+  })
+
+  test("promoteScheduled() ignores invalid publish timestamps", async () => {
+    await service.create({ title: "Invalid Date", status: "draft", publishedAt: "not-a-date" })
+
+    const collections = new Map()
+    collections.set("blog_post", { def: blogPost, table: generateTable(blogPost), service })
+
+    const scheduler = createScheduler(collections)
+    const promoted = await scheduler.promoteScheduled(new Date("2026-05-31T05:00:00.000Z"))
+
+    expect(promoted).toHaveLength(0)
+    const all = await service.findMany()
+    expect(all.find((doc) => doc.title === "Invalid Date")?.status).toBe("draft")
   })
 })

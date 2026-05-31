@@ -49,4 +49,36 @@ describe("preview tokens", () => {
     const t2 = tokenService.generate("blog_post", "doc-123")
     expect(t1.token).toBe(t2.token)
   })
+
+  test("validate() can require matching collection and document metadata", () => {
+    const t = tokenService.generate("blog_post", "doc-123")
+
+    expect(tokenService.validate(t.token, { collection: "blog_post", documentId: "doc-123" })).toEqual({
+      collection: "blog_post",
+      document_id: "doc-123",
+    })
+    expect(tokenService.validate(t.token, { collection: "page", documentId: "doc-123" })).toBeNull()
+    expect(tokenService.validate(t.token, { collection: "blog_post", documentId: "other-doc" })).toBeNull()
+  })
+
+  test("revoke() invalidates active tokens for a document", () => {
+    const t = tokenService.generate("blog_post", "doc-123")
+
+    const revoked = tokenService.revoke("blog_post", "doc-123")
+
+    expect(revoked).toBe(1)
+    expect(tokenService.validate(t.token)).toBeNull()
+  })
+
+  test("generate() can regenerate a new token and revoke the previous token", () => {
+    const t1 = tokenService.generate("blog_post", "doc-123")
+    const t2 = tokenService.generate("blog_post", "doc-123", { regenerate: true })
+
+    expect(t2.token).not.toBe(t1.token)
+    expect(tokenService.validate(t1.token)).toBeNull()
+    expect(tokenService.validate(t2.token)).toEqual({
+      collection: "blog_post",
+      document_id: "doc-123",
+    })
+  })
 })

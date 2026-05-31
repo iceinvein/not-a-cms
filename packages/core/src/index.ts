@@ -1,9 +1,55 @@
 // Schema
 export { field } from "./schema/field"
 export { defineCollection } from "./schema/collection"
+export {
+  ConfigLoadError,
+  defineConfig,
+  loadConfig,
+  resolveConfigPath,
+  type ChannelConfig,
+  type CMSConfig,
+  type LoadConfigOptions,
+  type RouteConfig,
+} from "./config"
+export {
+  collectExtensionAdminPanels,
+  collectExtensionBlocks,
+  collectExtensionFields,
+  defineExtension,
+  resolveExtensionManifests,
+  type ExtensionAdminPanel,
+  type ExtensionBlockDefinition,
+  type ExtensionFieldDefinition,
+  type ExtensionManifest,
+} from "./extensions/manifest"
 
 // Roles
-export { filterFieldsByRole } from "./roles/field-filter"
+export {
+  canAccessCollection,
+  canReadField,
+  canWriteField,
+  type CollectionAction,
+  filterFieldsByRole,
+  filterWritableFields,
+  projectDocumentFields,
+} from "./roles/field-filter"
+export {
+  createRoleService,
+  DEFAULT_ROLE_DEFINITIONS,
+  type RoleDefinition,
+} from "./roles/service"
+export {
+  createUserRoleStore,
+  type UserRoleInput,
+  type UserRoleRecord,
+  type UserRoleStore,
+} from "./roles/user-role-store"
+export {
+  createInviteStore,
+  type InviteInput,
+  type InviteRecord,
+  type InviteStore,
+} from "./roles/invite-store"
 
 // Database
 export { createDatabase, type AppDatabase, type DatabaseConfig } from "./db/connection"
@@ -15,11 +61,33 @@ export { createMigrator, type Migrator } from "./db/migrator"
 export { generateMigrationSQL, generateCreateTableSQL } from "./db/schema-generator"
 
 // Content
-export { createContentService } from "./content/service"
+export { QueryError, createContentService } from "./content/service"
+export {
+  populateDocument,
+  populateDocuments,
+  type MediaPopulationResolver,
+  type PopulateOptions,
+  type PopulationCollection,
+} from "./content/populate"
+export {
+  deserializeDocumentFromStorage,
+  deserializeFieldValue,
+  serializeDocumentForStorage,
+  serializeFieldValue,
+  storageKeyForField,
+} from "./content/serialization"
+export { applyDefaultsAndValidate, ValidationError, type ValidationIssue } from "./content/validation"
+export {
+  WorkflowError,
+  isWorkflowAction,
+  resolveWorkflowTransition,
+  type WorkflowAction,
+  type WorkflowTransition,
+} from "./content/workflow"
 export { slugify } from "./content/slugify"
 
 // Versioning
-export { createVersioningService, type VersioningService, type VersionRecord } from "./content/versioning"
+export { compareVersionData, createVersioningService, type VersionChange, type VersioningService, type VersionRecord } from "./content/versioning"
 
 // Search
 export { createSearchService, extractTextFromPortableText, type SearchService, type SearchResult } from "./content/search"
@@ -29,17 +97,20 @@ export { createScheduler, type Scheduler } from "./content/scheduler"
 
 // Webhooks
 export { createWebhookStore, type WebhookStore } from "./webhooks/store"
-export { createWebhookService, type WebhookService } from "./webhooks/service"
+export { createWebhookHeaders, createWebhookService, type WebhookService } from "./webhooks/service"
 export type { WebhookConfig, WebhookDelivery, WebhookEvent } from "./webhooks/types"
 
 // Preview
 export { createPreviewTokenService, type PreviewTokenService } from "./preview/tokens"
 
 // Settings
-export { createSettingsService, type SettingsService } from "./settings/service"
+export { createSettingsService, type CollectionSettings, type CollectionAccessSettings, type SettingsService } from "./settings/service"
+
+// Audit
+export { createAuditLogStore, type AuditEvent, type AuditEventInput, type AuditLogStore } from "./audit/store"
 
 // Import
-export { parseWXR, htmlToPortableText } from "./import/wordpress"
+export { createWordPressImportPlan, parseWXR, htmlToPortableText } from "./import/wordpress"
 
 // Automations
 export { createFlowStore, type FlowStore } from "./automations/store"
@@ -81,4 +152,5 @@ export type {
   HookContext,
   ContentStatus,
   FieldAccess,
+  CollectionAccess,
 } from "./types"

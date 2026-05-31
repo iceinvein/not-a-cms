@@ -1,6 +1,8 @@
 import { registerCommand } from "../router"
 import { existsSync } from "node:fs"
 import { join } from "node:path"
+import { createDatabase, createMigrator, loadConfig } from "@not-a-cms/core"
+import { formatMigrationStatus } from "./generate"
 
 registerCommand({
   name: "migrate",
@@ -21,10 +23,9 @@ registerCommand({
     }
 
     try {
-      const config = await import(configPath)
-      const dbUrl = config.default?.database?.url ?? "data.db"
+      const config = await loadConfig({ cwd: process.cwd() })
+      const dbUrl = config.database?.url ?? "data.db"
 
-      const { createDatabase, createMigrator } = await import("@not-a-cms/core")
       const db = createDatabase({ url: dbUrl })
       const migrator = createMigrator(db, migrationsDir)
       migrator.init()
@@ -48,15 +49,7 @@ registerCommand({
 
         case "status": {
           const status = migrator.status()
-          console.log(`Database: ${dbUrl}`)
-          console.log(`Applied: ${status.applied.length}`)
-          for (const name of status.applied) {
-            console.log(`  [applied] ${name}`)
-          }
-          console.log(`Pending: ${status.pending.length}`)
-          for (const name of status.pending) {
-            console.log(`  [pending] ${name}`)
-          }
+          console.log(formatMigrationStatus(dbUrl, status))
           break
         }
 

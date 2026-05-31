@@ -5,15 +5,22 @@
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
+  "files": [
+    "src",
+    "dist"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./schema": "./src/schema/index.ts",
     "./db": "./src/db/index.ts",
-    "./content": "./src/content/index.ts"
+    "./content": "./src/content/index.ts",
+    "./package.json": "./package.json"
   },
   "scripts": {
+    "build": "tsc -p tsconfig.json",
     "test": "bun test",
-    "test:watch": "bun test --watch"
+    "test:watch": "bun test --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "drizzle-orm": "^0.40.0",

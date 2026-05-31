@@ -3,6 +3,9 @@ import { unlinkSync, mkdirSync, writeFileSync, rmSync } from "node:fs"
 import { join } from "node:path"
 import { createDatabase } from "../../src/db/connection"
 import { createMigrator } from "../../src/db/migrator"
+import { generateMigrationSQL } from "../../src/db/schema-generator"
+import { defineCollection } from "../../src/schema/collection"
+import { field } from "../../src/schema/field"
 import { sql } from "drizzle-orm"
 
 const testDbPath = "test-migrator.db"
@@ -93,5 +96,62 @@ describe("createMigrator", () => {
     expect(status.applied).toHaveLength(2)
     expect(status.pending).toHaveLength(1)
     expect(status.pending[0]).toBe("003_new.sql")
+  })
+
+  test("generateMigrationSQL creates tables only for new collections when a DB is provided", () => {
+    db.run(sql`${sql.raw("CREATE TABLE existing (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, title TEXT);")}`)
+    const existing = defineCollection({
+      name: "existing",
+      fields: { title: field.text() },
+    })
+    const next = defineCollection({
+      name: "next",
+      fields: { title: field.text({ required: true }) },
+    })
+
+    const migration = generateMigrationSQL([existing, next], { db })
+
+    expect(migration).not.toContain("CREATE TABLE IF NOT EXISTS existing")
+    expect(migration).toContain("CREATE TABLE IF NOT EXISTS next")
+  })
+
+  test("generateMigrationSQL adds missing columns for existing collections", () => {
+    db.run(sql`${sql.raw("CREATE TABLE post (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, title TEXT);")}`)
+    const post = defineCollection({
+      name: "post",
+      fields: {
+        title: field.text(),
+        publishedAt: field.datetime(),
+        author: field.relation("author"),
+      },
+    })
+
+    const migration = generateMigrationSQL([post], { db })
+
+    expect(migration).toContain("ALTER TABLE post ADD COLUMN published_at TEXT;")
+    expect(migration).toContain("ALTER TABLE post ADD COLUMN author_id TEXT;")
+    expect(migration).not.toContain("ADD COLUMN title")
+  })
+
+  test("generateMigrationSQL refuses destructive schema changes by default", () => {
+    db.run(sql`${sql.raw("CREATE TABLE post (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, title TEXT, old_field TEXT);")}`)
+    const post = defineCollection({
+      name: "post",
+      fields: { title: field.text() },
+    })
+
+    expect(() => generateMigrationSQL([post], { db })).toThrow("Destructive change detected")
+  })
+
+  test("generateMigrationSQL can acknowledge destructive changes with an explicit flag", () => {
+    db.run(sql`${sql.raw("CREATE TABLE post (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, title TEXT, old_field TEXT);")}`)
+    const post = defineCollection({
+      name: "post",
+      fields: { title: field.text() },
+    })
+
+    const migration = generateMigrationSQL([post], { db, allowDestructive: true })
+
+    expect(migration).toContain("-- Destructive change detected for post.old_field")
   })
 })

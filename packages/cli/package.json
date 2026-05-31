@@ -6,12 +6,21 @@
   "bin": {
     "not-a-cms": "./src/bin.ts"
   },
+  "files": [
+    "src",
+    "dist"
+  ],
   "scripts": {
+    "build": "tsc -p tsconfig.json",
     "test": "bun test",
-    "test:watch": "bun test --watch"
+    "test:watch": "bun test --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@not-a-cms/core": "workspace:*"
+    "@not-a-cms/core": "workspace:*",
+    "@not-a-cms/admin": "workspace:*",
+    "@not-a-cms/renderer": "workspace:*",
+    "@not-a-cms/server": "workspace:*"
   },
   "devDependencies": {
     "@types/bun": "latest"

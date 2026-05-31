@@ -185,4 +185,26 @@ describe("flow engine", () => {
     const run = store.getRun(runId)
     expect(run!.status).toBe("completed")
   })
+
+  test("retryRun replays a failed run payload as a new run", async () => {
+    const flow = store.createFlow({
+      name: "Retry test",
+      trigger: { type: "content.created" },
+      steps: [{ id: "s1", type: "action.log", config: { message: "Retry {{document.title}}" }, next: null }],
+    })
+    const failed = store.createRun(flow.id, "content.created", JSON.stringify({
+      event: "content.created",
+      document: { title: "Original payload" },
+    }))
+    store.completeRun(failed.id, "failed", "Temporary failure")
+
+    const engine = createFlowEngine(store)
+    const retryRunId = await engine.retryRun(flow, failed.id)
+    const retryRun = store.getRun(retryRunId)
+    const retrySteps = store.getRunSteps(retryRunId)
+
+    expect(retryRunId).not.toBe(failed.id)
+    expect(retryRun!.status).toBe("completed")
+    expect(JSON.parse(retrySteps[0].output!).message).toBe("Retry Original payload")
+  })
 })

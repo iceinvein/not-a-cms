@@ -1,14 +1,17 @@
 ---
 import AdminLayout from "../../../layouts/AdminLayout.astro"
 import { ContentEditor } from "../../../components/ContentEditor"
+import { getAdminApiBase } from "../../../lib/api"
 import { fetchCollection } from "../../../lib/schema"
 
 const { collection } = Astro.params
-const schema = await fetchCollection(collection!)
+const schema = await fetchCollection(collection!, { cookie: Astro.request.headers.get("cookie") || "" })
 
 if (!schema) return Astro.redirect("/")
 
 const label = schema.labels.singular
+const apiBase = getAdminApiBase()
+const siteBase = import.meta.env.PUBLIC_SITE_BASE || "http://localhost:3000"
 ---
 <AdminLayout title={`New ${label}`}>
   <ContentEditor
@@ -16,5 +19,7 @@ const label = schema.labels.singular
     collection={collection!}
     collectionLabel={label}
     fields={schema.fields}
+    apiBase={apiBase}
+    siteBase={siteBase}
   />
 </AdminLayout>

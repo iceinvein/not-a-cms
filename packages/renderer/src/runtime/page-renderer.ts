@@ -52,6 +52,20 @@ type PageLayout = {
 
 export type ComponentRenderer = (props: Record<string, unknown>) => string
 export type ComponentRendererMap = Record<string, ComponentRenderer>
+export type ComponentRendererOverrides = Record<string, unknown>
+
+export function resolveComponentRenderers(
+  defaults: ComponentRendererMap,
+  overrides: ComponentRendererOverrides = {},
+): ComponentRendererMap {
+  const merged: ComponentRendererMap = { ...defaults }
+  for (const [name, renderer] of Object.entries(overrides)) {
+    if (typeof renderer === "function") {
+      merged[name] = renderer as ComponentRenderer
+    }
+  }
+  return merged
+}
 
 function escapeAttr(value: string): string {
   return value
@@ -59,6 +73,55 @@ function escapeAttr(value: string): string {
     .replace(/"/g, "&quot;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
+}
+
+const SAFE_STYLE_PROPS = new Set([
+  "align-items",
+  "background",
+  "background-color",
+  "border",
+  "border-color",
+  "border-radius",
+  "border-style",
+  "border-width",
+  "color",
+  "display",
+  "font-family",
+  "font-size",
+  "font-style",
+  "font-weight",
+  "gap",
+  "height",
+  "justify-content",
+  "letter-spacing",
+  "line-height",
+  "margin",
+  "margin-bottom",
+  "margin-left",
+  "margin-right",
+  "margin-top",
+  "max-width",
+  "min-height",
+  "opacity",
+  "padding",
+  "padding-bottom",
+  "padding-left",
+  "padding-right",
+  "padding-top",
+  "text-align",
+  "text-decoration",
+  "text-transform",
+  "width",
+  "z-index",
+])
+
+function sanitizeStyleDeclaration(prop: string, value: string): string | null {
+  const name = prop.trim().toLowerCase()
+  const rawValue = String(value).trim()
+  if (!SAFE_STYLE_PROPS.has(name)) return null
+  if (!rawValue || /[;{}]/.test(rawValue)) return null
+  if (/url\s*\(/i.test(rawValue) || /expression\s*\(/i.test(rawValue)) return null
+  return `${name}:${rawValue}`
 }
 
 export function escapeHtml(str: string): string {
@@ -86,7 +149,8 @@ function renderComponent(component: PageComponent, renderers: ComponentRendererM
 
   if (component.style?.styles) {
     for (const [prop, val] of Object.entries(component.style.styles)) {
-      inlineStyles.push(`${prop}:${val}`)
+      const declaration = sanitizeStyleDeclaration(prop, val)
+      if (declaration) inlineStyles.push(declaration)
     }
   }
 
@@ -108,7 +172,8 @@ function renderSection(section: PageSection, renderers: ComponentRendererMap): s
 
   if (section.style?.styles) {
     for (const [prop, val] of Object.entries(section.style.styles)) {
-      gridStyle.push(`${prop}:${val}`)
+      const declaration = sanitizeStyleDeclaration(prop, val)
+      if (declaration) gridStyle.push(declaration)
     }
   }
 
@@ -161,7 +226,8 @@ function renderResponsiveStyles(layout: PageLayout): string {
 
         if (overrides.style?.styles) {
           for (const [prop, val] of Object.entries(overrides.style.styles)) {
-            rules.push(`${prop}:${val}`)
+            const declaration = sanitizeStyleDeclaration(prop, val)
+            if (declaration) rules.push(declaration)
           }
         }
 

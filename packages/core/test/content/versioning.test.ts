@@ -6,7 +6,7 @@ import { defineCollection } from "../../src/schema/collection"
 import { field } from "../../src/schema/field"
 import { generateTable } from "../../src/db/generate-table"
 import { createContentService } from "../../src/content/service"
-import { createVersioningService } from "../../src/content/versioning"
+import { compareVersionData, createVersioningService } from "../../src/content/versioning"
 
 const testDbPath = "test-versioning.db"
 
@@ -93,5 +93,18 @@ describe("createVersioningService", () => {
     const versions = versioning.listVersions("blog_post", doc.id as string)
     expect(versions[0].data.title).toBe("Changed")
     expect(versions[1].data.title).toBe("Hello")
+  })
+
+  test("compareVersionData() returns changed fields", () => {
+    const changes = compareVersionData(
+      { title: "Current", status: "published", tags: ["one", "two"] },
+      { title: "Previous", status: "draft", tags: ["one"] },
+    )
+
+    expect(changes).toEqual([
+      { field: "title", before: "Current", after: "Previous" },
+      { field: "status", before: "published", after: "draft" },
+      { field: "tags", before: ["one", "two"], after: ["one"] },
+    ])
   })
 })

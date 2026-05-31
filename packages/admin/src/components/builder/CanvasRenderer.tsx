@@ -49,7 +49,7 @@ export function CanvasRenderer({
     <div
       ref={setNodeRef}
       className={`relative min-h-[200px] rounded-lg border-2 border-dashed transition-colors ${
-        isOver ? "border-blue-400 bg-blue-50/30" : "border-gray-200 bg-white"
+        isOver ? "border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.03)]" : "border-[rgba(255,255,255,0.08)] bg-[#18181b]"
       }`}
       style={{ padding: `${grid.gap}px` }}
       onClick={(e) => {
@@ -68,14 +68,14 @@ export function CanvasRenderer({
         }}
       >
         {Array.from({ length: grid.columns * maxRow }, (_, i) => (
-          <div key={i} className="border border-gray-400 rounded-sm" />
+          <div key={i} className="border border-[rgba(255,255,255,0.2)] rounded-sm" />
         ))}
       </div>
 
       {/* Component grid */}
       {section.children.length === 0 ? (
         <div
-          className="flex items-center justify-center text-sm text-gray-400 py-12"
+          className="flex items-center justify-center text-sm text-[#52525b] py-12"
           style={{ minHeight: "200px" }}
         >
           Drag components here or click one from the palette
@@ -110,8 +110,8 @@ export function CanvasRenderer({
                       e.stopPropagation()
                       onSelectComponent(component._id)
                     }}
-                    className={`h-full rounded-lg border-2 border-dashed p-3 cursor-pointer flex items-center justify-center text-xs text-gray-400 ${
-                      isSelected ? "border-blue-400 bg-blue-50/30" : "border-gray-300 bg-gray-50"
+                    className={`h-full rounded-lg border-2 border-dashed p-3 cursor-pointer flex items-center justify-center text-xs ${
+                      isSelected ? "border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.03)] text-[#a1a1aa]" : "border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] text-[#52525b]"
                     }`}
                   >
                     Hidden on {activeBreakpoint}
@@ -159,17 +159,17 @@ function ComponentCard({ component, definition, isSelected, onSelect }: Componen
       }}
       className={`h-full rounded-lg border-2 p-3 cursor-grab transition-colors ${
         isSelected
-          ? "border-blue-500 bg-blue-50/50 shadow-sm"
-          : "border-gray-200 bg-white hover:border-gray-300"
+          ? "border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.05)] shadow-sm"
+          : "border-[rgba(255,255,255,0.06)] bg-[#18181b] hover:border-[rgba(255,255,255,0.1)]"
       }`}
     >
       <div className="flex items-center gap-2 mb-1">
-        <span className="text-xs font-medium text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+        <span className="text-xs font-medium text-[#71717a] bg-[rgba(255,255,255,0.05)] px-1.5 py-0.5 rounded">
           {label}
         </span>
       </div>
       {preview && (
-        <p className="text-sm text-gray-600 truncate">{preview}</p>
+        <p className="text-sm text-[#a1a1aa] truncate">{preview}</p>
       )}
     </div>
   )

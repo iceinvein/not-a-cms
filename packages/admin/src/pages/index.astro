@@ -1,29 +1,33 @@
 ---
 import AdminLayout from "../layouts/AdminLayout.astro"
 import { DashboardStats } from "../components/DashboardStats"
+import { getAdminApiBase } from "../lib/api"
 import { fetchCollections } from "../lib/schema"
 
-const collections = await fetchCollections()
+const collections = await fetchCollections({ cookie: Astro.request.headers.get("cookie") || "" })
+const apiBase = getAdminApiBase()
 ---
 <AdminLayout title="Dashboard">
-  <div class="space-y-8">
+  <div class="space-y-12">
     <section>
-      <h2 class="text-lg font-medium text-[#fafafa] mb-4">Content Overview</h2>
-      <DashboardStats client:load />
+      <h2 class="text-sm font-medium text-[#71717a] uppercase tracking-wider mb-5">Content Overview</h2>
+      <DashboardStats client:load apiBase={apiBase} />
     </section>
 
-    <section>
-      <h2 class="text-lg font-medium text-[#fafafa] mb-4">Quick Actions</h2>
-      <div class="flex gap-3">
-        {collections.map(c => (
-          <a
-            href={`/content/${c.name}/new`}
-            class="inline-flex items-center gap-2 px-4 py-2 bg-[#fafafa] text-[#0a0a0c] rounded-md text-sm font-medium hover:bg-[#e4e4e7] transition-colors"
-          >
-            + New {c.labels.singular}
-          </a>
-        ))}
-      </div>
-    </section>
+    {collections.length > 0 && (
+      <section>
+        <h2 class="text-sm font-medium text-[#71717a] uppercase tracking-wider mb-5">Quick Actions</h2>
+        <div class="flex gap-3">
+          {collections.map(c => (
+            <a
+              href={`/content/${c.name}/new`}
+              class="inline-flex items-center gap-2 px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-md text-sm font-medium hover:bg-[#d4a57c] transition-colors"
+            >
+              + New {c.labels.singular}
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
   </div>
 </AdminLayout>

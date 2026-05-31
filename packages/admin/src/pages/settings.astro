@@ -1,7 +1,18 @@
 ---
 import AdminLayout from "../layouts/AdminLayout.astro"
+import { AccessSettings } from "../components/AccessSettings"
+import { ChannelSettings } from "../components/ChannelSettings"
+import { CollectionSettings } from "../components/CollectionSettings"
 import { ThemeCustomizer } from "../components/ThemeCustomizer"
+import { getAdminApiBase } from "../lib/api"
+
+const apiBase = getAdminApiBase()
 ---
 <AdminLayout title="Settings">
-  <ThemeCustomizer client:load />
+  <div class="space-y-12">
+    <ThemeCustomizer client:load apiBase={apiBase} />
+    <ChannelSettings client:load apiBase={apiBase} />
+    <CollectionSettings client:load apiBase={apiBase} />
+    <AccessSettings client:load apiBase={apiBase} />
+  </div>
 </AdminLayout>

@@ -24,8 +24,14 @@ export const collabWebSocket = {
 
   message(ws: any, message: string | Buffer) {
     const { docName } = ws.data as CollabWSData
+    if (typeof message === "string" && isPresenceMessage(message)) {
+      ws.publish(docName, message)
+      return
+    }
+
     const doc = getOrCreateDoc(docName)
-    const update = new Uint8Array(message as ArrayBuffer)
+    const bytes = typeof message === "string" ? Buffer.from(message) : message
+    const update = new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength)
     try {
       Y.applyUpdate(doc, update)
       ws.publish(docName, update)
@@ -38,4 +44,22 @@ export const collabWebSocket = {
     const { docName } = ws.data as CollabWSData
     ws.unsubscribe(docName)
   },
+}
+
+function isPresenceMessage(message: string): boolean {
+  try {
+    const parsed = JSON.parse(message) as {
+      type?: unknown
+      clientId?: unknown
+      user?: { name?: unknown; color?: unknown }
+      status?: unknown
+    }
+    return parsed.type === "presence" &&
+      typeof parsed.clientId === "string" &&
+      typeof parsed.user?.name === "string" &&
+      typeof parsed.user?.color === "string" &&
+      (parsed.status === "online" || parsed.status === "offline")
+  } catch {
+    return false
+  }
 }

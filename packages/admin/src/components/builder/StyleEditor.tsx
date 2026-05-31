@@ -69,6 +69,8 @@ const CATEGORIES: Record<StyleCategory, { label: string; properties: PropertyDef
 
 const CATEGORY_KEYS: StyleCategory[] = ["layout", "spacing", "typography", "background", "border"]
 
+const inputClass = "w-full px-2.5 py-1.5 border border-[rgba(255,255,255,0.1)] rounded text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[#c9956b] focus:ring-0"
+
 function readValue(styles: Record<string, string> | undefined, prop: string, unit?: string): string {
   const raw = styles?.[prop] ?? ""
   if (!raw) return ""
@@ -96,15 +98,15 @@ export function StyleEditor({ style, onChange }: StyleEditorProps) {
 
   return (
     <div className="space-y-3">
-      <div className="flex gap-1 border-b border-gray-200">
+      <div className="flex gap-1 border-b border-[rgba(255,255,255,0.06)]">
         {CATEGORY_KEYS.map((key) => (
           <button
             key={key}
             onClick={() => setActiveTab(key)}
             className={`px-2.5 py-1.5 text-xs font-medium transition-colors border-b-2 -mb-px ${
               activeTab === key
-                ? "border-blue-500 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                ? "border-[#fafafa] text-[#fafafa]"
+                : "border-transparent text-[#71717a] hover:text-[#a1a1aa]"
             }`}
           >
             {CATEGORIES[key].label}
@@ -137,15 +139,15 @@ function PropertyField({ def, value, onChange }: PropertyFieldProps) {
     case "number":
       return (
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">{def.label}</label>
+          <label className="block text-xs font-medium text-[#71717a] mb-1">{def.label}</label>
           <div className="flex items-center gap-1.5">
             <input
               type="number"
               value={value}
               onChange={(e) => onChange(e.target.value)}
-              className="w-full px-2.5 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={inputClass}
             />
-            {def.unit && <span className="text-xs text-gray-400 shrink-0">{def.unit}</span>}
+            {def.unit && <span className="text-xs text-[#52525b] shrink-0">{def.unit}</span>}
           </div>
         </div>
       )
@@ -153,11 +155,11 @@ function PropertyField({ def, value, onChange }: PropertyFieldProps) {
     case "select":
       return (
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">{def.label}</label>
+          <label className="block text-xs font-medium text-[#71717a] mb-1">{def.label}</label>
           <select
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full px-2.5 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={inputClass}
           >
             <option value="">--</option>
             {def.options?.map((opt) => (
@@ -170,20 +172,20 @@ function PropertyField({ def, value, onChange }: PropertyFieldProps) {
     case "color":
       return (
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">{def.label}</label>
+          <label className="block text-xs font-medium text-[#71717a] mb-1">{def.label}</label>
           <div className="flex items-center gap-1.5">
             <input
               type="color"
               value={value || "#000000"}
               onChange={(e) => onChange(e.target.value)}
-              className="w-8 h-8 rounded border border-gray-300 cursor-pointer p-0.5"
+              className="w-8 h-8 rounded border border-[rgba(255,255,255,0.1)] cursor-pointer p-0.5 bg-transparent"
             />
             <input
               type="text"
               value={value}
               onChange={(e) => onChange(e.target.value)}
               placeholder="#000000"
-              className="flex-1 px-2.5 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={"flex-1 px-2.5 py-1.5 border border-[rgba(255,255,255,0.1)] rounded text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[#c9956b] focus:ring-0"}
             />
           </div>
         </div>
@@ -192,13 +194,13 @@ function PropertyField({ def, value, onChange }: PropertyFieldProps) {
     case "text":
       return (
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">{def.label}</label>
+          <label className="block text-xs font-medium text-[#71717a] mb-1">{def.label}</label>
           <input
             type="text"
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={def.prop === "background-image" ? "url(...)" : ""}
-            className="w-full px-2.5 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={inputClass}
           />
         </div>
       )

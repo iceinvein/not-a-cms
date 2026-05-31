@@ -1,11 +1,36 @@
 import mjml2html from "mjml"
 import type { PTBlock, PTTextNode } from "./block-renderer"
+import type { ChannelConfig } from "@not-a-cms/core"
 
 type EmailOptions = {
   title?: string
   preheader?: string
   siteUrl?: string
   footerText?: string
+  fromName?: string
+  subjectPrefix?: string
+}
+
+type EmailRuntimeInput = {
+  channels?: ChannelConfig
+}
+
+const DEFAULT_EMAIL = {
+  footerText: "Powered by not-a-cms",
+}
+
+export function resolveEmailOptions(
+  input: EmailRuntimeInput = {},
+  settings: Record<string, string> = {},
+): EmailOptions {
+  const configured = input.channels?.email ?? {}
+  return {
+    title: settingOrConfig(settings, "channel.email.title", configured.title),
+    preheader: settingOrConfig(settings, "channel.email.preheader", configured.preheader),
+    footerText: settingOrConfig(settings, "channel.email.footerText", configured.footerText, DEFAULT_EMAIL.footerText),
+    fromName: settingOrConfig(settings, "channel.email.fromName", configured.fromName),
+    subjectPrefix: settingOrConfig(settings, "channel.email.subjectPrefix", configured.subjectPrefix),
+  }
 }
 
 function blocksToMjml(blocks: PTBlock[]): string {
@@ -67,6 +92,9 @@ function escapeHtml(str: string): string {
 export function portableTextToEmail(blocks: PTBlock[], options: EmailOptions = {}): string {
   const { title = "", footerText = "Powered by not-a-cms" } = options
   const bodyMjml = blocksToMjml(blocks)
+  const preheader = options.preheader
+    ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">${escapeHtml(options.preheader)}</div>`
+    : ""
 
   const mjmlTemplate = `
 <mjml>
@@ -77,6 +105,7 @@ export function portableTextToEmail(blocks: PTBlock[], options: EmailOptions = {
     </mj-attributes>
   </mj-head>
   <mj-body background-color="#f9fafb">
+    <mj-raw>${preheader}</mj-raw>
     <mj-section background-color="#ffffff" padding="32px">
       <mj-column>
         ${title ? `<mj-text font-size="28px" font-weight="700" padding-bottom="16px">${escapeHtml(title)}</mj-text>` : ""}
@@ -91,6 +120,19 @@ export function portableTextToEmail(blocks: PTBlock[], options: EmailOptions = {
   </mj-body>
 </mjml>`
 
-  const { html } = mjml2html(mjmlTemplate)
+  const { html } = (mjml2html as unknown as (template: string) => { html: string })(mjmlTemplate)
   return html
 }
+
+function settingOrConfig(
+  settings: Record<string, string>,
+  key: string,
+  configured?: string,
+  fallback?: string,
+): string | undefined {
+  const value = settings[key] ?? configured ?? fallback
+  if (typeof value !== "string") return fallback
+  return value.trim() || fallback
+}
+
+export type { EmailOptions, EmailRuntimeInput }

@@ -2,9 +2,17 @@
 interface Props {
   collections?: Array<{ name: string; label?: string; labels?: { singular: string; plural: string } }>
   currentPath: string
+  extensionNavItems?: Array<{
+    label: string
+    href: string
+    section?: "main" | "bottom"
+    icon?: string
+  }>
 }
 
-const { collections = [], currentPath } = Astro.props
+const { collections = [], currentPath, extensionNavItems = [] } = Astro.props
+const mainExtensionNavItems = extensionNavItems.filter((item) => item.section !== "bottom")
+const bottomExtensionNavItems = extensionNavItems.filter((item) => item.section === "bottom")
 
 function isActive(href: string) {
   if (href === "/") return currentPath === "/"
@@ -16,7 +24,7 @@ function linkClass(href: string) {
   return [
     "sidebar-link flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm transition-colors",
     active
-      ? "bg-[rgba(255,255,255,0.08)] text-[#fafafa] font-medium"
+      ? "bg-[rgba(201,149,107,0.1)] text-[#c9956b] font-medium"
       : "text-[#71717a] hover:text-[#a1a1aa] hover:bg-[rgba(255,255,255,0.03)]",
   ].join(" ")
 }
@@ -45,7 +53,7 @@ function linkClass(href: string) {
 
   <!-- Search hint -->
   <div id="sidebar-search" class="px-3 py-2">
-    <div class="flex items-center gap-2 px-2 py-1.5 rounded-md bg-[rgba(255,255,255,0.05)] text-[#52525b] cursor-pointer hover:bg-[rgba(255,255,255,0.08)] transition-colors">
+    <div class="flex items-center gap-2 px-2 py-1.5 rounded-md bg-[rgba(255,255,255,0.03)] text-[#3f3f46]">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0">
         <circle cx="11" cy="11" r="8"/>
         <path d="m21 21-4.35-4.35"/>
@@ -92,6 +100,18 @@ function linkClass(href: string) {
       </svg>
       <span class="sidebar-text truncate">Media</span>
     </a>
+
+    {mainExtensionNavItems.map((item) => (
+      <a href={item.href} class={linkClass(item.href)}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sidebar-icon flex-shrink-0" aria-hidden="true">
+          <path d="M12 2v20"/>
+          <path d="M2 12h20"/>
+          <path d="m4.93 4.93 14.14 14.14"/>
+          <path d="m19.07 4.93-14.14 14.14"/>
+        </svg>
+        <span class="sidebar-text truncate">{item.label}</span>
+      </a>
+    ))}
   </nav>
 
   <!-- Bottom nav -->
@@ -121,6 +141,18 @@ function linkClass(href: string) {
       </svg>
       <span class="sidebar-text truncate">Settings</span>
     </a>
+
+    {bottomExtensionNavItems.map((item) => (
+      <a href={item.href} class={linkClass(item.href)}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sidebar-icon flex-shrink-0" aria-hidden="true">
+          <path d="M12 2v20"/>
+          <path d="M2 12h20"/>
+          <path d="m4.93 4.93 14.14 14.14"/>
+          <path d="m19.07 4.93-14.14 14.14"/>
+        </svg>
+        <span class="sidebar-text truncate">{item.label}</span>
+      </a>
+    ))}
   </div>
 </aside>
 
@@ -134,12 +166,12 @@ function linkClass(href: string) {
 
   function collapse() {
     document.documentElement.classList.add('sidebar-collapsed')
-    localStorage.setItem('nacms-sidebar-collapsed', 'true')
+    window.localStorage.setItem('nacms-sidebar-collapsed', 'true')
   }
 
   function expand() {
     document.documentElement.classList.remove('sidebar-collapsed')
-    localStorage.setItem('nacms-sidebar-collapsed', 'false')
+    window.localStorage.setItem('nacms-sidebar-collapsed', 'false')
   }
 
   toggle.addEventListener('click', () => {

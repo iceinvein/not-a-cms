@@ -11,6 +11,17 @@
     "sourceMap": true,
     "outDir": "dist",
     "rootDir": "src",
-    "types": ["bun-types"]
-  }
+    "types": ["bun"]
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "packages/*/dist",
+    "packages/*/.astro",
+    "packages/*/.turbo",
+    "packages/*/test",
+    "tests",
+    "dogfood-output",
+    "uploads"
+  ]
 }

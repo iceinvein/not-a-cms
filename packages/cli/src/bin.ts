@@ -8,5 +8,6 @@ import "./commands/generate"
 import "./commands/migrate"
 import "./commands/build"
 import "./commands/import"
+import "./commands/export"
 
 runCLI(Bun.argv)

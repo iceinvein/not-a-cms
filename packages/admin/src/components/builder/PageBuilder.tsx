@@ -26,6 +26,7 @@ import { ComponentConfigurator } from "./ComponentConfigurator"
 import { SectionManager } from "./SectionManager"
 import { CanvasRenderer } from "./CanvasRenderer"
 import { BreakpointSwitcher } from "./BreakpointSwitcher"
+import { adminApiFetch } from "../../lib/api"
 
 type PageBuilderProps = {
   initialLayout: PageLayout | undefined
@@ -68,7 +69,7 @@ export function PageBuilder({ initialLayout, onChange, apiBase }: PageBuilderPro
   // Load component definitions
   useEffect(() => {
     setComponentDefsLoading(true)
-    fetch(`${apiBase}/api/_components`)
+    adminApiFetch(apiBase, "/api/_components")
       .then((res) => res.json())
       .then((list: ComponentDef[]) => {
         const map = new Map<string, ComponentDef>()
@@ -248,7 +249,7 @@ export function PageBuilder({ initialLayout, onChange, apiBase }: PageBuilderPro
       const name = activeDragId.replace("palette-", "")
       const def = componentDefs.get(name)
       return (
-        <div className="px-3 py-2 bg-blue-100 border border-blue-300 rounded-lg text-sm shadow-lg">
+        <div className="px-3 py-2 bg-[#27272a] border border-[rgba(255,255,255,0.1)] rounded-lg text-sm text-[#fafafa] shadow-lg">
           {def?.label ?? name}
         </div>
       )
@@ -257,7 +258,7 @@ export function PageBuilder({ initialLayout, onChange, apiBase }: PageBuilderPro
     if (comp) {
       const def = componentDefs.get(comp.component)
       return (
-        <div className="px-3 py-2 bg-white border-2 border-blue-400 rounded-lg text-sm shadow-lg">
+        <div className="px-3 py-2 bg-[#18181b] border-2 border-[rgba(255,255,255,0.15)] rounded-lg text-sm text-[#fafafa] shadow-lg">
           {def?.label ?? comp.component}
         </div>
       )
@@ -292,7 +293,7 @@ export function PageBuilder({ initialLayout, onChange, apiBase }: PageBuilderPro
 
         {/* Center: Canvas */}
         <div className="flex-1 overflow-y-auto">
-          <div className="sticky top-0 z-20 bg-gray-50/80 backdrop-blur-sm border-b border-gray-200 py-2 flex justify-center mb-4">
+          <div className="sticky top-0 z-20 bg-[#0a0a0c]/80 backdrop-blur-sm border-b border-[rgba(255,255,255,0.06)] py-2 flex justify-center mb-4">
             <BreakpointSwitcher active={activeBreakpoint} onChange={setActiveBreakpoint} />
           </div>
           {activeSection ? (
@@ -303,7 +304,7 @@ export function PageBuilder({ initialLayout, onChange, apiBase }: PageBuilderPro
                 transition: "max-width 0.3s ease",
               }}
             >
-              <div className="text-xs text-gray-400 mb-2 px-1">
+              <div className="text-xs text-[#52525b] mb-2 px-1">
                 {activeSection.label || "Untitled section"} — {activeSection.children.length} component{activeSection.children.length !== 1 ? "s" : ""}
               </div>
               <CanvasRenderer
@@ -316,7 +317,7 @@ export function PageBuilder({ initialLayout, onChange, apiBase }: PageBuilderPro
               />
             </div>
           ) : (
-            <div className="flex items-center justify-center h-full text-sm text-gray-400">
+            <div className="flex items-center justify-center h-full text-sm text-[#52525b]">
               Select or create a section to start building
             </div>
           )}
@@ -325,7 +326,7 @@ export function PageBuilder({ initialLayout, onChange, apiBase }: PageBuilderPro
         {/* Right sidebar: Configurator */}
         <div className="w-64 shrink-0 overflow-y-auto">
           {selectedComponent && selectedDef ? (
-            <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <div className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] p-4">
               <ComponentConfigurator
                 component={selectedComponent}
                 definition={selectedDef}
@@ -335,7 +336,7 @@ export function PageBuilder({ initialLayout, onChange, apiBase }: PageBuilderPro
               />
             </div>
           ) : (
-            <div className="text-sm text-gray-400 p-4">
+            <div className="text-sm text-[#52525b] p-4">
               Select a component to edit its properties
             </div>
           )}

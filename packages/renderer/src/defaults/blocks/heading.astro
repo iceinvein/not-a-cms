@@ -3,7 +3,6 @@ import { renderTextChildren } from "../../runtime/block-renderer"
 const { block } = Astro.props
 const level = block.level || 1
 const html = renderTextChildren(block.children || [])
-const Tag = `h${level}`
 ---
 {level === 1 && <h1 class="text-3xl font-bold mt-8 mb-4" set:html={html} />}
 {level === 2 && <h2 class="text-2xl font-bold mt-6 mb-3" set:html={html} />}

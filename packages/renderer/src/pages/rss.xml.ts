@@ -1,10 +1,28 @@
-import { renderRSSFeed, portableTextToHtml } from "../runtime/channel"
+import {
+  buildChannelItemLink,
+  parseChannelConfig,
+  renderRSSFeed,
+  resolveChannelConfig,
+  portableTextToHtml,
+} from "../runtime/channel"
 import { createContentFetcher } from "../runtime/content-fetcher"
 import type { APIRoute } from "astro"
 
 export const GET: APIRoute = async () => {
   const apiBase = import.meta.env.PUBLIC_API_BASE || "http://localhost:4321"
-  const siteUrl = import.meta.env.SITE || "http://localhost:3000"
+  const configured = parseChannelConfig(import.meta.env.NOT_A_CMS_CHANNEL_CONFIG)
+  const siteUrl = import.meta.env.SITE || import.meta.env.PUBLIC_SITE_BASE || configured.site?.url || "http://localhost:3000"
+  const settings = await fetchChannelSettings(apiBase)
+  const channelConfig = resolveChannelConfig(
+    {
+      ...configured,
+      site: {
+        ...configured.site,
+        url: siteUrl,
+      },
+    },
+    settings,
+  )
   const fetcher = createContentFetcher({ apiBase })
 
   let items: Array<{
@@ -16,7 +34,7 @@ export const GET: APIRoute = async () => {
   }> = []
 
   try {
-    const posts = await fetcher.list("blog_post", { limit: 50 })
+    const posts = await fetcher.list(channelConfig.rss.collection, { limit: 50 })
     const published = posts.filter((p) => p.status === "published")
 
     items = published.map((post) => {
@@ -31,12 +49,16 @@ export const GET: APIRoute = async () => {
       }
 
       const slug = post.slug || post.id
+      const link = buildChannelItemLink(channelConfig.siteUrl, channelConfig.rss.itemPath, {
+        id: String(post.id),
+        slug: String(slug),
+      })
       return {
         title: String(post.title || "Untitled"),
-        link: `${siteUrl}/${slug}`,
+        link,
         description,
         pubDate: new Date(String(post.published_at || post.created_at || "")).toUTCString(),
-        guid: `${siteUrl}/${slug}`,
+        guid: link,
       }
     })
   } catch {
@@ -45,9 +67,10 @@ export const GET: APIRoute = async () => {
 
   const xml = renderRSSFeed(
     {
-      title: "not-a-cms",
-      description: "A site powered by not-a-cms",
-      siteUrl,
+      title: channelConfig.rss.title,
+      description: channelConfig.rss.description,
+      language: channelConfig.rss.language,
+      siteUrl: channelConfig.siteUrl,
     },
     items,
   )
@@ -56,4 +79,15 @@ export const GET: APIRoute = async () => {
     status: 200,
     headers: { "Content-Type": "application/xml; charset=utf-8" },
   })
+}
+
+async function fetchChannelSettings(apiBase: string): Promise<Record<string, string>> {
+  try {
+    const res = await fetch(`${apiBase}/api/_channel-settings`)
+    if (!res.ok) return {}
+    const body = await res.json()
+    return body.data && typeof body.data === "object" ? body.data : {}
+  } catch {
+    return {}
+  }
 }

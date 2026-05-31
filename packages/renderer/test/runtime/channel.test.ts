@@ -1,5 +1,11 @@
 import { test, expect, describe } from "bun:test"
-import { renderRSSFeed, portableTextToHtml, renderJSONChannel } from "../../src/runtime/channel"
+import {
+  buildChannelItemLink,
+  renderRSSFeed,
+  resolveChannelConfig,
+  portableTextToHtml,
+  renderJSONChannel,
+} from "../../src/runtime/channel"
 
 describe("renderRSSFeed", () => {
   test("generates valid RSS XML", () => {
@@ -35,6 +41,43 @@ describe("renderRSSFeed", () => {
       [],
     )
     expect(xml).toContain("<language>en</language>")
+  })
+
+  test("resolves RSS config from defaults and persisted channel settings", () => {
+    const config = resolveChannelConfig(
+      {
+        site: { name: "Config Site", url: "https://config.example" },
+        channels: {
+          rss: {
+            title: "Configured RSS",
+            description: "Configured feed",
+            language: "en-AU",
+            collection: "article",
+            itemPath: "/articles/:slug",
+          },
+        },
+      },
+      {
+        "channel.rss.title": "Saved RSS",
+        "channel.rss.description": "Saved feed",
+      },
+    )
+
+    expect(config.rss).toEqual({
+      title: "Saved RSS",
+      description: "Saved feed",
+      language: "en-AU",
+      collection: "article",
+      itemPath: "/articles/:slug",
+    })
+    expect(config.siteUrl).toBe("https://config.example")
+  })
+
+  test("builds item links from channel route templates", () => {
+    expect(buildChannelItemLink("https://example.com", "/blog/:slug", { slug: "first-post", id: "1" })).toBe(
+      "https://example.com/blog/first-post",
+    )
+    expect(buildChannelItemLink("https://example.com/", "news/:id", { id: "abc" })).toBe("https://example.com/news/abc")
   })
 })
 
@@ -75,6 +118,11 @@ describe("portableTextToHtml", () => {
 
   test("converts divider", () => {
     expect(portableTextToHtml([{ type: "divider" }])).toBe("<hr />")
+  })
+
+  test("replaces unsafe image URLs", () => {
+    const html = portableTextToHtml([{ type: "image", src: "javascript:alert(1)", alt: "x" }])
+    expect(html).toBe('<img src="#" alt="x" />')
   })
 })
 

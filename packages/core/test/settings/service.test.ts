@@ -58,4 +58,41 @@ describe("createSettingsService", () => {
     settings.remove("theme.color")
     expect(settings.get("theme.color")).toBeNull()
   })
+
+  test("collection settings round-trip structured values", () => {
+    const saved = settings.setCollectionSettings("blog_post", {
+      labels: { singular: "Article", plural: "Articles" },
+      access: { read: ["viewer"], create: ["editor"], update: ["editor"], delete: ["admin"] },
+      previewPath: "/blog/:slug",
+      searchFields: ["title", "excerpt"],
+      editorLayout: "sidebar",
+    })
+
+    expect(saved).toEqual({
+      labels: { singular: "Article", plural: "Articles" },
+      access: { read: ["viewer"], create: ["editor"], update: ["editor"], delete: ["admin"] },
+      previewPath: "/blog/:slug",
+      searchFields: ["title", "excerpt"],
+      editorLayout: "sidebar",
+    })
+    expect(settings.getCollectionSettings("blog_post")).toEqual(saved)
+  })
+
+  test("collection settings ignore unknown keys and normalize arrays", () => {
+    const saved = settings.setCollectionSettings("page", {
+      labels: { singular: "Page" },
+      access: { read: ["viewer", "viewer"], update: "editor" as unknown as string[] },
+      previewPath: "pages/:slug",
+      searchFields: ["title", "title", ""],
+      editorLayout: "",
+      extra: true,
+    } as any)
+
+    expect(saved).toEqual({
+      labels: { singular: "Page" },
+      access: { read: ["viewer"], update: [] },
+      previewPath: "/pages/:slug",
+      searchFields: ["title"],
+    })
+  })
 })

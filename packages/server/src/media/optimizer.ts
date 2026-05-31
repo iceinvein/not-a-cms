@@ -1,6 +1,6 @@
 import sharp from "sharp"
 import { join } from "node:path"
-import { mkdirSync } from "node:fs"
+import { existsSync, mkdirSync, statSync } from "node:fs"
 
 const RESPONSIVE_WIDTHS = [640, 768, 1024, 1280, 1536]
 const OUTPUT_FORMATS = ["webp", "avif"] as const
@@ -19,6 +19,8 @@ type ProcessResult = {
   blurDataURL: string
   variants: ImageVariant[]
 }
+
+type VariantFormat = typeof OUTPUT_FORMATS[number]
 
 export function createImageOptimizer(outputDir: string) {
   mkdirSync(outputDir, { recursive: true })
@@ -76,8 +78,43 @@ export function createImageOptimizer(outputDir: string) {
     return { width: origWidth, height: origHeight, blurDataURL, variants }
   }
 
-  return { processImage }
+  async function getOrCreateVariant(inputPath: string, id: string, options: { width: number; format: VariantFormat }): Promise<ImageVariant> {
+    const variantDir = join(outputDir, id)
+    mkdirSync(variantDir, { recursive: true })
+    const outputPath = join(variantDir, `${options.width}.${options.format}`)
+    if (existsSync(outputPath)) {
+      const metadata = await sharp(outputPath).metadata()
+      return {
+        width: metadata.width ?? options.width,
+        height: metadata.height ?? 0,
+        format: options.format,
+        path: outputPath,
+        size: statSync(outputPath).size,
+      }
+    }
+
+    const metadata = await sharp(inputPath).metadata()
+    const origWidth = metadata.width ?? 0
+    const origHeight = metadata.height ?? 0
+    if (origWidth <= 0 || origHeight <= 0) throw new Error("Cannot create image variant without dimensions")
+    const width = Math.min(options.width, origWidth)
+    const height = Math.round((width / origWidth) * origHeight)
+    const pipeline = sharp(inputPath).resize(width, height, { fit: "inside", withoutEnlargement: true })
+    const result = options.format === "webp"
+      ? await pipeline.webp({ quality: 80 }).toFile(outputPath)
+      : await pipeline.avif({ quality: 65 }).toFile(outputPath)
+
+    return {
+      width: result.width,
+      height: result.height,
+      format: options.format,
+      path: outputPath,
+      size: result.size,
+    }
+  }
+
+  return { processImage, getOrCreateVariant }
 }
 
 export type ImageOptimizer = ReturnType<typeof createImageOptimizer>
-export type { ProcessResult, ImageVariant }
+export type { ProcessResult, ImageVariant, VariantFormat }

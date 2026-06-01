@@ -12,6 +12,7 @@
   ],
   "exports": {
     ".": "./src/index.ts",
+    "./web": "./src/runtime/portable-text-html.ts",
     "./astro.config": "./astro.config.ts",
     "./astro.config.ts": "./astro.config.ts",
     "./package.json": "./package.json"

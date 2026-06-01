@@ -3,6 +3,7 @@ import type { Horizon, HorizonItem } from "@not-a-cms/core"
 import { EmptyState, ErrorState, LoadingState } from "../AdminState"
 import { Icon, type IconName } from "../ui/Icon"
 import { adminApiFetch, messageForAdminResponse } from "../../lib/api"
+import { toLiveRows, type LiveRow, type PresenceRoomView } from "../../lib/desk/live"
 import { toNeedsYouItems, type NeedsYouItem } from "../../lib/desk/needs-you"
 
 type Metrics = {
@@ -22,6 +23,7 @@ type Props = {
   userName?: string
   initialHorizon?: Horizon
   initialNeedsYou?: NeedsYouItem[]
+  initialLive?: LiveRow[]
 }
 
 const EMPTY_HORIZON: Horizon = { now: [], today: [], week: [], later: [] }
@@ -33,9 +35,10 @@ const LANES: Array<{ key: keyof Horizon; label: string; empty: string }> = [
   { key: "later", label: "Later", empty: "No future releases." },
 ]
 
-export function Desk({ apiBase = "", userName, initialHorizon, initialNeedsYou }: Props) {
+export function Desk({ apiBase = "", userName, initialHorizon, initialNeedsYou, initialLive }: Props) {
   const [horizon, setHorizon] = useState<Horizon | null>(initialHorizon ?? null)
   const [needsYou, setNeedsYou] = useState<NeedsYouItem[] | null>(initialNeedsYou ?? null)
+  const [live, setLive] = useState<LiveRow[]>(initialLive ?? [])
   const [loading, setLoading] = useState(!initialHorizon || !initialNeedsYou)
   const [error, setError] = useState("")
 
@@ -66,6 +69,29 @@ export function Desk({ apiBase = "", userName, initialHorizon, initialNeedsYou }
     if (initialHorizon && initialNeedsYou) return
     fetchDesk()
   }, [apiBase])
+
+  useEffect(() => {
+    if (initialLive) return
+    let cancelled = false
+
+    async function fetchPresence() {
+      if (typeof document !== "undefined" && document.hidden) return
+      try {
+        const res = await adminApiFetch(apiBase, "/api/_presence")
+        const body = await readJson<{ rooms: PresenceRoomView[] }>(res, "Failed to load live presence")
+        if (!cancelled) setLive(toLiveRows(body.rooms ?? []))
+      } catch {
+        if (!cancelled) setLive([])
+      }
+    }
+
+    fetchPresence()
+    const interval = window.setInterval(fetchPresence, 8_000)
+    return () => {
+      cancelled = true
+      window.clearInterval(interval)
+    }
+  }, [apiBase, initialLive])
 
   const activeHorizon = horizon ?? EMPTY_HORIZON
   const activeNeedsYou = needsYou ?? []
@@ -114,7 +140,7 @@ export function Desk({ apiBase = "", userName, initialHorizon, initialNeedsYou }
         <HorizonBand horizon={activeHorizon} />
         <aside className="desk-side">
           <NeedsYou items={activeNeedsYou} />
-          <LiveNowStub />
+          <LiveNow rows={live} />
         </aside>
       </section>
     </div>
@@ -203,7 +229,7 @@ function NeedRow({ item }: { item: NeedsYouItem }) {
   )
 }
 
-function LiveNowStub() {
+function LiveNow({ rows }: { rows: LiveRow[] }) {
   return (
     <section className="desk-panel desk-live" aria-labelledby="desk-live-title">
       <div className="desk-panel-head">
@@ -213,8 +239,38 @@ function LiveNowStub() {
         </div>
         <Icon name="radio" size={18} className="desk-head-icon" />
       </div>
-      <p className="desk-empty-line">Live presence is coming.</p>
+      {rows.length === 0 ? (
+        <p className="desk-empty-line">No one else is editing right now.</p>
+      ) : (
+        <div className="desk-need-list">
+          {rows.map((row) => (
+            <LiveRowLink key={`${row.collection}:${row.documentId}:${row.name}`} row={row} />
+          ))}
+        </div>
+      )}
     </section>
+  )
+}
+
+function LiveRowLink({ row }: { row: LiveRow }) {
+  return (
+    <a className="desk-need-row" href={row.href}>
+      <span
+        aria-hidden="true"
+        style={{
+          background: row.color,
+          borderRadius: "999px",
+          flex: "none",
+          height: 10,
+          width: 10,
+        }}
+      />
+      <span className="desk-need-copy">
+        <strong>{row.name} editing</strong>
+        <small>{row.title}</small>
+      </span>
+      <span className="desk-action">{row.collection}</span>
+    </a>
   )
 }
 

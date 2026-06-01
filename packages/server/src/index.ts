@@ -7,6 +7,7 @@ import {
   bootstrapTables,
   createVersioningService,
   createSearchService,
+  createEmbeddingStore,
   createScheduler,
   createWebhookStore,
   createWebhookService,
@@ -20,6 +21,7 @@ import {
   createFlowStore,
   createFlowEngine,
   createAutomationCron,
+  type AskConfig,
   type CollectionDef,
   type CollectionSettings,
   type InviteRecord,
@@ -80,6 +82,7 @@ export type ServerConfig = {
     enabled: boolean
     getMagicLink: (email: string) => string | null
   }
+  ai?: AskConfig
 }
 
 type CollectionRegistryEntry = {
@@ -94,6 +97,7 @@ export type CreatedServer = {
   collections: Map<string, CollectionRegistryEntry>
   versioning: ReturnType<typeof createVersioningService>
   search: ReturnType<typeof createSearchService>
+  embeddings?: ReturnType<typeof createEmbeddingStore>
   trpcRouter: ReturnType<typeof appRouter>
   webhookStore: ReturnType<typeof createWebhookStore>
   webhookService: ReturnType<typeof createWebhookService>
@@ -120,6 +124,8 @@ export function createServer(config: ServerConfig): CreatedServer {
 
   const versioning = createVersioningService(db)
   const search = createSearchService(db)
+  const askProvider = config.ai?.provider
+  const embeddings = askProvider ? createEmbeddingStore(db) : undefined
   const webhookStore = createWebhookStore(db)
   const webhookService = createWebhookService(webhookStore)
   const settingsService = createSettingsService(db)
@@ -153,6 +159,20 @@ export function createServer(config: ServerConfig): CreatedServer {
   for (const def of config.collections) {
     const effectiveDef = applyCollectionSettings(def, settingsService.getCollectionSettings(def.name))
     const table = generateTable(effectiveDef)
+    const embeddingHooks = askProvider && embeddings
+      ? {
+          index: async (collection: string, docId: string, title: string, bodyText: string) => {
+            const text = `${title}\n${bodyText}`.trim()
+            if (!text) return
+            const [vector] = await askProvider.embed([text])
+            if (!vector) return
+            embeddings.upsert(collection, docId, new Float32Array(vector), askProvider.model)
+          },
+          remove: (collection: string, docId: string) => {
+            embeddings.remove(collection, docId)
+          },
+        }
+      : undefined
     const service = createContentService(db, effectiveDef, table, versioning, search, {
       dispatch: (event, collection, doc) => {
         const matchingFlows = flowStore.getActiveFlowsByTrigger(event)
@@ -162,7 +182,7 @@ export function createServer(config: ServerConfig): CreatedServer {
           flowEngine.executeFlow(flow, { event, collection, document: doc }).catch(() => {})
         }
       },
-    })
+    }, embeddingHooks)
     collections.set(effectiveDef.name, { def: effectiveDef, table, service })
   }
 
@@ -219,6 +239,11 @@ export function createServer(config: ServerConfig): CreatedServer {
       },
     },
     webhookService,
+    ask: {
+      provider: askProvider,
+      embeddings,
+      topK: config.ai?.topK,
+    },
   })
   const schemaHandler = createSchemaHandler(collections, {
     getRole: async (req) => (await getSession(req))?.role ?? null,
@@ -624,7 +649,7 @@ export function createServer(config: ServerConfig): CreatedServer {
     console.log(`not-a-cms API server on http://localhost:${server.port}`)
   }
 
-  return { server, db, collections, versioning, search, trpcRouter, webhookStore, webhookService, previewTokenService, settingsService, roleService, auditLogStore, userRoleStore, inviteStore, componentRegistry, flowStore, flowEngine, scheduler }
+  return { server, db, collections, versioning, search, embeddings, trpcRouter, webhookStore, webhookService, previewTokenService, settingsService, roleService, auditLogStore, userRoleStore, inviteStore, componentRegistry, flowStore, flowEngine, scheduler }
 }
 
 // Re-exports for external consumers

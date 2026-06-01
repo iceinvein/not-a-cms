@@ -1,6 +1,7 @@
-import { QueryError, ValidationError, WorkflowError, canAccessCollection, compareVersionData, filterWritableFields, isWorkflowAction, populateDocuments, projectDocumentFields } from "@not-a-cms/core"
-import type { AuditEventInput, CollectionDef, VersioningService, WebhookStore, WebhookService, SettingsService } from "@not-a-cms/core"
+import { QueryError, ValidationError, WorkflowError, canAccessCollection, compareVersionData, extractTextFromPortableText, filterWritableFields, isWorkflowAction, populateDocuments, projectDocumentFields } from "@not-a-cms/core"
+import type { AskProvider, AuditEventInput, CollectionDef, EmbeddingStore, VersioningService, WebhookStore, WebhookService, SettingsService } from "@not-a-cms/core"
 import type { createContentService } from "@not-a-cms/core"
+import { runAsk } from "../ask/handler"
 
 export type CollectionEntry = {
   def: CollectionDef
@@ -24,6 +25,11 @@ type RestHandlerOptions = {
     get: (id: string) => Record<string, unknown> | null | Promise<Record<string, unknown> | null>
   }
   webhookService?: WebhookService
+  ask?: {
+    provider?: AskProvider
+    embeddings?: EmbeddingStore
+    topK?: number
+  }
 }
 
 function json(data: unknown, status = 200) {
@@ -176,6 +182,41 @@ export function createRestHandler(
         return json({ deleted: true })
       }
       return json({ error: "Method not allowed" }, 405)
+    }
+
+    // Natural-language Ask: /api/_ask?q=...
+    if (collectionName === "_ask") {
+      const unauthorized = await requireAuthorized(req)
+      if (unauthorized) return unauthorized
+      if (method !== "GET") return json({ error: "Method not allowed" }, 405)
+
+      const q = url.searchParams.get("q") ?? ""
+      const scopedCollection = url.searchParams.get("collection") ?? undefined
+      if (scopedCollection && !collections.has(scopedCollection)) {
+        return json({ error: `Collection '${scopedCollection}' not found` }, 404)
+      }
+
+      const role = await getRole(req)
+      const result = await runAsk({
+        q,
+        provider: options.ask?.provider,
+        embeddings: options.ask?.embeddings,
+        topK: options.ask?.topK,
+        collection: scopedCollection,
+        fts: (term, collection) => search?.query(term, collection) ?? [],
+        resolve: async (collection, documentId) => {
+          const entry = collections.get(collection)
+          if (!entry || !canAccessCollection(entry.def, role, "read")) return null
+          const doc = await entry.service.findById(documentId)
+          if (!doc) return null
+          return {
+            title: docTitle(doc),
+            text: docText(entry.def, doc),
+            href: `/content/${collection}/${documentId}`,
+          }
+        },
+      })
+      return json(result)
     }
 
     const entry = collections.get(collectionName)
@@ -640,6 +681,21 @@ function normalizeIsoDate(value: unknown): string | null {
 function normalizeIdList(value: unknown): string[] {
   if (!Array.isArray(value)) return []
   return Array.from(new Set(value.filter((id): id is string => typeof id === "string" && id.trim() !== "").map((id) => id.trim())))
+}
+
+function docTitle(doc: Record<string, unknown>): string {
+  return String(doc.title || doc.name || doc.slug || doc.id || "Untitled")
+}
+
+function docText(collection: CollectionDef, doc: Record<string, unknown>): string {
+  const parts: string[] = []
+  for (const [name, field] of Object.entries(collection.fields)) {
+    const value = doc[name]
+    if (!value) continue
+    if (field.type === "text") parts.push(String(value))
+    if (field.type === "richText") parts.push(extractTextFromPortableText(value))
+  }
+  return parts.filter(Boolean).join("\n")
 }
 
 function workflowSummary(collection: string, action: string): string {

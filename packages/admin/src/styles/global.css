@@ -333,20 +333,37 @@ a.crumb:hover {
   color: var(--text-primary);
 }
 
-.cmd-soon {
-  padding: 0 4px;
-  border: 1px solid var(--border-default);
-  border-radius: 4px;
-  color: var(--text-subtle);
-  font-size: 9px;
-}
-
 .cmd-results {
   max-height: 50vh;
   margin: 0;
   padding: 8px;
   overflow-y: auto;
   list-style: none;
+}
+
+.cmd-answer {
+  margin: 8px 12px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--accent-muted);
+  border-radius: 8px;
+  background: rgba(201, 149, 107, 0.08);
+}
+
+.cmd-answer-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--accent-hover);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cmd-answer p {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .cmd-empty {

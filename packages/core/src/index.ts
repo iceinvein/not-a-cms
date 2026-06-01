@@ -92,6 +92,11 @@ export { compareVersionData, createVersioningService, type VersionChange, type V
 
 // Search
 export { createSearchService, extractTextFromPortableText, type SearchService, type SearchResult } from "./content/search"
+export { createEmbeddingStore, type EmbeddingHit, type EmbeddingStore } from "./content/embeddings"
+export { cosine } from "./ai/cosine"
+export { createOpenAIAskProvider } from "./ai/providers/openai"
+export { createAnthropicAskProvider } from "./ai/providers/anthropic"
+export type { AskConfig, AskContext, AskProvider } from "./ai/provider"
 
 // Scheduler
 export { createScheduler, type Scheduler } from "./content/scheduler"

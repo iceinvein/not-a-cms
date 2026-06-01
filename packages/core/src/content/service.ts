@@ -37,6 +37,11 @@ type WriteOpts = {
   suppressAutomations?: boolean
 }
 
+type ContentEmbeddingHooks = {
+  index: (collection: string, docId: string, title: string, bodyText: string) => void | Promise<void>
+  remove: (collection: string, docId: string) => void | Promise<void>
+}
+
 export class QueryError extends Error {
   constructor(message: string) {
     super(message)
@@ -51,6 +56,7 @@ export function createContentService(
   versioning?: { createVersion: (collection: string, docId: string, data: Record<string, unknown>, action: "save" | "publish") => unknown },
   search?: { index: (collection: string, docId: string, title: string, bodyText: string) => void; remove: (collection: string, docId: string) => void },
   automations?: { dispatch: (event: string, collection: string, doc: Record<string, unknown>) => void },
+  embeddings?: ContentEmbeddingHooks,
 ) {
   const ctx: HookContext = { collection: collection.name, db }
 
@@ -73,10 +79,7 @@ export function createContentService(
       versioning.createVersion(collection.name, id, saved, "save")
     }
 
-    if (search) {
-      const { title, bodyText } = extractIndexableText(saved)
-      search.index(collection.name, id, title, bodyText)
-    }
+    indexDocument(id, saved)
 
     if (!opts.suppressAutomations) {
       automations?.dispatch("content.created", collection.name, saved)
@@ -162,10 +165,7 @@ export function createContentService(
       versioning.createVersion(collection.name, id, updated, action as "save" | "publish")
     }
 
-    if (search) {
-      const { title, bodyText } = extractIndexableText(updated)
-      search.index(collection.name, id, title, bodyText)
-    }
+    indexDocument(id, updated)
 
     const isNowPublished = updated.status === "published"
     if (opts.suppressAutomations) {
@@ -249,6 +249,7 @@ export function createContentService(
     if (search) {
       search.remove(collection.name, id)
     }
+    removeEmbedding(id)
     db.delete(table).where(eq(table.id, id)).run()
     await runHook("afterDelete", collection.hooks, existing, ctx)
 
@@ -278,6 +279,30 @@ export function createContentService(
       if (fieldDef.type === "richText" && doc[name]) richParts.push(extractTextFromPortableText(doc[name]))
     }
     return { title: textParts.join(" "), bodyText: richParts.join(" ") }
+  }
+
+  function indexDocument(docId: string, doc: Record<string, unknown>) {
+    const { title, bodyText } = extractIndexableText(doc)
+    search?.index(collection.name, docId, title, bodyText)
+    indexEmbedding(docId, title, bodyText)
+  }
+
+  function indexEmbedding(docId: string, title: string, bodyText: string) {
+    if (!embeddings) return
+    try {
+      Promise.resolve(embeddings.index(collection.name, docId, title, bodyText)).catch(() => {})
+    } catch {
+      // Embedding providers are optional integrations and must not fail content writes.
+    }
+  }
+
+  function removeEmbedding(docId: string) {
+    if (!embeddings) return
+    try {
+      Promise.resolve(embeddings.remove(collection.name, docId)).catch(() => {})
+    } catch {
+      // Embedding providers are optional integrations and must not fail content writes.
+    }
   }
 
   function normalizeDocument(doc: Record<string, unknown>): Record<string, unknown> {

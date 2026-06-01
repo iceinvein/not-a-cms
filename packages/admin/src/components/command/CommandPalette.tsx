@@ -9,6 +9,7 @@ import {
   type CommandScope,
 } from "../../lib/command/commands"
 import { searchContent, type ContentHit } from "../../lib/command/content-search"
+import { askContent } from "../../lib/command/ask-search"
 
 type CollectionLike = {
   name: string
@@ -38,6 +39,7 @@ export function CommandPalette({ apiBase, siteBase, collections, pathname, defau
   const [scope, setScope] = useState<CommandScope>("jump")
   const [active, setActive] = useState(0)
   const [hits, setHits] = useState<ContentHit[]>([])
+  const [askAnswer, setAskAnswer] = useState<string | undefined>()
   const inputRef = useRef<HTMLInputElement>(null)
 
   const context = useMemo(() => parseDocContext(pathname), [pathname])
@@ -57,13 +59,36 @@ export function CommandPalette({ apiBase, siteBase, collections, pathname, defau
     setQuery("")
     setScope(context.documentId ? "do" : "jump")
     setActive(0)
+    setHits([])
+    setAskAnswer(undefined)
     queueMicrotask(() => inputRef.current?.focus())
   }, [open, context.documentId])
 
   useEffect(() => {
     if (!open || (scope !== "find" && scope !== "ask")) return
     const handle = setTimeout(() => {
-      searchContent(apiBase, collections, query).then(setHits).catch(() => setHits([]))
+      if (scope === "ask") {
+        askContent(apiBase, query)
+          .then((result) => {
+            setHits(result.hits)
+            setAskAnswer(result.answer)
+          })
+          .catch(() => {
+            setHits([])
+            setAskAnswer(undefined)
+          })
+        return
+      }
+
+      searchContent(apiBase, collections, query)
+        .then((result) => {
+          setHits(result)
+          setAskAnswer(undefined)
+        })
+        .catch(() => {
+          setHits([])
+          setAskAnswer(undefined)
+        })
     }, 200)
     return () => clearTimeout(handle)
   }, [open, scope, query, apiBase, collections])
@@ -161,13 +186,20 @@ export function CommandPalette({ apiBase, siteBase, collections, pathname, defau
               onClick={() => {
                 setScope(s.key)
                 setActive(0)
+                setAskAnswer(undefined)
               }}
             >
               {s.label}
-              {s.key === "ask" && <span className="cmd-soon">full-text</span>}
             </button>
           ))}
         </div>
+
+        {scope === "ask" && askAnswer && (
+          <div className="cmd-answer">
+            <span className="cmd-answer-label">Answer</span>
+            <p>{askAnswer}</p>
+          </div>
+        )}
 
         <ul id="cmd-listbox" role="listbox" className="cmd-results">
           {rowCount === 0 && <li className="cmd-empty">No matches</li>}

@@ -119,6 +119,18 @@ function appendSystemMigrationSQL(parts: string[], db?: AppDatabase) {
   tokenize='porter unicode61'
 );`)
   }
+
+  if (!db || !tableExists(db, "content_embeddings")) {
+    parts.push(`CREATE TABLE IF NOT EXISTS content_embeddings (
+  collection TEXT NOT NULL,
+  document_id TEXT NOT NULL,
+  dim INTEGER NOT NULL,
+  vector BLOB NOT NULL,
+  model TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (collection, document_id)
+);`)
+  }
 }
 
 function getExistingTableColumns(db: AppDatabase, tableName: string): Set<string> | null {

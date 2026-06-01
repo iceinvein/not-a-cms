@@ -125,6 +125,16 @@ export function bootstrapTables(db: AppDatabase, collections: CollectionDef[]) {
     tokenize='porter unicode61'
   )`)}`)
 
+  db.run(sql`${sql.raw(`CREATE TABLE IF NOT EXISTS content_embeddings (
+    collection TEXT NOT NULL,
+    document_id TEXT NOT NULL,
+    dim INTEGER NOT NULL,
+    vector BLOB NOT NULL,
+    model TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY (collection, document_id)
+  )`)}`)
+
   db.run(sql`${sql.raw(`CREATE TABLE IF NOT EXISTS _webhooks (
     id TEXT PRIMARY KEY,
     url TEXT NOT NULL,

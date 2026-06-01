@@ -350,4 +350,49 @@ describe("createContentService", () => {
     await serviceWithAuto.transitionStatus(doc.id as string, "publish", "editor")
     expect(dispatched.some(d => d.event === "content.published")).toBe(true)
   })
+
+  test("embedding hooks receive extracted text on create and update, and remove on delete", async () => {
+    const indexed: Array<{ collection: string; docId: string; title: string; bodyText: string }> = []
+    const removed: Array<{ collection: string; docId: string }> = []
+    const serviceWithEmbeddings = createContentService(
+      db,
+      page,
+      generateTable(page),
+      undefined,
+      undefined,
+      undefined,
+      {
+        index: (collection, docId, title, bodyText) => {
+          indexed.push({ collection, docId, title, bodyText })
+        },
+        remove: (collection, docId) => {
+          removed.push({ collection, docId })
+        },
+      },
+    )
+
+    const created = await serviceWithEmbeddings.create({
+      title: "Embedding Title",
+      body: [{ type: "paragraph", children: [{ text: "Semantic body" }] }],
+    })
+    await serviceWithEmbeddings.update(created.id as string, {
+      body: [{ type: "paragraph", children: [{ text: "Updated semantic body" }] }],
+    })
+    await serviceWithEmbeddings.remove(created.id as string)
+
+    expect(indexed).toHaveLength(2)
+    expect(indexed[0]).toMatchObject({
+      collection: "page",
+      docId: created.id,
+      title: "Embedding Title",
+      bodyText: "Semantic body",
+    })
+    expect(indexed[1]).toMatchObject({
+      collection: "page",
+      docId: created.id,
+      title: "Embedding Title",
+      bodyText: "Updated semantic body",
+    })
+    expect(removed).toEqual([{ collection: "page", docId: created.id }])
+  })
 })

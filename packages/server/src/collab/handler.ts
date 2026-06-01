@@ -1,5 +1,5 @@
 import * as Y from "yjs"
-import { PresenceRegistry, type PresenceMessage } from "./presence"
+import { PresenceRegistry, type PresenceMessage, type PresenceUser } from "./presence"
 
 const docs = new Map<string, Y.Doc>()
 const presence = new PresenceRegistry()
@@ -14,6 +14,7 @@ export function getOrCreateDoc(docName: string): Y.Doc {
 export type CollabWSData = {
   docName: string
   clientId?: string
+  user?: PresenceUser
 }
 
 export function presenceSnapshot() {
@@ -35,6 +36,7 @@ export const collabWebSocket = {
     if (typeof message === "string" && isPresenceMessage(message)) {
       const msg = JSON.parse(message) as PresenceMessage
       data.clientId = msg.clientId
+      data.user = msg.user
       presence.applyPresence(docName, msg)
       ws.publish(docName, message)
       return
@@ -58,7 +60,18 @@ export const collabWebSocket = {
 
   close(ws: any) {
     const data = ws.data as CollabWSData
-    if (data.clientId) presence.leave(data.docName, data.clientId)
+    if (data.clientId) {
+      presence.leave(data.docName, data.clientId)
+      if (data.user) {
+        const message: PresenceMessage = {
+          type: "presence",
+          clientId: data.clientId,
+          user: data.user,
+          status: "offline",
+        }
+        ws.publish(data.docName, JSON.stringify(message))
+      }
+    }
     ws.unsubscribe(data.docName)
   },
 }

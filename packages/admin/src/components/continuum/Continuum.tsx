@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react"
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react"
 import { ErrorBoundary } from "../ErrorBoundary"
 import { ToastProvider, useToast } from "../Toast"
 import { portableTextValue } from "../ContentEditor"
@@ -31,6 +31,14 @@ function titleFieldName(fields: Record<string, AdminFieldDef>): string {
   if (fields.title) return "title"
   const entry = Object.entries(fields).find(([, def]) => def.type === "text" || def.type === "slug")
   return entry?.[0] ?? "title"
+}
+
+export function shouldEnableContinuumCollaboration(input: {
+  documentId?: string
+  initialBlockCount: number | null
+  currentBlockCount: number
+}): boolean {
+  return Boolean(input.documentId) && input.initialBlockCount === 0
 }
 
 function workflowToast(action: WorkflowAction): string {
@@ -68,14 +76,36 @@ function ContinuumInner({
   const bodyField = richTextFieldName(fields)
   const parsedBodyBlocks = bodyField ? portableTextValue(data[bodyField]) ?? [] : []
   const [bodyBlocks, setBodyBlocks] = useState<any[]>(parsedBodyBlocks)
+  const collaborationBaseline = useRef<{ key: string; blockCount: number } | null>(null)
+  const collaborationKey = `${documentId ?? "new"}:${bodyField ?? ""}`
 
   useEffect(() => {
     const next = bodyField ? portableTextValue(data[bodyField]) ?? [] : []
     setBodyBlocks((current) => (JSON.stringify(current) === JSON.stringify(next) ? current : next))
   }, [bodyField, data])
 
+  useEffect(() => {
+    if (loading || !bodyField) return
+    if (collaborationBaseline.current?.key !== collaborationKey) {
+      collaborationBaseline.current = { key: collaborationKey, blockCount: parsedBodyBlocks.length }
+    }
+  }, [loading, bodyField, collaborationKey, parsedBodyBlocks.length])
+
+  const initialCollaborationBlockCount = collaborationBaseline.current?.key === collaborationKey
+    ? collaborationBaseline.current.blockCount
+    : loading
+      ? null
+      : parsedBodyBlocks.length
+
   const collaboration = useMemo(() => {
     if (!bodyField) return null
+    if (!shouldEnableContinuumCollaboration({
+      documentId,
+      initialBlockCount: initialCollaborationBlockCount,
+      currentBlockCount: bodyBlocks.length,
+    })) {
+      return null
+    }
     const cfg = buildCollaborationConfig({
       apiBase,
       collection,
@@ -83,8 +113,8 @@ function ContinuumInner({
       fieldName: bodyField,
       user: collaborationUser,
     })
-    return bodyBlocks.length > 0 ? null : cfg
-  }, [apiBase, collection, documentId, bodyField, collaborationUser, bodyBlocks.length])
+    return cfg
+  }, [apiBase, collection, documentId, bodyField, collaborationUser, initialCollaborationBlockCount, bodyBlocks.length])
 
   const handleSave = async (action: WorkflowAction) => {
     try {

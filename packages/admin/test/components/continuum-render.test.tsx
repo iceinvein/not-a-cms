@@ -1,7 +1,7 @@
 import React from "react"
 import { describe, expect, test } from "bun:test"
 import { renderToString } from "react-dom/server"
-import { Continuum } from "../../src/components/continuum/Continuum"
+import { Continuum, shouldEnableContinuumCollaboration } from "../../src/components/continuum/Continuum"
 
 describe("Continuum", () => {
   test("renders the canvas chrome: title field, status bar, and mirror", () => {
@@ -30,5 +30,13 @@ describe("Continuum", () => {
       />,
     )
     expect(html).toContain("published")
+  })
+
+  test("keeps collaboration enabled after local edits when the saved body started empty", () => {
+    expect(shouldEnableContinuumCollaboration({
+      documentId: "doc-1",
+      initialBlockCount: 0,
+      currentBlockCount: 1,
+    })).toBe(true)
   })
 })

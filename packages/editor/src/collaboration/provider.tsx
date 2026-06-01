@@ -1,4 +1,4 @@
-import { useRef, useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import * as Y from "yjs"
 import Collaboration from "@tiptap/extension-collaboration"
 
@@ -258,14 +258,16 @@ function parseCursorMessage(data: string): CursorMessage | null {
 }
 
 export function useCollaboration(config?: CollabConfig | null) {
-  const providerRef = useRef<RawYjsWebSocketProvider | null>(null)
+  const [provider, setProvider] = useState<RawYjsWebSocketProvider | null>(null)
   const [users, setUsers] = useState<CollabPresenceUser[]>([])
+  const [cursors, setCursors] = useState<CursorState[]>([])
   const ydoc = useMemo(() => config ? new Y.Doc() : null, [config?.documentId])
 
   useEffect(() => {
     if (!config || !ydoc) {
       setUsers([])
-      providerRef.current = null
+      setCursors([])
+      setProvider(null)
       return
     }
 
@@ -276,13 +278,16 @@ export function useCollaboration(config?: CollabConfig | null) {
       {
         user: config.user,
         onPresenceChange: setUsers,
+        onCursorChange: setCursors,
       },
     )
-    providerRef.current = provider
+    setProvider(provider)
 
     return () => {
       provider.destroy()
-      providerRef.current = null
+      setProvider(null)
+      setUsers([])
+      setCursors([])
       ydoc.destroy()
     }
   }, [config?.serverUrl, config?.documentId, config?.user.name, config?.user.color, ydoc])
@@ -294,9 +299,10 @@ export function useCollaboration(config?: CollabConfig | null) {
 
   return {
     ydoc,
-    provider: providerRef.current,
+    provider,
     extensions,
     users,
+    cursors,
   }
 }
 

@@ -12,6 +12,13 @@ type CollabPresenceUser = {
   user: CollabUser
 }
 
+export type CursorState = {
+  clientId: string
+  user: CollabUser
+  anchor: number
+  head: number
+}
+
 type CollabConfig = {
   serverUrl: string
   documentId: string
@@ -27,6 +34,7 @@ type RawProviderOptions = {
   clientId?: string
   user?: CollabUser
   onPresenceChange?: (users: CollabPresenceUser[]) => void
+  onCursorChange?: (cursors: CursorState[]) => void
 }
 
 type PresenceMessage = {
@@ -34,6 +42,14 @@ type PresenceMessage = {
   clientId: string
   user: CollabUser
   status: "online" | "offline"
+}
+
+export type CursorMessage = {
+  type: "cursor"
+  clientId: string
+  user: CollabUser
+  anchor: number
+  head: number
 }
 
 export function collabUrl(serverUrl: string, documentId: string): string {
@@ -50,8 +66,10 @@ export class RawYjsWebSocketProvider {
   private readonly WebSocketConstructor: typeof WebSocket
   private readonly pendingUpdates: Uint8Array[] = []
   private readonly presence = new Map<string, CollabUser>()
+  private readonly cursors = new Map<string, CursorState>()
   private readonly user?: CollabUser
   private readonly onPresenceChange?: (users: CollabPresenceUser[]) => void
+  private readonly onCursorChange?: (cursors: CursorState[]) => void
   private announced = false
   private readonly onDocUpdate: (update: Uint8Array, origin: unknown) => void
 
@@ -63,6 +81,7 @@ export class RawYjsWebSocketProvider {
     this.clientId = options.clientId ?? createClientId()
     this.user = options.user
     this.onPresenceChange = options.onPresenceChange
+    this.onCursorChange = options.onCursorChange
     this.websocket = new WebSocketConstructor(collabUrl(serverUrl, documentId)) as WebSocketLike
     this.websocket.binaryType = "arraybuffer"
 
@@ -85,6 +104,24 @@ export class RawYjsWebSocketProvider {
 
   get presenceUsers(): CollabPresenceUser[] {
     return Array.from(this.presence.entries()).map(([clientId, user]) => ({ clientId, user }))
+  }
+
+  get cursorStates(): CursorState[] {
+    return Array.from(this.cursors.values())
+  }
+
+  sendCursor(anchor: number, head: number): void {
+    if (!this.user) return
+    if (this.websocket.readyState !== this.WebSocketConstructor.OPEN) return
+
+    const message: CursorMessage = {
+      type: "cursor",
+      clientId: this.clientId,
+      user: this.user,
+      anchor,
+      head,
+    }
+    this.websocket.send(JSON.stringify(message))
   }
 
   private sendOrQueue(update: Uint8Array): void {
@@ -148,12 +185,27 @@ export class RawYjsWebSocketProvider {
 
   private handleTextMessage(data: string): void {
     const message = parsePresenceMessage(data)
-    if (!message || message.clientId === this.clientId) return
+    if (message) {
+      this.handlePresenceMessage(message)
+      return
+    }
+
+    const cursor = parseCursorMessage(data)
+    if (!cursor || cursor.clientId === this.clientId) return
+
+    this.cursors.set(cursor.clientId, cursor)
+    this.onCursorChange?.(this.cursorStates)
+  }
+
+  private handlePresenceMessage(message: PresenceMessage): void {
+    if (message.clientId === this.clientId) return
 
     if (message.status === "online") {
       this.presence.set(message.clientId, message.user)
     } else {
       this.presence.delete(message.clientId)
+      this.cursors.delete(message.clientId)
+      this.onCursorChange?.(this.cursorStates)
     }
     this.onPresenceChange?.(this.presenceUsers)
   }
@@ -180,6 +232,26 @@ function parsePresenceMessage(data: string): PresenceMessage | null {
       return null
     }
     return parsed as PresenceMessage
+  } catch {
+    return null
+  }
+}
+
+function parseCursorMessage(data: string): CursorMessage | null {
+  try {
+    const parsed = JSON.parse(data) as Partial<CursorMessage>
+    if (
+      parsed.type !== "cursor" ||
+      typeof parsed.clientId !== "string" ||
+      !parsed.user ||
+      typeof parsed.user.name !== "string" ||
+      typeof parsed.user.color !== "string" ||
+      typeof parsed.anchor !== "number" ||
+      typeof parsed.head !== "number"
+    ) {
+      return null
+    }
+    return parsed as CursorMessage
   } catch {
     return null
   }

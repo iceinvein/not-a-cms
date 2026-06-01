@@ -75,31 +75,137 @@ body {
   color: #fafafa;
 }
 
-/* Sidebar width (CSS-controlled to avoid Tailwind specificity conflicts) */
-.sidebar-root {
-  width: 190px;
+/* App shell (Command Deck frame) */
+.shell-root {
+  display: grid;
+  grid-template-rows: 48px 1fr;
+  min-height: 100vh;
+}
+.spine {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 16px;
+  background: var(--bg-sidebar);
+  border-bottom: 1px solid var(--border-default);
+}
+.cmd-trigger {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--border-hover);
+  background: var(--bg-surface);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease);
+}
+.cmd-trigger:hover {
+  border-color: var(--accent-muted);
+  background: var(--accent-subtle);
+}
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  min-width: 0;
+}
+.crumb {
+  color: var(--text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+}
+a.crumb:hover {
+  color: var(--text-secondary);
+}
+.crumb-current {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.crumb-sep {
+  color: var(--text-subtle);
+}
+.spine-spacer {
+  flex: 1;
+}
+.presence-slot {
+  display: flex;
+  align-items: center;
 }
 
-/* Sidebar collapsed state (applied instantly via <head> script to prevent flash) */
-.sidebar-collapsed .sidebar-root {
-  width: 48px;
+.shell-body {
+  display: grid;
+  grid-template-columns: 190px 1fr;
+  min-height: 0;
 }
-.sidebar-collapsed .sidebar-root .sidebar-text,
-.sidebar-collapsed .sidebar-root #sidebar-label,
-.sidebar-collapsed .sidebar-root #sidebar-search,
-.sidebar-collapsed .sidebar-root #sidebar-toggle {
+.rail {
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px 10px;
+  overflow: hidden;
+}
+.rail-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.rail-bottom {
+  border-top: 1px solid var(--border-default);
+  padding-top: 8px;
+}
+.rail-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  margin-top: 4px;
+  border-radius: 6px;
+  color: var(--text-subtle);
+  background: transparent;
+  cursor: pointer;
+}
+.rail-toggle:hover {
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.03);
+}
+.workspace {
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+}
+.workspace-head {
+  padding: 32px 32px 8px;
+}
+.workspace-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+.workspace-body {
+  padding: 0 32px 32px;
+}
+
+/* Collapsed rail, applied pre-paint via the head script to avoid flash. */
+.rail-collapsed .shell-body {
+  grid-template-columns: 52px 1fr;
+}
+.rail-collapsed .rail-text {
   display: none;
 }
-.sidebar-collapsed .sidebar-root .sidebar-header {
+.rail-collapsed .rail-link,
+.rail-collapsed .rail-toggle {
   justify-content: center;
-}
-.sidebar-collapsed .sidebar-root .sidebar-link {
-  justify-content: center;
-  padding: 6px 0;
-}
-.sidebar-collapsed .sidebar-root .sidebar-nav {
-  padding-left: 8px;
-  padding-right: 8px;
+  padding-left: 0;
+  padding-right: 0;
+  gap: 0;
 }
 
 /* ProseMirror / Tiptap editor dark theme */

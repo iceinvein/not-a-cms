@@ -4,7 +4,7 @@ import { EmptyState, ErrorState, LoadingState } from "../AdminState"
 import { Icon, type IconName } from "../ui/Icon"
 import { adminApiFetch, messageForAdminResponse } from "../../lib/api"
 import { toLiveRows, type LiveRow, type PresenceRoomView } from "../../lib/desk/live"
-import { toNeedsYouItems, type NeedsYouItem } from "../../lib/desk/needs-you"
+import { toNeedsYouItems, type ExpiringItem, type NeedsYouItem } from "../../lib/desk/needs-you"
 
 type Metrics = {
   collections: Array<{ name: string; label: string; inReview: number }>
@@ -23,6 +23,7 @@ type Props = {
   userName?: string
   initialHorizon?: Horizon
   initialNeedsYou?: NeedsYouItem[]
+  initialExpiring?: ExpiringItem[]
   initialLive?: LiveRow[]
 }
 
@@ -35,7 +36,7 @@ const LANES: Array<{ key: keyof Horizon; label: string; empty: string }> = [
   { key: "later", label: "Later", empty: "No future releases." },
 ]
 
-export function Desk({ apiBase = "", userName, initialHorizon, initialNeedsYou, initialLive }: Props) {
+export function Desk({ apiBase = "", userName, initialHorizon, initialNeedsYou, initialExpiring, initialLive }: Props) {
   const [horizon, setHorizon] = useState<Horizon | null>(initialHorizon ?? null)
   const [needsYou, setNeedsYou] = useState<NeedsYouItem[] | null>(initialNeedsYou ?? null)
   const [live, setLive] = useState<LiveRow[]>(initialLive ?? [])
@@ -46,17 +47,21 @@ export function Desk({ apiBase = "", userName, initialHorizon, initialNeedsYou, 
     setLoading(true)
     setError("")
     try {
-      const [horizonRes, metricsRes, runsRes] = await Promise.all([
+      const [horizonRes, metricsRes, runsRes, expiringRes] = await Promise.all([
         initialHorizon ? Promise.resolve(null) : adminApiFetch(apiBase, "/api/_horizon"),
         initialNeedsYou ? Promise.resolve(null) : adminApiFetch(apiBase, "/api/_metrics"),
         initialNeedsYou ? Promise.resolve(null) : adminApiFetch(apiBase, "/api/_flows/runs?status=failed"),
+        initialNeedsYou || initialExpiring ? Promise.resolve(null) : adminApiFetch(apiBase, "/api/_expiring"),
       ])
 
       if (horizonRes) setHorizon(await readJson<Horizon>(horizonRes, "Failed to load publishing horizon"))
       if (metricsRes && runsRes) {
         const metrics = await readJson<Metrics>(metricsRes, "Failed to load dashboard metrics")
         const runs = await readJson<{ data: FlowRun[] }>(runsRes, "Failed to load failed automation runs")
-        setNeedsYou(toNeedsYouItems(metrics, runs.data ?? []))
+        const expiring = expiringRes
+          ? await readJson<{ items: ExpiringItem[] }>(expiringRes, "Failed to load expiring content")
+          : { items: initialExpiring ?? [] }
+        setNeedsYou(toNeedsYouItems(metrics, runs.data ?? [], expiring.items ?? []))
       }
     } catch (err: any) {
       setError(err.message || "Failed to load The Desk")
@@ -216,7 +221,7 @@ function NeedsYou({ items }: { items: NeedsYouItem[] }) {
 }
 
 function NeedRow({ item }: { item: NeedsYouItem }) {
-  const icon: IconName = item.severity === "error" ? "alert" : "check"
+  const icon: IconName = item.kind === "expiring" ? "calendar" : item.severity === "error" ? "alert" : "check"
   return (
     <a className={`desk-need-row desk-need-${item.severity}`} href={item.href}>
       <Icon name={icon} size={16} className="desk-need-icon" />

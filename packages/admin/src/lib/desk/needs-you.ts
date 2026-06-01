@@ -1,3 +1,5 @@
+import { relativeTime } from "./relative-time"
+
 type Metrics = {
   collections: Array<{ name: string; label: string; inReview: number }>
 }
@@ -10,8 +12,15 @@ type FailedRun = {
   started_at: string
 }
 
+export type ExpiringItem = {
+  collection: string
+  documentId: string
+  title: string
+  unpublishAt: string
+}
+
 export type NeedsYouItem = {
-  kind: "failed_run" | "review"
+  kind: "failed_run" | "expiring" | "review"
   title: string
   sub?: string
   label?: string
@@ -20,7 +29,12 @@ export type NeedsYouItem = {
   severity: "error" | "info"
 }
 
-export function toNeedsYouItems(metrics: Metrics, failedRuns: FailedRun[]): NeedsYouItem[] {
+export function toNeedsYouItems(
+  metrics: Metrics,
+  failedRuns: FailedRun[],
+  expiringItems: ExpiringItem[] = [],
+  now = new Date(),
+): NeedsYouItem[] {
   const items: NeedsYouItem[] = []
 
   for (const run of failedRuns) {
@@ -31,6 +45,17 @@ export function toNeedsYouItems(metrics: Metrics, failedRuns: FailedRun[]): Need
       href: `/automations/${run.flow_id}?run=${run.id}`,
       action: "inspect",
       severity: "error",
+    })
+  }
+
+  for (const item of expiringItems) {
+    items.push({
+      kind: "expiring",
+      title: `${item.title} expires ${relativeTime(item.unpublishAt, now)}`,
+      sub: "scheduled to archive",
+      href: `/content/${item.collection}/${item.documentId}`,
+      action: "extend",
+      severity: "info",
     })
   }
 

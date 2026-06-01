@@ -1,12 +1,13 @@
 ---
 import AdminLayout from "../../layouts/AdminLayout.astro"
-import { FlowEditor } from "../../components/automations/FlowEditor"
+import { AutomationWorkspace } from "../../components/automations/AutomationWorkspace"
 import { getAdminApiBase } from "../../lib/api"
 
 const { id } = Astro.params
 const apiBase = getAdminApiBase()
+const runId = Astro.url.searchParams.get("run") ?? undefined
 ---
 <AdminLayout title="Edit Flow">
   <a href="/automations" class="text-sm text-[#a1a1aa] hover:text-[#fafafa] mb-4 inline-block">&larr; Back to Automations</a>
-  <FlowEditor flowId={id!} client:load apiBase={apiBase} />
+  <AutomationWorkspace flowId={id!} initialRunId={runId} client:load apiBase={apiBase} />
 </AdminLayout>

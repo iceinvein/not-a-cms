@@ -10,6 +10,8 @@ export type RecordStepInput = {
   output?: string
   branch_taken?: string
   error?: string
+  started_at?: string
+  finished_at?: string
 }
 
 export function createFlowStore(db: AppDatabase) {
@@ -89,8 +91,9 @@ export function createFlowStore(db: AppDatabase) {
 
   function recordStep(input: RecordStepInput): FlowRunStep {
     const id = crypto.randomUUID()
-    const now = new Date().toISOString()
-    db.run(sql`INSERT INTO _flow_run_steps (id, run_id, step_id, status, input, output, branch_taken, started_at, finished_at, error) VALUES (${id}, ${input.run_id}, ${input.step_id}, ${input.status}, ${input.input ?? null}, ${input.output ?? null}, ${input.branch_taken ?? null}, ${now}, ${input.status !== "running" ? now : null}, ${input.error ?? null})`)
+    const startedAt = input.started_at ?? new Date().toISOString()
+    const finishedAt = input.finished_at ?? (input.status !== "running" ? new Date().toISOString() : null)
+    db.run(sql`INSERT INTO _flow_run_steps (id, run_id, step_id, status, input, output, branch_taken, started_at, finished_at, error) VALUES (${id}, ${input.run_id}, ${input.step_id}, ${input.status}, ${input.input ?? null}, ${input.output ?? null}, ${input.branch_taken ?? null}, ${startedAt}, ${finishedAt}, ${input.error ?? null})`)
     return getRunStep(id)!
   }
 

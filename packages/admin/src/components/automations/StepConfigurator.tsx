@@ -329,8 +329,8 @@ function ActionConfig({
               <label className={labelClass}>Document ID</label>
               <input
                 type="text"
-                value={(cfg.document_id as string) ?? ""}
-                onChange={(e) => setConfig("document_id", e.target.value)}
+                value={(cfg.documentId as string) ?? (cfg.document_id as string) ?? ""}
+                onChange={(e) => setConfig("documentId", e.target.value)}
                 placeholder="{{payload.id}}"
                 className={inputClass}
               />
@@ -366,8 +366,8 @@ function ActionConfig({
             <label className={labelClass}>Document ID</label>
             <input
               type="text"
-              value={(cfg.document_id as string) ?? ""}
-              onChange={(e) => setConfig("document_id", e.target.value)}
+              value={(cfg.documentId as string) ?? (cfg.document_id as string) ?? ""}
+              onChange={(e) => setConfig("documentId", e.target.value)}
               placeholder="{{payload.id}}"
               className={inputClass}
             />
@@ -425,16 +425,16 @@ export function StepConfigurator({
     ? "Action"
     : null
 
-  const borderAccent = showTriggerConfig
-    ? "border-l-4 border-l-[#fafafa]"
+  const panelAccent = showTriggerConfig
+    ? "ring-1 ring-[rgba(255,255,255,0.16)]"
     : selectedStep?.type === "condition"
-    ? "border-l-4 border-l-[#f59e0b]"
+    ? "ring-1 ring-[rgba(245,158,11,0.22)] bg-[rgba(245,158,11,0.03)]"
     : selectedStep
-    ? "border-l-4 border-l-[#52525b]"
+    ? "ring-1 ring-[rgba(255,255,255,0.1)]"
     : ""
 
   return (
-    <div className={`bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] p-4 ${borderAccent}`}>
+    <div className={`bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] p-4 ${panelAccent}`}>
       {title && (
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold text-[#fafafa]">{title}</h3>

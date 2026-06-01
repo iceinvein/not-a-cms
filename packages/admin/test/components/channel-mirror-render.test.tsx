@@ -14,4 +14,21 @@ describe("ChannelMirror", () => {
     expect(html).toContain("Hello world")
     expect(html).toContain("Launch week")
   })
+
+  test("renders real email HTML in an iframe without the approximation note", () => {
+    const html = renderToString(
+      <ChannelMirror
+        apiBase=""
+        blocks={blocks}
+        title="Launch week"
+        byline="Dik Rana"
+        initialChannel="email"
+        initialEmailHtml="<html><body>RENDERED</body></html>"
+      />,
+    )
+
+    expect(html).toContain("<iframe")
+    expect(html).toContain("RENDERED")
+    expect(html).not.toContain("Email is an approximation")
+  })
 })

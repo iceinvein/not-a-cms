@@ -173,7 +173,7 @@ function ContinuumInner({
         </section>
       </main>
 
-      <ChannelMirror blocks={bodyBlocks} title={title || "Untitled"} byline={byline} />
+      <ChannelMirror apiBase={apiBase} blocks={bodyBlocks} title={title || "Untitled"} byline={byline} />
 
       <div className="cn-status">
         <span className="cn-status-state">{saving ? "Saving..." : error || statusLabel}</span>

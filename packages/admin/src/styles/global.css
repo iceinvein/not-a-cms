@@ -757,10 +757,25 @@ a.crumb:hover {
   padding: 12px;
 }
 
-.cn-mirror-note {
+.cn-mirror-email-frame {
+  display: block;
+  width: 100%;
+  min-height: 640px;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: #fdfcf8;
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.25);
+}
+
+.cn-mirror-loading {
+  display: grid;
+  min-height: 220px;
+  place-items: center;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: #fdfcf8;
   color: var(--text-muted);
-  font-size: 12px;
-  margin: 12px 2px 0;
+  font-size: 13px;
 }
 
 /* Continuum canvas */

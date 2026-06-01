@@ -1,6 +1,7 @@
 import { QueryError, ValidationError, WorkflowError, canAccessCollection, compareVersionData, extractTextFromPortableText, filterWritableFields, isWorkflowAction, populateDocuments, projectDocumentFields } from "@not-a-cms/core"
 import type { AskProvider, AuditEventInput, CollectionDef, EmbeddingStore, VersioningService, WebhookStore, WebhookService, SettingsService } from "@not-a-cms/core"
 import type { createContentService } from "@not-a-cms/core"
+import { portableTextToEmail, type EmailOptions } from "@not-a-cms/renderer"
 import { runAsk } from "../ask/handler"
 
 export type CollectionEntry = {
@@ -217,6 +218,27 @@ export function createRestHandler(
         },
       })
       return json(result)
+    }
+
+    // Email preview: /api/_email-preview
+    if (collectionName === "_email-preview") {
+      const unauthorized = await requireAuthorized(req)
+      if (unauthorized) return unauthorized
+      if (method !== "POST") return json({ error: "Method not allowed" }, 405)
+
+      const body = await req.json().catch(() => ({}))
+      const blocks = isRecord(body) && Array.isArray(body.blocks) ? body.blocks : []
+      const optionOverrides = isRecord(body) && isRecord(body.options) ? body.options : {}
+      const emailOptions: EmailOptions = {
+        title: stringValue(isRecord(body) ? body.title : undefined),
+        fromName: stringValue(isRecord(body) ? body.byline : undefined),
+        preheader: stringValue(optionOverrides.preheader),
+        siteUrl: stringValue(optionOverrides.siteUrl),
+        footerText: stringValue(optionOverrides.footerText),
+        subjectPrefix: stringValue(optionOverrides.subjectPrefix),
+      }
+      const html = portableTextToEmail(blocks as Parameters<typeof portableTextToEmail>[0], emailOptions)
+      return json({ html })
     }
 
     const entry = collections.get(collectionName)
@@ -628,6 +650,10 @@ function isHttpUrl(value: string): boolean {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value)
+}
+
+function stringValue(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined
 }
 
 function parseWhere(url: URL): Record<string, unknown> {

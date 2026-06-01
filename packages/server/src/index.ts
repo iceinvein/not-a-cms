@@ -38,6 +38,7 @@ import { createPreviewHandler } from "./preview/handler"
 import { buildGraphQLSchema } from "./graphql/schema"
 import { createGraphQLHandler } from "./graphql/handler"
 import { createOpenAPIDocument } from "./docs/openapi"
+import { buildHorizon } from "./horizon/build"
 
 export type ServerConfig = {
   port?: number
@@ -467,6 +468,13 @@ export function createServer(config: ServerConfig): CreatedServer {
         const unauthorized = await requireAuthorized()
         if (unauthorized) return withCors(unauthorized)
         return withCors(Response.json(await buildDashboardMetrics(collections, storage, auditLogStore)))
+      }
+
+      // Publishing horizon
+      if (url.pathname === "/api/_horizon") {
+        const unauthorized = await requireAuthorized()
+        if (unauthorized) return withCors(unauthorized)
+        return withCors(Response.json(await buildHorizon(collections, new Date())))
       }
 
       // Media routes

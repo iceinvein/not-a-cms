@@ -3,9 +3,11 @@ import { ReactNodeViewRenderer } from "@tiptap/react"
 import type { ComponentType } from "react"
 
 export type BlockFieldDef = {
-  type: "text" | "number" | "boolean" | "select"
+  type: "text" | "number" | "boolean" | "select" | "media" | "relation" | "array"
   default?: unknown
   options?: string[]
+  target?: string
+  accept?: string[]
 }
 
 export type BlockSchema = Record<string, BlockFieldDef>

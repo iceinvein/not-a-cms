@@ -106,4 +106,18 @@ describe("defineBlock", () => {
     expect(blocks).toHaveLength(1)
     expect(blocks[0].label).toBe("Hero")
   })
+
+  test("defineBlock accepts media/relation/array field types and defaults their attrs to null", () => {
+    const block = defineBlock({
+      name: "gallery",
+      label: "Gallery",
+      schema: {
+        images: { type: "array" },
+        caption: { type: "text", default: "" },
+      },
+      editor: MockEditor,
+    })
+    expect(block.name).toBe("gallery")
+    expect(block.extension.name).toBe("gallery")
+  })
 })

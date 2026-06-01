@@ -107,8 +107,13 @@ function convertBlock(node: TiptapNode): PTBlock | null {
     case "horizontalRule":
       return { type: "divider" }
 
-    default:
-      return null
+    default: {
+      const attrs = node.attrs ?? {}
+      if (Array.isArray(node.content) && node.content.length > 0) {
+        return { type: node.type, ...attrs, children: convertInlineContent(node.content) }
+      }
+      return { type: node.type, ...attrs }
+    }
   }
 }
 

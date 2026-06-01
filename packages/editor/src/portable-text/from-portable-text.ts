@@ -96,8 +96,13 @@ function convertPTBlock(block: PTBlock): TiptapNode | null {
     case "divider":
       return { type: "horizontalRule" }
 
-    default:
-      return null
+    default: {
+      const { type, children, ...attrs } = block
+      if (Array.isArray(children) && children.length > 0) {
+        return { type, attrs, content: convertPTChildren(children) }
+      }
+      return { type, attrs }
+    }
   }
 }
 

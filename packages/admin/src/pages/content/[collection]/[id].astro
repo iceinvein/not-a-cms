@@ -1,6 +1,6 @@
 ---
 import AdminLayout from "../../../layouts/AdminLayout.astro"
-import { ContentEditor } from "../../../components/ContentEditor"
+import { Continuum } from "../../../components/continuum/Continuum"
 import { getAdminApiBase } from "../../../lib/api"
 import { fetchCollection } from "../../../lib/schema"
 
@@ -14,7 +14,7 @@ const apiBase = getAdminApiBase()
 const siteBase = import.meta.env.PUBLIC_SITE_BASE || "http://localhost:3000"
 ---
 <AdminLayout title={`Edit ${label}`}>
-  <ContentEditor
+  <Continuum
     client:load
     collection={collection!}
     collectionLabel={label}

@@ -32,6 +32,8 @@
     "@fontsource-variable/newsreader": "^5.2.10",
     "@not-a-cms/core": "workspace:*",
     "@not-a-cms/editor": "workspace:*",
+    "@not-a-cms/renderer": "workspace:*",
+    "@tiptap/react": "^3.0.0",
     "astro": "^5.18.1",
     "lucide-react": "^1.7.0",
     "react": "^19.0.0",

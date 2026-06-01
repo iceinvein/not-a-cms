@@ -29,7 +29,12 @@ type CountOpts = {
 
 type UpdateOpts = {
   allowStatusChange?: boolean
+  suppressAutomations?: boolean
   versionAction?: "save" | "publish"
+}
+
+type WriteOpts = {
+  suppressAutomations?: boolean
 }
 
 export class QueryError extends Error {
@@ -49,7 +54,7 @@ export function createContentService(
 ) {
   const ctx: HookContext = { collection: collection.name, db }
 
-  async function create(data: Record<string, unknown>) {
+  async function create(data: Record<string, unknown>, opts: WriteOpts = {}) {
     let doc = applyDefaultsAndValidate(collection, data)
     doc = await runHook("beforeSave", collection.hooks, doc, ctx)
     doc = applyDefaultsAndValidate(collection, doc)
@@ -73,7 +78,9 @@ export function createContentService(
       search.index(collection.name, id, title, bodyText)
     }
 
-    automations?.dispatch("content.created", collection.name, saved)
+    if (!opts.suppressAutomations) {
+      automations?.dispatch("content.created", collection.name, saved)
+    }
 
     return saved
   }
@@ -161,6 +168,10 @@ export function createContentService(
     }
 
     const isNowPublished = updated.status === "published"
+    if (opts.suppressAutomations) {
+      return updated
+    }
+
     if (!wasPublished && isNowPublished) {
       automations?.dispatch("content.published", collection.name, updated)
     } else {
@@ -230,7 +241,7 @@ export function createContentService(
     return { updated, notFound }
   }
 
-  async function remove(id: string): Promise<boolean> {
+  async function remove(id: string, opts: WriteOpts = {}): Promise<boolean> {
     const existing = await findById(id)
     if (!existing) return false
 
@@ -241,7 +252,9 @@ export function createContentService(
     db.delete(table).where(eq(table.id, id)).run()
     await runHook("afterDelete", collection.hooks, existing, ctx)
 
-    automations?.dispatch("content.deleted", collection.name, existing)
+    if (!opts.suppressAutomations) {
+      automations?.dispatch("content.deleted", collection.name, existing)
+    }
 
     return true
   }

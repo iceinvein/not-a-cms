@@ -1,4 +1,5 @@
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch"
+import { sql } from "drizzle-orm"
 import {
   createDatabase,
   generateTable,
@@ -33,6 +34,7 @@ import { getSessionFromRequest } from "./auth/middleware"
 import { createMediaStorage, type MediaStorage, type StorageConfig } from "./media/storage"
 import { createImageOptimizer } from "./media/optimizer"
 import { createMediaHandler } from "./media/handler"
+import { computeMediaUsage, computeUsageCounts } from "./media/usage"
 import { collabWebSocket, type CollabWSData } from "./collab/handler"
 import { createPreviewHandler } from "./preview/handler"
 import { buildGraphQLSchema } from "./graphql/schema"
@@ -477,6 +479,45 @@ export function createServer(config: ServerConfig): CreatedServer {
         return withCors(Response.json(await buildHorizon(collections, new Date())))
       }
 
+      // Media usage counts for Vault clustering
+      if (url.pathname === "/api/media/usage") {
+        if (req.method !== "GET") {
+          return withCors(Response.json({ error: "Method not allowed" }, { status: 405 }))
+        }
+        const unauthorized = await requireAuthorized()
+        if (unauthorized) return withCors(unauthorized)
+
+        const countFn = async (table: string, column: string) => {
+          const quotedTable = quoteIdentifier(table)
+          const quotedColumn = quoteIdentifier(column)
+          const rows = db.all(sql.raw(`SELECT ${quotedColumn} AS aid, COUNT(*) AS n FROM ${quotedTable} WHERE ${quotedColumn} IS NOT NULL GROUP BY ${quotedColumn}`)) as { aid: string; n: number }[]
+          const counts: Record<string, number> = {}
+          for (const row of rows) counts[String(row.aid)] = Number(row.n)
+          return counts
+        }
+
+        return withCors(Response.json({ counts: await computeUsageCounts(collections, countFn) }))
+      }
+
+      // Media usage detail for one asset
+      const mediaUsageMatch = url.pathname.match(/^\/api\/media\/([^/]+)\/usage$/)
+      if (mediaUsageMatch) {
+        if (req.method !== "GET") {
+          return withCors(Response.json({ error: "Method not allowed" }, { status: 405 }))
+        }
+        const unauthorized = await requireAuthorized()
+        if (unauthorized) return withCors(unauthorized)
+
+        const assetId = decodeURIComponent(mediaUsageMatch[1])
+        const queryFn = async (table: string, column: string, id: string) => {
+          const quotedTable = quoteIdentifier(table)
+          const quotedColumn = quoteIdentifier(column)
+          return db.all(sql`${sql.raw(`SELECT * FROM ${quotedTable} WHERE ${quotedColumn} = `)}${id}`) as any[]
+        }
+
+        return withCors(Response.json(await computeMediaUsage(collections, assetId, queryFn)))
+      }
+
       // Media routes
       if (url.pathname.startsWith("/api/media")) {
         if (req.method === "GET" && /^\/api\/media\/[^/]+\/file$/.test(url.pathname)) {
@@ -615,6 +656,10 @@ function getPublicChannelSettings(settings: Record<string, string>): Record<stri
     if (allowed.has(key)) result[key] = value
   }
   return result
+}
+
+function quoteIdentifier(identifier: string): string {
+  return `"${identifier.replaceAll("\"", "\"\"")}"`
 }
 
 function validateInviteInput(input: unknown, roleKeys: string[]): string | null {

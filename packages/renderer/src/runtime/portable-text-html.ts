@@ -64,6 +64,23 @@ function renderText(children: PTTextNode[] = []): string {
     .join("")
 }
 
+function imageSource(value: unknown): { url: string; id?: string; alt?: string } {
+  if (typeof value === "string") return { url: value }
+  if (value && typeof value === "object") {
+    const image = value as { id?: unknown; mediaId?: unknown; url?: unknown; src?: unknown; alt?: unknown }
+    return {
+      url: String(image.url ?? image.src ?? ""),
+      id: image.id !== undefined ? String(image.id) : image.mediaId !== undefined ? String(image.mediaId) : undefined,
+      alt: image.alt !== undefined ? String(image.alt) : undefined,
+    }
+  }
+  return { url: "" }
+}
+
+function mediaIdAttribute(id: string | undefined): string {
+  return id ? ` data-media-id="${escapeHtml(id)}"` : ""
+}
+
 function renderBlock(block: PTBlock): string {
   switch (block.type) {
     case "paragraph":
@@ -83,15 +100,20 @@ function renderBlock(block: PTBlock): string {
       return `<pre><code>${escapeXml(String(block.code || ""))}</code></pre>`
     case "divider":
       return "<hr />"
-    case "image":
-      return `<img src="${escapeXml(sanitizeUrl(block.src || block.url || "", { allowDataImage: true }))}" alt="${escapeXml(String(block.alt || ""))}" />`
+    case "image": {
+      const image = imageSource(block)
+      return `<img src="${escapeXml(sanitizeUrl(image.url, { allowDataImage: true }))}" alt="${escapeXml(String(image.alt ?? block.alt ?? ""))}"${mediaIdAttribute(image.id)} />`
+    }
     case "callout":
       return `<div data-callout data-variant="${escapeHtml(String(block.variant ?? "info"))}">${renderText((block.children || []) as PTTextNode[])}</div>`
     case "author":
       return `<div data-author><span data-author-name>${escapeHtml(String(block.name ?? ""))}</span>${block.role ? `<span data-author-role>${escapeHtml(String(block.role))}</span>` : ""}</div>`
     case "gallery": {
       const images = Array.isArray(block.images) ? block.images : []
-      return `<div data-gallery>${images.map((src: unknown) => `<img src="${escapeHtml(sanitizeUrl(src, { allowDataImage: true }))}" alt="" />`).join("")}</div>`
+      return `<div data-gallery>${images.map((entry: unknown) => {
+        const image = imageSource(entry)
+        return `<img src="${escapeHtml(sanitizeUrl(image.url, { allowDataImage: true }))}" alt="${escapeHtml(image.alt ?? "")}"${mediaIdAttribute(image.id)} />`
+      }).join("")}</div>`
     }
     case "seo":
       return ""

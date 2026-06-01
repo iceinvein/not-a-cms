@@ -6,6 +6,10 @@ function imageValues(value: unknown): unknown[] {
   return Array.isArray(value) ? value : []
 }
 
+function galleryImage(item: AdminMediaItem) {
+  return { id: item.id, url: mediaDisplayUrl(item, "") }
+}
+
 export function GalleryBlockView({ node, updateAttributes }: any) {
   const images = imageValues(node.attrs.images)
   const [open, setOpen] = useState(false)
@@ -59,7 +63,7 @@ export function GalleryBlockView({ node, updateAttributes }: any) {
                 type="button"
                 className="cn-gallery-choice"
                 onClick={() => {
-                  updateAttributes({ images: [...images, item] })
+                  updateAttributes({ images: [...images, galleryImage(item)] })
                   setOpen(false)
                 }}
               >

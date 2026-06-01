@@ -1,10 +1,10 @@
 ---
 import AdminLayout from "../layouts/AdminLayout.astro"
-import { MediaLibrary } from "../components/MediaLibrary"
+import { Vault } from "../components/vault/Vault"
 import { getAdminApiBase } from "../lib/api"
 
 const apiBase = getAdminApiBase()
 ---
-<AdminLayout title="Media Library">
-  <MediaLibrary client:load apiBase={apiBase} />
+<AdminLayout title="Media">
+  <Vault client:load apiBase={apiBase} />
 </AdminLayout>

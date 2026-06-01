@@ -58,6 +58,19 @@ const siteBase = import.meta.env.PUBLIC_SITE_BASE || "http://localhost:3000"
       document.documentElement.classList.add('rail-collapsed')
     }
   </script>
+  <script is:inline define:vars={{ apiBase, isAuthPage }}>
+    // Client-side auth guard. SSR cannot see the API session cookie in the
+    // cross-origin dev setup, so confirm the session in the browser (cookie is
+    // sent with credentials) and redirect unauthenticated users to /login.
+    if (!isAuthPage) {
+      fetch(apiBase + '/api/auth/get-session', { credentials: 'include' })
+        .then(function (res) { return res.ok ? res.json() : null })
+        .then(function (session) {
+          if (!session || !session.user) window.location.replace('/login')
+        })
+        .catch(function () {})
+    }
+  </script>
 </head>
 <body class="bg-[#0a0a0c] text-[#a1a1aa] min-h-screen">
   <AppShell

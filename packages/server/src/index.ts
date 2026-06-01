@@ -46,6 +46,9 @@ import { buildHorizon } from "./horizon/build"
 export type ServerConfig = {
   port?: number
   database: { url: string }
+  email?: {
+    send: (msg: { to: string; subject: string; html?: string; text?: string }) => Promise<void>
+  }
   auth: {
     secret: string
     baseURL: string
@@ -122,12 +125,31 @@ export function createServer(config: ServerConfig): CreatedServer {
   const settingsService = createSettingsService(db)
 
   const flowStore = createFlowStore(db)
-  const flowEngine = createFlowEngine(flowStore)
+  const collections = new Map<string, CollectionRegistryEntry>()
+  const flowEngine = createFlowEngine(flowStore, {
+    content: {
+      create: async (name, data) => {
+        const entry = collections.get(name)
+        if (!entry) throw new Error(`Unknown collection: ${name}`)
+        return entry.service.create(data, { suppressAutomations: true })
+      },
+      update: async (name, id, data) => {
+        const entry = collections.get(name)
+        if (!entry) throw new Error(`Unknown collection: ${name}`)
+        return entry.service.update(id, data, { suppressAutomations: true, allowStatusChange: true })
+      },
+      delete: async (name, id) => {
+        const entry = collections.get(name)
+        if (!entry) throw new Error(`Unknown collection: ${name}`)
+        return entry.service.remove(id, { suppressAutomations: true })
+      },
+    },
+    sendEmail: config.email?.send,
+  })
   const automationHandler = createAutomationHandler(flowStore, flowEngine)
   const automationCron = createAutomationCron(flowStore, flowEngine)
 
   // Build collection registry
-  const collections = new Map<string, CollectionRegistryEntry>()
   for (const def of config.collections) {
     const effectiveDef = applyCollectionSettings(def, settingsService.getCollectionSettings(def.name))
     const table = generateTable(effectiveDef)

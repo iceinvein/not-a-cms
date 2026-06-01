@@ -181,6 +181,15 @@ function createSampleDevServerConfig() {
       },
       ...(Object.keys(oauth).length > 0 ? { oauth } : {}),
     },
+    email: {
+      send: async ({ to, subject, html, text }: { to: string; subject: string; html?: string; text?: string }) => {
+        console.log(`\n  Email to ${to}:`)
+        console.log(`    Subject: ${subject}`)
+        if (text) console.log(`    Text: ${text}`)
+        if (html) console.log(`    HTML: ${html}`)
+        console.log("")
+      },
+    },
     storage: resolveDevStorage(),
     collections: [author, blogPost, page],
     components: sampleComponents,

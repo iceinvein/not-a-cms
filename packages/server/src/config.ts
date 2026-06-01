@@ -30,6 +30,15 @@ export function createServerConfigFromCMSConfig(userConfig: ProjectConfig, env: 
       },
       ...resolveOAuth(env),
     },
+    email: {
+      send: async ({ to, subject, html, text }) => {
+        console.log(`\n  Email to ${to}:`)
+        console.log(`    Subject: ${subject}`)
+        if (text) console.log(`    Text: ${text}`)
+        if (html) console.log(`    HTML: ${html}`)
+        console.log("")
+      },
+    },
     storage: resolveServerStorageConfig(userConfig.storage, env),
     collections: userConfig.collections,
     components: userConfig.components ?? [],

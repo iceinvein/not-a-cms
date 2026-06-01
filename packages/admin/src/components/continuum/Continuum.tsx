@@ -125,11 +125,21 @@ function ContinuumInner({
     }
   }
 
+  const title = String(data[titleField] ?? "")
+  const titleRef = useRef<HTMLTextAreaElement>(null)
+  // Auto-grow the title so long titles wrap instead of clipping at the canvas edge.
+  // Declared before the loading guard so hook order stays stable across renders.
+  useEffect(() => {
+    const el = titleRef.current
+    if (!el) return
+    el.style.height = "auto"
+    el.style.height = `${el.scrollHeight}px`
+  }, [title])
+
   if (loading) {
     return <div className="cn-loading">Loading document...</div>
   }
 
-  const title = String(data[titleField] ?? "")
   const byline = String((data.author as any)?.name ?? data.author ?? "")
   const statusLabel = String(data.status ?? "draft").replace(/_/g, " ")
 
@@ -147,10 +157,12 @@ function ContinuumInner({
               {collaborationUser.name}
             </div>
           </div>
-          <input
+          <textarea
+            ref={titleRef}
             className="cn-title"
             value={title}
             placeholder="Untitled"
+            rows={1}
             onChange={(event) => updateField(titleField, event.target.value)}
           />
           {bodyField ? (

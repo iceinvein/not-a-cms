@@ -843,14 +843,19 @@ a.crumb:hover {
 .cn-title {
   width: 100%;
   min-width: 0;
+  display: block;
   border: none;
   background: transparent;
   color: var(--text-primary);
   font-family: var(--font-serif);
   font-size: 58px;
-  line-height: 0.98;
+  line-height: 1.05;
   outline: none;
   padding: 0 0 28px;
+  resize: none;
+  overflow: hidden;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .cn-title::placeholder {

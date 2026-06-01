@@ -3,9 +3,10 @@ import { createServer } from "../src/index"
 import { createServerConfigFromCMSConfig } from "../src/config"
 import { defineCollection, field } from "@not-a-cms/core"
 import { sql } from "drizzle-orm"
-import { unlinkSync } from "node:fs"
+import { existsSync, rmSync, unlinkSync } from "node:fs"
 
 const testDbPath = "test-integration.db"
+const testUploadsPath = "test-integration-uploads"
 
 const blogPost = defineCollection({
   name: "blog_post",
@@ -60,6 +61,7 @@ describe("integration: full server", () => {
         },
       },
       collections: [author, blogPost, lockedPreview],
+      storage: { provider: "local", path: testUploadsPath },
       cors: { origins: ["http://localhost:4322"] },
     })
     baseUrl = `http://localhost:${serverInstance.server.port}`
@@ -70,6 +72,7 @@ describe("integration: full server", () => {
     try { unlinkSync(testDbPath) } catch {}
     try { unlinkSync(testDbPath + "-wal") } catch {}
     try { unlinkSync(testDbPath + "-shm") } catch {}
+    if (existsSync(testUploadsPath)) rmSync(testUploadsPath, { recursive: true })
   })
 
   test("health check returns ok", async () => {

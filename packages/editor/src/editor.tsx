@@ -1,5 +1,5 @@
 import { useEditor, EditorContent } from "@tiptap/react"
-import { useEffect, useRef } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import StarterKit from "@tiptap/starter-kit"
 import Typography from "@tiptap/extension-typography"
 import { Placeholder } from "@tiptap/extensions"
@@ -10,6 +10,7 @@ import { BubbleToolbar } from "./menus/bubble-menu"
 import { toPortableText } from "./portable-text/to-portable-text"
 import { fromPortableText } from "./portable-text/from-portable-text"
 import { useCollaboration, type CollabConfig } from "./collaboration/provider"
+import { RemoteCursors, setRemoteCursors } from "./collaboration/remote-cursors"
 import type { Extension } from "@tiptap/core"
 
 type PortableTextBlock = { type: string; [key: string]: any }
@@ -36,12 +37,25 @@ export function Editor({
   slashCommands = [],
 }: EditorProps) {
   const collab = useCollaboration(collaboration)
+  const collabProviderRef = useRef(collab.provider)
   const initialContentSignature = content ? portableTextSignature(content) : null
   const appliedContentSignature = useRef<string | null>(initialContentSignature)
   const hasAppliedInitialContent = useRef(Boolean(initialContentSignature) && !collaboration)
+  const remoteCursorExtensions = useMemo(
+    () => collaboration ? [
+      RemoteCursors.configure({
+        onLocalSelection: (anchor, head) => collabProviderRef.current?.sendCursor(anchor, head),
+      }),
+    ] : [],
+    [Boolean(collaboration)],
+  )
 
   // Build initial content from Portable Text
   const initialContent = content ? fromPortableText(content) : undefined
+
+  useEffect(() => {
+    collabProviderRef.current = collab.provider
+  }, [collab.provider])
 
   const editor = useEditor({
     extensions: [
@@ -55,6 +69,7 @@ export function Editor({
       CalloutExtension,
       ...blocks.map((block) => block.extension),
       ...collab.extensions,
+      ...remoteCursorExtensions,
       ...extraExtensions,
     ],
     content: initialContent,
@@ -80,10 +95,16 @@ export function Editor({
     hasAppliedInitialContent.current = true
   }, [editor, content])
 
+  useEffect(() => {
+    if (!editor || !collaboration) return
+    setRemoteCursors(editor, collab.cursors)
+  }, [editor, Boolean(collaboration), collab.cursors])
+
   if (!editor) return null
 
   return (
     <div className="not-a-cms-editor" style={{ position: "relative" }}>
+      <style>{remoteCursorStyles}</style>
       {collaboration && collab.users.length > 0 && (
         <div
           className="not-a-cms-collaborators"
@@ -128,3 +149,41 @@ export function Editor({
 function portableTextSignature(content: PortableTextBlock[]): string {
   return JSON.stringify(content)
 }
+
+const remoteCursorStyles = `
+.not-a-cms-editor .ProseMirror {
+  position: relative;
+}
+
+.nacms-remote-caret {
+  position: relative;
+  display: inline-block;
+  width: 0;
+  height: 1.15em;
+  margin-left: -1px;
+  border-left: 2px solid var(--nacms-cursor-color, #38bdf8);
+  vertical-align: text-bottom;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.nacms-remote-caret-label {
+  position: absolute;
+  top: -1.45rem;
+  left: -2px;
+  max-width: 12rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  line-height: 1.15;
+  font-weight: 650;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+}
+
+.nacms-remote-selection {
+  border-radius: 2px;
+}
+`

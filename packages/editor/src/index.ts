@@ -18,7 +18,8 @@ export { toPortableText } from "./portable-text/to-portable-text"
 export { fromPortableText } from "./portable-text/from-portable-text"
 
 // Collaboration
-export { useCollaboration, type CollabConfig, type CollabUser } from "./collaboration/provider"
+export { useCollaboration, type CollabConfig, type CollabUser, type CursorState } from "./collaboration/provider"
+export { RemoteCursors, setRemoteCursors } from "./collaboration/remote-cursors"
 
 // Extensions
 export { SlashExtension, DEFAULT_COMMANDS, filterCommands, type SlashCommandItem } from "./extensions/slash-command"

@@ -65,7 +65,9 @@ const siteBase = import.meta.env.PUBLIC_SITE_BASE || "http://localhost:3000"
     currentPath={currentPath}
     collections={collections}
     extensionNavItems={extensionNavItems}
-  />
+  >
+    <slot />
+  </AppShell>
   <CommandPalette
     client:load
     apiBase={apiBase}

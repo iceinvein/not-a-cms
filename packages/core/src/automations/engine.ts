@@ -49,6 +49,12 @@ function evaluateConditionStep(step: ConditionStep, payload: Record<string, unkn
 
 export type FlowEngineOptions = {
   webhookRetryDelays?: number[]
+  content?: {
+    create(collection: string, data: Record<string, unknown>): Promise<Record<string, unknown>>
+    update(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>>
+    delete(collection: string, id: string): Promise<boolean>
+  }
+  sendEmail?: (msg: { to: string; subject: string; html?: string; text?: string }) => Promise<void>
 }
 
 export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = {}) {
@@ -108,6 +114,14 @@ export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = 
       case "action.email": {
         const to = interpolate(String(step.config.to ?? ""), payload)
         const subject = interpolate(String(step.config.subject ?? ""), payload)
+        const html = step.config.html !== undefined ? interpolate(String(step.config.html), payload) : undefined
+        const text = step.config.text !== undefined
+          ? interpolate(String(step.config.text), payload)
+          : step.config.body !== undefined
+            ? interpolate(String(step.config.body), payload)
+            : undefined
+        if (!options.sendEmail) throw new Error("No email transport configured")
+        await options.sendEmail({ to, subject, html, text })
         return { sent: true, to, subject }
       }
       case "action.create_content": {
@@ -119,11 +133,13 @@ export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = 
             data[k] = v.includes("{{") ? interpolate(v, payload) : resolvePayloadPath(payload, v) ?? v
           }
         }
-        return { action: "create_content", collection, data }
+        if (!options.content) throw new Error("No content adapter configured")
+        const saved = await options.content.create(collection, data)
+        return { action: "create_content", collection, documentId: saved.id, data: saved }
       }
       case "action.update_content": {
         const collection = String(step.config.collection ?? "")
-        const documentId = interpolate(String(step.config.documentId ?? ""), payload)
+        const documentId = interpolate(String(step.config.documentId ?? step.config.document_id ?? ""), payload)
         const dataTemplate = step.config.data as Record<string, string> | undefined
         const data: Record<string, unknown> = {}
         if (dataTemplate) {
@@ -131,12 +147,16 @@ export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = 
             data[k] = v.includes("{{") ? interpolate(v, payload) : resolvePayloadPath(payload, v) ?? v
           }
         }
-        return { action: "update_content", collection, documentId, data }
+        if (!options.content) throw new Error("No content adapter configured")
+        const saved = await options.content.update(collection, documentId, data)
+        return { action: "update_content", collection, documentId, data: saved }
       }
       case "action.delete_content": {
         const collection = String(step.config.collection ?? "")
-        const documentId = interpolate(String(step.config.documentId ?? ""), payload)
-        return { action: "delete_content", collection, documentId }
+        const documentId = interpolate(String(step.config.documentId ?? step.config.document_id ?? ""), payload)
+        if (!options.content) throw new Error("No content adapter configured")
+        const deleted = await options.content.delete(collection, documentId)
+        return { action: "delete_content", collection, documentId, deleted }
       }
       default:
         return payload

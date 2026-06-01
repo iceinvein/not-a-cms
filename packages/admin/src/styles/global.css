@@ -28,11 +28,36 @@
   --status-success: #22c55e;
   --status-warning: #f59e0b;
   --status-error: #ef4444;
+
+  /* type system */
+  --font-ui: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Newsreader Variable', 'Newsreader', Georgia, serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace;
+
+  /* motion */
+  --motion-fast: 120ms;
+  --motion-ease: cubic-bezier(0.2, 0, 0, 1);
+
+  /* presence palette (assigned per collaborator in the Continuum plan) */
+  --presence-1: #7aa2c9;
+  --presence-2: #c97a9e;
+  --presence-3: #9ec97a;
+  --presence-4: #c9b27a;
+  --presence-5: #a98ec9;
 }
 
 body {
   background: var(--bg-app);
   color: var(--text-secondary);
+  font-family: var(--font-ui);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }

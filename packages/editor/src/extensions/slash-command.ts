@@ -80,8 +80,12 @@ export function filterCommands(query: string, commands: SlashCommandItem[] = DEF
   )
 }
 
-export const SlashExtension = Extension.create({
+export const SlashExtension = Extension.create<{ commands: SlashCommandItem[] }>({
   name: "slashCommand",
+
+  addOptions() {
+    return { commands: DEFAULT_COMMANDS }
+  },
 
   addProseMirrorPlugins() {
     return [
@@ -89,7 +93,7 @@ export const SlashExtension = Extension.create({
         editor: this.editor,
         char: "/",
         startOfLine: false,
-        items: ({ query }: { query: string }) => filterCommands(query),
+        items: ({ query }: { query: string }) => filterCommands(query, this.options.commands),
         command: ({ editor, range, props }: any) => {
           props.command(editor, range)
         },

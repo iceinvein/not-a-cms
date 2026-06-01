@@ -1,5 +1,5 @@
 import { test, expect, describe } from "bun:test"
-import { filterCommands, DEFAULT_COMMANDS } from "../../src/extensions/slash-command"
+import { filterCommands, DEFAULT_COMMANDS, SlashExtension } from "../../src/extensions/slash-command"
 
 describe("filterCommands", () => {
   test("returns all commands for empty query", () => {
@@ -36,5 +36,13 @@ describe("filterCommands", () => {
     expect(titles).toContain("Code Block")
     expect(titles).toContain("Divider")
     expect(titles).toContain("Blockquote")
+  })
+})
+
+describe("SlashExtension options", () => {
+  test("exposes a default commands option equal to DEFAULT_COMMANDS", () => {
+    const ext = SlashExtension
+    const options = (ext as any).options ?? (ext as any).config?.addOptions?.()
+    expect(options?.commands?.length).toBe(DEFAULT_COMMANDS.length)
   })
 })

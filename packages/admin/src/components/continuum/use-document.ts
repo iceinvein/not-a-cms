@@ -1,0 +1,98 @@
+import { useCallback, useEffect, useState } from "react"
+import { adminApiFetch } from "../../lib/api"
+import { buildPayload } from "../../lib/content-payload"
+import type { AdminFieldDef } from "../../lib/content-fields"
+
+export type WorkflowAction = "save_draft" | "submit_review" | "publish" | "archive"
+
+export function useDocument(opts: {
+  collection: string
+  fields: Record<string, AdminFieldDef>
+  apiBase: string
+  documentId?: string
+  initialData?: Record<string, unknown>
+}) {
+  const { collection, fields, apiBase, documentId, initialData } = opts
+
+  const [data, setData] = useState<Record<string, unknown>>(() => {
+    const defaults: Record<string, unknown> = {}
+    for (const [name, def] of Object.entries(fields)) {
+      if (def.default !== undefined) defaults[name] = def.default
+    }
+    return { ...defaults, ...initialData }
+  })
+  const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(Boolean(documentId && !initialData))
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!documentId || initialData) return
+
+    setLoading(true)
+    const populate = Object.entries(fields)
+      .filter(([, def]) => def.type === "relation" || def.type === "media")
+      .map(([name]) => name)
+      .join(",")
+    const path = populate
+      ? `/api/${collection}/${documentId}?populate=${encodeURIComponent(populate)}`
+      : `/api/${collection}/${documentId}`
+
+    adminApiFetch(apiBase, path)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((doc) => {
+        if (doc) setData(doc)
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [documentId, collection, apiBase, initialData, fields])
+
+  const updateField = useCallback((name: string, value: unknown) => {
+    setData((prev) => ({ ...prev, [name]: value }))
+  }, [])
+
+  const save = useCallback(async (action: WorkflowAction = "save_draft") => {
+    setSaving(true)
+    setError(null)
+    try {
+      const url = documentId ? `/api/${collection}/${documentId}` : `/api/${collection}`
+      const res = await adminApiFetch(apiBase, url, {
+        method: documentId ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildPayload(data, fields)),
+      })
+
+      if (!res.ok) throw new Error("Failed to save")
+
+      let result = await res.json()
+      const savedId = String(result.id ?? documentId ?? "")
+
+      if (savedId && (action !== "save_draft" || result.status !== "draft")) {
+        const workflowRes = await adminApiFetch(apiBase, `/api/${collection}/${savedId}/workflow`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action }),
+        })
+        if (!workflowRes.ok) {
+          const body = await workflowRes.json().catch(() => null)
+          throw new Error(body?.error ?? "Failed to update workflow")
+        }
+        result = await workflowRes.json()
+      }
+
+      if (!documentId && result.id) {
+        window.location.href = `/content/${collection}/${result.id}`
+        return result
+      }
+
+      setData(result)
+      return result
+    } catch (err: any) {
+      setError(err.message)
+      throw err
+    } finally {
+      setSaving(false)
+    }
+  }, [apiBase, collection, documentId, data, fields])
+
+  return { data, setData, updateField, save, saving, loading, error }
+}

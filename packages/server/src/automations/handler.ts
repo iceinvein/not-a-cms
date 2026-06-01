@@ -1,4 +1,4 @@
-import type { FlowStore, FlowEngine } from "@not-a-cms/core"
+import type { FlowStore, FlowEngine, FlowRunStatus } from "@not-a-cms/core"
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -32,6 +32,16 @@ export function createAutomationHandler(store: FlowStore, engine: FlowEngine) {
         const body = await req.json()
         const flow = store.createFlow(body)
         return json(flow, 201)
+      }
+
+      // GET /api/_flows/runs — list runs across all flows
+      if (segments.length === 1 && segments[0] === "runs" && method === "GET") {
+        const status = url.searchParams.get("status") as FlowRunStatus | null
+        const limit = url.searchParams.has("limit") ? Number(url.searchParams.get("limit")) : 50
+        const offset = url.searchParams.has("offset") ? Number(url.searchParams.get("offset")) : 0
+        return json({
+          data: store.listRecentRuns({ status: status ?? undefined, limit, offset }),
+        })
       }
 
       const id = segments[0]

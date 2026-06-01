@@ -85,6 +85,7 @@ export {
   type WorkflowTransition,
 } from "./content/workflow"
 export { slugify } from "./content/slugify"
+export { bucketHorizon, type Horizon, type HorizonItem } from "./content/horizon"
 
 // Versioning
 export { compareVersionData, createVersioningService, type VersionChange, type VersioningService, type VersionRecord } from "./content/versioning"

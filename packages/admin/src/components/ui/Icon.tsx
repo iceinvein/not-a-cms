@@ -1,7 +1,12 @@
 import {
+  AlertTriangle,
+  CalendarClock,
+  CheckCircle2,
+  CircleDot,
   LayoutGrid,
   FileText,
   Image as ImageIcon,
+  Radio,
   Webhook,
   Settings,
   Search,
@@ -11,9 +16,14 @@ import {
 } from "lucide-react"
 
 const ICONS = {
+  alert: AlertTriangle,
+  calendar: CalendarClock,
+  check: CheckCircle2,
+  dot: CircleDot,
   dashboard: LayoutGrid,
   collection: FileText,
   media: ImageIcon,
+  radio: Radio,
   webhooks: Webhook,
   settings: Settings,
   search: Search,

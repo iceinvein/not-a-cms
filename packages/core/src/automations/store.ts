@@ -110,6 +110,15 @@ export function createFlowStore(db: AppDatabase) {
     return (rows as any[]).map(parseRunRow)
   }
 
+  function listRecentRuns(opts: { status?: FlowRunStatus; limit?: number; offset?: number } = {}): FlowRun[] {
+    const limit = opts.limit ?? 50
+    const offset = opts.offset ?? 0
+    const rows = opts.status
+      ? db.all(sql`SELECT * FROM _flow_runs WHERE status = ${opts.status} ORDER BY started_at DESC, rowid DESC LIMIT ${limit} OFFSET ${offset}`)
+      : db.all(sql`SELECT * FROM _flow_runs ORDER BY started_at DESC, rowid DESC LIMIT ${limit} OFFSET ${offset}`)
+    return (rows as any[]).map(parseRunRow)
+  }
+
   function purgeOldRuns(retentionDays: number): number {
     const cutoff = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000).toISOString()
     const oldRuns = db.all(sql`SELECT id FROM _flow_runs WHERE started_at < ${cutoff}`) as Array<{ id: string }>
@@ -134,6 +143,7 @@ export function createFlowStore(db: AppDatabase) {
     recordStep,
     getRunSteps,
     listRuns,
+    listRecentRuns,
     purgeOldRuns,
   }
 }

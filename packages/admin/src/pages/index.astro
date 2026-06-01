@@ -1,18 +1,15 @@
 ---
 import AdminLayout from "../layouts/AdminLayout.astro"
-import { DashboardStats } from "../components/DashboardStats"
+import { Desk } from "../components/desk/Desk"
 import { getAdminApiBase } from "../lib/api"
 import { fetchCollections } from "../lib/schema"
 
 const collections = await fetchCollections({ cookie: Astro.request.headers.get("cookie") || "" })
 const apiBase = getAdminApiBase()
 ---
-<AdminLayout title="Dashboard">
+<AdminLayout title="Home">
   <div class="space-y-12">
-    <section>
-      <h2 class="text-sm font-medium text-[#71717a] uppercase tracking-wider mb-5">Content Overview</h2>
-      <DashboardStats client:load apiBase={apiBase} />
-    </section>
+    <Desk client:load apiBase={apiBase} />
 
     {collections.length > 0 && (
       <section>

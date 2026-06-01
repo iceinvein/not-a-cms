@@ -208,6 +208,32 @@ a.crumb:hover {
   gap: 0;
 }
 
+@media (max-width: 720px) {
+  .shell-body {
+    grid-template-columns: 52px 1fr;
+  }
+
+  .rail-text {
+    display: none;
+  }
+
+  .rail-link,
+  .rail-toggle {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+    gap: 0;
+  }
+
+  .workspace-head {
+    padding: 24px 18px 8px;
+  }
+
+  .workspace-body {
+    padding: 0 18px 28px;
+  }
+}
+
 /* Command palette */
 .cmd-overlay {
   position: fixed;

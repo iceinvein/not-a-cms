@@ -1,6 +1,7 @@
 ---
 import AppShell from "../components/shell/AppShell.astro"
-import { adminApiUrl } from "../lib/api"
+import { CommandPalette } from "../components/command/CommandPalette"
+import { adminApiUrl, getAdminApiBase } from "../lib/api"
 import { fetchCollections } from "../lib/schema"
 import "../styles/fonts"
 import "../styles/global.css"
@@ -43,6 +44,8 @@ if (!isAuthPage) {
 }
 
 const collections = await fetchCollections({ cookie })
+const apiBase = getAdminApiBase()
+const siteBase = import.meta.env.PUBLIC_SITE_BASE || "http://localhost:3000"
 ---
 <html lang="en">
 <head>
@@ -62,6 +65,13 @@ const collections = await fetchCollections({ cookie })
     currentPath={currentPath}
     collections={collections}
     extensionNavItems={extensionNavItems}
+  />
+  <CommandPalette
+    client:load
+    apiBase={apiBase}
+    siteBase={siteBase}
+    collections={collections}
+    pathname={currentPath}
   />
 </body>
 </html>

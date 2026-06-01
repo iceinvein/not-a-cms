@@ -1,0 +1,171 @@
+import { lazy, Suspense, useEffect, useMemo, useState } from "react"
+import { ErrorBoundary } from "../ErrorBoundary"
+import { ToastProvider, useToast } from "../Toast"
+import { portableTextValue } from "../ContentEditor"
+import { buildCollaborationConfig, defaultCollabUser } from "../../lib/collaboration"
+import type { AdminFieldDef } from "../../lib/content-fields"
+import type { CollabUser } from "@not-a-cms/editor"
+import { ChannelMirror } from "./ChannelMirror"
+import { continuumBlocks, continuumSlashCommands } from "./blocks"
+import { useDocument, type WorkflowAction } from "./use-document"
+
+const Editor = lazy(() => import("@not-a-cms/editor").then((module) => ({ default: module.Editor })))
+
+type Props = {
+  collection: string
+  collectionLabel: string
+  fields: Record<string, AdminFieldDef>
+  initialData?: Record<string, unknown>
+  documentId?: string
+  apiBase?: string
+  siteBase?: string
+  collaborationUser?: CollabUser
+}
+
+function richTextFieldName(fields: Record<string, AdminFieldDef>): string | null {
+  const entry = Object.entries(fields).find(([, def]) => def.type === "richText")
+  return entry ? entry[0] : null
+}
+
+function titleFieldName(fields: Record<string, AdminFieldDef>): string {
+  if (fields.title) return "title"
+  const entry = Object.entries(fields).find(([, def]) => def.type === "text" || def.type === "slug")
+  return entry?.[0] ?? "title"
+}
+
+function workflowToast(action: WorkflowAction): string {
+  switch (action) {
+    case "submit_review":
+      return "Submitted for review"
+    case "publish":
+      return "Published successfully"
+    case "archive":
+      return "Archived successfully"
+    default:
+      return "Draft saved"
+  }
+}
+
+function ContinuumInner({
+  collection,
+  collectionLabel,
+  fields,
+  initialData,
+  documentId,
+  apiBase = "",
+  siteBase = "http://localhost:3000",
+  collaborationUser = defaultCollabUser(),
+}: Props) {
+  const { addToast } = useToast()
+  const { data, updateField, save, saving, loading, error } = useDocument({
+    collection,
+    fields,
+    apiBase,
+    documentId,
+    initialData,
+  })
+  const titleField = titleFieldName(fields)
+  const bodyField = richTextFieldName(fields)
+  const parsedBodyBlocks = bodyField ? portableTextValue(data[bodyField]) ?? [] : []
+  const [bodyBlocks, setBodyBlocks] = useState<any[]>(parsedBodyBlocks)
+
+  useEffect(() => {
+    const next = bodyField ? portableTextValue(data[bodyField]) ?? [] : []
+    setBodyBlocks((current) => (JSON.stringify(current) === JSON.stringify(next) ? current : next))
+  }, [bodyField, data])
+
+  const collaboration = useMemo(() => {
+    if (!bodyField) return null
+    const cfg = buildCollaborationConfig({
+      apiBase,
+      collection,
+      documentId,
+      fieldName: bodyField,
+      user: collaborationUser,
+    })
+    return bodyBlocks.length > 0 ? null : cfg
+  }, [apiBase, collection, documentId, bodyField, collaborationUser, bodyBlocks.length])
+
+  const handleSave = async (action: WorkflowAction) => {
+    try {
+      await save(action)
+      addToast(workflowToast(action), "success")
+    } catch (err: any) {
+      addToast(err.message || "Failed to save", "error")
+    }
+  }
+
+  if (loading) {
+    return <div className="cn-loading">Loading document...</div>
+  }
+
+  const title = String(data[titleField] ?? "")
+  const byline = String((data.author as any)?.name ?? data.author ?? "")
+
+  return (
+    <div className="cn-root" data-site-base={siteBase}>
+      <main className="cn-canvas">
+        <section className="cn-sheet" aria-label={`${collectionLabel} document`}>
+          <div className="cn-sheet-head">
+            <div className="cn-meta">
+              <span>{collectionLabel}</span>
+              <span>{saving ? "Saving..." : error ? "Needs attention" : "Draft"}</span>
+            </div>
+            <div className="cn-presence" aria-label="Current collaborator">
+              <span style={{ background: collaborationUser.color }} aria-hidden="true" />
+              {collaborationUser.name}
+            </div>
+          </div>
+          <input
+            className="cn-title"
+            value={title}
+            placeholder="Untitled"
+            onChange={(event) => updateField(titleField, event.target.value)}
+          />
+          {bodyField ? (
+            <Suspense fallback={<div className="cn-loading">Loading editor...</div>}>
+              <Editor
+                content={portableTextValue(data[bodyField])}
+                blocks={continuumBlocks}
+                slashCommands={continuumSlashCommands}
+                placeholder="Type / to insert, or just start writing..."
+                collaboration={collaboration ?? undefined}
+                onChange={(blocks) => {
+                  setBodyBlocks(blocks)
+                  updateField(bodyField, JSON.stringify(blocks))
+                }}
+              />
+            </Suspense>
+          ) : (
+            <div className="cn-empty">This collection has no rich text field.</div>
+          )}
+        </section>
+      </main>
+
+      <ChannelMirror blocks={bodyBlocks} title={title || "Untitled"} byline={byline} />
+
+      <div className="cn-status">
+        <span className="cn-status-state">{saving ? "Saving..." : error || "Draft"}</span>
+        <button className="cn-status-btn" type="button" disabled={saving} onClick={() => handleSave("save_draft")}>
+          Save
+        </button>
+        <button className="cn-status-btn" type="button" disabled={saving} onClick={() => handleSave("submit_review")}>
+          Review
+        </button>
+        <button className="cn-status-publish" type="button" disabled={saving} onClick={() => handleSave("publish")}>
+          <kbd>⌘↵</kbd> publish
+        </button>
+      </div>
+    </div>
+  )
+}
+
+export function Continuum(props: Props) {
+  return (
+    <ErrorBoundary>
+      <ToastProvider>
+        <ContinuumInner {...props} />
+      </ToastProvider>
+    </ErrorBoundary>
+  )
+}

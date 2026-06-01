@@ -155,20 +155,46 @@ export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = 
       while (currentStep) {
         const step: FlowStep = currentStep
         const stepInput = JSON.stringify(currentPayload)
+        const startedAt = new Date().toISOString()
         if (step.type === "condition") {
           const result = evaluateConditionStep(step, currentPayload)
           const branchTaken = result ? "true" : "false"
-          store.recordStep({ run_id: run.id, step_id: step.id, status: "completed", input: stepInput, output: stepInput, branch_taken: branchTaken })
+          store.recordStep({
+            run_id: run.id,
+            step_id: step.id,
+            status: "completed",
+            input: stepInput,
+            output: stepInput,
+            branch_taken: branchTaken,
+            started_at: startedAt,
+            finished_at: new Date().toISOString(),
+          })
           const nextId: string | null | undefined = result ? step.branches.true : step.branches.false
           currentStep = nextId ? resolveStepById(flow.steps, nextId) : undefined
         } else {
           try {
             const output = await executeActionStep(step, currentPayload)
-            store.recordStep({ run_id: run.id, step_id: step.id, status: "completed", input: stepInput, output: JSON.stringify(output) })
+            store.recordStep({
+              run_id: run.id,
+              step_id: step.id,
+              status: "completed",
+              input: stepInput,
+              output: JSON.stringify(output),
+              started_at: startedAt,
+              finished_at: new Date().toISOString(),
+            })
             currentPayload = output
             currentStep = step.next ? resolveStepById(flow.steps, step.next) : undefined
           } catch (err: any) {
-            store.recordStep({ run_id: run.id, step_id: step.id, status: "failed", input: stepInput, error: err.message })
+            store.recordStep({
+              run_id: run.id,
+              step_id: step.id,
+              status: "failed",
+              input: stepInput,
+              error: err.message,
+              started_at: startedAt,
+              finished_at: new Date().toISOString(),
+            })
             store.completeRun(run.id, "failed", err.message)
             return run.id
           }

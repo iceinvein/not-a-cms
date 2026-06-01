@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import type { FlowStep, FlowRun, FlowRunStep } from "./flow-types"
+import type { FlowStep, FlowRunDetail, FlowRunStep } from "./flow-types"
 import { FlowCanvas } from "./FlowCanvas"
 import { ErrorState, LoadingState } from "../AdminState"
 import { adminApiFetch } from "../../lib/api"
@@ -103,7 +103,7 @@ function StepDetailPanel({ runStep, steps }: { runStep: FlowRunStep; steps: Flow
 }
 
 export function RunDetail({ flowId, runId, apiBase = "", steps, onRetry }: Props) {
-  const [run, setRun] = useState<FlowRun | null>(null)
+  const [run, setRun] = useState<FlowRunDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedStepId, setSelectedStepId] = useState<string | null>(null)
   const [retrying, setRetrying] = useState(false)
@@ -113,7 +113,7 @@ export function RunDetail({ flowId, runId, apiBase = "", steps, onRetry }: Props
     setLoading(true)
     adminApiFetch(apiBase, `/api/_flows/${flowId}/runs/${runId}`)
       .then((r) => (r.ok ? r.json() : null))
-      .then((data: FlowRun | null) => setRun(data))
+      .then((data: FlowRunDetail | null) => setRun(data))
       .catch(() => setRun(null))
       .finally(() => setLoading(false))
   }, [flowId, runId, apiBase])

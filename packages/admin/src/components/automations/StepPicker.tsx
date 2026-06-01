@@ -82,7 +82,7 @@ export function StepPicker({ onSelect, onCancel }: Props) {
           <button
             key={opt.type}
             onClick={() => onSelect(opt.type)}
-            className="w-full text-left px-3 py-2 rounded-lg hover:bg-[rgba(245,158,11,0.05)] border-l-2 border-l-transparent hover:border-l-[#f59e0b] transition-colors"
+            className="w-full text-left px-3 py-2 rounded-lg border border-transparent hover:border-[rgba(245,158,11,0.25)] hover:bg-[rgba(245,158,11,0.05)] transition-colors"
           >
             <p className="text-sm font-medium text-[#e4e4e7]">{opt.label}</p>
             <p className="text-xs text-[#71717a]">{opt.description}</p>
@@ -94,7 +94,7 @@ export function StepPicker({ onSelect, onCancel }: Props) {
           <button
             key={opt.type}
             onClick={() => onSelect(opt.type)}
-            className="w-full text-left px-3 py-2 rounded-lg hover:bg-[rgba(255,255,255,0.03)] border-l-2 border-l-transparent hover:border-l-[#fafafa] transition-colors"
+            className="w-full text-left px-3 py-2 rounded-lg border border-transparent hover:border-[rgba(255,255,255,0.12)] hover:bg-[rgba(255,255,255,0.03)] transition-colors"
           >
             <p className="text-sm font-medium text-[#e4e4e7]">{opt.label}</p>
             <p className="text-xs text-[#71717a]">{opt.description}</p>

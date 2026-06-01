@@ -35,7 +35,8 @@ import { createMediaStorage, type MediaStorage, type StorageConfig } from "./med
 import { createImageOptimizer } from "./media/optimizer"
 import { createMediaHandler } from "./media/handler"
 import { computeMediaUsage, computeUsageCounts } from "./media/usage"
-import { collabWebSocket, type CollabWSData } from "./collab/handler"
+import { collabWebSocket, presenceSnapshot, type CollabWSData } from "./collab/handler"
+import { buildPresenceRooms } from "./collab/rooms"
 import { createPreviewHandler } from "./preview/handler"
 import { buildGraphQLSchema } from "./graphql/schema"
 import { createGraphQLHandler } from "./graphql/handler"
@@ -477,6 +478,22 @@ export function createServer(config: ServerConfig): CreatedServer {
         const unauthorized = await requireAuthorized()
         if (unauthorized) return withCors(unauthorized)
         return withCors(Response.json(await buildHorizon(collections, new Date())))
+      }
+
+      // Live presence
+      if (url.pathname === "/api/_presence") {
+        if (req.method !== "GET") {
+          return withCors(Response.json({ error: "Method not allowed" }, { status: 405 }))
+        }
+        const unauthorized = await requireAuthorized()
+        if (unauthorized) return withCors(unauthorized)
+        const resolveTitle = async (collection: string, documentId: string) => {
+          const entry = collections.get(collection)
+          if (!entry) return documentId
+          const doc = await entry.service.findById(documentId).catch(() => null)
+          return doc ? String((doc as any).title || (doc as any).name || (doc as any).slug || documentId) : documentId
+        }
+        return withCors(Response.json({ rooms: await buildPresenceRooms(presenceSnapshot(), resolveTitle) }))
       }
 
       // Media usage counts for Vault clustering

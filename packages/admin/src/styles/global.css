@@ -619,3 +619,103 @@ a.crumb:hover {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Continuum channel mirror */
+.cn-mirror {
+  min-width: 0;
+  border-left: 1px solid var(--border-default);
+  background: var(--bg-sidebar);
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.cn-mirror-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.cn-mirror-title {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.cn-mirror-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.cn-tab {
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 5px 8px;
+}
+
+.cn-tab-on {
+  border-color: var(--accent-muted);
+  background: var(--accent-subtle);
+  color: var(--accent-hover);
+}
+
+.cn-mirror-scroll {
+  min-height: 0;
+  overflow: auto;
+  padding: 18px;
+}
+
+.cn-render {
+  border-radius: 8px;
+  background: #fbf7f0;
+  color: #211b17;
+  font-family: var(--font-serif);
+  padding: 26px;
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.35);
+}
+
+.cn-render-title {
+  margin: 0 0 8px;
+  color: #171311;
+  font-family: var(--font-serif);
+  font-size: 34px;
+  line-height: 1.05;
+}
+
+.cn-render-byline {
+  margin: 0 0 18px;
+  color: #6f5b4d;
+  font-family: var(--font-ui);
+  font-size: 13px;
+}
+
+.cn-render p {
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.cn-render [data-callout] {
+  border-left: 3px solid var(--accent);
+  background: rgba(201, 149, 107, 0.12);
+  padding: 10px 12px;
+}
+
+.cn-render [data-author],
+.cn-render [data-gallery] {
+  border: 1px solid rgba(33, 27, 23, 0.12);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.cn-mirror-note {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin: 12px 2px 0;
+}

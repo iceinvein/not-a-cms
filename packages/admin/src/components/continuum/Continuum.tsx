@@ -101,6 +101,7 @@ function ContinuumInner({
 
   const title = String(data[titleField] ?? "")
   const byline = String((data.author as any)?.name ?? data.author ?? "")
+  const statusLabel = String(data.status ?? "draft").replace(/_/g, " ")
 
   return (
     <div className="cn-root" data-site-base={siteBase}>
@@ -109,7 +110,7 @@ function ContinuumInner({
           <div className="cn-sheet-head">
             <div className="cn-meta">
               <span>{collectionLabel}</span>
-              <span>{saving ? "Saving..." : error ? "Needs attention" : "Draft"}</span>
+              <span>{saving ? "Saving..." : error ? "Needs attention" : statusLabel}</span>
             </div>
             <div className="cn-presence" aria-label="Current collaborator">
               <span style={{ background: collaborationUser.color }} aria-hidden="true" />
@@ -145,7 +146,7 @@ function ContinuumInner({
       <ChannelMirror blocks={bodyBlocks} title={title || "Untitled"} byline={byline} />
 
       <div className="cn-status">
-        <span className="cn-status-state">{saving ? "Saving..." : error || "Draft"}</span>
+        <span className="cn-status-state">{saving ? "Saving..." : error || statusLabel}</span>
         <button className="cn-status-btn" type="button" disabled={saving} onClick={() => handleSave("save_draft")}>
           Save
         </button>

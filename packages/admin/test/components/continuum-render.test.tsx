@@ -17,4 +17,18 @@ describe("Continuum", () => {
     expect(html).toContain("Channel mirror")
     expect(html).toContain("publish")
   })
+
+  test("renders document status from data", () => {
+    const html = renderToString(
+      <Continuum
+        collection="blog_post"
+        collectionLabel="Blog Post"
+        fields={{ title: { type: "text" }, status: { type: "select" }, body: { type: "richText" } }}
+        initialData={{ title: "Published", status: "published" }}
+        apiBase=""
+        siteBase="http://s"
+      />,
+    )
+    expect(html).toContain("published")
+  })
 })

@@ -17,12 +17,12 @@ type EditTarget =
   | { type: "action"; id: string }
   | null
 
-const ACTION_TYPES: Array<{ type: ActionType; label: string; preview?: boolean }> = [
+const ACTION_TYPES: Array<{ type: ActionType; label: string }> = [
   { type: "action.webhook", label: "Send webhook" },
-  { type: "action.email", label: "Send email", preview: true },
-  { type: "action.create_content", label: "Create content", preview: true },
-  { type: "action.update_content", label: "Update content", preview: true },
-  { type: "action.delete_content", label: "Delete content", preview: true },
+  { type: "action.email", label: "Send email" },
+  { type: "action.create_content", label: "Create content" },
+  { type: "action.update_content", label: "Update content" },
+  { type: "action.delete_content", label: "Delete content" },
   { type: "action.log", label: "Log" },
   { type: "action.transform", label: "Transform" },
 ]
@@ -47,10 +47,6 @@ function defaultCondition(nextActionId: string | null): ConditionStep {
 
 function actionLabel(action: ActionStep): string {
   return action.label ?? action.type.replace("action.", "").replace(/_/g, " ")
-}
-
-function isPreviewAction(action: ActionStep): boolean {
-  return ["action.email", "action.create_content", "action.update_content", "action.delete_content"].includes(action.type)
 }
 
 function normalizeActionConfig(action: ActionStep): ActionStep {
@@ -257,9 +253,6 @@ export function RuleEditor({ flow, apiBase = "", onSaved }: Props) {
                     <span className="flex items-center gap-2 text-sm text-[#fafafa]">
                       <span className="text-xs text-[#71717a]">{index + 1}</span>
                       <span className="truncate">{actionLabel(action)}</span>
-                      {isPreviewAction(action) && (
-                        <span className="rounded-full border border-[rgba(255,255,255,0.1)] px-1.5 py-0.5 text-[11px] text-[#71717a]">preview</span>
-                      )}
                     </span>
                   </button>
                   <button type="button" onClick={() => removeStep(action.id)} className="text-xs text-[#52525b] hover:text-[#ef4444]">

@@ -1,0 +1,177 @@
+---
+import { breadcrumbFromPath, type CrumbCollection } from "../../lib/breadcrumb"
+
+interface Props {
+  title: string
+  currentPath: string
+  collections?: CrumbCollection[]
+  extensionNavItems?: Array<{
+    label: string
+    href: string
+    section?: "main" | "bottom"
+    icon?: string
+  }>
+}
+
+const { title, currentPath, collections = [], extensionNavItems = [] } = Astro.props
+const crumbs = breadcrumbFromPath(currentPath, collections)
+
+function isActive(href: string) {
+  if (href === "/") return currentPath === "/"
+  return currentPath === href || currentPath.startsWith(href + "/")
+}
+
+function railLink(href: string) {
+  const active = isActive(href)
+  return [
+    "rail-link flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors",
+    active
+      ? "bg-[rgba(201,149,107,0.1)] text-[#c9956b] font-medium"
+      : "text-[#71717a] hover:text-[#a1a1aa] hover:bg-[rgba(255,255,255,0.03)]",
+  ].join(" ")
+}
+
+const mainExt = extensionNavItems.filter((i) => i.section !== "bottom")
+const bottomExt = extensionNavItems.filter((i) => i.section === "bottom")
+---
+
+<div class="shell-root">
+  <header class="spine">
+    <button
+      id="cmd-trigger"
+      class="cmd-trigger"
+      aria-label="Open command palette"
+      aria-keyshortcuts="Meta+K Control+K"
+    >
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3Z"/>
+      </svg>
+    </button>
+
+    <nav class="crumbs" aria-label="Breadcrumb">
+      {crumbs.map((c, i) => (
+        <>
+          {i > 0 && <span class="crumb-sep" aria-hidden="true">&rsaquo;</span>}
+          {c.href && !c.current ? (
+            <a href={c.href} class="crumb">{c.label}</a>
+          ) : (
+            <span class:list={["crumb", { "crumb-current": c.current }]} aria-current={c.current ? "page" : undefined}>{c.label}</span>
+          )}
+        </>
+      ))}
+    </nav>
+
+    <div class="spine-spacer"></div>
+    <div id="presence-slot" class="presence-slot"></div>
+  </header>
+
+  <div class="shell-body">
+    <aside id="rail" class="rail" aria-label="Primary navigation">
+      <div class="rail-section">
+        <a href="/" class={railLink("/")}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0" aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+          </svg>
+          <span class="rail-text truncate">Dashboard</span>
+        </a>
+
+        {collections.map((c) => {
+          const href = `/content/${c.name}`
+          const label = c.labels?.plural ?? c.label ?? c.name
+          return (
+            <a href={href} class={railLink(href)}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/>
+              </svg>
+              <span class="rail-text truncate">{label}</span>
+            </a>
+          )
+        })}
+
+        <a href="/media" class={railLink("/media")}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0" aria-hidden="true">
+            <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+          </svg>
+          <span class="rail-text truncate">Media</span>
+        </a>
+
+        {mainExt.map((item) => (
+          <a href={item.href} class={railLink(item.href)}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0" aria-hidden="true">
+              <path d="M12 2v20"/><path d="M2 12h20"/><path d="m4.93 4.93 14.14 14.14"/><path d="m19.07 4.93-14.14 14.14"/>
+            </svg>
+            <span class="rail-text truncate">{item.label}</span>
+          </a>
+        ))}
+      </div>
+
+      <div class="rail-section rail-bottom">
+        <a href="/automations" class={railLink("/automations")}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0" aria-hidden="true">
+            <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h.01"/><path d="M17 7h.01"/><path d="M7 17h.01"/><path d="M17 17h.01"/>
+          </svg>
+          <span class="rail-text truncate">Automations</span>
+        </a>
+        <a href="/webhooks" class={railLink("/webhooks")}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0" aria-hidden="true">
+            <path d="M18 16.98h-5.99c-1.1 0-1.95.94-2.48 1.9A4 4 0 0 1 2 17c.01-.7.2-1.4.57-2"/><path d="m6 17 3.13-5.78c.53-.97.1-2.18-.5-3.1a4 4 0 1 1 6.89-4.06"/><path d="m12 6 3.13 5.73C15.66 12.7 16.9 13 18 13a4 4 0 0 1 .8 7.93"/>
+          </svg>
+          <span class="rail-text truncate">Webhooks</span>
+        </a>
+        <a href="/settings" class={railLink("/settings")}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0" aria-hidden="true">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>
+          </svg>
+          <span class="rail-text truncate">Settings</span>
+        </a>
+
+        {bottomExt.map((item) => (
+          <a href={item.href} class={railLink(item.href)}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0" aria-hidden="true">
+              <path d="M12 2v20"/><path d="M2 12h20"/><path d="m4.93 4.93 14.14 14.14"/><path d="m19.07 4.93-14.14 14.14"/>
+            </svg>
+            <span class="rail-text truncate">{item.label}</span>
+          </a>
+        ))}
+
+        <button id="rail-toggle" class="rail-toggle" aria-label="Collapse navigation">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m15 18-6-6 6-6"/>
+          </svg>
+          <span class="rail-text">Collapse</span>
+        </button>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <div class="workspace-head">
+        <h1 class="workspace-title">{title}</h1>
+      </div>
+      <div class="workspace-body">
+        <slot />
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+  const toggle = document.getElementById("rail-toggle")
+  const isCollapsed = () => document.documentElement.classList.contains("rail-collapsed")
+  function setCollapsed(value: boolean) {
+    document.documentElement.classList.toggle("rail-collapsed", value)
+    window.localStorage.setItem("nacms-rail-collapsed", String(value))
+  }
+  toggle?.addEventListener("click", () => setCollapsed(!isCollapsed()))
+
+  // Command palette seam: dispatched here, listened to by the Command Deck plan.
+  function openCommand() {
+    window.dispatchEvent(new CustomEvent("nacms:command-open"))
+  }
+  document.getElementById("cmd-trigger")?.addEventListener("click", openCommand)
+  window.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+      e.preventDefault()
+      openCommand()
+    }
+  })
+</script>

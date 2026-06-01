@@ -1,7 +1,8 @@
 ---
-import Sidebar from "../components/Sidebar.astro"
+import AppShell from "../components/shell/AppShell.astro"
 import { adminApiUrl } from "../lib/api"
 import { fetchCollections } from "../lib/schema"
+import "../styles/fonts"
 import "../styles/global.css"
 
 interface Props {
@@ -18,7 +19,7 @@ const { title, extensionNavItems = [] } = Astro.props
 const currentPath = Astro.url.pathname
 const cookie = Astro.request.headers.get("cookie") || ""
 
-// Auth check — skip for login and auth callback pages
+// Auth check - skip for login and auth callback pages.
 const isAuthPage = currentPath === "/login" || currentPath.startsWith("/auth/")
 if (!isAuthPage) {
   try {
@@ -34,7 +35,7 @@ if (!isAuthPage) {
       return Astro.redirect("/login")
     }
   } catch {
-    // API unreachable (e.g. admin started before API) — allow access in dev
+    // API unreachable, such as admin starting before API. Allow access in dev.
     if (import.meta.env.PROD) {
       return Astro.redirect("/login")
     }
@@ -49,26 +50,18 @@ const collections = await fetchCollections({ cookie })
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{title} — not-a-cms</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script is:inline>
-    if (window.localStorage.getItem('nacms-sidebar-collapsed') === 'true') {
-      document.documentElement.classList.add('sidebar-collapsed')
+    if (window.localStorage.getItem('nacms-rail-collapsed') === 'true') {
+      document.documentElement.classList.add('rail-collapsed')
     }
   </script>
 </head>
-<body class="bg-[#0a0a0c] text-[#a1a1aa] min-h-screen" style="font-family: 'Inter', system-ui, -apple-system, sans-serif;">
-  <div class="flex min-h-screen">
-    <Sidebar collections={collections} currentPath={currentPath} extensionNavItems={extensionNavItems} />
-    <main class="flex-1 min-h-screen">
-      <header class="px-8 pt-8 pb-2">
-        <h1 class="text-xl font-semibold text-[#fafafa] tracking-[-0.01em]">{title}</h1>
-      </header>
-      <div class="px-8 pb-8">
-        <slot />
-      </div>
-    </main>
-  </div>
+<body class="bg-[#0a0a0c] text-[#a1a1aa] min-h-screen">
+  <AppShell
+    title={title}
+    currentPath={currentPath}
+    collections={collections}
+    extensionNavItems={extensionNavItems}
+  />
 </body>
 </html>

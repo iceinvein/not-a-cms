@@ -78,9 +78,12 @@ export function createContentRouter(collections: Map<string, CollectionEntry>) {
         const entry = getEntry(collections, input.collection)
         const role = ctx.session?.role ?? "viewer"
         requireCollectionAccess(entry, role, "read")
+        // Unauthenticated callers may only read published content.
+        const publicOnly = !ctx.session && Boolean(entry.def.fields.status)
         try {
           const doc = await entry.service.findById(input.id)
           if (!doc) return null
+          if (publicOnly && doc.status !== "published") return null
           const [populated] = await populateDocuments([doc], entry.def, {
             populate: input.populate ?? [],
             role,
@@ -109,8 +112,11 @@ export function createContentRouter(collections: Map<string, CollectionEntry>) {
         const entry = getEntry(collections, input.collection)
         const role = ctx.session?.role ?? "viewer"
         requireCollectionAccess(entry, role, "read")
+        // Unauthenticated callers may only read published content.
+        const publicOnly = !ctx.session && Boolean(entry.def.fields.status)
         try {
-          const query = { limit: input.limit, offset: input.offset, where: input.where, sort: input.sort, order: input.order }
+          const where = publicOnly ? { ...(input.where ?? {}), status: "published" } : input.where
+          const query = { limit: input.limit, offset: input.offset, where, sort: input.sort, order: input.order }
           const docs = await entry.service.findMany(query)
           const populated = await populateDocuments(docs, entry.def, {
             populate: input.populate ?? [],
@@ -119,7 +125,7 @@ export function createContentRouter(collections: Map<string, CollectionEntry>) {
           })
           const data = populated.map((doc) => projectDocumentFields(doc, entry.def.fields, role))
           if (input.withMeta) {
-            const total = await entry.service.count({ where: input.where })
+            const total = await entry.service.count({ where })
             return { data, total, limit: input.limit ?? null, offset: input.offset ?? 0 }
           }
           return data

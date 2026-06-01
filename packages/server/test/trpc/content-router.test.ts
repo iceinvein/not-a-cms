@@ -245,7 +245,7 @@ describe("content tRPC router", () => {
     })
     const createdPage = await caller.content.create({
       collection: "page",
-      data: { title: "Populated Page", slug: "populated-page", author: createdAuthor.id },
+      data: { title: "Populated Page", slug: "populated-page", status: "published", author: createdAuthor.id },
     })
 
     const found = await anonymousCaller.content.findById({
@@ -267,7 +267,7 @@ describe("content tRPC router", () => {
   test("content.findById filters unreadable fields for anonymous callers", async () => {
     const created = await caller.content.create({
       collection: "page",
-      data: { title: "Private Page", slug: "private-page", secret: "admin-only" },
+      data: { title: "Private Page", slug: "private-page", status: "published", secret: "admin-only" },
     })
 
     const anonymousFound = await anonymousCaller.content.findById({
@@ -291,13 +291,38 @@ describe("content tRPC router", () => {
   test("content.findMany filters unreadable fields", async () => {
     await caller.content.create({
       collection: "page",
-      data: { title: "Private", slug: "private", secret: "admin-only" },
+      data: { title: "Private", slug: "private", status: "published", secret: "admin-only" },
     })
 
     const all = await anonymousCaller.content.findMany({ collection: "page" })
     expect(all).toHaveLength(1)
     expect(all[0].title).toBe("Private")
     expect(all[0].secret).toBeUndefined()
+  })
+
+  test("anonymous callers can only read published content, never drafts", async () => {
+    const draft = await caller.content.create({
+      collection: "page",
+      data: { title: "Hidden Draft", slug: "hidden-draft", status: "draft" },
+    })
+    const published = await caller.content.create({
+      collection: "page",
+      data: { title: "Shown", slug: "shown-published", status: "published" },
+    })
+
+    // findById: draft is hidden, published is visible
+    expect(await anonymousCaller.content.findById({ collection: "page", id: draft.id })).toBeNull()
+    const pub = await anonymousCaller.content.findById({ collection: "page", id: published.id })
+    expect(pub?.title).toBe("Shown")
+
+    // findMany: only published is returned
+    const list = await anonymousCaller.content.findMany({ collection: "page" })
+    expect(list.some((d: { id: string }) => d.id === draft.id)).toBe(false)
+    expect(list.some((d: { id: string }) => d.id === published.id)).toBe(true)
+
+    // authenticated admin still sees the draft
+    const adminDraft = await caller.content.findById({ collection: "page", id: draft.id })
+    expect(adminDraft?.title).toBe("Hidden Draft")
   })
 
   test("content.findMany supports sorting, operators, and metadata", async () => {

@@ -53,6 +53,16 @@ export function createRestHandler(
     return authorized ? null : json({ error: "Unauthorized" }, 401)
   }
 
+  async function isAuthed(req: Request): Promise<boolean> {
+    return options.authorize ? await options.authorize(req) : false
+  }
+
+  // Unauthenticated callers may only read published content. The public site
+  // requests status=published explicitly; drafts/scheduled/archived must require auth.
+  function publishedOnlyFor(authed: boolean, entry: CollectionEntry): boolean {
+    return !authed && Boolean(entry.def.fields.status)
+  }
+
   async function requireAdmin(req: Request): Promise<Response | null> {
     const role = await getRole(req)
     return role === "admin" ? null : json({ error: "Forbidden" }, 403)
@@ -349,6 +359,9 @@ export function createRestHandler(
           const populate = parsePopulate(url)
           const docs = await service.findMany({ where: { slug }, limit: 1 })
           if (docs.length === 0) return json({ error: "Not found" }, 404)
+          if (publishedOnlyFor(await isAuthed(req), entry) && docs[0].status !== "published") {
+            return json({ error: "Not found" }, 404)
+          }
           const [doc] = await populateDocuments(docs, entry.def, { populate, role, collections, media: options.media })
           return json(project(doc, role))
         }
@@ -493,13 +506,15 @@ export function createRestHandler(
           const forbidden = await requireCollectionAccess(req, entry, "read")
           if (forbidden) return forbidden
           const role = await getRole(req)
+          const publicOnly = publishedOnlyFor(await isAuthed(req), entry)
           const searchTerm = url.searchParams.get("search")
           if (searchTerm && search) {
             const hits = search.query(searchTerm, collectionName)
-            const docs = await Promise.all(
+            const docs = (await Promise.all(
               hits.map((hit) => service.findById(hit.document_id)),
-            )
-            const populated = await populateForRequest(docs.filter(Boolean) as Record<string, unknown>[], role)
+            )).filter(Boolean) as Record<string, unknown>[]
+            const visible = publicOnly ? docs.filter((doc) => doc.status === "published") : docs
+            const populated = await populateForRequest(visible, role)
             return json({ data: populated.map((doc) => project(doc, role)) })
           }
 
@@ -509,6 +524,7 @@ export function createRestHandler(
           const orderParam = url.searchParams.get("order")
           const order: "asc" | "desc" = orderParam === "desc" ? "desc" : "asc"
           const where = parseWhere(url)
+          if (publicOnly) where.status = "published"
 
           const query = { limit, offset, sort, order, where: Object.keys(where).length > 0 ? where : undefined }
           const [data, total] = await Promise.all([
@@ -552,6 +568,9 @@ export function createRestHandler(
         const role = await getRole(req)
         const doc = await service.findById(id)
         if (!doc) {
+          return json({ error: "Not found" }, 404)
+        }
+        if (publishedOnlyFor(await isAuthed(req), entry) && doc.status !== "published") {
           return json({ error: "Not found" }, 404)
         }
         const [populated] = await populateForRequest([doc], role)

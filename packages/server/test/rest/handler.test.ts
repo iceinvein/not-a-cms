@@ -180,6 +180,7 @@ describe("REST API handler", () => {
       body: JSON.stringify({
         title: "Typed Page",
         slug: "typed-page",
+        status: "published",
         body: bodyBlocks,
         tags: ["one", "two"],
         seo: { metaTitle: "Typed SEO", featured: true },
@@ -338,12 +339,12 @@ describe("REST API handler", () => {
     await authorizedHandler(new Request("http://localhost/api/page", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Page One", slug: "page-one" }),
+      body: JSON.stringify({ title: "Page One", slug: "page-one", status: "published" }),
     }))
     await authorizedHandler(new Request("http://localhost/api/page", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Page Two", slug: "page-two" }),
+      body: JSON.stringify({ title: "Page Two", slug: "page-two", status: "published" }),
     }))
 
     const req = new Request("http://localhost/api/page")
@@ -396,7 +397,7 @@ describe("REST API handler", () => {
     const createRes = await authorizedHandler(new Request("http://localhost/api/page", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Specific Page", slug: "specific-page" }),
+      body: JSON.stringify({ title: "Specific Page", slug: "specific-page", status: "published" }),
     }))
     const created = await createRes!.json()
 
@@ -419,7 +420,7 @@ describe("REST API handler", () => {
     const pageRes = await authorizedHandler(new Request("http://localhost/api/page", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Populated Page", slug: "populated-page", author: createdAuthor.id, coverImage: "media-1" }),
+      body: JSON.stringify({ title: "Populated Page", slug: "populated-page", status: "published", author: createdAuthor.id, coverImage: "media-1" }),
     }))
     const createdPage = await pageRes!.json()
 
@@ -435,7 +436,7 @@ describe("REST API handler", () => {
     const createRes = await authorizedHandler(new Request("http://localhost/api/page", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Private Page", slug: "private-page", secret: "admin-only" }),
+      body: JSON.stringify({ title: "Private Page", slug: "private-page", status: "published", secret: "admin-only" }),
     }))
     const created = await createRes!.json()
 
@@ -455,7 +456,7 @@ describe("REST API handler", () => {
     const createRes = await authorizedHandler(new Request("http://localhost/api/page", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Searchable Secret", slug: "searchable-secret", secret: "admin-only" }),
+      body: JSON.stringify({ title: "Searchable Secret", slug: "searchable-secret", status: "published", secret: "admin-only" }),
     }))
     const created = await createRes!.json()
 

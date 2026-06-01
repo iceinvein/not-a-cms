@@ -82,7 +82,7 @@ describe("integration: full server", () => {
     expect(body.status).toBe("ok")
   })
 
-  test("REST: anonymous writes are rejected and reads remain public", async () => {
+  test("REST: anonymous writes are rejected; published reads are public but drafts are hidden", async () => {
     const createRes = await fetch(`${baseUrl}/api/blog_post`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -99,20 +99,32 @@ describe("integration: full server", () => {
       title: "Integration Test Post",
       slug: "integration-test",
       body: JSON.stringify([{ type: "paragraph", children: [{ type: "text", value: "Hello" }] }]),
-      status: "draft",
+      status: "published",
     })
 
-    // Retrieve by ID
+    // Published content is publicly readable by ID
     const getRes = await fetch(`${baseUrl}/api/blog_post/${post.id}`)
     expect(getRes.status).toBe(200)
     const found = await getRes.json()
     expect(found.title).toBe("Integration Test Post")
 
-    // List
+    // ...and in the list
     const listRes = await fetch(`${baseUrl}/api/blog_post`)
     expect(listRes.status).toBe(200)
     const list = await listRes.json()
     expect(list.data.length).toBeGreaterThanOrEqual(1)
+
+    // Drafts must NOT be exposed to anonymous callers
+    const draft = await serverInstance.collections.get("blog_post")!.service.create({
+      title: "Hidden Draft",
+      slug: "hidden-draft",
+      body: JSON.stringify([{ type: "paragraph", children: [{ type: "text", value: "secret" }] }]),
+      status: "draft",
+    })
+    const draftRes = await fetch(`${baseUrl}/api/blog_post/${draft.id}`)
+    expect(draftRes.status).toBe(404)
+    const listAfter = await (await fetch(`${baseUrl}/api/blog_post`)).json()
+    expect(listAfter.data.some((d: { id: string }) => d.id === draft.id)).toBe(false)
 
     const updateRes = await fetch(`${baseUrl}/api/blog_post/${post.id}`, {
       method: "PATCH",

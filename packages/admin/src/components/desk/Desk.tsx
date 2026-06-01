@@ -46,28 +46,34 @@ export function Desk({ apiBase = "", userName, initialHorizon, initialNeedsYou, 
   async function fetchDesk() {
     setLoading(true)
     setError("")
-    try {
-      const [horizonRes, metricsRes, runsRes, expiringRes] = await Promise.all([
-        initialHorizon ? Promise.resolve(null) : adminApiFetch(apiBase, "/api/_horizon"),
-        initialNeedsYou ? Promise.resolve(null) : adminApiFetch(apiBase, "/api/_metrics"),
-        initialNeedsYou ? Promise.resolve(null) : adminApiFetch(apiBase, "/api/_flows/runs?status=failed"),
-        initialNeedsYou || initialExpiring ? Promise.resolve(null) : adminApiFetch(apiBase, "/api/_expiring"),
-      ])
 
-      if (horizonRes) setHorizon(await readJson<Horizon>(horizonRes, "Failed to load publishing horizon"))
-      if (metricsRes && runsRes) {
-        const metrics = await readJson<Metrics>(metricsRes, "Failed to load dashboard metrics")
-        const runs = await readJson<{ data: FlowRun[] }>(runsRes, "Failed to load failed automation runs")
-        const expiring = expiringRes
-          ? await readJson<{ items: ExpiringItem[] }>(expiringRes, "Failed to load expiring content")
-          : { items: initialExpiring ?? [] }
-        setNeedsYou(toNeedsYouItems(metrics, runs.data ?? [], expiring.items ?? []))
-      }
-    } catch (err: any) {
-      setError(err.message || "Failed to load The Desk")
-    } finally {
-      setLoading(false)
+    // Each source loads independently and degrades to empty on failure, so a
+    // single endpoint a given role cannot access (e.g. admin-only failed-runs)
+    // never collapses the whole Desk. Only a total auth failure shows the error.
+    const [horizonResult, metricsResult, runsResult, expiringResult] = await Promise.all([
+      initialHorizon ? ok<Horizon | null>(null) : tryJson<Horizon>(apiBase, "/api/_horizon"),
+      initialNeedsYou ? ok<Metrics | null>(null) : tryJson<Metrics>(apiBase, "/api/_metrics"),
+      initialNeedsYou ? ok<{ data: FlowRun[] } | null>(null) : tryJson<{ data: FlowRun[] }>(apiBase, "/api/_flows/runs?status=failed"),
+      initialNeedsYou || initialExpiring ? ok<{ items: ExpiringItem[] } | null>(null) : tryJson<{ items: ExpiringItem[] }>(apiBase, "/api/_expiring"),
+    ])
+
+    if (!initialHorizon && horizonResult.ok) setHorizon(horizonResult.data ?? EMPTY_HORIZON)
+    else if (!initialHorizon && !horizonResult.ok) setHorizon(EMPTY_HORIZON)
+
+    if (!initialNeedsYou) {
+      const metrics = metricsResult.ok ? metricsResult.data ?? { collections: [] } : { collections: [] }
+      const runs = runsResult.ok ? runsResult.data?.data ?? [] : [] // admin-only; tolerate 403
+      const expiring = expiringResult.ok ? expiringResult.data?.items ?? [] : (initialExpiring ?? [])
+      setNeedsYou(toNeedsYouItems(metrics, runs, expiring))
     }
+
+    // Treat the Desk as unavailable only when the core read endpoints both fail
+    // (e.g. the session is not authenticated at all), not when one widget 403s.
+    const coreUnavailable =
+      !initialHorizon && !horizonResult.ok &&
+      !initialNeedsYou && !metricsResult.ok
+    setError(coreUnavailable ? "Sign in to view The Desk." : "")
+    setLoading(false)
   }
 
   useEffect(() => {
@@ -277,6 +283,22 @@ function LiveRowLink({ row }: { row: LiveRow }) {
       <span className="desk-action">{row.collection}</span>
     </a>
   )
+}
+
+type Result<T> = { ok: true; data: T | null } | { ok: false; data?: undefined }
+
+function ok<T>(data: T): Promise<Result<T>> {
+  return Promise.resolve({ ok: true, data })
+}
+
+async function tryJson<T>(apiBase: string, path: string): Promise<Result<T>> {
+  try {
+    const res = await adminApiFetch(apiBase, path)
+    if (!res.ok) return { ok: false }
+    return { ok: true, data: (await res.json()) as T }
+  } catch {
+    return { ok: false }
+  }
 }
 
 async function readJson<T>(res: Response, fallback: string): Promise<T> {

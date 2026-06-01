@@ -44,6 +44,7 @@ import { buildGraphQLSchema } from "./graphql/schema"
 import { createGraphQLHandler } from "./graphql/handler"
 import { createOpenAPIDocument } from "./docs/openapi"
 import { buildHorizon } from "./horizon/build"
+import { buildExpiring } from "./expiring/build"
 
 export type ServerConfig = {
   port?: number
@@ -525,6 +526,14 @@ export function createServer(config: ServerConfig): CreatedServer {
         const unauthorized = await requireAuthorized()
         if (unauthorized) return withCors(unauthorized)
         return withCors(Response.json(await buildHorizon(collections, new Date())))
+      }
+
+      // Expiring content
+      if (url.pathname === "/api/_expiring") {
+        const unauthorized = await requireAuthorized()
+        if (unauthorized) return withCors(unauthorized)
+        const windowDays = Number(url.searchParams.get("window")?.replace("d", "") ?? 7)
+        return withCors(Response.json({ items: await buildExpiring(collections, new Date(), windowDays) }))
       }
 
       // Live presence

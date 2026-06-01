@@ -1,5 +1,5 @@
-import type { PTBlock, PTTextNode } from "./block-renderer"
-import { renderTextChildren, sanitizeUrl } from "./block-renderer"
+import type { PTBlock } from "./block-renderer"
+import { renderPortableText } from "./portable-text-html"
 import type { ChannelConfig } from "@not-a-cms/core"
 
 // --- RSS Channel ---
@@ -116,34 +116,7 @@ ${itemsXml}
 // --- Portable Text to HTML (for RSS descriptions) ---
 
 export function portableTextToHtml(blocks: PTBlock[]): string {
-  return blocks
-    .map((block) => {
-      switch (block.type) {
-        case "paragraph":
-          return `<p>${renderTextChildren((block.children || []) as PTTextNode[])}</p>`
-        case "heading": {
-          const level = block.level || 1
-          const html = renderTextChildren((block.children || []) as PTTextNode[])
-          return `<h${level}>${html}</h${level}>`
-        }
-        case "blockquote":
-          return `<blockquote>${portableTextToHtml(block.children as PTBlock[])}</blockquote>`
-        case "bulletList":
-          return `<ul>${(block.items as PTBlock[][]).map((item) => `<li>${portableTextToHtml(item)}</li>`).join("")}</ul>`
-        case "orderedList":
-          return `<ol>${(block.items as PTBlock[][]).map((item) => `<li>${portableTextToHtml(item)}</li>`).join("")}</ol>`
-        case "codeBlock":
-          return `<pre><code>${escapeXml(String(block.code || ""))}</code></pre>`
-        case "divider":
-          return "<hr />"
-        case "image":
-          return `<img src="${escapeXml(sanitizeUrl(block.src || block.url || "", { allowDataImage: true }))}" alt="${escapeXml(String(block.alt || ""))}" />`
-        default:
-          return ""
-      }
-    })
-    .filter(Boolean)
-    .join("\n")
+  return renderPortableText(blocks, "web")
 }
 
 // --- JSON Channel (passthrough, but typed) ---

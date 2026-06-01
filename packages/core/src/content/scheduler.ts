@@ -31,7 +31,28 @@ export function createScheduler(collections: Map<string, CollectionEntry>) {
     return promoted
   }
 
-  return { promoteScheduled }
+  async function unpublishExpired(now = new Date()): Promise<Record<string, unknown>[]> {
+    const nowTime = now.getTime()
+    const archived: Record<string, unknown>[] = []
+
+    for (const [, entry] of collections) {
+      const { def, service } = entry
+      if (!def.fields.status || !findUnpublishField(def)) continue
+
+      const all = await service.findMany({ where: { status: { in: ["published"] } } })
+      for (const doc of all) {
+        const unpublishAt = (doc.unpublishAt ?? doc.unpublish_at) as string | null
+        if (isDue(unpublishAt, nowTime)) {
+          const updated = await service.transitionStatus(doc.id as string, "archive", "admin")
+          archived.push(updated)
+        }
+      }
+    }
+
+    return archived
+  }
+
+  return { promoteScheduled, unpublishExpired }
 }
 
 export type Scheduler = ReturnType<typeof createScheduler>
@@ -39,6 +60,12 @@ export type Scheduler = ReturnType<typeof createScheduler>
 function findPublishField(def: CollectionDef): string | null {
   if (def.fields.publishedAt) return "publishedAt"
   if (def.fields.published_at) return "published_at"
+  return null
+}
+
+function findUnpublishField(def: CollectionDef): string | null {
+  if (def.fields.unpublishAt) return "unpublishAt"
+  if (def.fields.unpublish_at) return "unpublish_at"
   return null
 }
 

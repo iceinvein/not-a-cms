@@ -33,6 +33,12 @@ describe("renderPortableText", () => {
     expect(html).toContain("Founder")
   })
 
+  test("gallery renders images and carries data-media-id when present", () => {
+    const html = renderPortableText([{ type: "gallery", images: [{ id: "m1", url: "/api/media/m1/file" }] }], "web")
+    expect(html).toContain("/api/media/m1/file")
+    expect(html).toContain('data-media-id="m1"')
+  })
+
   test("imports cleanly without mjml or core (browser-safe module)", () => {
     expect(typeof renderPortableText).toBe("function")
   })

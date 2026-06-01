@@ -615,7 +615,8 @@ export function createServer(config: ServerConfig): CreatedServer {
         const forbidden = await requireAdmin()
         if (forbidden) return withCors(forbidden)
         const promoted = await scheduler.promoteScheduled()
-        return withCors(Response.json({ promoted }))
+        const archived = await scheduler.unpublishExpired()
+        return withCors(Response.json({ promoted, archived }))
       }
 
       // REST routes
@@ -638,6 +639,10 @@ export function createServer(config: ServerConfig): CreatedServer {
       const promoted = await scheduler.promoteScheduled()
       if (promoted.length > 0 && !process.env.QUIET) {
         console.log(`  Scheduled publishing: promoted ${promoted.length} post(s)`)
+      }
+      const archived = await scheduler.unpublishExpired()
+      if (archived.length > 0 && !process.env.QUIET) {
+        console.log(`  Content expiry: archived ${archived.length} post(s)`)
       }
     } catch {}
     try {

@@ -3,8 +3,9 @@ import { useEffect, useRef } from "react"
 import StarterKit from "@tiptap/starter-kit"
 import Typography from "@tiptap/extension-typography"
 import { Placeholder } from "@tiptap/extensions"
-import { SlashExtension } from "./extensions/slash-command"
+import { DEFAULT_COMMANDS, SlashExtension, type SlashCommandItem } from "./extensions/slash-command"
 import { CalloutExtension } from "./blocks/callout"
+import type { DefinedBlock } from "./blocks"
 import { BubbleToolbar } from "./menus/bubble-menu"
 import { toPortableText } from "./portable-text/to-portable-text"
 import { fromPortableText } from "./portable-text/from-portable-text"
@@ -20,6 +21,8 @@ export type EditorProps = {
   editable?: boolean
   collaboration?: CollabConfig
   extensions?: Extension[]
+  blocks?: DefinedBlock[]
+  slashCommands?: SlashCommandItem[]
 }
 
 export function Editor({
@@ -29,6 +32,8 @@ export function Editor({
   editable = true,
   collaboration,
   extensions: extraExtensions = [],
+  blocks = [],
+  slashCommands = [],
 }: EditorProps) {
   const collab = useCollaboration(collaboration)
   const initialContentSignature = content ? portableTextSignature(content) : null
@@ -46,8 +51,9 @@ export function Editor({
       }),
       Typography,
       Placeholder.configure({ placeholder }),
-      SlashExtension,
+      SlashExtension.configure({ commands: [...DEFAULT_COMMANDS, ...slashCommands] }),
       CalloutExtension,
+      ...blocks.map((block) => block.extension),
       ...collab.extensions,
       ...extraExtensions,
     ],

@@ -21,7 +21,7 @@ export { fromPortableText } from "./portable-text/from-portable-text"
 export { useCollaboration, type CollabConfig, type CollabUser } from "./collaboration/provider"
 
 // Extensions
-export { SlashExtension, DEFAULT_COMMANDS, filterCommands } from "./extensions/slash-command"
+export { SlashExtension, DEFAULT_COMMANDS, filterCommands, type SlashCommandItem } from "./extensions/slash-command"
 
 // Menus
 export { BubbleToolbar } from "./menus/bubble-menu"

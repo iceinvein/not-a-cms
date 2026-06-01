@@ -9,6 +9,7 @@ dist/
 .env
 .env.local
 .superpowers/
+.worktrees/
 .e2e/
 uploads/
 .codex-*.png

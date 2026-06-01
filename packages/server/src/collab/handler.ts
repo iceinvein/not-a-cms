@@ -40,6 +40,11 @@ export const collabWebSocket = {
       return
     }
 
+    if (typeof message === "string" && isCursorMessage(message)) {
+      ws.publish(docName, message)
+      return
+    }
+
     const doc = getOrCreateDoc(docName)
     const bytes = typeof message === "string" ? Buffer.from(message) : message
     const update = new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength)
@@ -71,6 +76,26 @@ function isPresenceMessage(message: string): boolean {
       typeof parsed.user?.name === "string" &&
       typeof parsed.user?.color === "string" &&
       (parsed.status === "online" || parsed.status === "offline")
+  } catch {
+    return false
+  }
+}
+
+function isCursorMessage(message: string): boolean {
+  try {
+    const parsed = JSON.parse(message) as {
+      type?: unknown
+      clientId?: unknown
+      user?: { name?: unknown; color?: unknown }
+      anchor?: unknown
+      head?: unknown
+    }
+    return parsed.type === "cursor" &&
+      typeof parsed.clientId === "string" &&
+      typeof parsed.user?.name === "string" &&
+      typeof parsed.user?.color === "string" &&
+      typeof parsed.anchor === "number" &&
+      typeof parsed.head === "number"
   } catch {
     return false
   }

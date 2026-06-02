@@ -16,9 +16,10 @@ export type AdminMediaItem = {
   caption?: string
   focalX?: number
   focalY?: number
+  tags?: string[]
 }
 
-export type MediaMetadataInput = Pick<AdminMediaItem, "alt" | "title" | "caption" | "focalX" | "focalY">
+export type MediaMetadataInput = Pick<AdminMediaItem, "alt" | "title" | "caption" | "focalX" | "focalY" | "tags">
 
 type RawMediaRecord = Omit<AdminMediaItem, "url"> & {
   url?: string
@@ -99,4 +100,18 @@ export function mediaDisplayUrl(value: unknown, apiBase: string): string {
     if (record.id) return joinAdminApiUrl(apiBase, `/api/media/${record.id}/file`)
   }
   return ""
+}
+
+const MAX_TAG_LENGTH = 25
+
+export function normalizeTagInput(raw: string): string {
+  return raw
+    .trim()
+    .toLowerCase()
+    .replace(/^#+\s*/, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, MAX_TAG_LENGTH)
+    .replace(/-+$/g, "")
 }

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test"
-import { deleteMediaItem, listMediaItems, mediaDisplayUrl, replaceMediaFile, updateMediaItem, uploadMediaFile } from "../../src/lib/media"
+import { deleteMediaItem, listMediaItems, mediaDisplayUrl, normalizeTagInput, replaceMediaFile, updateMediaItem, uploadMediaFile } from "../../src/lib/media"
 
 const originalFetch = globalThis.fetch
 
@@ -111,6 +111,33 @@ describe("admin media API client", () => {
       focalY: 0.6,
     })
     expect(item.alt).toBe("Hero alt")
+  })
+
+  test("normalizeTagInput mirrors the server per-tag rules", () => {
+    expect(normalizeTagInput("  #Hero ")).toBe("hero")
+    expect(normalizeTagInput("Summer Sale")).toBe("summer-sale")
+    expect(normalizeTagInput("###")).toBe("")
+    expect(normalizeTagInput("a".repeat(40))).toBe("a".repeat(25))
+  })
+
+  test("updateMediaItem forwards tags in the PATCH body", async () => {
+    const calls: Array<{ url: string; init?: RequestInit }> = []
+    globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
+      calls.push({ url: String(url), init })
+      return Response.json({
+        id: "asset-1",
+        filename: "hero.jpg",
+        mimetype: "image/jpeg",
+        size: 5,
+        uploadedAt: "2026-05-31T00:00:00.000Z",
+        tags: ["hero"],
+      })
+    }) as typeof fetch
+
+    const item = await updateMediaItem("https://cms.example.test", "asset-1", { tags: ["hero"] })
+
+    expect(JSON.parse(String(calls[0]?.init?.body))).toEqual({ tags: ["hero"] })
+    expect(item.tags).toEqual(["hero"])
   })
 
   test("replaces a media file as multipart form data", async () => {

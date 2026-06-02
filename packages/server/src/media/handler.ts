@@ -73,6 +73,68 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
       return json({ data: storage.listTags() })
     }
 
+    if (req.method === "GET" && subpath === "folders" && !action) {
+      return json({ data: storage.listFolders() })
+    }
+
+    if (req.method === "POST" && subpath === "folders" && !action) {
+      const forbidden = await requireManager(req)
+      if (forbidden) return forbidden
+      const body = await req.json().catch(() => null)
+      if (!isRecord(body) || typeof body.name !== "string" || !body.name.trim()) return json({ error: "name is required" }, 400)
+      const parentId = body.parentId === undefined ? null : body.parentId
+      if (parentId !== null && typeof parentId !== "string") return json({ error: "parentId must be a string or null" }, 400)
+      try {
+        return json(storage.createFolder(body.name, parentId), 201)
+      } catch {
+        return json({ error: "parent not found" }, 400)
+      }
+    }
+
+    if (req.method === "PATCH" && subpath === "folders" && action) {
+      const forbidden = await requireManager(req)
+      if (forbidden) return forbidden
+      const body = await req.json().catch(() => null)
+      if (!isRecord(body)) return json({ error: "Body must be an object" }, 400)
+      let folder = storage.listFolders().find((entry) => entry.id === action) ?? null
+      if (!folder) return json({ error: "Not found" }, 404)
+      if (typeof body.name === "string" && body.name.trim()) folder = storage.renameFolder(action, body.name)
+      if (body.parentId !== undefined) {
+        const parentId = body.parentId === null ? null : body.parentId
+        if (parentId !== null && typeof parentId !== "string") return json({ error: "parentId must be a string or null" }, 400)
+        try {
+          folder = storage.moveFolder(action, parentId)
+        } catch {
+          return json({ error: "invalid move" }, 400)
+        }
+      }
+      return json(folder)
+    }
+
+    if (req.method === "DELETE" && subpath === "folders" && action) {
+      const forbidden = await requireManager(req)
+      if (forbidden) return forbidden
+      const result = storage.removeFolder(action)
+      if (!result) return json({ error: "Not found" }, 404)
+      return json(result)
+    }
+
+    if (req.method === "POST" && subpath === "move" && !action) {
+      const forbidden = await requireManager(req)
+      if (forbidden) return forbidden
+      const body = await req.json().catch(() => null)
+      if (!isRecord(body) || !Array.isArray(body.ids) || body.ids.some((id) => typeof id !== "string")) {
+        return json({ error: "ids must be an array of strings" }, 400)
+      }
+      const folderId = body.folderId === undefined ? null : body.folderId
+      if (folderId !== null && typeof folderId !== "string") return json({ error: "folderId must be a string or null" }, 400)
+      try {
+        return json({ data: storage.moveAssets(body.ids as string[], folderId).map(toPublicRecord) })
+      } catch {
+        return json({ error: "folder not found" }, 400)
+      }
+    }
+
     if (req.method === "GET" && subpath && action === "file") {
       const variantOptions = validateVariantRequest(url)
       if (variantOptions instanceof Response) return variantOptions

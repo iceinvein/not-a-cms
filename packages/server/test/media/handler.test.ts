@@ -243,6 +243,56 @@ describe("media API", () => {
     })
     expect(badName.status).toBe(400)
   })
+
+  test("folder routes + move: create, list, move asset, delete reassigns", async () => {
+    const adminCookie = await signInAndGetCookie("media-admin@example.test")
+    const mk = async (name: string, parentId: string | null = null) =>
+      await (await fetch(`${baseUrl}/api/media/folders`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", cookie: adminCookie },
+        body: JSON.stringify({ name, parentId }),
+      })).json()
+
+    const brand = await mk("Brand")
+    const logos = await mk("Logos", brand.id)
+    const list = await fetch(`${baseUrl}/api/media/folders`, { headers: { cookie: adminCookie } })
+    expect((await list.json()).data.length).toBe(2)
+
+    const fd = new FormData()
+    fd.append("file", new Blob(["x"], { type: "text/plain" }), "a.txt")
+    const id = (await (await fetch(`${baseUrl}/api/media/upload`, { method: "POST", headers: { cookie: adminCookie }, body: fd })).json()).id
+
+    const move = await fetch(`${baseUrl}/api/media/move`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", cookie: adminCookie },
+      body: JSON.stringify({ ids: [id], folderId: logos.id }),
+    })
+    expect((await move.json()).data[0].folderId).toBe(logos.id)
+
+    const del = await fetch(`${baseUrl}/api/media/folders/${logos.id}`, { method: "DELETE", headers: { cookie: adminCookie } })
+    expect((await del.json())).toEqual({ reassigned: 1, reparented: 0 })
+  })
+
+  test("folder routes reject anonymous and cycles", async () => {
+    expect((await fetch(`${baseUrl}/api/media/folders`)).status).toBe(401)
+    const adminCookie = await signInAndGetCookie("media-admin@example.test")
+    const a = await (await fetch(`${baseUrl}/api/media/folders`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", cookie: adminCookie },
+      body: JSON.stringify({ name: "A" }),
+    })).json()
+    const b = await (await fetch(`${baseUrl}/api/media/folders`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", cookie: adminCookie },
+      body: JSON.stringify({ name: "B", parentId: a.id }),
+    })).json()
+    const cycle = await fetch(`${baseUrl}/api/media/folders/${a.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", cookie: adminCookie },
+      body: JSON.stringify({ parentId: b.id }),
+    })
+    expect(cycle.status).toBe(400)
+  })
 })
 
 async function signInAndGetCookie(email: string): Promise<string> {

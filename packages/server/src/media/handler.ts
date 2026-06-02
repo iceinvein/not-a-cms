@@ -124,6 +124,7 @@ function metadataFromRecord(input: Record<string, unknown>): Partial<MediaMetada
     ...(input.caption !== undefined && input.caption !== null && { caption: String(input.caption) }),
     ...(input.focalX !== undefined && input.focalX !== null && { focalX: Number(input.focalX) }),
     ...(input.focalY !== undefined && input.focalY !== null && { focalY: Number(input.focalY) }),
+    ...(input.tags !== undefined && input.tags !== null && { tags: input.tags as string[] }),
   }
 }
 
@@ -134,6 +135,9 @@ function validateMetadata(input: Partial<MediaMetadataInput>): string | null {
     }
     if ((key === "focalX" || key === "focalY") && (typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > 1)) {
       return `${key} must be a number between 0 and 1`
+    }
+    if (key === "tags" && (!Array.isArray(value) || value.some((entry) => typeof entry !== "string"))) {
+      return "tags must be an array of strings"
     }
   }
   return null

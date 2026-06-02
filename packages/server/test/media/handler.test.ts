@@ -111,6 +111,44 @@ describe("media API", () => {
     const file = await fetch(`${baseUrl}/api/media/${uploaded.id}/file`)
     expect(await file.text()).toBe("replacement")
   })
+
+  test("PATCH /api/media/:id stores normalized tags and rejects non-array tags", async () => {
+    const adminCookie = await signInAndGetCookie("media-admin@example.test")
+
+    const formData = new FormData()
+    formData.append("file", new Blob(["tagged"], { type: "text/plain" }), "tagged.txt")
+    const upload = await fetch(`${baseUrl}/api/media/upload`, {
+      method: "POST",
+      headers: { cookie: adminCookie },
+      body: formData,
+    })
+    expect(upload.status).toBe(201)
+    const uploaded = await upload.json()
+
+    const patch = await fetch(`${baseUrl}/api/media/${uploaded.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", cookie: adminCookie },
+      body: JSON.stringify({ tags: [" #Hero ", "Hero", "Summer Sale"] }),
+    })
+    expect(patch.status).toBe(200)
+    const patched = await patch.json()
+    expect(patched.tags).toEqual(["hero", "summer-sale"])
+
+    const altOnly = await fetch(`${baseUrl}/api/media/${uploaded.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", cookie: adminCookie },
+      body: JSON.stringify({ alt: "Keep tags" }),
+    })
+    expect((await altOnly.json()).tags).toEqual(["hero", "summer-sale"])
+
+    const bad = await fetch(`${baseUrl}/api/media/${uploaded.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", cookie: adminCookie },
+      body: JSON.stringify({ tags: "not-an-array" }),
+    })
+    expect(bad.status).toBe(400)
+    expect((await bad.json()).error).toContain("tags")
+  })
 })
 
 async function signInAndGetCookie(email: string): Promise<string> {

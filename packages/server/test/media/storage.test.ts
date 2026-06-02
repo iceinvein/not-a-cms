@@ -57,6 +57,42 @@ describe("local media storage", () => {
     expect(replaced?.caption).toBe("Keep this")
   })
 
+  test("normalizes and persists tags on store and update", async () => {
+    const storage = createLocalStorage({ provider: "local", path: uploadsDir })
+    const stored = await storage.store(new File(["x"], "x.txt", { type: "text/plain" }), {
+      tags: ["  #Hero ", "Hero", "Summer Sale", ""],
+    })
+
+    expect(stored.tags).toEqual(["hero", "summer-sale"])
+
+    const updated = storage.update(stored.id, { tags: ["Logos"] })
+    expect(updated?.tags).toEqual(["logos"])
+
+    const restarted = createLocalStorage({ provider: "local", path: uploadsDir })
+    expect(restarted.get(stored.id)?.tags).toEqual(["logos"])
+  })
+
+  test("omitting tags on update preserves existing tags; empty array clears them", async () => {
+    const storage = createLocalStorage({ provider: "local", path: uploadsDir })
+    const stored = await storage.store(new File(["x"], "x.txt", { type: "text/plain" }), { tags: ["keep"] })
+
+    const afterAltOnly = storage.update(stored.id, { alt: "Alt only" })
+    expect(afterAltOnly?.tags).toEqual(["keep"])
+
+    const afterClear = storage.update(stored.id, { tags: [] })
+    expect(afterClear?.tags).toEqual([])
+  })
+
+  test("caps tag length at 25 chars and tag count at 30", async () => {
+    const storage = createLocalStorage({ provider: "local", path: uploadsDir })
+    const many = Array.from({ length: 40 }, (_, i) => `tag-${i}`)
+    const stored = await storage.store(new File(["x"], "x.txt", { type: "text/plain" }), {
+      tags: ["a".repeat(40), ...many],
+    })
+    expect(stored.tags?.[0]).toBe("a".repeat(25))
+    expect(stored.tags?.length).toBe(30)
+  })
+
   test("createMediaStorage() creates a deterministic local provider", async () => {
     const storage = createMediaStorage({ provider: "local", path: uploadsDir })
     const stored = await storage.store(new File(["local"], "local.txt", { type: "text/plain" }))

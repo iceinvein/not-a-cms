@@ -41,9 +41,10 @@ export type MediaRecord = {
   caption?: string
   focalX?: number
   focalY?: number
+  tags?: string[]
 }
 
-export type MediaMetadataInput = Pick<MediaRecord, "alt" | "title" | "caption" | "focalX" | "focalY">
+export type MediaMetadataInput = Pick<MediaRecord, "alt" | "title" | "caption" | "focalX" | "focalY" | "tags">
 
 export type StoredMediaFile = {
   body: Blob
@@ -378,11 +379,40 @@ function normalizeMetadata(input: Partial<MediaMetadataInput>): Partial<MediaMet
     ...(input.caption !== undefined && { caption: String(input.caption) }),
     ...(typeof input.focalX === "number" && Number.isFinite(input.focalX) && { focalX: clamp01(input.focalX) }),
     ...(typeof input.focalY === "number" && Number.isFinite(input.focalY) && { focalY: clamp01(input.focalY) }),
+    ...(Array.isArray(input.tags) && { tags: normalizeTags(input.tags) }),
   }
 }
 
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value))
+}
+
+const MAX_TAG_LENGTH = 25
+const MAX_TAGS = 30
+
+function normalizeTag(raw: unknown): string {
+  return String(raw)
+    .trim()
+    .toLowerCase()
+    .replace(/^#+\s*/, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, MAX_TAG_LENGTH)
+    .replace(/-+$/g, "")
+}
+
+function normalizeTags(input: unknown[]): string[] {
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const raw of input) {
+    const tag = normalizeTag(raw)
+    if (!tag || seen.has(tag)) continue
+    seen.add(tag)
+    out.push(tag)
+    if (out.length >= MAX_TAGS) break
+  }
+  return out
 }
 
 function loadIndex(indexPath: string): Map<string, MediaRecord> {

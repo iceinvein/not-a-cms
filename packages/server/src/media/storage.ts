@@ -42,9 +42,12 @@ export type MediaRecord = {
   focalX?: number
   focalY?: number
   tags?: string[]
+  folderId?: string
 }
 
 export type MediaMetadataInput = Pick<MediaRecord, "alt" | "title" | "caption" | "focalX" | "focalY" | "tags">
+
+export type Folder = { id: string; name: string; parentId: string | null }
 
 export type StoredMediaFile = {
   body: Blob
@@ -70,6 +73,12 @@ export type MediaStorage = {
   renameTag(from: string, to: string): number
   removeTag(name: string): number
   listTags(): { name: string; color: string; count: number }[]
+  listFolders(): Folder[]
+  createFolder(name: string, parentId: string | null): Folder
+  renameFolder(id: string, name: string): Folder | null
+  moveFolder(id: string, parentId: string | null): Folder | null
+  removeFolder(id: string): { reassigned: number; reparented: number } | null
+  moveAssets(ids: string[], folderId: string | null): MediaRecord[]
 }
 
 type ObjectProvider = {
@@ -98,6 +107,18 @@ export type S3SignedRequest = {
 
 const IMAGE_MIMES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp", "image/avif", "image/svg+xml"])
 
+export function isDescendant(folders: Folder[], ancestorId: string, nodeId: string): boolean {
+  const byId = new Map(folders.map((folder) => [folder.id, folder]))
+  let current: string | null = nodeId
+  const seen = new Set<string>()
+  while (current && !seen.has(current)) {
+    if (current === ancestorId) return true
+    seen.add(current)
+    current = byId.get(current)?.parentId ?? null
+  }
+  return false
+}
+
 export function createLocalStorage(config: LocalStorageConfig, optimizer?: ImageOptimizer): MediaStorage {
   return createIndexedMediaStorage(config, createLocalObjectProvider(config.path), optimizer)
 }
@@ -115,6 +136,8 @@ function createIndexedMediaStorage(config: StorageConfig, provider: ObjectProvid
   const records = loadIndex(indexPath)
   const tagsPath = join(indexDir, ".media-tags.json")
   const tagRegistry = loadTagRegistry(tagsPath)
+  const foldersPath = join(indexDir, ".media-folders.json")
+  let folders = loadFolders(foldersPath)
 
   function persistIndex() {
     const data = JSON.stringify(Array.from(records.values()), null, 2)
@@ -123,6 +146,10 @@ function createIndexedMediaStorage(config: StorageConfig, provider: ObjectProvid
 
   function persistTagRegistry() {
     writeFileSync(tagsPath, JSON.stringify(tagRegistry, null, 2) + "\n")
+  }
+
+  function persistFolders() {
+    writeFileSync(foldersPath, JSON.stringify(folders, null, 2) + "\n")
   }
 
   return {
@@ -259,6 +286,81 @@ function createIndexedMediaStorage(config: StorageConfig, provider: ObjectProvid
       return [...counts.entries()]
         .map(([name, count]) => ({ name, count, color: tagRegistry[name]?.color ?? defaultTagColor(name) }))
         .sort((a, b) => a.name.localeCompare(b.name))
+    },
+
+    listFolders(): Folder[] {
+      return [...folders]
+    },
+
+    createFolder(name: string, parentId: string | null): Folder {
+      if (parentId !== null && !folders.some((folder) => folder.id === parentId)) throw new Error("parent not found")
+      const folder: Folder = { id: crypto.randomUUID(), name: name.trim(), parentId }
+      folders.push(folder)
+      persistFolders()
+      return folder
+    },
+
+    renameFolder(id: string, name: string): Folder | null {
+      const folder = folders.find((entry) => entry.id === id)
+      if (!folder) return null
+      folder.name = name.trim()
+      persistFolders()
+      return folder
+    },
+
+    moveFolder(id: string, parentId: string | null): Folder | null {
+      const folder = folders.find((entry) => entry.id === id)
+      if (!folder) return null
+      if (parentId !== null) {
+        if (!folders.some((entry) => entry.id === parentId)) throw new Error("parent not found")
+        if (parentId === id || isDescendant(folders, id, parentId)) throw new Error("cycle")
+      }
+      folder.parentId = parentId
+      persistFolders()
+      return folder
+    },
+
+    removeFolder(id: string): { reassigned: number; reparented: number } | null {
+      const folder = folders.find((entry) => entry.id === id)
+      if (!folder) return null
+      const parentId = folder.parentId
+      let reassigned = 0
+      for (const record of records.values()) {
+        if (record.folderId !== id) continue
+        const updated = { ...record }
+        if (parentId === null) delete updated.folderId
+        else updated.folderId = parentId
+        records.set(record.id, updated)
+        reassigned++
+      }
+
+      let reparented = 0
+      for (const child of folders) {
+        if (child.parentId !== id) continue
+        child.parentId = parentId
+        reparented++
+      }
+
+      folders = folders.filter((entry) => entry.id !== id)
+      persistIndex()
+      persistFolders()
+      return { reassigned, reparented }
+    },
+
+    moveAssets(ids: string[], folderId: string | null): MediaRecord[] {
+      if (folderId !== null && !folders.some((folder) => folder.id === folderId)) throw new Error("folder not found")
+      const updated: MediaRecord[] = []
+      for (const id of ids) {
+        const record = records.get(id)
+        if (!record) continue
+        const next = { ...record }
+        if (folderId === null) delete next.folderId
+        else next.folderId = folderId
+        records.set(id, next)
+        updated.push(next)
+      }
+      persistIndex()
+      return updated
     },
   }
 
@@ -507,6 +609,15 @@ function loadIndex(indexPath: string): Map<string, MediaRecord> {
     return new Map(parsed.map((record) => [record.id, record]))
   } catch {
     return new Map()
+  }
+}
+
+function loadFolders(path: string): Folder[] {
+  if (!existsSync(path)) return []
+  try {
+    return JSON.parse(readFileSync(path, "utf8")) as Folder[]
+  } catch {
+    return []
   }
 }
 

@@ -1,6 +1,13 @@
 import { test, expect, describe, afterEach } from "bun:test"
 import { existsSync, rmSync } from "node:fs"
-import { applyTagOps, createLocalStorage, createMediaStorage, createS3SignedRequest, defaultTagColor } from "../../src/media/storage"
+import {
+  applyTagOps,
+  createLocalStorage,
+  createMediaStorage,
+  createS3SignedRequest,
+  defaultTagColor,
+  isDescendant,
+} from "../../src/media/storage"
 
 const uploadsDir = "./test-storage-uploads"
 
@@ -149,6 +156,51 @@ describe("local media storage", () => {
     const list = storage.listTags()
     expect(list.map((t) => [t.name, t.count])).toEqual([["2024", 2], ["hero", 1]])
     expect(list.every((t) => /^#[0-9a-f]{6}$/i.test(t.color))).toBe(true)
+  })
+
+  test("folder CRUD: create, rename, move with cycle rejection", () => {
+    const storage = createLocalStorage({ provider: "local", path: uploadsDir })
+    const brand = storage.createFolder("Brand", null)
+    const logos = storage.createFolder("Logos", brand.id)
+    expect(storage.listFolders().map((f) => f.name).sort()).toEqual(["Brand", "Logos"])
+    expect(storage.renameFolder(logos.id, "Marks")?.name).toBe("Marks")
+    expect(() => storage.moveFolder(brand.id, logos.id)).toThrow()
+    expect(storage.moveFolder(logos.id, null)?.parentId).toBeNull()
+  })
+
+  test("removeFolder reassigns assets and reparents children to the parent", async () => {
+    const storage = createLocalStorage({ provider: "local", path: uploadsDir })
+    const brand = storage.createFolder("Brand", null)
+    const logos = storage.createFolder("Logos", brand.id)
+    const child = storage.createFolder("Old", logos.id)
+    const asset = await storage.store(new File(["x"], "a.txt"))
+    storage.moveAssets([asset.id], logos.id)
+
+    const result = storage.removeFolder(logos.id)
+    expect(result).toEqual({ reassigned: 1, reparented: 1 })
+    expect(storage.get(asset.id)?.folderId).toBe(brand.id)
+    expect(storage.listFolders().find((f) => f.id === child.id)?.parentId).toBe(brand.id)
+  })
+
+  test("moveAssets validates target and clears folder on null", async () => {
+    const storage = createLocalStorage({ provider: "local", path: uploadsDir })
+    const f = storage.createFolder("F", null)
+    const asset = await storage.store(new File(["x"], "a.txt"))
+    storage.moveAssets([asset.id], f.id)
+    expect(storage.get(asset.id)?.folderId).toBe(f.id)
+    storage.moveAssets([asset.id], null)
+    expect(storage.get(asset.id)?.folderId).toBeUndefined()
+    expect(() => storage.moveAssets([asset.id], "nope")).toThrow()
+  })
+
+  test("isDescendant detects ancestry", () => {
+    const folders = [
+      { id: "a", name: "a", parentId: null },
+      { id: "b", name: "b", parentId: "a" },
+      { id: "c", name: "c", parentId: "b" },
+    ]
+    expect(isDescendant(folders, "a", "c")).toBe(true)
+    expect(isDescendant(folders, "c", "a")).toBe(false)
   })
 
   test("createMediaStorage() creates a deterministic local provider", async () => {

@@ -4,19 +4,26 @@ import { EmptyState, ErrorState, LoadingState } from "../AdminState"
 import { adminApiFetch } from "../../lib/api"
 import {
   bulkUpdateMediaTags,
+  createMediaFolder,
   deleteMediaItem,
+  deleteMediaFolder,
+  listMediaFolders,
   listMediaTags,
   listMediaItems,
+  moveMediaAssets,
   normalizeTagInput,
   replaceMediaFile,
   type AdminMediaItem,
+  type MediaFolder,
   type MediaTag,
   updateMediaItem,
   uploadMediaFile,
 } from "../../lib/media"
 import { clusterAssets, type Cluster } from "../../lib/media/cluster"
+import { buildFolderTree, filterByFolder, folderPath } from "../../lib/media/folders"
 import { allTags, filterByTags, filterUntagged, tagColor } from "../../lib/media/tags"
 import { TagManager } from "./TagManager"
+import { FolderTree, type ActiveFolder } from "./FolderTree"
 
 type UsageReference = {
   collection: string
@@ -33,6 +40,7 @@ type Usage = {
 type VaultProps = {
   apiBase?: string
   initialItems?: AdminMediaItem[]
+  initialFolders?: MediaFolder[]
   initialCounts?: Record<string, number>
   initialSelected?: AdminMediaItem | null
   initialUsage?: Usage | null
@@ -61,11 +69,13 @@ function toMetadataState(item: AdminMediaItem | null): MetadataState {
 export function Vault({
   apiBase = "",
   initialItems = [],
+  initialFolders = [],
   initialCounts = {},
   initialSelected = null,
   initialUsage = null,
 }: VaultProps) {
   const [items, setItems] = useState<AdminMediaItem[]>(initialItems)
+  const [folders, setFolders] = useState<MediaFolder[]>(initialFolders)
   const [counts, setCounts] = useState<Record<string, number>>(initialCounts)
   const [loading, setLoading] = useState(initialItems.length === 0)
   const [uploading, setUploading] = useState(false)
@@ -76,6 +86,7 @@ export function Vault({
   const [selectedId, setSelectedId] = useState<string | null>(initialSelected?.id ?? initialItems[0]?.id ?? null)
   const [activeTags, setActiveTags] = useState<string[]>([])
   const [showUntagged, setShowUntagged] = useState(false)
+  const [activeFolder, setActiveFolder] = useState<ActiveFolder>("all")
   const [checkedIds, setCheckedIds] = useState<string[]>([])
   const [bulkTag, setBulkTag] = useState("")
   const [usage, setUsage] = useState<Usage | null>(initialUsage)
@@ -89,11 +100,13 @@ export function Vault({
   const replaceInputRef = useRef<HTMLInputElement>(null)
 
   const selectedItem = items.find((item) => item.id === selectedId) ?? initialSelected ?? null
-  const tags = useMemo(() => allTags(items), [items])
-  const untaggedTotal = useMemo(() => filterUntagged(items).length, [items])
+  const folderTree = useMemo(() => buildFolderTree(folders), [folders])
+  const folderScoped = useMemo(() => filterByFolder(items, activeFolder), [items, activeFolder])
+  const tags = useMemo(() => allTags(folderScoped), [folderScoped])
+  const untaggedTotal = useMemo(() => filterUntagged(folderScoped).length, [folderScoped])
   const visible = useMemo(
-    () => (showUntagged ? filterUntagged(items) : filterByTags(items, activeTags)),
-    [items, activeTags, showUntagged],
+    () => (showUntagged ? filterUntagged(folderScoped) : filterByTags(folderScoped, activeTags)),
+    [folderScoped, activeTags, showUntagged],
   )
   const clusters = useMemo(() => clusterAssets(visible, counts), [visible, counts])
 
@@ -108,13 +121,25 @@ export function Vault({
     return list
   }
 
+  const loadFolders = async () => {
+    const list = await listMediaFolders(apiBase)
+    setFolders(list)
+    return list
+  }
+
   const refresh = async () => {
     setLoading(true)
     setError(null)
     try {
-      const [mediaItems, usageCounts, mediaTags] = await Promise.all([listMediaItems(apiBase), fetchUsageCounts(apiBase), listMediaTags(apiBase)])
+      const [mediaItems, usageCounts, mediaTags, mediaFolders] = await Promise.all([
+        listMediaItems(apiBase),
+        fetchUsageCounts(apiBase),
+        listMediaTags(apiBase),
+        listMediaFolders(apiBase),
+      ])
       setItems(mediaItems)
       setCounts(usageCounts)
+      setFolders(mediaFolders)
       applyTagList(mediaTags)
       setSelectedId((current) => {
         const nextId = current ?? mediaItems[0]?.id ?? null
@@ -131,7 +156,10 @@ export function Vault({
 
   useEffect(() => {
     if (initialItems.length > 0) {
-      loadTags().catch((err: any) => setError(err.message || "Failed to load tags"))
+      Promise.all([
+        loadTags(),
+        initialFolders.length === 0 ? loadFolders() : Promise.resolve(initialFolders),
+      ]).catch((err: any) => setError(err.message || "Failed to load media facets"))
       return
     }
     void refresh()
@@ -287,6 +315,59 @@ export function Vault({
     }
   }
 
+  const mergeUpdatedItems = (updated: AdminMediaItem[]) => {
+    const byId = new Map(updated.map((item) => [item.id, item]))
+    setItems((current) => current.map((item) => byId.get(item.id) ?? item))
+    if (selectedId) {
+      const nextSelected = byId.get(selectedId)
+      if (nextSelected) setMetadata(toMetadataState(nextSelected))
+    }
+  }
+
+  const handleCreateFolder = async (parentId: string | null) => {
+    const name = prompt("Folder name")?.trim()
+    if (!name) return
+    setError(null)
+    try {
+      const folder = await createMediaFolder(apiBase, name, parentId)
+      await loadFolders()
+      setActiveFolder(folder.id)
+    } catch (err: any) {
+      setError(err.message || "Failed to create folder")
+    }
+  }
+
+  const handleDeleteFolder = async (id: string) => {
+    if (!confirm("Delete this folder? Its assets and subfolders move to the parent.")) return
+    setError(null)
+    try {
+      await deleteMediaFolder(apiBase, id)
+      setActiveFolder("all")
+      await Promise.all([loadFolders(), refresh()])
+    } catch (err: any) {
+      setError(err.message || "Failed to delete folder")
+    }
+  }
+
+  const handleMoveSelected = async (folderId: string | null) => {
+    if (checkedIds.length === 0) return
+    setError(null)
+    try {
+      mergeUpdatedItems(await moveMediaAssets(apiBase, checkedIds, folderId))
+    } catch (err: any) {
+      setError(err.message || "Failed to move selected assets")
+    }
+  }
+
+  const handleMoveAsset = async (id: string, folderId: string | null) => {
+    setError(null)
+    try {
+      mergeUpdatedItems(await moveMediaAssets(apiBase, [id], folderId))
+    } catch (err: any) {
+      setError(err.message || "Failed to move asset")
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -331,57 +412,70 @@ export function Vault({
 
       {loading ? (
         <LoadingState compact title="Loading the vault" description="Fetching uploaded assets and usage counts." />
-      ) : items.length === 0 ? (
-        <EmptyState
-          title="No media files yet"
-          description="Upload images, videos, or documents to reuse them across your content."
-          action={(
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-2 rounded-lg bg-[#c9956b] px-4 py-2 text-sm font-medium text-[#0a0a0c] hover:bg-[#d4a57c]"
-            >
-              <Upload className="h-4 w-4" />
-              Upload
-            </button>
-          )}
-        />
       ) : (
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="grid gap-5 xl:grid-cols-[210px_minmax(0,1fr)_360px]">
+          <aside className="hidden xl:block">
+            <FolderTree tree={folderTree} active={activeFolder} onSelect={setActiveFolder} onCreate={handleCreateFolder} />
+          </aside>
           <div className="space-y-6">
-            {(tags.length > 0 || untaggedTotal > 0) && (
-              <TagFilterBar
-                tags={tags}
-                activeTags={activeTags}
-                showUntagged={showUntagged}
-                untaggedCount={untaggedTotal}
-                colors={tagColors}
-                onToggleTag={toggleTag}
-                onToggleUntagged={toggleUntagged}
-                onClear={clearFilter}
+            <div className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b] p-3 xl:hidden">
+              <FolderTree tree={folderTree} active={activeFolder} onSelect={setActiveFolder} onCreate={handleCreateFolder} />
+            </div>
+            <Breadcrumb folders={folders} active={activeFolder} onSelect={setActiveFolder} onDelete={handleDeleteFolder} />
+            {items.length === 0 ? (
+              <EmptyState
+                title="No media files yet"
+                description="Upload images, videos, or documents to reuse them across your content."
+                action={(
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="inline-flex items-center gap-2 rounded-lg bg-[#c9956b] px-4 py-2 text-sm font-medium text-[#0a0a0c] hover:bg-[#d4a57c]"
+                  >
+                    <Upload className="h-4 w-4" />
+                    Upload
+                  </button>
+                )}
               />
+            ) : (
+              <>
+                {(tags.length > 0 || untaggedTotal > 0) && (
+                  <TagFilterBar
+                    tags={tags}
+                    activeTags={activeTags}
+                    showUntagged={showUntagged}
+                    untaggedCount={untaggedTotal}
+                    colors={tagColors}
+                    onToggleTag={toggleTag}
+                    onToggleUntagged={toggleUntagged}
+                    onClear={clearFilter}
+                  />
+                )}
+                {checkedIds.length > 0 && (
+                  <BulkActionBar
+                    count={checkedIds.length}
+                    value={bulkTag}
+                    onChange={setBulkTag}
+                    onAdd={() => runBulk("add")}
+                    onRemove={() => runBulk("remove")}
+                    folders={folders}
+                    onMove={handleMoveSelected}
+                    onClear={() => setCheckedIds([])}
+                  />
+                )}
+                {clusters.map((cluster) => (
+                  <ClusterSection
+                    key={cluster.key}
+                    cluster={cluster}
+                    counts={counts}
+                    selectedId={selectedId}
+                    checkedIds={checkedIds}
+                    onSelect={setSelectedId}
+                    onToggleChecked={toggleChecked}
+                  />
+                ))}
+              </>
             )}
-            {checkedIds.length > 0 && (
-              <BulkActionBar
-                count={checkedIds.length}
-                value={bulkTag}
-                onChange={setBulkTag}
-                onAdd={() => runBulk("add")}
-                onRemove={() => runBulk("remove")}
-                onClear={() => setCheckedIds([])}
-              />
-            )}
-            {clusters.map((cluster) => (
-              <ClusterSection
-                key={cluster.key}
-                cluster={cluster}
-                counts={counts}
-                selectedId={selectedId}
-                checkedIds={checkedIds}
-                onSelect={setSelectedId}
-                onToggleChecked={toggleChecked}
-              />
-            ))}
           </div>
 
           <DetailPanel
@@ -395,6 +489,8 @@ export function Vault({
             onSave={handleSaveMetadata}
             onReplace={() => replaceInputRef.current?.click()}
             onDelete={handleDelete}
+            folders={folders}
+            onMove={handleMoveAsset}
             tagColors={tagColors}
           />
         </div>
@@ -464,12 +560,57 @@ function TagFilterBar({
   )
 }
 
+function Breadcrumb({
+  folders,
+  active,
+  onSelect,
+  onDelete,
+}: {
+  folders: MediaFolder[]
+  active: ActiveFolder
+  onSelect: (id: ActiveFolder) => void
+  onDelete: (id: string) => void
+}) {
+  const trail = active === "all" || active === null ? [] : folderPath(folders, active)
+
+  return (
+    <nav className="flex flex-wrap items-center gap-1 text-sm text-[#71717a]" aria-label="Breadcrumb">
+      <button type="button" onClick={() => onSelect("all")} className="hover:text-[#fafafa]">All</button>
+      {active === null && (
+        <>
+          <span>/</span>
+          <span className="text-[#d4d4d8]">Unsorted</span>
+        </>
+      )}
+      {trail.map((folder, index) => (
+        <span key={folder.id} className="flex items-center gap-1">
+          <span>/</span>
+          <button
+            type="button"
+            onClick={() => onSelect(folder.id)}
+            className={index === trail.length - 1 ? "text-[#d4d4d8]" : "hover:text-[#fafafa]"}
+          >
+            {folder.name}
+          </button>
+        </span>
+      ))}
+      {active !== "all" && active !== null && (
+        <button type="button" onClick={() => onDelete(active)} className="ml-2 text-xs text-[#f87171] hover:text-[#fca5a5]">
+          Delete folder
+        </button>
+      )}
+    </nav>
+  )
+}
+
 function BulkActionBar({
   count,
   value,
   onChange,
   onAdd,
   onRemove,
+  folders,
+  onMove,
   onClear,
 }: {
   count: number
@@ -477,6 +618,8 @@ function BulkActionBar({
   onChange: (value: string) => void
   onAdd: () => void
   onRemove: () => void
+  folders: MediaFolder[]
+  onMove: (folderId: string | null) => void
   onClear: () => void
 }) {
   return (
@@ -494,6 +637,20 @@ function BulkActionBar({
       <button type="button" onClick={onRemove} className="rounded-lg border border-[rgba(255,255,255,0.1)] px-3 py-1.5 text-sm font-medium text-[#fafafa] hover:bg-[rgba(255,255,255,0.04)]">
         Remove
       </button>
+      <select
+        defaultValue="__placeholder"
+        onChange={(event) => {
+          const value = event.target.value
+          onMove(value === "__unsorted" ? null : value)
+          event.currentTarget.value = "__placeholder"
+        }}
+        className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#18181b] px-2 py-1.5 text-sm text-[#fafafa] outline-none focus:border-[#c9956b]"
+        aria-label="Move selected to folder"
+      >
+        <option value="__placeholder" disabled>Move to...</option>
+        <option value="__unsorted">Unsorted</option>
+        {folders.map((folder) => <option key={folder.id} value={folder.id}>{folder.name}</option>)}
+      </select>
       <button type="button" onClick={onClear} className="ml-auto text-sm text-[#71717a] hover:text-[#fafafa]">
         Clear
       </button>
@@ -581,6 +738,8 @@ function DetailPanel({
   onSave,
   onReplace,
   onDelete,
+  folders,
+  onMove,
   tagColors,
 }: {
   item: AdminMediaItem | null
@@ -593,6 +752,8 @@ function DetailPanel({
   onSave: () => void
   onReplace: () => void
   onDelete: () => void
+  folders: MediaFolder[]
+  onMove: (id: string, folderId: string | null) => void
   tagColors: Record<string, string>
 }) {
   if (!item) {
@@ -647,6 +808,19 @@ function DetailPanel({
         </section>
 
         <TagsField metadata={metadata} setMetadata={setMetadata} tagColors={tagColors} />
+
+        <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#71717a]">
+          Folder
+          <select
+            value={item.folderId ?? "__unsorted"}
+            onChange={(event) => onMove(item.id, event.target.value === "__unsorted" ? null : event.target.value)}
+            className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#18181b] px-3 py-2 text-sm normal-case tracking-normal text-[#fafafa] outline-none focus:border-[#c9956b]"
+            aria-label="Move asset to folder"
+          >
+            <option value="__unsorted">Unsorted</option>
+            {folders.map((folder) => <option key={folder.id} value={folder.id}>{folder.name}</option>)}
+          </select>
+        </label>
 
         <MetadataFields metadata={metadata} setMetadata={setMetadata} />
 

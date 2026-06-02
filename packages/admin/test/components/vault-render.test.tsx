@@ -14,6 +14,7 @@ describe("Vault", () => {
       <Vault
         apiBase=""
         initialItems={items as any}
+        initialFolders={[{ id: "f1", name: "Brand", parentId: null }] as any}
         initialCounts={{ a: 4, c: 0 }}
         initialSelected={items[0] as any}
         initialUsage={{ count: 4, references: [{ collection: "post", documentId: "p1", label: "Launch", field: "cover" }] }}
@@ -26,5 +27,7 @@ describe("Vault", () => {
     expect(html).toContain("hero")
     expect(html).toContain("Select")
     expect(html).toContain("Manage tags")
+    expect(html).toContain("Brand")
+    expect(html).toContain("Unsorted")
   })
 })

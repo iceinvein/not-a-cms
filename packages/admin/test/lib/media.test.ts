@@ -1,13 +1,19 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import {
   bulkUpdateMediaTags,
+  createMediaFolder,
   deleteMediaItem,
+  deleteMediaFolder,
   deleteMediaTag,
   listMediaItems,
+  listMediaFolders,
   listMediaTags,
   mediaDisplayUrl,
+  moveMediaAssets,
+  moveMediaFolder,
   normalizeTagInput,
   renameMediaTag,
+  renameMediaFolder,
   replaceMediaFile,
   setMediaTagColor,
   updateMediaItem,
@@ -197,6 +203,36 @@ describe("admin media API client", () => {
     expect(JSON.parse(String(calls[1]?.init?.body))).toEqual({ color: "#abcdef" })
     expect(calls[2]?.init?.method).toBe("DELETE")
     expect(calls[0]?.url).toBe("https://cms.example.test/api/media/tags/old")
+  })
+
+  test("folder client functions hit the right routes", async () => {
+    const calls: Array<{ url: string; init?: RequestInit }> = []
+    globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
+      calls.push({ url: String(url), init })
+      if (String(url).endsWith("/api/media/folders")) return Response.json({ data: [{ id: "f1", name: "Brand", parentId: null }] })
+      if (String(url).endsWith("/api/media/move")) {
+        return Response.json({ data: [{ id: "a", filename: "a.jpg", mimetype: "image/jpeg", size: 1, uploadedAt: "", folderId: "f1" }] })
+      }
+      if (init?.method === "DELETE") return Response.json({ reassigned: 1, reparented: 0 })
+      return Response.json({ id: "f1", name: "Brand", parentId: null })
+    }) as typeof fetch
+
+    const folders = await listMediaFolders("https://cms.example.test")
+    await createMediaFolder("https://cms.example.test", "Brand", null)
+    await renameMediaFolder("https://cms.example.test", "f1", "Marks")
+    await moveMediaFolder("https://cms.example.test", "f1", "f2")
+    await deleteMediaFolder("https://cms.example.test", "f1")
+    const moved = await moveMediaAssets("https://cms.example.test", ["a"], "f1")
+
+    expect(folders[0]).toEqual({ id: "f1", name: "Brand", parentId: null })
+    expect(calls[0]?.url).toBe("https://cms.example.test/api/media/folders")
+    expect(calls[1]?.url).toBe("https://cms.example.test/api/media/folders")
+    expect(calls[1]?.init?.method).toBe("POST")
+    expect(JSON.parse(String(calls[2]?.init?.body))).toEqual({ name: "Marks" })
+    expect(JSON.parse(String(calls[3]?.init?.body))).toEqual({ parentId: "f2" })
+    expect(calls[4]?.init?.method).toBe("DELETE")
+    expect(calls[5]?.url).toBe("https://cms.example.test/api/media/move")
+    expect(moved[0]?.folderId).toBe("f1")
   })
 
   test("replaces a media file as multipart form data", async () => {

@@ -17,9 +17,11 @@ export type AdminMediaItem = {
   focalX?: number
   focalY?: number
   tags?: string[]
+  folderId?: string
 }
 
 export type MediaMetadataInput = Pick<AdminMediaItem, "alt" | "title" | "caption" | "focalX" | "focalY" | "tags">
+export type MediaFolder = { id: string; name: string; parentId: string | null }
 
 type RawMediaRecord = Omit<AdminMediaItem, "url"> & {
   url?: string
@@ -115,6 +117,60 @@ export async function setMediaTagColor(apiBase: string, name: string, color: str
 export async function deleteMediaTag(apiBase: string, name: string): Promise<void> {
   const res = await adminApiFetch(apiBase, `/api/media/tags/${encodeURIComponent(name)}`, { method: "DELETE" })
   if (!res.ok) throw new Error("Failed to delete tag")
+}
+
+export async function listMediaFolders(apiBase: string): Promise<MediaFolder[]> {
+  const res = await adminApiFetch(apiBase, "/api/media/folders")
+  if (!res.ok) throw new Error("Failed to load folders")
+  const body = await res.json() as { data?: MediaFolder[] }
+  return body.data ?? []
+}
+
+export async function createMediaFolder(apiBase: string, name: string, parentId: string | null): Promise<MediaFolder> {
+  const res = await adminApiFetch(apiBase, "/api/media/folders", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, parentId }),
+  })
+  if (!res.ok) throw new Error("Failed to create folder")
+  return await res.json() as MediaFolder
+}
+
+export async function renameMediaFolder(apiBase: string, id: string, name: string): Promise<MediaFolder> {
+  const res = await adminApiFetch(apiBase, `/api/media/folders/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  })
+  if (!res.ok) throw new Error("Failed to rename folder")
+  return await res.json() as MediaFolder
+}
+
+export async function moveMediaFolder(apiBase: string, id: string, parentId: string | null): Promise<MediaFolder> {
+  const res = await adminApiFetch(apiBase, `/api/media/folders/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ parentId }),
+  })
+  if (!res.ok) throw new Error("Failed to move folder")
+  return await res.json() as MediaFolder
+}
+
+export async function deleteMediaFolder(apiBase: string, id: string): Promise<{ reassigned: number; reparented: number }> {
+  const res = await adminApiFetch(apiBase, `/api/media/folders/${encodeURIComponent(id)}`, { method: "DELETE" })
+  if (!res.ok) throw new Error("Failed to delete folder")
+  return await res.json() as { reassigned: number; reparented: number }
+}
+
+export async function moveMediaAssets(apiBase: string, ids: string[], folderId: string | null): Promise<AdminMediaItem[]> {
+  const res = await adminApiFetch(apiBase, "/api/media/move", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ids, folderId }),
+  })
+  if (!res.ok) throw new Error("Failed to move assets")
+  const body = await res.json() as { data?: RawMediaRecord[] }
+  return (body.data ?? []).map((record) => normalizeMediaRecord(apiBase, record))
 }
 
 export async function replaceMediaFile(apiBase: string, id: string, file: File): Promise<AdminMediaItem> {

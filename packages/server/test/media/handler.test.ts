@@ -191,6 +191,58 @@ describe("media API", () => {
     })
     expect(bad.status).toBe(400)
   })
+
+  test("GET/PATCH/DELETE /api/media/tags manage the registry", async () => {
+    const adminCookie = await signInAndGetCookie("media-admin@example.test")
+    const fd = new FormData()
+    fd.append("file", new Blob(["x"], { type: "text/plain" }), "a.txt")
+    const up = await fetch(`${baseUrl}/api/media/upload`, { method: "POST", headers: { cookie: adminCookie }, body: fd })
+    const id = (await up.json()).id
+    await fetch(`${baseUrl}/api/media/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", cookie: adminCookie },
+      body: JSON.stringify({ tags: ["draft"] }),
+    })
+
+    const list = await fetch(`${baseUrl}/api/media/tags`, { headers: { cookie: adminCookie } })
+    expect(list.status).toBe(200)
+    expect((await list.json()).data.some((t: any) => t.name === "draft")).toBe(true)
+
+    const recolor = await fetch(`${baseUrl}/api/media/tags/draft`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", cookie: adminCookie },
+      body: JSON.stringify({ color: "#abcdef" }),
+    })
+    expect((await recolor.json()).color).toBe("#abcdef")
+
+    const rename = await fetch(`${baseUrl}/api/media/tags/draft`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", cookie: adminCookie },
+      body: JSON.stringify({ newName: "Working" }),
+    })
+    expect((await rename.json()).name).toBe("working")
+
+    const del = await fetch(`${baseUrl}/api/media/tags/working`, { method: "DELETE", headers: { cookie: adminCookie } })
+    expect((await del.json()).removed).toBe(1)
+  })
+
+  test("GET /api/media/tags rejects anonymous; PATCH rejects invalid color", async () => {
+    expect((await fetch(`${baseUrl}/api/media/tags`)).status).toBe(401)
+    const adminCookie = await signInAndGetCookie("media-registry-admin2@example.test")
+    const bad = await fetch(`${baseUrl}/api/media/tags/x`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", cookie: adminCookie },
+      body: JSON.stringify({ color: "blue" }),
+    })
+    expect(bad.status).toBe(400)
+
+    const badName = await fetch(`${baseUrl}/api/media/tags/x`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", cookie: adminCookie },
+      body: JSON.stringify({ newName: "###" }),
+    })
+    expect(badName.status).toBe(400)
+  })
 })
 
 async function signInAndGetCookie(email: string): Promise<string> {

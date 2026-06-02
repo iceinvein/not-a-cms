@@ -69,6 +69,10 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
       return json({ data: storage.list().map(toPublicRecord) })
     }
 
+    if (req.method === "GET" && subpath === "tags" && !action) {
+      return json({ data: storage.listTags() })
+    }
+
     if (req.method === "GET" && subpath && action === "file") {
       const variantOptions = validateVariantRequest(url)
       if (variantOptions instanceof Response) return variantOptions
@@ -91,6 +95,28 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
       return json(toPublicRecord(record))
     }
 
+    if (req.method === "PATCH" && subpath === "tags" && action) {
+      const forbidden = await requireManager(req)
+      if (forbidden) return forbidden
+      const name = decodeURIComponent(action)
+      const body = await req.json().catch(() => null)
+      if (!isRecord(body)) return json({ error: "Body must be an object" }, 400)
+      let finalName = normalizeName(name)
+      if (body.color !== undefined) {
+        if (typeof body.color !== "string" || !/^#[0-9a-f]{6}$/i.test(body.color)) return json({ error: "color must be a #rrggbb hex" }, 400)
+        storage.setTagColor(name, body.color)
+      }
+      if (body.newName !== undefined) {
+        if (typeof body.newName !== "string") return json({ error: "newName must be a non-empty string" }, 400)
+        const normalized = normalizeName(body.newName)
+        if (!normalized) return json({ error: "newName must be a non-empty string" }, 400)
+        storage.renameTag(name, body.newName)
+        finalName = normalized
+      }
+      const entry = storage.listTags().find((tag) => tag.name === finalName) ?? { name: finalName, color: storage.tagColors()[finalName] ?? "#c9956b", count: 0 }
+      return json(entry)
+    }
+
     if (req.method === "GET" && subpath && !action) {
       const record = storage.get(subpath)
       if (!record) return json({ error: "Not found" }, 404)
@@ -108,6 +134,12 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
       const record = storage.update(subpath, metadata)
       if (!record) return json({ error: "Not found" }, 404)
       return json(toPublicRecord(record))
+    }
+
+    if (req.method === "DELETE" && subpath === "tags" && action) {
+      const forbidden = await requireManager(req)
+      if (forbidden) return forbidden
+      return json({ removed: storage.removeTag(decodeURIComponent(action)) })
     }
 
     if (req.method === "DELETE" && subpath && !action) {
@@ -181,4 +213,16 @@ function validateVariantRequest(url: URL): { width?: number; format?: "webp" | "
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value)
+}
+
+function normalizeName(raw: string): string {
+  return raw
+    .trim()
+    .toLowerCase()
+    .replace(/^#+\s*/, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 25)
+    .replace(/-+$/g, "")
 }

@@ -25,5 +25,6 @@ describe("Vault", () => {
     expect(html).toContain("Untagged")
     expect(html).toContain("hero")
     expect(html).toContain("Select")
+    expect(html).toContain("Manage tags")
   })
 })

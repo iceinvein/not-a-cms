@@ -65,6 +65,11 @@ export type MediaStorage = {
   update(id: string, metadata: Partial<MediaMetadataInput>): MediaRecord | null
   replaceFile(id: string, file: File): Promise<MediaRecord | null>
   remove(id: string): Promise<boolean>
+  tagColors(): Record<string, string>
+  setTagColor(name: string, color: string): void
+  renameTag(from: string, to: string): number
+  removeTag(name: string): number
+  listTags(): { name: string; color: string; count: number }[]
 }
 
 type ObjectProvider = {
@@ -108,10 +113,16 @@ function createIndexedMediaStorage(config: StorageConfig, provider: ObjectProvid
 
   const indexPath = join(indexDir, ".media-index.json")
   const records = loadIndex(indexPath)
+  const tagsPath = join(indexDir, ".media-tags.json")
+  const tagRegistry = loadTagRegistry(tagsPath)
 
   function persistIndex() {
     const data = JSON.stringify(Array.from(records.values()), null, 2)
     writeFileSync(indexPath, data + "\n")
+  }
+
+  function persistTagRegistry() {
+    writeFileSync(tagsPath, JSON.stringify(tagRegistry, null, 2) + "\n")
   }
 
   return {
@@ -188,6 +199,66 @@ function createIndexedMediaStorage(config: StorageConfig, provider: ObjectProvid
       records.delete(id)
       persistIndex()
       return true
+    },
+
+    tagColors(): Record<string, string> {
+      const out: Record<string, string> = {}
+      for (const [name, entry] of Object.entries(tagRegistry)) out[name] = entry.color
+      return out
+    },
+
+    setTagColor(name: string, color: string): void {
+      if (!HEX_COLOR.test(color)) throw new Error("color must be a #rrggbb hex string")
+      const key = normalizeTag(name)
+      if (!key) return
+      tagRegistry[key] = { color }
+      persistTagRegistry()
+    },
+
+    renameTag(from: string, to: string): number {
+      const a = normalizeTag(from)
+      const b = normalizeTag(to)
+      if (!a || !b || a === b) return 0
+      let changed = 0
+      for (const record of records.values()) {
+        if ((record.tags ?? []).includes(a)) {
+          records.set(record.id, { ...record, tags: applyTagOps(record.tags ?? [], [b], [a]) })
+          changed++
+        }
+      }
+      if (tagRegistry[a]) {
+        tagRegistry[b] = tagRegistry[a]
+        delete tagRegistry[a]
+      }
+      persistIndex()
+      persistTagRegistry()
+      return changed
+    },
+
+    removeTag(name: string): number {
+      const key = normalizeTag(name)
+      if (!key) return 0
+      let changed = 0
+      for (const record of records.values()) {
+        if ((record.tags ?? []).includes(key)) {
+          records.set(record.id, { ...record, tags: applyTagOps(record.tags ?? [], [], [key]) })
+          changed++
+        }
+      }
+      delete tagRegistry[key]
+      persistIndex()
+      persistTagRegistry()
+      return changed
+    },
+
+    listTags(): { name: string; color: string; count: number }[] {
+      const counts = new Map<string, number>()
+      for (const record of records.values()) {
+        for (const tag of record.tags ?? []) counts.set(tag, (counts.get(tag) ?? 0) + 1)
+      }
+      return [...counts.entries()]
+        .map(([name, count]) => ({ name, count, color: tagRegistry[name]?.color ?? defaultTagColor(name) }))
+        .sort((a, b) => a.name.localeCompare(b.name))
     },
   }
 
@@ -389,6 +460,14 @@ function clamp01(value: number): number {
 
 const MAX_TAG_LENGTH = 25
 const MAX_TAGS = 30
+const TAG_PALETTE = ["#c9956b", "#6b9bc9", "#8bbf7a", "#c97a8b", "#b08bc9", "#c9b06b", "#6bc9b0", "#9b9b6b"]
+const HEX_COLOR = /^#[0-9a-f]{6}$/i
+
+export function defaultTagColor(name: string): string {
+  let hash = 0
+  for (const ch of name) hash = (hash + ch.charCodeAt(0)) % TAG_PALETTE.length
+  return TAG_PALETTE[hash]
+}
 
 function normalizeTag(raw: unknown): string {
   return String(raw)
@@ -428,6 +507,15 @@ function loadIndex(indexPath: string): Map<string, MediaRecord> {
     return new Map(parsed.map((record) => [record.id, record]))
   } catch {
     return new Map()
+  }
+}
+
+function loadTagRegistry(path: string): Record<string, { color: string }> {
+  if (!existsSync(path)) return {}
+  try {
+    return JSON.parse(readFileSync(path, "utf8")) as Record<string, { color: string }>
+  } catch {
+    return {}
   }
 }
 

@@ -83,6 +83,40 @@ export async function bulkUpdateMediaTags(
   return (body.data ?? []).map((record) => normalizeMediaRecord(apiBase, record))
 }
 
+export type MediaTag = { name: string; color: string; count: number }
+
+export async function listMediaTags(apiBase: string): Promise<MediaTag[]> {
+  const res = await adminApiFetch(apiBase, "/api/media/tags")
+  if (!res.ok) throw new Error("Failed to load tags")
+  const body = await res.json() as { data?: MediaTag[] }
+  return body.data ?? []
+}
+
+export async function renameMediaTag(apiBase: string, name: string, newName: string): Promise<MediaTag> {
+  const res = await adminApiFetch(apiBase, `/api/media/tags/${encodeURIComponent(name)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ newName }),
+  })
+  if (!res.ok) throw new Error("Failed to rename tag")
+  return await res.json() as MediaTag
+}
+
+export async function setMediaTagColor(apiBase: string, name: string, color: string): Promise<MediaTag> {
+  const res = await adminApiFetch(apiBase, `/api/media/tags/${encodeURIComponent(name)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ color }),
+  })
+  if (!res.ok) throw new Error("Failed to set tag color")
+  return await res.json() as MediaTag
+}
+
+export async function deleteMediaTag(apiBase: string, name: string): Promise<void> {
+  const res = await adminApiFetch(apiBase, `/api/media/tags/${encodeURIComponent(name)}`, { method: "DELETE" })
+  if (!res.ok) throw new Error("Failed to delete tag")
+}
+
 export async function replaceMediaFile(apiBase: string, id: string, file: File): Promise<AdminMediaItem> {
   const formData = new FormData()
   formData.append("file", file)

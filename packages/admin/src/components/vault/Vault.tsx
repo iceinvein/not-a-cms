@@ -1,19 +1,22 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react"
-import { FileText, ImageIcon, RefreshCw, Trash2, Upload, Video, X } from "lucide-react"
+import { FileText, ImageIcon, RefreshCw, Tags, Trash2, Upload, Video, X } from "lucide-react"
 import { EmptyState, ErrorState, LoadingState } from "../AdminState"
 import { adminApiFetch } from "../../lib/api"
 import {
   bulkUpdateMediaTags,
   deleteMediaItem,
+  listMediaTags,
   listMediaItems,
   normalizeTagInput,
   replaceMediaFile,
   type AdminMediaItem,
+  type MediaTag,
   updateMediaItem,
   uploadMediaFile,
 } from "../../lib/media"
 import { clusterAssets, type Cluster } from "../../lib/media/cluster"
-import { allTags, filterByTags, filterUntagged } from "../../lib/media/tags"
+import { allTags, filterByTags, filterUntagged, tagColor } from "../../lib/media/tags"
+import { TagManager } from "./TagManager"
 
 type UsageReference = {
   collection: string
@@ -76,6 +79,11 @@ export function Vault({
   const [checkedIds, setCheckedIds] = useState<string[]>([])
   const [bulkTag, setBulkTag] = useState("")
   const [usage, setUsage] = useState<Usage | null>(initialUsage)
+  const [tagColors, setTagColors] = useState<Record<string, string>>({})
+  const [tagList, setTagList] = useState<MediaTag[]>(() =>
+    allTags(initialItems).map(({ tag, count }) => ({ name: tag, count, color: tagColor(tag, {}) })),
+  )
+  const [managingTags, setManagingTags] = useState(false)
   const [metadata, setMetadata] = useState<MetadataState>(() => toMetadataState(initialSelected ?? initialItems[0] ?? null))
   const fileInputRef = useRef<HTMLInputElement>(null)
   const replaceInputRef = useRef<HTMLInputElement>(null)
@@ -89,14 +97,31 @@ export function Vault({
   )
   const clusters = useMemo(() => clusterAssets(visible, counts), [visible, counts])
 
+  const applyTagList = (list: MediaTag[]) => {
+    setTagList(list)
+    setTagColors(Object.fromEntries(list.map((tag) => [tag.name, tag.color])))
+  }
+
+  const loadTags = async () => {
+    const list = await listMediaTags(apiBase)
+    applyTagList(list)
+    return list
+  }
+
   const refresh = async () => {
     setLoading(true)
     setError(null)
     try {
-      const [mediaItems, usageCounts] = await Promise.all([listMediaItems(apiBase), fetchUsageCounts(apiBase)])
+      const [mediaItems, usageCounts, mediaTags] = await Promise.all([listMediaItems(apiBase), fetchUsageCounts(apiBase), listMediaTags(apiBase)])
       setItems(mediaItems)
       setCounts(usageCounts)
-      setSelectedId((current) => current ?? mediaItems[0]?.id ?? null)
+      applyTagList(mediaTags)
+      setSelectedId((current) => {
+        const nextId = current ?? mediaItems[0]?.id ?? null
+        setMetadata(toMetadataState(mediaItems.find((item) => item.id === nextId) ?? null))
+        return nextId
+      })
+      setActiveTags((current) => current.filter((tag) => mediaItems.some((item) => (item.tags ?? []).includes(tag))))
     } catch (err: any) {
       setError(err.message || "Failed to load media")
     } finally {
@@ -105,8 +130,11 @@ export function Vault({
   }
 
   useEffect(() => {
-    if (initialItems.length > 0) return
-    refresh()
+    if (initialItems.length > 0) {
+      loadTags().catch((err: any) => setError(err.message || "Failed to load tags"))
+      return
+    }
+    void refresh()
   }, [apiBase])
 
   useEffect(() => {
@@ -180,6 +208,7 @@ export function Vault({
       const nextItems = items.map((item) => (item.id === updated.id ? updated : item))
       setItems(nextItems)
       setActiveTags((current) => current.filter((tag) => nextItems.some((item) => (item.tags ?? []).includes(tag))))
+      await loadTags()
     } catch (err: any) {
       setError(err.message || "Failed to update media")
     } finally {
@@ -252,6 +281,7 @@ export function Vault({
       if (nextSelected) setMetadata(toMetadataState(nextSelected))
       setActiveTags((current) => current.filter((tagName) => nextItems.some((item) => (item.tags ?? []).includes(tagName))))
       setBulkTag("")
+      await loadTags()
     } catch (err: any) {
       setError(err.message || "Failed to update tags")
     }
@@ -265,6 +295,14 @@ export function Vault({
           <p className="text-sm text-[#71717a]">{items.length} assets clustered by type and usage.</p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setManagingTags(true)}
+            className="inline-flex items-center gap-2 rounded-lg border border-[rgba(255,255,255,0.1)] px-3 py-2 text-sm font-medium text-[#d4d4d8] hover:bg-[rgba(255,255,255,0.04)]"
+          >
+            <Tags className="h-4 w-4" />
+            Manage tags
+          </button>
           <button
             type="button"
             onClick={refresh}
@@ -317,6 +355,7 @@ export function Vault({
                 activeTags={activeTags}
                 showUntagged={showUntagged}
                 untaggedCount={untaggedTotal}
+                colors={tagColors}
                 onToggleTag={toggleTag}
                 onToggleUntagged={toggleUntagged}
                 onClear={clearFilter}
@@ -356,8 +395,18 @@ export function Vault({
             onSave={handleSaveMetadata}
             onReplace={() => replaceInputRef.current?.click()}
             onDelete={handleDelete}
+            tagColors={tagColors}
           />
         </div>
+      )}
+
+      {managingTags && (
+        <TagManager
+          apiBase={apiBase}
+          tags={tagList}
+          onClose={() => setManagingTags(false)}
+          onChanged={() => { void refresh() }}
+        />
       )}
     </div>
   )
@@ -368,6 +417,7 @@ function TagFilterBar({
   activeTags,
   showUntagged,
   untaggedCount,
+  colors,
   onToggleTag,
   onToggleUntagged,
   onClear,
@@ -376,6 +426,7 @@ function TagFilterBar({
   activeTags: string[]
   showUntagged: boolean
   untaggedCount: number
+  colors: Record<string, string>
   onToggleTag: (tag: string) => void
   onToggleUntagged: () => void
   onClear: () => void
@@ -403,6 +454,7 @@ function TagFilterBar({
         const active = activeTags.includes(tag)
         return (
           <button key={tag} type="button" onClick={() => onToggleTag(tag)} className={chip(active)} aria-pressed={active}>
+            <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: tagColor(tag, colors) }} />
             #{tag}
             <span className="text-[#71717a]">{count}</span>
           </button>
@@ -529,6 +581,7 @@ function DetailPanel({
   onSave,
   onReplace,
   onDelete,
+  tagColors,
 }: {
   item: AdminMediaItem | null
   metadata: MetadataState
@@ -540,6 +593,7 @@ function DetailPanel({
   onSave: () => void
   onReplace: () => void
   onDelete: () => void
+  tagColors: Record<string, string>
 }) {
   if (!item) {
     return (
@@ -592,7 +646,7 @@ function DetailPanel({
           )}
         </section>
 
-        <TagsField metadata={metadata} setMetadata={setMetadata} />
+        <TagsField metadata={metadata} setMetadata={setMetadata} tagColors={tagColors} />
 
         <MetadataFields metadata={metadata} setMetadata={setMetadata} />
 
@@ -630,9 +684,11 @@ function DetailPanel({
 function TagsField({
   metadata,
   setMetadata,
+  tagColors,
 }: {
   metadata: MetadataState
   setMetadata: React.Dispatch<React.SetStateAction<MetadataState>>
+  tagColors: Record<string, string>
 }) {
   const [draft, setDraft] = useState("")
 
@@ -658,6 +714,7 @@ function TagsField({
             key={tag}
             className="inline-flex items-center gap-1 rounded-full border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2.5 py-1 text-xs text-[#d4d4d8]"
           >
+            <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: tagColor(tag, tagColors) }} />
             #{tag}
             <button
               type="button"

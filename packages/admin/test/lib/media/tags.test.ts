@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { allTags, filterByTags, filterUntagged, untaggedCount } from "../../../src/lib/media/tags"
+import { allTags, defaultTagColor, filterByTags, filterUntagged, tagColor, untaggedCount } from "../../../src/lib/media/tags"
 
 const items = [
   { id: "a", filename: "hero.jpg", mimetype: "image/jpeg", size: 1, uploadedAt: "", url: "", tags: ["hero", "2024"] },
@@ -36,5 +36,17 @@ describe("filterUntagged / untaggedCount", () => {
   test("selects items with no tags", () => {
     expect(filterUntagged(items as any).map((i) => i.id)).toEqual(["c"])
     expect(untaggedCount(items as any)).toBe(1)
+  })
+})
+
+describe("tag colors", () => {
+  test("defaultTagColor is deterministic and valid hex", () => {
+    expect(defaultTagColor("hero")).toMatch(/^#[0-9a-f]{6}$/i)
+    expect(defaultTagColor("hero")).toBe(defaultTagColor("hero"))
+  })
+
+  test("tagColor prefers the registry, else default", () => {
+    expect(tagColor("hero", { hero: "#abcdef" })).toBe("#abcdef")
+    expect(tagColor("hero", {})).toBe(defaultTagColor("hero"))
   })
 })

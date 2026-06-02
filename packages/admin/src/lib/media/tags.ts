@@ -24,3 +24,15 @@ export function filterUntagged(items: AdminMediaItem[]): AdminMediaItem[] {
 export function untaggedCount(items: AdminMediaItem[]): number {
   return filterUntagged(items).length
 }
+
+const TAG_PALETTE = ["#c9956b", "#6b9bc9", "#8bbf7a", "#c97a8b", "#b08bc9", "#c9b06b", "#6bc9b0", "#9b9b6b"]
+
+export function defaultTagColor(name: string): string {
+  let hash = 0
+  for (const ch of name) hash = (hash + ch.charCodeAt(0)) % TAG_PALETTE.length
+  return TAG_PALETTE[hash]
+}
+
+export function tagColor(name: string, colors: Record<string, string>): string {
+  return colors[name] ?? defaultTagColor(name)
+}

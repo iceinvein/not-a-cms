@@ -1,5 +1,18 @@
 import { afterEach, describe, expect, test } from "bun:test"
-import { bulkUpdateMediaTags, deleteMediaItem, listMediaItems, mediaDisplayUrl, normalizeTagInput, replaceMediaFile, updateMediaItem, uploadMediaFile } from "../../src/lib/media"
+import {
+  bulkUpdateMediaTags,
+  deleteMediaItem,
+  deleteMediaTag,
+  listMediaItems,
+  listMediaTags,
+  mediaDisplayUrl,
+  normalizeTagInput,
+  renameMediaTag,
+  replaceMediaFile,
+  setMediaTagColor,
+  updateMediaItem,
+  uploadMediaFile,
+} from "../../src/lib/media"
 
 const originalFetch = globalThis.fetch
 
@@ -154,6 +167,36 @@ describe("admin media API client", () => {
     expect(JSON.parse(String(calls[0]?.init?.body))).toEqual({ ids: ["a"], add: ["campaign"] })
     expect(items[0]?.tags).toEqual(["campaign"])
     expect(items[0]?.url).toBe("https://cms.example.test/api/media/a/file")
+  })
+
+  test("listMediaTags GETs the registry", async () => {
+    const calls: Array<{ url: string; init?: RequestInit }> = []
+    globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
+      calls.push({ url: String(url), init })
+      return Response.json({ data: [{ name: "hero", color: "#c9956b", count: 2 }] })
+    }) as typeof fetch
+
+    const tags = await listMediaTags("https://cms.example.test")
+
+    expect(calls[0]?.url).toBe("https://cms.example.test/api/media/tags")
+    expect(tags[0]).toEqual({ name: "hero", color: "#c9956b", count: 2 })
+  })
+
+  test("renameMediaTag/setMediaTagColor PATCH; deleteMediaTag DELETEs", async () => {
+    const calls: Array<{ url: string; init?: RequestInit }> = []
+    globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
+      calls.push({ url: String(url), init })
+      return Response.json({ name: "x", color: "#abcdef", count: 1 })
+    }) as typeof fetch
+
+    await renameMediaTag("https://cms.example.test", "old", "new")
+    await setMediaTagColor("https://cms.example.test", "x", "#abcdef")
+    await deleteMediaTag("https://cms.example.test", "x")
+
+    expect(JSON.parse(String(calls[0]?.init?.body))).toEqual({ newName: "new" })
+    expect(JSON.parse(String(calls[1]?.init?.body))).toEqual({ color: "#abcdef" })
+    expect(calls[2]?.init?.method).toBe("DELETE")
+    expect(calls[0]?.url).toBe("https://cms.example.test/api/media/tags/old")
   })
 
   test("replaces a media file as multipart form data", async () => {

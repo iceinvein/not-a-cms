@@ -1,6 +1,6 @@
 import { test, expect, describe, afterEach } from "bun:test"
 import { existsSync, rmSync } from "node:fs"
-import { applyTagOps, createLocalStorage, createMediaStorage, createS3SignedRequest } from "../../src/media/storage"
+import { applyTagOps, createLocalStorage, createMediaStorage, createS3SignedRequest, defaultTagColor } from "../../src/media/storage"
 
 const uploadsDir = "./test-storage-uploads"
 
@@ -98,6 +98,57 @@ describe("local media storage", () => {
     expect(applyTagOps(["hero", "launch"], [], ["Launch"])).toEqual(["hero"])
     expect(applyTagOps(["hero"], ["hero"], [])).toEqual(["hero"])
     expect(applyTagOps([], ["Summer Sale"], [])).toEqual(["summer-sale"])
+  })
+
+  test("defaultTagColor is deterministic and a valid hex", () => {
+    const c1 = defaultTagColor("hero")
+    expect(c1).toMatch(/^#[0-9a-f]{6}$/i)
+    expect(defaultTagColor("hero")).toBe(c1)
+  })
+
+  test("setTagColor persists a custom color; tagColors reads it back", () => {
+    const storage = createLocalStorage({ provider: "local", path: uploadsDir })
+    storage.setTagColor("Hero", "#abcdef")
+    expect(storage.tagColors()["hero"]).toBe("#abcdef")
+    const restarted = createLocalStorage({ provider: "local", path: uploadsDir })
+    expect(restarted.tagColors()["hero"]).toBe("#abcdef")
+  })
+
+  test("setTagColor rejects invalid hex", () => {
+    const storage = createLocalStorage({ provider: "local", path: uploadsDir })
+    expect(() => storage.setTagColor("hero", "blue")).toThrow()
+  })
+
+  test("renameTag rewrites all records and moves the color, returns count", async () => {
+    const storage = createLocalStorage({ provider: "local", path: uploadsDir })
+    const a = await storage.store(new File(["x"], "a.txt"), { tags: ["2024"] })
+    const b = await storage.store(new File(["x"], "b.txt"), { tags: ["2024", "hero"] })
+    storage.setTagColor("2024", "#abcdef")
+
+    const changed = storage.renameTag("2024", "FY2024")
+    expect(changed).toBe(2)
+    expect(storage.get(a.id)?.tags).toEqual(["fy2024"])
+    expect(storage.get(b.id)?.tags).toEqual(["hero", "fy2024"])
+    expect(storage.tagColors()["fy2024"]).toBe("#abcdef")
+    expect(storage.tagColors()["2024"]).toBeUndefined()
+  })
+
+  test("removeTag strips from all records and deletes the registry entry", async () => {
+    const storage = createLocalStorage({ provider: "local", path: uploadsDir })
+    const a = await storage.store(new File(["x"], "a.txt"), { tags: ["junk", "keep"] })
+    storage.setTagColor("junk", "#abcdef")
+    expect(storage.removeTag("junk")).toBe(1)
+    expect(storage.get(a.id)?.tags).toEqual(["keep"])
+    expect(storage.tagColors()["junk"]).toBeUndefined()
+  })
+
+  test("listTags unions names with counts and colors", async () => {
+    const storage = createLocalStorage({ provider: "local", path: uploadsDir })
+    await storage.store(new File(["x"], "a.txt"), { tags: ["hero", "2024"] })
+    await storage.store(new File(["x"], "b.txt"), { tags: ["2024"] })
+    const list = storage.listTags()
+    expect(list.map((t) => [t.name, t.count])).toEqual([["2024", 2], ["hero", 1]])
+    expect(list.every((t) => /^#[0-9a-f]{6}$/i.test(t.color))).toBe(true)
   })
 
   test("createMediaStorage() creates a deterministic local provider", async () => {

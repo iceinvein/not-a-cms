@@ -1,16 +1,18 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react"
-import { FileText, ImageIcon, RefreshCw, Trash2, Upload, Video } from "lucide-react"
+import { FileText, ImageIcon, RefreshCw, Trash2, Upload, Video, X } from "lucide-react"
 import { EmptyState, ErrorState, LoadingState } from "../AdminState"
 import { adminApiFetch } from "../../lib/api"
 import {
   deleteMediaItem,
   listMediaItems,
+  normalizeTagInput,
   replaceMediaFile,
   type AdminMediaItem,
   updateMediaItem,
   uploadMediaFile,
 } from "../../lib/media"
 import { clusterAssets, type Cluster } from "../../lib/media/cluster"
+import { allTags, filterByTag } from "../../lib/media/tags"
 
 type UsageReference = {
   collection: string
@@ -32,6 +34,26 @@ type VaultProps = {
   initialUsage?: Usage | null
 }
 
+type MetadataState = {
+  alt: string
+  title: string
+  caption: string
+  focalX: string
+  focalY: string
+  tags: string[]
+}
+
+function toMetadataState(item: AdminMediaItem | null): MetadataState {
+  return {
+    alt: item?.alt ?? "",
+    title: item?.title ?? "",
+    caption: item?.caption ?? "",
+    focalX: String(item?.focalX ?? 0.5),
+    focalY: String(item?.focalY ?? 0.5),
+    tags: item?.tags ?? [],
+  }
+}
+
 export function Vault({
   apiBase = "",
   initialItems = [],
@@ -48,13 +70,15 @@ export function Vault({
   const [usageLoading, setUsageLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(initialSelected?.id ?? initialItems[0]?.id ?? null)
+  const [activeTag, setActiveTag] = useState<string | null>(null)
   const [usage, setUsage] = useState<Usage | null>(initialUsage)
-  const [metadata, setMetadata] = useState({ alt: "", title: "", caption: "", focalX: "0.5", focalY: "0.5" })
+  const [metadata, setMetadata] = useState<MetadataState>(() => toMetadataState(initialSelected ?? initialItems[0] ?? null))
   const fileInputRef = useRef<HTMLInputElement>(null)
   const replaceInputRef = useRef<HTMLInputElement>(null)
 
   const selectedItem = items.find((item) => item.id === selectedId) ?? initialSelected ?? null
-  const clusters = useMemo(() => clusterAssets(items, counts), [items, counts])
+  const tags = useMemo(() => allTags(items), [items])
+  const clusters = useMemo(() => clusterAssets(filterByTag(items, activeTag), counts), [items, counts, activeTag])
 
   const refresh = async () => {
     setLoading(true)
@@ -78,13 +102,7 @@ export function Vault({
 
   useEffect(() => {
     if (!selectedItem) return
-    setMetadata({
-      alt: selectedItem.alt ?? "",
-      title: selectedItem.title ?? "",
-      caption: selectedItem.caption ?? "",
-      focalX: String(selectedItem.focalX ?? 0.5),
-      focalY: String(selectedItem.focalY ?? 0.5),
-    })
+    setMetadata(toMetadataState(selectedItem))
   }, [selectedItem?.id])
 
   useEffect(() => {
@@ -148,8 +166,13 @@ export function Vault({
         caption: metadata.caption,
         focalX: Number(metadata.focalX),
         focalY: Number(metadata.focalY),
+        tags: metadata.tags,
       })
-      setItems((current) => current.map((item) => item.id === updated.id ? updated : item))
+      const nextItems = items.map((item) => (item.id === updated.id ? updated : item))
+      setItems(nextItems)
+      if (activeTag && !nextItems.some((item) => (item.tags ?? []).includes(activeTag))) {
+        setActiveTag(null)
+      }
     } catch (err: any) {
       setError(err.message || "Failed to update media")
     } finally {
@@ -243,6 +266,9 @@ export function Vault({
       ) : (
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
           <div className="space-y-6">
+            {tags.length > 0 && (
+              <TagFilterBar tags={tags} activeTag={activeTag} onSelect={setActiveTag} />
+            )}
             {clusters.map((cluster) => (
               <ClusterSection
                 key={cluster.key}
@@ -268,6 +294,43 @@ export function Vault({
           />
         </div>
       )}
+    </div>
+  )
+}
+
+function TagFilterBar({
+  tags,
+  activeTag,
+  onSelect,
+}: {
+  tags: { tag: string; count: number }[]
+  activeTag: string | null
+  onSelect: (tag: string | null) => void
+}) {
+  const chip = (active: boolean) =>
+    `inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+      active
+        ? "border-[#c9956b] bg-[rgba(201,149,107,0.12)] text-[#fafafa]"
+        : "border-[rgba(255,255,255,0.1)] text-[#d4d4d8] hover:bg-[rgba(255,255,255,0.04)]"
+    }`
+
+  return (
+    <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter by tag">
+      <button type="button" onClick={() => onSelect(null)} className={chip(activeTag === null)} aria-pressed={activeTag === null}>
+        All
+      </button>
+      {tags.map(({ tag, count }) => (
+        <button
+          key={tag}
+          type="button"
+          onClick={() => onSelect(activeTag === tag ? null : tag)}
+          className={chip(activeTag === tag)}
+          aria-pressed={activeTag === tag}
+        >
+          #{tag}
+          <span className="text-[#71717a]">{count}</span>
+        </button>
+      ))}
     </div>
   )
 }
@@ -340,8 +403,8 @@ function DetailPanel({
   onDelete,
 }: {
   item: AdminMediaItem | null
-  metadata: { alt: string; title: string; caption: string; focalX: string; focalY: string }
-  setMetadata: React.Dispatch<React.SetStateAction<{ alt: string; title: string; caption: string; focalX: string; focalY: string }>>
+  metadata: MetadataState
+  setMetadata: React.Dispatch<React.SetStateAction<MetadataState>>
   usage: Usage | null
   usageLoading: boolean
   saving: boolean
@@ -401,6 +464,8 @@ function DetailPanel({
           )}
         </section>
 
+        <TagsField metadata={metadata} setMetadata={setMetadata} />
+
         <MetadataFields metadata={metadata} setMetadata={setMetadata} />
 
         <div className="flex flex-wrap gap-2">
@@ -434,12 +499,72 @@ function DetailPanel({
   )
 }
 
+function TagsField({
+  metadata,
+  setMetadata,
+}: {
+  metadata: MetadataState
+  setMetadata: React.Dispatch<React.SetStateAction<MetadataState>>
+}) {
+  const [draft, setDraft] = useState("")
+
+  const addTag = () => {
+    const tag = normalizeTagInput(draft)
+    setDraft("")
+    if (!tag) return
+    setMetadata((current) =>
+      current.tags.includes(tag) ? current : { ...current, tags: [...current.tags, tag] },
+    )
+  }
+
+  const removeTag = (tag: string) => {
+    setMetadata((current) => ({ ...current, tags: current.tags.filter((existing) => existing !== tag) }))
+  }
+
+  return (
+    <div className="space-y-2">
+      <h3 className="text-xs font-medium uppercase tracking-[0.08em] text-[#71717a]">Tags</h3>
+      <div className="flex flex-wrap gap-1.5">
+        {metadata.tags.map((tag) => (
+          <span
+            key={tag}
+            className="inline-flex items-center gap-1 rounded-full border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2.5 py-1 text-xs text-[#d4d4d8]"
+          >
+            #{tag}
+            <button
+              type="button"
+              onClick={() => removeTag(tag)}
+              className="text-[#71717a] hover:text-[#f87171]"
+              aria-label={`Remove tag ${tag}`}
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </span>
+        ))}
+      </div>
+      <input
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === ",") {
+            event.preventDefault()
+            addTag()
+          }
+        }}
+        onBlur={addTag}
+        placeholder="Add a tag..."
+        className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm text-[#fafafa] outline-none placeholder:text-[#52525b] focus:border-[#c9956b]"
+      />
+    </div>
+  )
+}
+
 function MetadataFields({
   metadata,
   setMetadata,
 }: {
-  metadata: { alt: string; title: string; caption: string; focalX: string; focalY: string }
-  setMetadata: React.Dispatch<React.SetStateAction<{ alt: string; title: string; caption: string; focalX: string; focalY: string }>>
+  metadata: MetadataState
+  setMetadata: React.Dispatch<React.SetStateAction<MetadataState>>
 }) {
   return (
     <div className="space-y-3">

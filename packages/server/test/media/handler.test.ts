@@ -149,6 +149,48 @@ describe("media API", () => {
     expect(bad.status).toBe(400)
     expect((await bad.json()).error).toContain("tags")
   })
+
+  test("POST /api/media/tags bulk-applies add/remove and skips missing ids", async () => {
+    const adminCookie = await signInAndGetCookie("media-admin@example.test")
+
+    const ids: string[] = []
+    for (const name of ["one.txt", "two.txt"]) {
+      const fd = new FormData()
+      fd.append("file", new Blob(["x"], { type: "text/plain" }), name)
+      const up = await fetch(`${baseUrl}/api/media/upload`, { method: "POST", headers: { cookie: adminCookie }, body: fd })
+      ids.push((await up.json()).id)
+    }
+
+    const add = await fetch(`${baseUrl}/api/media/tags`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", cookie: adminCookie },
+      body: JSON.stringify({ ids: [...ids, "missing-id"], add: [" #Campaign "] }),
+    })
+    expect(add.status).toBe(200)
+    const addBody = await add.json()
+    expect(addBody.data.length).toBe(2)
+    expect(addBody.data.every((r: any) => r.tags.includes("campaign"))).toBe(true)
+
+    const remove = await fetch(`${baseUrl}/api/media/tags`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", cookie: adminCookie },
+      body: JSON.stringify({ ids: [ids[0]], remove: ["campaign"] }),
+    })
+    expect((await remove.json()).data[0].tags).toEqual([])
+  })
+
+  test("POST /api/media/tags rejects anonymous and bad bodies", async () => {
+    const anon = await fetch(`${baseUrl}/api/media/tags`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids: ["x"], add: ["y"] }),
+    })
+    expect(anon.status).toBe(401)
+
+    const adminCookie = await signInAndGetCookie("media-admin@example.test")
+    const bad = await fetch(`${baseUrl}/api/media/tags`, {
+      method: "POST", headers: { "Content-Type": "application/json", cookie: adminCookie }, body: JSON.stringify({ ids: "nope" }),
+    })
+    expect(bad.status).toBe(400)
+  })
 })
 
 async function signInAndGetCookie(email: string): Promise<string> {

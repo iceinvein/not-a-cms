@@ -3,6 +3,7 @@ import { FileText, ImageIcon, RefreshCw, Trash2, Upload, Video, X } from "lucide
 import { EmptyState, ErrorState, LoadingState } from "../AdminState"
 import { adminApiFetch } from "../../lib/api"
 import {
+  bulkUpdateMediaTags,
   deleteMediaItem,
   listMediaItems,
   normalizeTagInput,
@@ -12,7 +13,7 @@ import {
   uploadMediaFile,
 } from "../../lib/media"
 import { clusterAssets, type Cluster } from "../../lib/media/cluster"
-import { allTags, filterByTag } from "../../lib/media/tags"
+import { allTags, filterByTags, filterUntagged } from "../../lib/media/tags"
 
 type UsageReference = {
   collection: string
@@ -70,7 +71,10 @@ export function Vault({
   const [usageLoading, setUsageLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(initialSelected?.id ?? initialItems[0]?.id ?? null)
-  const [activeTag, setActiveTag] = useState<string | null>(null)
+  const [activeTags, setActiveTags] = useState<string[]>([])
+  const [showUntagged, setShowUntagged] = useState(false)
+  const [checkedIds, setCheckedIds] = useState<string[]>([])
+  const [bulkTag, setBulkTag] = useState("")
   const [usage, setUsage] = useState<Usage | null>(initialUsage)
   const [metadata, setMetadata] = useState<MetadataState>(() => toMetadataState(initialSelected ?? initialItems[0] ?? null))
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -78,7 +82,12 @@ export function Vault({
 
   const selectedItem = items.find((item) => item.id === selectedId) ?? initialSelected ?? null
   const tags = useMemo(() => allTags(items), [items])
-  const clusters = useMemo(() => clusterAssets(filterByTag(items, activeTag), counts), [items, counts, activeTag])
+  const untaggedTotal = useMemo(() => filterUntagged(items).length, [items])
+  const visible = useMemo(
+    () => (showUntagged ? filterUntagged(items) : filterByTags(items, activeTags)),
+    [items, activeTags, showUntagged],
+  )
+  const clusters = useMemo(() => clusterAssets(visible, counts), [visible, counts])
 
   const refresh = async () => {
     setLoading(true)
@@ -170,9 +179,7 @@ export function Vault({
       })
       const nextItems = items.map((item) => (item.id === updated.id ? updated : item))
       setItems(nextItems)
-      if (activeTag && !nextItems.some((item) => (item.tags ?? []).includes(activeTag))) {
-        setActiveTag(null)
-      }
+      setActiveTags((current) => current.filter((tag) => nextItems.some((item) => (item.tags ?? []).includes(tag))))
     } catch (err: any) {
       setError(err.message || "Failed to update media")
     } finally {
@@ -206,9 +213,47 @@ export function Vault({
       await deleteMediaItem(apiBase, selectedItem.id)
       setItems((current) => current.filter((item) => item.id !== selectedItem.id))
       setSelectedId(null)
+      setCheckedIds((current) => current.filter((id) => id !== selectedItem.id))
       setUsage(null)
     } catch (err: any) {
       setError(err.message || "Failed to delete media")
+    }
+  }
+
+  const toggleTag = (tag: string) => {
+    setShowUntagged(false)
+    setActiveTags((current) => (current.includes(tag) ? current.filter((t) => t !== tag) : [...current, tag]))
+  }
+
+  const clearFilter = () => {
+    setActiveTags([])
+    setShowUntagged(false)
+  }
+
+  const toggleUntagged = () => {
+    setActiveTags([])
+    setShowUntagged((value) => !value)
+  }
+
+  const toggleChecked = (id: string) => {
+    setCheckedIds((current) => (current.includes(id) ? current.filter((checkedId) => checkedId !== id) : [...current, id]))
+  }
+
+  const runBulk = async (op: "add" | "remove") => {
+    const tag = normalizeTagInput(bulkTag)
+    if (!tag || checkedIds.length === 0) return
+    setError(null)
+    try {
+      const updated = await bulkUpdateMediaTags(apiBase, { ids: checkedIds, [op]: [tag] })
+      const byId = new Map(updated.map((item) => [item.id, item]))
+      const nextItems = items.map((item) => byId.get(item.id) ?? item)
+      setItems(nextItems)
+      const nextSelected = nextItems.find((item) => item.id === selectedId)
+      if (nextSelected) setMetadata(toMetadataState(nextSelected))
+      setActiveTags((current) => current.filter((tagName) => nextItems.some((item) => (item.tags ?? []).includes(tagName))))
+      setBulkTag("")
+    } catch (err: any) {
+      setError(err.message || "Failed to update tags")
     }
   }
 
@@ -266,8 +311,26 @@ export function Vault({
       ) : (
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
           <div className="space-y-6">
-            {tags.length > 0 && (
-              <TagFilterBar tags={tags} activeTag={activeTag} onSelect={setActiveTag} />
+            {(tags.length > 0 || untaggedTotal > 0) && (
+              <TagFilterBar
+                tags={tags}
+                activeTags={activeTags}
+                showUntagged={showUntagged}
+                untaggedCount={untaggedTotal}
+                onToggleTag={toggleTag}
+                onToggleUntagged={toggleUntagged}
+                onClear={clearFilter}
+              />
+            )}
+            {checkedIds.length > 0 && (
+              <BulkActionBar
+                count={checkedIds.length}
+                value={bulkTag}
+                onChange={setBulkTag}
+                onAdd={() => runBulk("add")}
+                onRemove={() => runBulk("remove")}
+                onClear={() => setCheckedIds([])}
+              />
             )}
             {clusters.map((cluster) => (
               <ClusterSection
@@ -275,7 +338,9 @@ export function Vault({
                 cluster={cluster}
                 counts={counts}
                 selectedId={selectedId}
+                checkedIds={checkedIds}
                 onSelect={setSelectedId}
+                onToggleChecked={toggleChecked}
               />
             ))}
           </div>
@@ -300,12 +365,20 @@ export function Vault({
 
 function TagFilterBar({
   tags,
-  activeTag,
-  onSelect,
+  activeTags,
+  showUntagged,
+  untaggedCount,
+  onToggleTag,
+  onToggleUntagged,
+  onClear,
 }: {
   tags: { tag: string; count: number }[]
-  activeTag: string | null
-  onSelect: (tag: string | null) => void
+  activeTags: string[]
+  showUntagged: boolean
+  untaggedCount: number
+  onToggleTag: (tag: string) => void
+  onToggleUntagged: () => void
+  onClear: () => void
 }) {
   const chip = (active: boolean) =>
     `inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
@@ -313,24 +386,65 @@ function TagFilterBar({
         ? "border-[#c9956b] bg-[rgba(201,149,107,0.12)] text-[#fafafa]"
         : "border-[rgba(255,255,255,0.1)] text-[#d4d4d8] hover:bg-[rgba(255,255,255,0.04)]"
     }`
+  const noFilter = activeTags.length === 0 && !showUntagged
 
   return (
     <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter by tag">
-      <button type="button" onClick={() => onSelect(null)} className={chip(activeTag === null)} aria-pressed={activeTag === null}>
+      <button type="button" onClick={onClear} className={chip(noFilter)} aria-pressed={noFilter}>
         All
       </button>
-      {tags.map(({ tag, count }) => (
-        <button
-          key={tag}
-          type="button"
-          onClick={() => onSelect(activeTag === tag ? null : tag)}
-          className={chip(activeTag === tag)}
-          aria-pressed={activeTag === tag}
-        >
-          #{tag}
-          <span className="text-[#71717a]">{count}</span>
+      {untaggedCount > 0 && (
+        <button type="button" onClick={onToggleUntagged} className={chip(showUntagged)} aria-pressed={showUntagged}>
+          Untagged
+          <span className="text-[#71717a]">{untaggedCount}</span>
         </button>
-      ))}
+      )}
+      {tags.map(({ tag, count }) => {
+        const active = activeTags.includes(tag)
+        return (
+          <button key={tag} type="button" onClick={() => onToggleTag(tag)} className={chip(active)} aria-pressed={active}>
+            #{tag}
+            <span className="text-[#71717a]">{count}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function BulkActionBar({
+  count,
+  value,
+  onChange,
+  onAdd,
+  onRemove,
+  onClear,
+}: {
+  count: number
+  value: string
+  onChange: (value: string) => void
+  onAdd: () => void
+  onRemove: () => void
+  onClear: () => void
+}) {
+  return (
+    <div className="sticky top-2 z-20 flex flex-wrap items-center gap-2 rounded-lg border border-[rgba(201,149,107,0.35)] bg-[#18181b] px-3 py-2">
+      <span className="text-sm font-medium text-[#fafafa]">{count} selected</span>
+      <input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder="Tag..."
+        className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-1.5 text-sm text-[#fafafa] outline-none placeholder:text-[#52525b] focus:border-[#c9956b]"
+      />
+      <button type="button" onClick={onAdd} className="rounded-lg bg-[#c9956b] px-3 py-1.5 text-sm font-medium text-[#0a0a0c] hover:bg-[#d4a57c]">
+        Add
+      </button>
+      <button type="button" onClick={onRemove} className="rounded-lg border border-[rgba(255,255,255,0.1)] px-3 py-1.5 text-sm font-medium text-[#fafafa] hover:bg-[rgba(255,255,255,0.04)]">
+        Remove
+      </button>
+      <button type="button" onClick={onClear} className="ml-auto text-sm text-[#71717a] hover:text-[#fafafa]">
+        Clear
+      </button>
     </div>
   )
 }
@@ -339,12 +453,16 @@ function ClusterSection({
   cluster,
   counts,
   selectedId,
+  checkedIds,
   onSelect,
+  onToggleChecked,
 }: {
   cluster: Cluster
   counts: Record<string, number>
   selectedId: string | null
+  checkedIds: string[]
   onSelect: (id: string) => void
+  onToggleChecked: (id: string) => void
 }) {
   return (
     <section className="space-y-3">
@@ -360,29 +478,39 @@ function ClusterSection({
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
           {cluster.items.map((item) => (
-            <button
-              key={`${cluster.key}-${item.id}`}
-              type="button"
-              onClick={() => onSelect(item.id)}
-              className={`group overflow-hidden rounded-lg border bg-[#18181b] text-left transition-all hover:border-[rgba(201,149,107,0.45)] ${selectedId === item.id ? "border-[#c9956b]" : "border-[rgba(255,255,255,0.06)]"}`}
-            >
-              <div className="relative aspect-square bg-[rgba(255,255,255,0.03)]">
-                {item.mimetype.startsWith("image/") ? (
-                  <img src={item.url} alt={item.alt || item.filename} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-[#71717a]">
-                    {item.mimetype.startsWith("video/") ? <Video className="h-9 w-9" /> : <FileText className="h-9 w-9" />}
-                  </div>
-                )}
-                <span className="absolute right-2 top-2 rounded-full bg-[#0a0a0c]/85 px-2 py-1 text-[11px] font-medium text-[#fafafa]">
-                  {counts[item.id] ?? 0} uses
-                </span>
-              </div>
-              <div className="p-3">
-                <p className="truncate text-xs font-medium text-[#fafafa]">{item.title || item.filename}</p>
-                <p className="text-xs text-[#71717a]">{formatSize(item.size)}</p>
-              </div>
-            </button>
+            <div key={`${cluster.key}-${item.id}`} className="group/cell relative">
+              <label className="absolute left-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-md border border-[rgba(255,255,255,0.2)] bg-[#0a0a0c]/70 opacity-0 transition-opacity hover:opacity-100 has-[:checked]:opacity-100 group-hover/cell:opacity-100">
+                <input
+                  type="checkbox"
+                  className="h-3.5 w-3.5 accent-[#c9956b]"
+                  checked={checkedIds.includes(item.id)}
+                  onChange={() => onToggleChecked(item.id)}
+                  aria-label={`Select ${item.title || item.filename}`}
+                />
+              </label>
+              <button
+                type="button"
+                onClick={() => onSelect(item.id)}
+                className={`block w-full overflow-hidden rounded-lg border bg-[#18181b] text-left transition-all hover:border-[rgba(201,149,107,0.45)] ${selectedId === item.id ? "border-[#c9956b]" : "border-[rgba(255,255,255,0.06)]"}`}
+              >
+                <div className="relative aspect-square bg-[rgba(255,255,255,0.03)]">
+                  {item.mimetype.startsWith("image/") ? (
+                    <img src={item.url} alt={item.alt || item.filename} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-[#71717a]">
+                      {item.mimetype.startsWith("video/") ? <Video className="h-9 w-9" /> : <FileText className="h-9 w-9" />}
+                    </div>
+                  )}
+                  <span className="absolute right-2 top-2 rounded-full bg-[#0a0a0c]/85 px-2 py-1 text-[11px] font-medium text-[#fafafa]">
+                    {counts[item.id] ?? 0} uses
+                  </span>
+                </div>
+                <div className="p-3">
+                  <p className="truncate text-xs font-medium text-[#fafafa]">{item.title || item.filename}</p>
+                  <p className="text-xs text-[#71717a]">{formatSize(item.size)}</p>
+                </div>
+              </button>
+            </div>
           ))}
         </div>
       )}

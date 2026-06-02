@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { allTags, filterByTag } from "../../../src/lib/media/tags"
+import { allTags, filterByTags, filterUntagged, untaggedCount } from "../../../src/lib/media/tags"
 
 const items = [
   { id: "a", filename: "hero.jpg", mimetype: "image/jpeg", size: 1, uploadedAt: "", url: "", tags: ["hero", "2024"] },
@@ -20,14 +20,21 @@ describe("allTags", () => {
   })
 })
 
-describe("filterByTag", () => {
-  test("returns all items when the tag is null", () => {
-    expect(filterByTag(items as any, null)).toHaveLength(3)
+describe("filterByTags (AND)", () => {
+  test("returns all items when no tags are active", () => {
+    expect(filterByTags(items as any, [])).toHaveLength(3)
   })
 
-  test("returns only items carrying the tag", () => {
-    expect(filterByTag(items as any, "hero").map((item) => item.id)).toEqual(["a"])
-    expect(filterByTag(items as any, "2024").map((item) => item.id)).toEqual(["a", "b"])
-    expect(filterByTag(items as any, "missing")).toEqual([])
+  test("returns items having ALL active tags", () => {
+    expect(filterByTags(items as any, ["2024"]).map((i) => i.id)).toEqual(["a", "b"])
+    expect(filterByTags(items as any, ["hero", "2024"]).map((i) => i.id)).toEqual(["a"])
+    expect(filterByTags(items as any, ["hero", "missing"])).toEqual([])
+  })
+})
+
+describe("filterUntagged / untaggedCount", () => {
+  test("selects items with no tags", () => {
+    expect(filterUntagged(items as any).map((i) => i.id)).toEqual(["c"])
+    expect(untaggedCount(items as any)).toBe(1)
   })
 })

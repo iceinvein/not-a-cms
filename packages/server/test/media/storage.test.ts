@@ -1,6 +1,6 @@
 import { test, expect, describe, afterEach } from "bun:test"
 import { existsSync, rmSync } from "node:fs"
-import { createLocalStorage, createMediaStorage, createS3SignedRequest } from "../../src/media/storage"
+import { applyTagOps, createLocalStorage, createMediaStorage, createS3SignedRequest } from "../../src/media/storage"
 
 const uploadsDir = "./test-storage-uploads"
 
@@ -91,6 +91,13 @@ describe("local media storage", () => {
     })
     expect(stored.tags?.[0]).toBe("a".repeat(25))
     expect(stored.tags?.length).toBe(30)
+  })
+
+  test("applyTagOps adds, removes, normalizes and dedupes", () => {
+    expect(applyTagOps(["hero"], ["#Launch", "hero"], [])).toEqual(["hero", "launch"])
+    expect(applyTagOps(["hero", "launch"], [], ["Launch"])).toEqual(["hero"])
+    expect(applyTagOps(["hero"], ["hero"], [])).toEqual(["hero"])
+    expect(applyTagOps([], ["Summer Sale"], [])).toEqual(["summer-sale"])
   })
 
   test("createMediaStorage() creates a deterministic local provider", async () => {

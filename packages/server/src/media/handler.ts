@@ -1,4 +1,4 @@
-import type { MediaMetadataInput, MediaRecord, MediaStorage } from "./storage"
+import { applyTagOps, type MediaMetadataInput, type MediaRecord, type MediaStorage } from "./storage"
 
 type PublicMediaRecord = Omit<MediaRecord, "path"> & {
   url: string
@@ -44,6 +44,25 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
       if (!file) return json({ error: "No file provided" }, 400)
       const record = await storage.store(file, metadataFromFormData(formData))
       return json(toPublicRecord(record), 201)
+    }
+
+    if (req.method === "POST" && subpath === "tags" && !action) {
+      const forbidden = await requireManager(req)
+      if (forbidden) return forbidden
+      const body = await req.json().catch(() => null)
+      if (!isRecord(body) || !Array.isArray(body.ids) || body.ids.some((id) => typeof id !== "string") || body.ids.length === 0) {
+        return json({ error: "ids must be a non-empty array of strings" }, 400)
+      }
+      const add = Array.isArray(body.add) ? body.add.map(String) : []
+      const remove = Array.isArray(body.remove) ? body.remove.map(String) : []
+      const updated: MediaRecord[] = []
+      for (const id of body.ids as string[]) {
+        const record = storage.get(id)
+        if (!record) continue
+        const next = storage.update(id, { tags: applyTagOps(record.tags ?? [], add, remove) })
+        if (next) updated.push(next)
+      }
+      return json({ data: updated.map(toPublicRecord) })
     }
 
     if (req.method === "GET" && !subpath) {

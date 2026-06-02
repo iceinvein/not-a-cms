@@ -69,6 +69,20 @@ export async function updateMediaItem(apiBase: string, id: string, input: Partia
   return normalizeMediaRecord(apiBase, await res.json() as RawMediaRecord)
 }
 
+export async function bulkUpdateMediaTags(
+  apiBase: string,
+  input: { ids: string[]; add?: string[]; remove?: string[] },
+): Promise<AdminMediaItem[]> {
+  const res = await adminApiFetch(apiBase, "/api/media/tags", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  })
+  if (!res.ok) throw new Error("Failed to update tags")
+  const body = await res.json() as { data?: RawMediaRecord[] }
+  return (body.data ?? []).map((record) => normalizeMediaRecord(apiBase, record))
+}
+
 export async function replaceMediaFile(apiBase: string, id: string, file: File): Promise<AdminMediaItem> {
   const formData = new FormData()
   formData.append("file", file)

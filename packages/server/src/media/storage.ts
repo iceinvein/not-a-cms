@@ -415,6 +415,11 @@ function normalizeTags(input: unknown[]): string[] {
   return out
 }
 
+export function applyTagOps(current: string[], add: string[] = [], remove: string[] = []): string[] {
+  const removeSet = new Set(remove.map(normalizeTag).filter(Boolean))
+  return normalizeTags([...current, ...add]).filter((tag) => !removeSet.has(tag))
+}
+
 function loadIndex(indexPath: string): Map<string, MediaRecord> {
   if (!existsSync(indexPath)) return new Map()
 

@@ -12,7 +12,15 @@ export function allTags(items: AdminMediaItem[]): { tag: string; count: number }
     .sort((a, b) => a.tag.localeCompare(b.tag))
 }
 
-export function filterByTag(items: AdminMediaItem[], tag: string | null): AdminMediaItem[] {
-  if (!tag) return items
-  return items.filter((item) => (item.tags ?? []).includes(tag))
+export function filterByTags(items: AdminMediaItem[], tags: string[]): AdminMediaItem[] {
+  if (tags.length === 0) return items
+  return items.filter((item) => tags.every((tag) => (item.tags ?? []).includes(tag)))
+}
+
+export function filterUntagged(items: AdminMediaItem[]): AdminMediaItem[] {
+  return items.filter((item) => (item.tags ?? []).length === 0)
+}
+
+export function untaggedCount(items: AdminMediaItem[]): number {
+  return filterUntagged(items).length
 }

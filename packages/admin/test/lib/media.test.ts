@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test"
-import { deleteMediaItem, listMediaItems, mediaDisplayUrl, normalizeTagInput, replaceMediaFile, updateMediaItem, uploadMediaFile } from "../../src/lib/media"
+import { bulkUpdateMediaTags, deleteMediaItem, listMediaItems, mediaDisplayUrl, normalizeTagInput, replaceMediaFile, updateMediaItem, uploadMediaFile } from "../../src/lib/media"
 
 const originalFetch = globalThis.fetch
 
@@ -138,6 +138,22 @@ describe("admin media API client", () => {
 
     expect(JSON.parse(String(calls[0]?.init?.body))).toEqual({ tags: ["hero"] })
     expect(item.tags).toEqual(["hero"])
+  })
+
+  test("bulkUpdateMediaTags posts ids/add/remove and maps records", async () => {
+    const calls: Array<{ url: string; init?: RequestInit }> = []
+    globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
+      calls.push({ url: String(url), init })
+      return Response.json({ data: [{ id: "a", filename: "a.jpg", mimetype: "image/jpeg", size: 1, uploadedAt: "", tags: ["campaign"] }] })
+    }) as typeof fetch
+
+    const items = await bulkUpdateMediaTags("https://cms.example.test", { ids: ["a"], add: ["campaign"] })
+
+    expect(calls[0]?.url).toBe("https://cms.example.test/api/media/tags")
+    expect(calls[0]?.init?.method).toBe("POST")
+    expect(JSON.parse(String(calls[0]?.init?.body))).toEqual({ ids: ["a"], add: ["campaign"] })
+    expect(items[0]?.tags).toEqual(["campaign"])
+    expect(items[0]?.url).toBe("https://cms.example.test/api/media/a/file")
   })
 
   test("replaces a media file as multipart form data", async () => {

@@ -126,7 +126,7 @@ export { matchesCron, createAutomationCron, type AutomationCron } from "./automa
 export type {
   Flow, FlowTrigger, FlowStep, ConditionStep, ActionStep, ActionType,
   ConditionRule, ConditionOperator, FlowRun, FlowRunStep, FlowRunStatus,
-  FlowRunStepStatus, CreateFlowInput, TriggerPayload,
+  FlowRunStepStatus, CreateFlowInput, TriggerPayload, DryRunStep, DryRunResult,
 } from "./automations/types"
 
 // Builder

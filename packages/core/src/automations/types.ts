@@ -83,6 +83,21 @@ export type FlowRunStep = {
   error?: string
 }
 
+/** A dry-run step record. Same shape as a persisted step, plus ephemeral
+ *  simulation metadata that is never written to the database. */
+export type DryRunStep = FlowRunStep & {
+  /** True when this step's side effect was simulated (resolved but not performed). */
+  simulated?: boolean
+  /** Human-readable summary of the simulated effect, e.g. "would POST https://...". */
+  summary?: string
+}
+
+/** The ephemeral result of a dry-run: a run shape with its dry-run steps.
+ *  Mirrors the admin FlowRunDetail so the existing inspector can render it. */
+export type DryRunResult = FlowRun & {
+  steps: DryRunStep[]
+}
+
 export type CreateFlowInput = {
   name: string
   description?: string

@@ -92,6 +92,7 @@ export { compareVersionData, createVersioningService, type VersionChange, type V
 
 // Search
 export { createSearchService, extractTextFromPortableText, type SearchService, type SearchResult } from "./content/search"
+export { extractMediaReferences, type MediaReference } from "./content/media-references"
 export { createEmbeddingStore, type EmbeddingHit, type EmbeddingStore } from "./content/embeddings"
 export { cosine } from "./ai/cosine"
 export { createOpenAIAskProvider } from "./ai/providers/openai"

@@ -1,5 +1,5 @@
-import type { FlowStore } from "./store"
-import type { Flow, FlowRun, FlowStep, ConditionStep, ActionStep, ConditionRule } from "./types"
+import type { FlowStore, RecordStepInput } from "./store"
+import type { Flow, FlowRun, FlowRunStatus, FlowStep, ConditionStep, ActionStep, ConditionRule, DryRunStep, DryRunResult } from "./types"
 
 export function resolvePayloadPath(payload: Record<string, unknown>, path: string): unknown {
   const cleanPath = path.startsWith("payload.") ? path.slice("payload.".length) : path
@@ -45,6 +45,19 @@ function evaluateConditionStep(step: ConditionStep, payload: Record<string, unkn
     return step.rules.some(rule => evaluateCondition(rule, payload))
   }
   return step.rules.every(rule => evaluateCondition(rule, payload))
+}
+
+function resolveDataTemplate(
+  dataTemplate: Record<string, string> | undefined,
+  payload: Record<string, unknown>,
+): Record<string, unknown> {
+  const data: Record<string, unknown> = {}
+  if (dataTemplate) {
+    for (const [k, v] of Object.entries(dataTemplate)) {
+      data[k] = v.includes("{{") ? interpolate(v, payload) : resolvePayloadPath(payload, v) ?? v
+    }
+  }
+  return data
 }
 
 export type FlowEngineOptions = {
@@ -126,13 +139,7 @@ export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = 
       }
       case "action.create_content": {
         const collection = String(step.config.collection ?? "")
-        const dataTemplate = step.config.data as Record<string, string> | undefined
-        const data: Record<string, unknown> = {}
-        if (dataTemplate) {
-          for (const [k, v] of Object.entries(dataTemplate)) {
-            data[k] = v.includes("{{") ? interpolate(v, payload) : resolvePayloadPath(payload, v) ?? v
-          }
-        }
+        const data = resolveDataTemplate(step.config.data as Record<string, string> | undefined, payload)
         if (!options.content) throw new Error("No content adapter configured")
         const saved = await options.content.create(collection, data)
         return { action: "create_content", collection, documentId: saved.id, data: saved }
@@ -140,13 +147,7 @@ export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = 
       case "action.update_content": {
         const collection = String(step.config.collection ?? "")
         const documentId = interpolate(String(step.config.documentId ?? step.config.document_id ?? ""), payload)
-        const dataTemplate = step.config.data as Record<string, string> | undefined
-        const data: Record<string, unknown> = {}
-        if (dataTemplate) {
-          for (const [k, v] of Object.entries(dataTemplate)) {
-            data[k] = v.includes("{{") ? interpolate(v, payload) : resolvePayloadPath(payload, v) ?? v
-          }
-        }
+        const data = resolveDataTemplate(step.config.data as Record<string, string> | undefined, payload)
         if (!options.content) throw new Error("No content adapter configured")
         const saved = await options.content.update(collection, documentId, data)
         return { action: "update_content", collection, documentId, data: saved }
@@ -163,11 +164,42 @@ export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = 
     }
   }
 
-  async function executeFlow(flow: Flow, triggerPayload: Record<string, unknown>): Promise<string> {
-    const run = store.createRun(flow.id, flow.trigger.type, JSON.stringify(triggerPayload))
+  type RunRecorder = {
+    createRun(flowId: string, triggerEvent: string, payloadJson: string): string
+    recordStep(input: RecordStepInput & { simulated?: boolean; summary?: string }): void
+    completeRun(id: string, status: FlowRunStatus, error?: string): void
+  }
+
+  function storeRecorder(): RunRecorder {
+    return {
+      createRun: (flowId, triggerEvent, payloadJson) => store.createRun(flowId, triggerEvent, payloadJson).id,
+      // simulated/summary are dry-run-only fields; the store schema does not persist them
+      recordStep: (input) => { store.recordStep(input) },
+      completeRun: (id, status, error) => store.completeRun(id, status, error),
+    }
+  }
+
+  type SimResult = { payload: Record<string, unknown>; output: unknown; simulated: boolean; summary?: string }
+
+  async function simulateActionStep(step: ActionStep, payload: Record<string, unknown>): Promise<SimResult> {
+    return { payload, output: payload, simulated: false }
+  }
+
+  async function liveRun(step: ActionStep, payload: Record<string, unknown>): Promise<SimResult> {
+    const out = await executeActionStep(step, payload)
+    return { payload: out, output: out, simulated: false }
+  }
+
+  async function walk(
+    flow: Flow,
+    triggerPayload: Record<string, unknown>,
+    ctx: { recorder: RunRecorder; simulate: boolean },
+  ): Promise<string> {
+    const { recorder, simulate } = ctx
+    const runId = recorder.createRun(flow.id, flow.trigger.type, JSON.stringify(triggerPayload))
     if (flow.steps.length === 0) {
-      store.completeRun(run.id, "completed")
-      return run.id
+      recorder.completeRun(runId, "completed")
+      return runId
     }
     let currentStep: FlowStep | undefined = flow.steps[0]
     let currentPayload = triggerPayload
@@ -179,52 +211,46 @@ export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = 
         if (step.type === "condition") {
           const result = evaluateConditionStep(step, currentPayload)
           const branchTaken = result ? "true" : "false"
-          store.recordStep({
-            run_id: run.id,
-            step_id: step.id,
-            status: "completed",
-            input: stepInput,
-            output: stepInput,
-            branch_taken: branchTaken,
-            started_at: startedAt,
-            finished_at: new Date().toISOString(),
+          recorder.recordStep({
+            run_id: runId, step_id: step.id, status: "completed",
+            input: stepInput, output: stepInput, branch_taken: branchTaken,
+            started_at: startedAt, finished_at: new Date().toISOString(),
           })
           const nextId: string | null | undefined = result ? step.branches.true : step.branches.false
           currentStep = nextId ? resolveStepById(flow.steps, nextId) : undefined
         } else {
           try {
-            const output = await executeActionStep(step, currentPayload)
-            store.recordStep({
-              run_id: run.id,
-              step_id: step.id,
-              status: "completed",
-              input: stepInput,
-              output: JSON.stringify(output),
-              started_at: startedAt,
-              finished_at: new Date().toISOString(),
+            const sim: SimResult = simulate
+              ? await simulateActionStep(step, currentPayload)
+              : await liveRun(step, currentPayload)
+            recorder.recordStep({
+              run_id: runId, step_id: step.id, status: "completed",
+              input: stepInput, output: JSON.stringify(sim.output),
+              started_at: startedAt, finished_at: new Date().toISOString(),
+              simulated: sim.simulated, summary: sim.summary,
             })
-            currentPayload = output
+            currentPayload = sim.payload
             currentStep = step.next ? resolveStepById(flow.steps, step.next) : undefined
           } catch (err: any) {
-            store.recordStep({
-              run_id: run.id,
-              step_id: step.id,
-              status: "failed",
-              input: stepInput,
-              error: err.message,
-              started_at: startedAt,
-              finished_at: new Date().toISOString(),
+            recorder.recordStep({
+              run_id: runId, step_id: step.id, status: "failed",
+              input: stepInput, error: err.message,
+              started_at: startedAt, finished_at: new Date().toISOString(),
             })
-            store.completeRun(run.id, "failed", err.message)
-            return run.id
+            recorder.completeRun(runId, "failed", err.message)
+            return runId
           }
         }
       }
-      store.completeRun(run.id, "completed")
+      recorder.completeRun(runId, "completed")
     } catch (err: any) {
-      store.completeRun(run.id, "failed", err.message)
+      recorder.completeRun(runId, "failed", err.message)
     }
-    return run.id
+    return runId
+  }
+
+  async function executeFlow(flow: Flow, triggerPayload: Record<string, unknown>): Promise<string> {
+    return walk(flow, triggerPayload, { recorder: storeRecorder(), simulate: false })
   }
 
   async function retryRun(flow: Flow, runOrId: FlowRun | string): Promise<string> {

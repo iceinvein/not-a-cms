@@ -28,7 +28,7 @@ describe("content service media reference hook", () => {
   test("fires replaceForDocument on create/update and removeDocument on delete", async () => {
     const calls: string[] = []
     const adapter = {
-      replaceForDocument: (c: string, d: string, refs: any[]) => calls.push(`replace:${c}:${d}:${refs.map((r) => r.assetId).join(",")}`),
+      replaceForDocument: (c: string, d: string, refs: { assetId: string; field: string; label: string }[]) => calls.push(`replace:${c}:${d}:${refs.map((r) => r.assetId).join(",")}`),
       removeDocument: (c: string, d: string) => calls.push(`remove:${c}:${d}`),
     }
     const service = createContentService(db, post, generateTable(post), undefined, undefined, undefined, undefined, adapter)

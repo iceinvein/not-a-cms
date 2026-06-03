@@ -43,6 +43,10 @@ type ContentEmbeddingHooks = {
   remove: (collection: string, docId: string) => void | Promise<void>
 }
 
+// Intentionally synchronous: the reference store uses sync bun:sqlite writes, and
+// indexMediaReferences/remove isolate failures with a synchronous try/catch. An
+// async adapter would escape that catch — widen to `| Promise<void>` and use
+// Promise.resolve().catch() (like the embedding hooks) before adding one.
 type MediaReferenceHooks = {
   replaceForDocument: (collection: string, docId: string, refs: { assetId: string; field: string; label: string }[]) => void
   removeDocument: (collection: string, docId: string) => void

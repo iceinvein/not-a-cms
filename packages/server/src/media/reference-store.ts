@@ -50,6 +50,8 @@ export function createMediaReferenceStore(db: AppDatabase) {
     db.run(sql`DELETE FROM media_references`)
   }
 
+  // Callers may observe empty/partial counts between clear() and completion;
+  // acceptable for a derived index that also updates incrementally on writes.
   async function rebuild(collections: Map<string, RebuildEntry>): Promise<void> {
     clear()
     for (const [name, entry] of collections) {

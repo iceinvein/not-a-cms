@@ -101,6 +101,7 @@ describe("media usage routes", () => {
     })
     try {
       const base = `http://localhost:${second.server.port}`
+      latestMagicLink = null
       const signIn = await fetch(`${base}/api/auth/sign-in/magic-link`, { method: "POST", headers: { "Content-Type": "application/json", origin: base }, body: JSON.stringify({ email: "rebuild@example.test" }) })
       expect(signIn.status).toBe(200)
       const verifyUrl = new URL(latestMagicLink!)
@@ -111,7 +112,7 @@ describe("media usage routes", () => {
       const res = await fetch(`${base}/api/media/usage`, { headers: { cookie } })
       const body = await res.json()
       // img1 is referenced by the cover doc (from the first test's seed) AND the body doc = 2 distinct documents
-      expect(body.counts.img1).toBeGreaterThanOrEqual(2)
+      expect(body.counts.img1).toBe(2)
     } finally {
       second.server.stop()
     }

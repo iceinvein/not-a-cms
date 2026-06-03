@@ -11,6 +11,7 @@ const article = defineCollection({
   fields: {
     title: field.text({ required: true }),
     coverImage: field.media({ accept: ["image/*"] }),
+    body: field.richText(),
   },
 })
 
@@ -75,6 +76,45 @@ describe("media usage routes", () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.counts).toEqual({ img1: 1 })
+  })
+
+  test("indexes rich-text media and a fresh server rebuilds the index", async () => {
+    await server.collections.get("article")!.service.create({
+      title: "Body Ref",
+      body: [{ type: "image", id: "img1" }],
+    })
+    // a fresh server on the same DB triggers a boot rebuild over existing docs
+    const second = createServer({
+      port: 0,
+      database: { url: testDbPath },
+      auth: {
+        secret: "a".repeat(32),
+        baseURL: "http://localhost",
+        magicLink: {
+          sendMagicLink: async ({ url }) => {
+            latestMagicLink = url
+          },
+        },
+      },
+      collections: [article],
+      storage: { provider: "local", path: uploadsDir },
+    })
+    try {
+      const base = `http://localhost:${second.server.port}`
+      const signIn = await fetch(`${base}/api/auth/sign-in/magic-link`, { method: "POST", headers: { "Content-Type": "application/json", origin: base }, body: JSON.stringify({ email: "rebuild@example.test" }) })
+      expect(signIn.status).toBe(200)
+      const verifyUrl = new URL(latestMagicLink!)
+      const verify = await fetch(`${base}${verifyUrl.pathname}${verifyUrl.search}`, { redirect: "manual", headers: { origin: base } })
+      const cookie = verify.headers.get("set-cookie")!
+      // wait for the boot-time rebuild to finish before querying
+      await second.rebuildIndex
+      const res = await fetch(`${base}/api/media/usage`, { headers: { cookie } })
+      const body = await res.json()
+      // img1 is referenced by the cover doc (from the first test's seed) AND the body doc = 2 distinct documents
+      expect(body.counts.img1).toBeGreaterThanOrEqual(2)
+    } finally {
+      second.server.stop()
+    }
   })
 })
 

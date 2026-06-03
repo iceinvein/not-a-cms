@@ -44,6 +44,21 @@ export function createAutomationHandler(store: FlowStore, engine: FlowEngine) {
         })
       }
 
+      // POST /api/_flows/dry-run: simulate a flow without side effects (ephemeral)
+      if (segments.length === 1 && segments[0] === "dry-run" && method === "POST") {
+        let body: any = {}
+        try { body = await req.json() } catch {}
+        const flow = body?.flow
+        if (!flow || typeof flow !== "object" || !flow.trigger || !Array.isArray(flow.steps)) {
+          return json({ error: "A flow with a trigger and steps is required" }, 400)
+        }
+        const payload = (body.payload && typeof body.payload === "object" && !Array.isArray(body.payload))
+          ? body.payload as Record<string, unknown>
+          : { event: flow.trigger.type }
+        const result = await engine.dryRun(flow, payload)
+        return json(result)
+      }
+
       const id = segments[0]
 
       // POST /api/_flows/:id/trigger — inbound webhook trigger

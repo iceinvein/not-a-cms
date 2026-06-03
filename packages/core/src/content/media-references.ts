@@ -29,6 +29,7 @@ function walk(node: unknown, out: Set<string>): void {
   if (block.type === "image") {
     const id = block.id ?? block.mediaId
     if (id) out.add(String(id))
+    return
   }
   if (block.type === "gallery" && Array.isArray(block.images)) {
     for (const image of block.images) {
@@ -37,6 +38,7 @@ function walk(node: unknown, out: Set<string>): void {
         if (id) out.add(String(id))
       }
     }
+    return
   }
 
   for (const value of Object.values(block)) {

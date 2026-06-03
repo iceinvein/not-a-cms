@@ -45,6 +45,8 @@ describe("extractMediaReferences", () => {
   })
 
   test("label falls back title -> name -> slug -> id", () => {
+    expect(extractMediaReferences(post, { name: "my-name", cover: "i" })[0].label).toBe("my-name")
+    expect(extractMediaReferences(post, { slug: "my-slug", cover: "i" })[0].label).toBe("my-slug")
     expect(extractMediaReferences(post, { id: "p9", cover: "i" })[0].label).toBe("p9")
   })
 })

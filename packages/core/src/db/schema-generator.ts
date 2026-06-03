@@ -131,6 +131,19 @@ function appendSystemMigrationSQL(parts: string[], db?: AppDatabase) {
   PRIMARY KEY (collection, document_id)
 );`)
   }
+
+  if (!db || !tableExists(db, "media_references")) {
+    parts.push(`CREATE TABLE IF NOT EXISTS media_references (
+  asset_id TEXT NOT NULL,
+  collection TEXT NOT NULL,
+  document_id TEXT NOT NULL,
+  field TEXT NOT NULL,
+  label TEXT NOT NULL
+);`)
+  }
+
+  parts.push(`CREATE INDEX IF NOT EXISTS media_references_asset ON media_references (asset_id);`)
+  parts.push(`CREATE INDEX IF NOT EXISTS media_references_doc ON media_references (collection, document_id);`)
 }
 
 function getExistingTableColumns(db: AppDatabase, tableName: string): Set<string> | null {

@@ -3,6 +3,8 @@ import { extractMediaReferences, type MediaReference, type CollectionDef, type A
 
 export type UsageReference = { collection: string; documentId: string; label: string; field: string }
 
+// service.findMany() must return DESERIALIZED documents (media fields keyed by
+// logical name, e.g. doc.cover), since extractMediaReferences reads logical names.
 type RebuildEntry = { def: CollectionDef; service: { findMany: () => Promise<Record<string, unknown>[]> } }
 
 export function createMediaReferenceStore(db: AppDatabase) {
@@ -27,10 +29,15 @@ export function createMediaReferenceStore(db: AppDatabase) {
   }
 
   function references(assetId: string): UsageReference[] {
-    const rows = db.all(sql`SELECT collection, document_id AS documentId, field, label
+    const rows = db.all(sql`SELECT collection, document_id, field, label
       FROM media_references WHERE asset_id = ${assetId}
-      ORDER BY collection, document_id, field`) as UsageReference[]
-    return rows.map((row) => ({ collection: row.collection, documentId: String(row.documentId), field: row.field, label: row.label }))
+      ORDER BY collection, document_id, field`) as { collection: string; document_id: string; field: string; label: string }[]
+    return rows.map((row) => ({
+      collection: row.collection,
+      documentId: String(row.document_id),
+      field: row.field,
+      label: row.label,
+    }))
   }
 
   function usage(assetId: string): { count: number; references: UsageReference[] } {

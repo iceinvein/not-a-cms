@@ -4,6 +4,7 @@ import { flowToOutline } from "../../lib/automations/outline"
 import { adminApiFetch, messageForAdminResponse } from "../../lib/api"
 import { ErrorState } from "../AdminState"
 import { StepConfigurator } from "./StepConfigurator"
+import { TestPanel } from "./TestPanel"
 
 type Props = {
   flow: Flow
@@ -98,6 +99,7 @@ export function RuleEditor({ flow, apiBase = "", onSaved }: Props) {
   const [draft, setDraft] = useState<Flow>(flow)
   const [selected, setSelected] = useState<EditTarget>({ type: "trigger" })
   const [saving, setSaving] = useState(false)
+  const [testing, setTesting] = useState(false)
   const [error, setError] = useState("")
   const outline = useMemo(() => flowToOutline(draft), [draft])
   const condition = draft.steps.find((step): step is ConditionStep => step.type === "condition") ?? null
@@ -175,6 +177,13 @@ export function RuleEditor({ flow, apiBase = "", onSaved }: Props) {
             className="min-w-[220px] flex-1 bg-transparent text-base font-semibold text-[#fafafa] outline-none placeholder:text-[#52525b]"
             placeholder="Rule name"
           />
+          <button
+            type="button"
+            onClick={() => setTesting(true)}
+            className="rounded-lg border border-[rgba(255,255,255,0.12)] px-3 py-2 text-sm font-medium text-[#e4e4e7] transition-colors hover:bg-[rgba(255,255,255,0.05)]"
+          >
+            Test
+          </button>
           <button
             type="button"
             onClick={save}
@@ -275,6 +284,13 @@ export function RuleEditor({ flow, apiBase = "", onSaved }: Props) {
           onClose={() => setSelected(null)}
         />
       </div>
+      {testing && (
+        <TestPanel
+          flow={{ ...draft, steps: normalizeSteps(draft.steps) }}
+          apiBase={apiBase}
+          onClose={() => setTesting(false)}
+        />
+      )}
     </div>
   )
 }

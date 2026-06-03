@@ -60,6 +60,34 @@ function resolveDataTemplate(
   return data
 }
 
+function buildWebhookRequest(
+  config: Record<string, unknown>,
+  payload: Record<string, unknown>,
+): { method: string; url: string; headers: Record<string, string> } {
+  const url = interpolate(String(config.url ?? ""), payload)
+  const method = String(config.method ?? "POST")
+  const headers: Record<string, string> = { "Content-Type": "application/json" }
+  if (config.headers && typeof config.headers === "object") {
+    for (const [k, v] of Object.entries(config.headers as Record<string, string>)) {
+      headers[k] = interpolate(v, payload)
+    }
+  }
+  return { method, url, headers }
+}
+
+function buildEmailParams(
+  config: Record<string, unknown>,
+  payload: Record<string, unknown>,
+): { to: string; subject: string; html?: string; text?: string } {
+  const to = interpolate(String(config.to ?? ""), payload)
+  const subject = interpolate(String(config.subject ?? ""), payload)
+  const html = config.html !== undefined ? interpolate(String(config.html), payload) : undefined
+  const text = config.text !== undefined
+    ? interpolate(String(config.text), payload)
+    : config.body !== undefined ? interpolate(String(config.body), payload) : undefined
+  return { to, subject, html, text }
+}
+
 export type FlowEngineOptions = {
   webhookRetryDelays?: number[]
   content?: {
@@ -95,14 +123,7 @@ export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = 
         return result
       }
       case "action.webhook": {
-        const url = interpolate(String(step.config.url ?? ""), payload)
-        const method = String(step.config.method ?? "POST")
-        const headers: Record<string, string> = { "Content-Type": "application/json" }
-        if (step.config.headers && typeof step.config.headers === "object") {
-          for (const [k, v] of Object.entries(step.config.headers as Record<string, string>)) {
-            headers[k] = interpolate(v, payload)
-          }
-        }
+        const { method, url, headers } = buildWebhookRequest(step.config, payload)
         const body = JSON.stringify(payload)
         const retryDelays = webhookRetryDelays
         let lastError: Error | null = null
@@ -125,14 +146,7 @@ export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = 
         throw lastError ?? new Error("Webhook failed after retries")
       }
       case "action.email": {
-        const to = interpolate(String(step.config.to ?? ""), payload)
-        const subject = interpolate(String(step.config.subject ?? ""), payload)
-        const html = step.config.html !== undefined ? interpolate(String(step.config.html), payload) : undefined
-        const text = step.config.text !== undefined
-          ? interpolate(String(step.config.text), payload)
-          : step.config.body !== undefined
-            ? interpolate(String(step.config.body), payload)
-            : undefined
+        const { to, subject, html, text } = buildEmailParams(step.config, payload)
         if (!options.sendEmail) throw new Error("No email transport configured")
         await options.sendEmail({ to, subject, html, text })
         return { sent: true, to, subject }
@@ -182,7 +196,49 @@ export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = 
   type SimResult = { payload: Record<string, unknown>; output: unknown; simulated: boolean; summary?: string }
 
   async function simulateActionStep(step: ActionStep, payload: Record<string, unknown>): Promise<SimResult> {
-    return { payload, output: payload, simulated: false }
+    switch (step.type) {
+      case "action.log":
+      case "action.transform": {
+        // Pure actions: run the real executor - it has no side effects.
+        const output = await executeActionStep(step, payload)
+        return { payload: output, output, simulated: false }
+      }
+      case "action.webhook": {
+        const { method, url, headers } = buildWebhookRequest(step.config, payload)
+        const request = { method, url, headers, body: payload }
+        // Response is unknowable in a dry-run: thread the input payload unchanged.
+        return { payload, output: { simulated: true, request }, simulated: true, summary: `would ${method} ${url}` }
+      }
+      case "action.email": {
+        const { to, subject, html, text } = buildEmailParams(step.config, payload)
+        const output = { simulated: true, to, subject, html, text }
+        return { payload: { sent: true, to, subject }, output, simulated: true, summary: `would email ${to}: ${subject}` }
+      }
+      case "action.create_content": {
+        const collection = String(step.config.collection ?? "")
+        const data = resolveDataTemplate(step.config.data as Record<string, string> | undefined, payload)
+        // documentId is unknown until a real insert runs; use a sentinel so downstream steps do not break.
+        const output = { action: "create_content", collection, documentId: "(simulated)", data }
+        return { payload: output, output, simulated: true, summary: `would create in \`${collection}\`` }
+      }
+      case "action.update_content": {
+        const collection = String(step.config.collection ?? "")
+        const documentId = interpolate(String(step.config.documentId ?? step.config.document_id ?? ""), payload)
+        const data = resolveDataTemplate(step.config.data as Record<string, string> | undefined, payload)
+        const output = { action: "update_content", collection, documentId, data }
+        return { payload: output, output, simulated: true, summary: `would update \`${documentId}\` in \`${collection}\`` }
+      }
+      case "action.delete_content": {
+        const collection = String(step.config.collection ?? "")
+        const documentId = interpolate(String(step.config.documentId ?? step.config.document_id ?? ""), payload)
+        const output = { action: "delete_content", collection, documentId, deleted: true }
+        return { payload: output, output, simulated: true, summary: `would delete \`${documentId}\` from \`${collection}\`` }
+      }
+      default:
+        // Unknown action type: pass the payload through unchanged.
+        // If a new action type has side effects, add a case above.
+        return { payload, output: payload, simulated: false }
+    }
   }
 
   async function liveRun(step: ActionStep, payload: Record<string, unknown>): Promise<SimResult> {
@@ -253,6 +309,58 @@ export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = 
     return walk(flow, triggerPayload, { recorder: storeRecorder(), simulate: false })
   }
 
+  function createMemoryRecorder(): { recorder: RunRecorder; result(): DryRunResult } {
+    let run: FlowRun | null = null
+    const steps: DryRunStep[] = []
+    const recorder: RunRecorder = {
+      createRun: (flowId, triggerEvent, payloadJson) => {
+        const id = `dry-${crypto.randomUUID()}`
+        run = {
+          id, flow_id: flowId, trigger_event: triggerEvent,
+          trigger_payload: payloadJson, status: "running",
+          started_at: new Date().toISOString(),
+        }
+        return id
+      },
+      recordStep: (input) => {
+        steps.push({
+          id: `dry-${crypto.randomUUID()}`,
+          run_id: input.run_id,
+          step_id: input.step_id,
+          status: input.status,
+          input: input.input,
+          output: input.output,
+          branch_taken: input.branch_taken,
+          error: input.error,
+          started_at: input.started_at ?? new Date().toISOString(),
+          finished_at: input.finished_at,
+          simulated: input.simulated,
+          summary: input.summary,
+        })
+      },
+      completeRun: (id, status, error) => {
+        if (run && run.id === id) {
+          run.status = status
+          run.finished_at = new Date().toISOString()
+          run.error = error
+        }
+      },
+    }
+    return {
+      recorder,
+      result: () => {
+        if (!run) throw new Error("dry-run produced no run")
+        return { ...run, steps }
+      },
+    }
+  }
+
+  async function dryRun(flow: Flow, triggerPayload: Record<string, unknown>): Promise<DryRunResult> {
+    const { recorder, result } = createMemoryRecorder()
+    await walk(flow, triggerPayload, { recorder, simulate: true })
+    return result()
+  }
+
   async function retryRun(flow: Flow, runOrId: FlowRun | string): Promise<string> {
     const run = typeof runOrId === "string" ? store.getRun(runOrId) : runOrId
     if (!run) throw new Error("Run not found")
@@ -273,7 +381,7 @@ export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = 
     return executeFlow(flow, { ...payload, retriedFromRunId: run.id })
   }
 
-  return { executeFlow, retryRun }
+  return { executeFlow, retryRun, dryRun }
 }
 
 export type FlowEngine = ReturnType<typeof createFlowEngine>

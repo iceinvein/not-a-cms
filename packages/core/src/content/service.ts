@@ -2,6 +2,7 @@ import { and, asc, count as countRows, desc, eq, gt, inArray, like, lt, ne } fro
 import type { AppDatabase } from "../db/connection"
 import type { CollectionDef, ContentStatus, HookContext } from "../types"
 import { runHook } from "./hooks"
+import { extractMediaReferences } from "./media-references"
 import { extractTextFromPortableText } from "./search"
 import {
   deserializeDocumentFromStorage,
@@ -42,6 +43,11 @@ type ContentEmbeddingHooks = {
   remove: (collection: string, docId: string) => void | Promise<void>
 }
 
+type MediaReferenceHooks = {
+  replaceForDocument: (collection: string, docId: string, refs: { assetId: string; field: string; label: string }[]) => void
+  removeDocument: (collection: string, docId: string) => void
+}
+
 export class QueryError extends Error {
   constructor(message: string) {
     super(message)
@@ -57,6 +63,7 @@ export function createContentService(
   search?: { index: (collection: string, docId: string, title: string, bodyText: string) => void; remove: (collection: string, docId: string) => void },
   automations?: { dispatch: (event: string, collection: string, doc: Record<string, unknown>) => void },
   embeddings?: ContentEmbeddingHooks,
+  mediaReferences?: MediaReferenceHooks,
 ) {
   const ctx: HookContext = { collection: collection.name, db }
 
@@ -250,6 +257,9 @@ export function createContentService(
       search.remove(collection.name, id)
     }
     removeEmbedding(id)
+    if (mediaReferences) {
+      try { mediaReferences.removeDocument(collection.name, id) } catch {}
+    }
     db.delete(table).where(eq(table.id, id)).run()
     await runHook("afterDelete", collection.hooks, existing, ctx)
 
@@ -285,6 +295,16 @@ export function createContentService(
     const { title, bodyText } = extractIndexableText(doc)
     search?.index(collection.name, docId, title, bodyText)
     indexEmbedding(docId, title, bodyText)
+    indexMediaReferences(docId, doc)
+  }
+
+  function indexMediaReferences(docId: string, doc: Record<string, unknown>) {
+    if (!mediaReferences) return
+    try {
+      mediaReferences.replaceForDocument(collection.name, docId, extractMediaReferences(collection, doc))
+    } catch {
+      // The reference index is derived state; never fail a content write on it.
+    }
   }
 
   function indexEmbedding(docId: string, title: string, bodyText: string) {

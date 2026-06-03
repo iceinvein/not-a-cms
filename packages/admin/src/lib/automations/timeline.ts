@@ -11,6 +11,8 @@ export type TimelineStep = {
   output?: unknown
   error?: string
   branchTaken?: string
+  simulated?: boolean
+  summary?: string
 }
 
 export type RunTimeline = {
@@ -46,6 +48,8 @@ export function runToTimeline(run: FlowRunDetail): RunTimeline {
         output: parseJson(step.output),
         error: step.error,
         branchTaken: step.branch_taken,
+        simulated: (step as { simulated?: boolean }).simulated,
+        summary: (step as { summary?: string }).summary,
       } satisfies TimelineStep
     })
 

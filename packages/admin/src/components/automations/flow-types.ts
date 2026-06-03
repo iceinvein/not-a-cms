@@ -4,6 +4,8 @@ export type {
   ConditionOperator,
   ConditionRule,
   ConditionStep,
+  DryRunResult,
+  DryRunStep,
   Flow,
   FlowRun,
   FlowRunStatus,

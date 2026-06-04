@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, rmSync } from "node:fs"
 import { join } from "node:path"
 import { runAdminContentSmoke } from "./admin-content.spec"
 import { runMediaPreviewSmoke } from "./media-preview.spec"
+import { runAutomationDryRunSmoke } from "./automation-dry-run.spec"
 
 type AgentResult = {
   stdout: string
@@ -118,6 +119,7 @@ async function main() {
 
     results.push(await runAdminContentSmoke(ctx))
     results.push(await runMediaPreviewSmoke(ctx))
+    results.push(await runAutomationDryRunSmoke(ctx))
 
     const pageErrors = await runAgent(["errors"], { allowFailure: true })
     const consoleOutput = await runAgent(["console"], { allowFailure: true })

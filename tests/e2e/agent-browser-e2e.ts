@@ -117,9 +117,25 @@ async function main() {
     ctx = createContext(cookieHeader)
     await ctx.assertPageContains("admin dashboard", ["Dashboard", "Blog Posts"])
 
-    results.push(await runAdminContentSmoke(ctx))
-    results.push(await runMediaPreviewSmoke(ctx))
-    results.push(await runAutomationDryRunSmoke(ctx))
+    // Scenarios are independent: a failure in one is recorded but does not abort
+    // the rest, so one flaky/broken scenario cannot hide the others' results.
+    const scenarios: Array<{ name: string; run: (ctx: E2EContext) => Promise<ScenarioResult> }> = [
+      { name: "Admin content publish smoke", run: runAdminContentSmoke },
+      { name: "Media upload and preview smoke", run: runMediaPreviewSmoke },
+      { name: "Automation dry-run smoke", run: runAutomationDryRunSmoke },
+    ]
+    const scenarioFailures: string[] = []
+    for (const scenario of scenarios) {
+      try {
+        results.push(await scenario.run(ctx))
+      } catch (err) {
+        const message = err instanceof Error ? err.stack || err.message : String(err)
+        const slug = scenario.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+        scenarioFailures.push(`${scenario.name}: ${message}`)
+        results.push({ name: `${scenario.name} (FAILED)`, details: [message.split("\n")[0]] })
+        await runAgent(["screenshot", "--annotate", join(screenshotDir, `failure-${slug}.png`)], { allowFailure: true })
+      }
+    }
 
     const pageErrors = await runAgent(["errors"], { allowFailure: true })
     const consoleOutput = await runAgent(["console"], { allowFailure: true })
@@ -127,11 +143,16 @@ async function main() {
     notes.push("agent-browser console output:\n" + fenced(consoleOutput.trim() || "No console output reported."))
     const consoleErrors = getConsoleErrors(consoleOutput)
     if (consoleErrors.length > 0) {
-      throw new Error(`agent-browser console reported errors:\n${consoleErrors.join("\n")}`)
+      scenarioFailures.push(`agent-browser console reported errors:\n${consoleErrors.join("\n")}`)
+    }
+
+    if (scenarioFailures.length > 0) {
+      notes.push("Scenario failures:\n" + fenced(scenarioFailures.join("\n\n")))
+      failed = new Error(`${scenarioFailures.length} scenario(s) failed:\n${scenarioFailures.join("\n")}`)
     }
 
     await writeReport({
-      status: "PASS",
+      status: scenarioFailures.length > 0 ? "FAIL" : "PASS",
       startedAt,
       results,
       notes,

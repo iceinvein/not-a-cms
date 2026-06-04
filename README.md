@@ -1,6 +1,6 @@
 # not-a-cms
 
-A modern, open-source CMS built to replace WordPress. TypeScript end-to-end, passwordless by default, real-time collaborative editing, and zero vendor lock-in.
+A modern, open-source CMS built to replace WordPress. TypeScript end-to-end, passwordless by default, real-time collaborative editing, built-in visual automations, and zero vendor lock-in.
 
 ```bash
 bunx not-a-cms init my-site
@@ -9,11 +9,13 @@ cd my-site && bun install && bun run dev
 
 **Admin:** `http://localhost:4322` | **Site:** `http://localhost:3000` | **API:** `http://localhost:4321/api`
 
+> **Status:** Actively developed. The content engine, visual site builder, automations, channel rendering, media library, and the collaborative admin are shipped and covered by 687 passing tests across six packages. See the [roadmap](#roadmap) for what's next.
+
 ---
 
 ## Why not-a-cms?
 
-WordPress powers 43% of the web — but it was designed in 2003. We built not-a-cms for 2026:
+WordPress powers 43% of the web, but it was designed in 2003. We built not-a-cms for 2026:
 
 | | WordPress | not-a-cms |
 |---|---|---|
@@ -25,14 +27,17 @@ WordPress powers 43% of the web — but it was designed in 2003. We built not-a-
 | **Runtime** | PHP | Bun (TypeScript-native) |
 | **Real-time** | No | Y.js CRDTs (offline-capable) |
 | **Framework** | PHP templates | Astro (zero JS by default) |
+| **Automations** | Plugins + external Zapier | Built-in visual rules (WHEN / IF / THEN) |
+| **Media** | Flat uploads folder | Typed library: folders, tags, usage tracking |
+| **Search** | `LIKE` queries | FTS5 + optional semantic Ask |
 
 ## Core Principles
 
-- **Passwordless only** — no passwords anywhere. Magic links ship today; OAuth is config-driven; passkeys are planned.
-- **JSON over HTML** — content stored as Portable Text, rendered per channel (web, email, RSS).
-- **TypeScript end-to-end** — schema defines types that flow from database to frontend.
-- **Self-hosted, zero vendor lock-in** — your data, your database, deploy anywhere.
-- **Real-time by default** — collaborative editing and live preview out of the box.
+- **Passwordless only**: no passwords anywhere. Magic links ship today; OAuth is config-driven; passkeys are planned.
+- **JSON over HTML**: content stored as Portable Text, rendered per channel (web, email, RSS).
+- **TypeScript end-to-end**: schema defines types that flow from database to frontend.
+- **Self-hosted, zero vendor lock-in**: your data, your database, deploy anywhere.
+- **Real-time by default**: collaborative editing and live preview out of the box.
 
 ---
 
@@ -92,7 +97,7 @@ export const blogPost = defineCollection({
 })
 ```
 
-Each collection becomes its own SQL table with real typed columns. Rich text is stored as Portable Text JSON — never HTML.
+Each collection becomes its own SQL table with real typed columns. Rich text is stored as Portable Text JSON, never HTML.
 
 ### Field Types
 
@@ -222,7 +227,7 @@ const posts = await trpc.content.findMany.query({
   where: { status: "published" },
   limit: 10,
 })
-// posts is fully typed — no casting needed
+// posts is fully typed, no casting needed
 ```
 
 ### GraphQL (headless frontends)
@@ -261,11 +266,11 @@ import { Editor } from "@not-a-cms/editor"
 
 ### Features
 
-- **Slash commands** — type `/` to insert headings, lists, code blocks, callouts, dividers
-- **Markdown shortcuts** — `##` for heading, `**` for bold, `>` for quote, ``` for code
-- **Bubble menu** — select text to format (bold, italic, code, link, headings)
-- **Real-time collaboration** — Y.js CRDTs with live cursors, offline support, character-level merge
-- **Custom blocks** — extend the editor with your own block types
+- **Slash commands**: type `/` to insert headings, lists, code blocks, callouts, dividers
+- **Markdown shortcuts**: `##` for heading, `**` for bold, `>` for quote, ``` for code
+- **Bubble menu**: select text to format (bold, italic, code, link, headings)
+- **Real-time collaboration**: Y.js CRDTs with live cursors, offline support, character-level merge
+- **Custom blocks**: extend the editor with your own block types
 
 ### Custom Blocks
 
@@ -289,9 +294,67 @@ Custom blocks appear in the slash command menu automatically.
 
 ---
 
+## Admin
+
+The admin is a single Astro app with React islands, driven entirely by your schema: add a field and every screen updates. It runs on `http://localhost:4322`.
+
+- **Command Deck**: a `⌘K` palette to jump to any collection or document, run actions, search content, and ask questions in natural language.
+- **Document editor**: a focused writing canvas built on the Tiptap editor, with inline field blocks (author, gallery, SEO), version history with restore, preview links, and a live channel mirror showing how a post renders to web and email.
+- **Dashboard**: a publishing horizon (what's scheduled, what's about to expire) and a "needs you" queue (content in review, failed automation runs, who's editing live right now).
+- **The Vault**: a media library that clusters assets by type, surfaces unused files, and supports folders, tags, bulk tagging and moving, and reverse usage lookup (which documents reference each asset).
+- **Automations**: a visual rule editor and run console (see below).
+- **Settings**: theme customizer, roles and access control, channels, webhooks, and team invites.
+
+---
+
+## Automations
+
+Replace Zapier for content workflows: rules run inside the CMS, with no external service required. A rule reads as **WHEN** a trigger fires, **IF** conditions match, **THEN** run actions.
+
+```typescript
+// Authored in the admin, stored in the database
+{
+  name: "Notify on publish",
+  trigger: { type: "content.published", collection: "blog_post" },
+  conditions: { all: [{ field: "status", op: "eq", value: "published" }] },
+  actions: [
+    { type: "action.webhook", url: "https://api.example.com/notify", method: "POST" },
+    { type: "action.email", to: "team@example.com", subject: "New post is live" },
+  ],
+}
+```
+
+| Stage | Options |
+|---|---|
+| **Triggers** | `content.created`, `content.updated`, `content.published`, `content.deleted`, `schedule.cron`, `webhook.received` |
+| **Conditions** | `eq`, `neq`, `gt`, `lt`, `contains`, `not_contains`, `matches` (combined with `all` / `any`) |
+| **Actions** | create / update / delete content, send email, call a webhook, transform data, log |
+
+Every rule has a **Test** button that runs a dry-run: the engine walks the whole flow and records each step *without performing any side effects*, so you can see exactly what would happen before enabling it. The run console shows live run history with a step-by-step timeline, per-step timing, and statuses (`running`, `completed`, `failed`, `skipped`).
+
+---
+
+## Search & AI
+
+Full-text search is built in: every collection is indexed with SQLite FTS5 (porter stemmer), and is exposed through the admin search bar, the Command Deck, and a REST `?search=` parameter.
+
+**Natural-language Ask** sits on top. With no configuration it answers questions by ranking full-text results. Configure an `AskProvider` (opt-in OpenAI or Anthropic adapters, with no AI dependency added to core) and it switches to semantic search over content embeddings, falling back to full-text whenever no provider is set.
+
+```bash
+curl "http://localhost:4321/api/_ask?q=posts%20about%20our%20pricing%20change"
+```
+
+---
+
+## Publishing Workflow
+
+Content moves through `draft → in_review → published → archived`. Set `publishedAt` to a future time and a post publishes itself on schedule; set an optional `unpublishAt` and it auto-archives when it expires. A 60-second scheduler tick promotes due posts and retires expired ones, and the dashboard surfaces both horizons so nothing slips.
+
+---
+
 ## Portable Text
 
-Content is stored as Portable Text — a typed JSON array, not HTML. This means the same content can render to web, email, RSS, or native apps.
+Content is stored as Portable Text: a typed JSON array, not HTML. This means the same content can render to web, email, RSS, or native apps.
 
 ```json
 [
@@ -433,6 +496,8 @@ not-a-cms generate types           # Show schema type info
 not-a-cms generate migration       # Generate SQL migration
 not-a-cms migrate                  # Run pending migrations
 not-a-cms migrate status           # Check migration state
+not-a-cms import wordpress <file>  # Import from a WordPress WXR export
+not-a-cms export                   # Export all collections as JSON
 ```
 
 ---
@@ -495,7 +560,7 @@ export default defineExtension({
         await ctx.fetch("https://api.twitter.com/2/tweets", {
           method: "POST",
           body: JSON.stringify({
-            text: `New post: ${document.title} — ${document.url}`,
+            text: `New post: ${document.title} (${document.url})`,
           }),
         })
       }
@@ -577,13 +642,13 @@ bun run dev
 ```
 not-a-cms/
 ├── packages/
-│   ├── core/        # Schema engine, DB, content CRUD
+│   ├── core/        # Schema, DB, content CRUD, automations, search/AI
 │   ├── editor/      # Tiptap editor, blocks, collaboration
-│   ├── admin/       # Astro admin panel
-│   ├── server/      # HTTP server, APIs, auth
-│   ├── renderer/    # Public site rendering, themes
+│   ├── admin/       # Astro admin app (command deck, editor, vault)
+│   ├── server/      # HTTP server, APIs, auth, collab, automations
+│   ├── renderer/    # Public site rendering, themes, channels
 │   └── cli/         # Developer CLI
-├── docs/            # Design specs and plans
+├── docs/            # Guides, specs, and backlog
 ├── turbo.json       # Turborepo config
 └── package.json     # Bun workspace root
 ```
@@ -592,13 +657,25 @@ not-a-cms/
 
 ## Roadmap
 
-- [x] **M1: Content Engine** — Schema, editor, APIs, auth, admin, renderer, CLI
-- [ ] **M2: Visual Site Builder** — Drag-and-drop page assembly, visual CSS editor
-- [ ] **M3: Channel Rendering** — Email newsletters, multi-channel preview
-- [ ] **M4: Visual Automations** — Event-driven automation builder
-- [ ] **M5: Membership & Paywall** — Paid tiers, subscriber management
-- [ ] **M6: Plugin Marketplace** — npm distribution, sandboxed execution
-- [ ] **M7: AI Infrastructure** — Writing assistance, content generation, MCP server
+**Shipped**
+
+- [x] **Content Engine**: schema, Tiptap editor, REST/tRPC/GraphQL APIs, passwordless auth, admin, renderer, CLI
+- [x] **Production Essentials**: versioning, full-text search, migrations, image optimization, RSS, Docker/Fly deployment
+- [x] **Differentiators**: GraphQL, webhooks, scheduled publishing, preview links, role-based field access, theme customizer, email rendering, WordPress import
+- [x] **Visual Site Builder**: drag-and-drop page canvas, visual CSS editor, free grid positioning, responsive breakpoints
+- [x] **Visual Automations**: event-driven rules (WHEN / IF / THEN), run console, dry-run testing, content/email/webhook actions
+- [x] **Collaborative Admin**: Command Deck, document editor with live channel mirror, dashboard horizons, media Vault (folders, tags, usage)
+- [x] **Real-time**: Y.js collaboration with live presence and per-caret cursors
+- [x] **Natural-language Ask**: semantic search with a pluggable AI provider and full-text fallback
+
+**Next**
+
+- [ ] **Channels**: newsletter delivery to subscribers, multi-channel preview
+- [ ] **Membership & Paywall**: paid tiers, subscriber management, Stripe
+- [ ] **Plugin Marketplace**: npm distribution, sandboxed execution
+- [ ] **AI Infrastructure**: MCP server, in-editor writing assistant, content generation
+
+See [`MILESTONES.md`](MILESTONES.md) for the detailed phase log and [`docs/BACKLOG.md`](docs/BACKLOG.md) for open work.
 
 ---
 

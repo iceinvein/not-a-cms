@@ -36,7 +36,7 @@ export async function runMediaPreviewSmoke(ctx: E2EContext) {
   await ctx.agent(["open", `${ctx.adminBase}/media`])
   await ctx.agent(["wait", "--load", "networkidle"], { allowFailure: true })
   await ctx.screenshot("05-media-library.png")
-  await ctx.assertPageContains("media library", ["Media Library", "1 files", "E2E hero"])
+  await ctx.assertPageContains("media library", ["The Vault", "1 assets", "E2E hero"])
 
   const draft = await ctx.apiJson<ContentRecord>("/api/blog_post", {
     method: "POST",

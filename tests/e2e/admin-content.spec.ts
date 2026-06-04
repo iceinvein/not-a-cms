@@ -28,7 +28,7 @@ export async function runAdminContentSmoke(ctx: E2EContext) {
   await ctx.agent(["open", `${ctx.adminBase}/content/blog_post/${created.id}`])
   await ctx.agent(["wait", "--load", "networkidle"], { allowFailure: true })
   await ctx.screenshot("03-admin-content-edit.png")
-  await ctx.assertPageContains("admin content editor", ["Edit Blog Post", "Publish"])
+  await ctx.assertPageContains("admin content editor", ["Edit Blog Post", "publish"])
 
   const published = await ctx.apiJson<ContentRecord>(`/api/blog_post/${created.id}/workflow`, {
     method: "POST",

@@ -205,9 +205,14 @@ export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = 
       },
       completeRun: (id, status, error) => {
         store.completeRun(id, status, error)
+        // The run is already persisted; emitting must never affect completion.
         if (emit) {
-          const run = store.getRun(id)
-          if (run) emit({ type: "run.completed", run })
+          try {
+            const run = store.getRun(id)
+            if (run) emit({ type: "run.completed", run })
+          } catch {
+            // swallow: a read/emit failure must not re-mark the run
+          }
         }
       },
     }

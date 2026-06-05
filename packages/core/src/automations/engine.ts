@@ -1,5 +1,6 @@
 import type { FlowStore, RecordStepInput } from "./store"
 import type { Flow, FlowRun, FlowRunStatus, FlowStep, ConditionStep, ActionStep, ConditionRule, DryRunStep, DryRunResult } from "./types"
+import type { RunEvent } from "./events"
 
 export function resolvePayloadPath(payload: Record<string, unknown>, path: string): unknown {
   const cleanPath = path.startsWith("payload.") ? path.slice("payload.".length) : path
@@ -96,6 +97,9 @@ export type FlowEngineOptions = {
     delete(collection: string, id: string): Promise<boolean>
   }
   sendEmail?: (msg: { to: string; subject: string; html?: string; text?: string }) => Promise<void>
+  /** Called for each live-run lifecycle event. Wired to a RunEventBus by the
+   *  server for SSE streaming. Dry-runs never emit. */
+  onRunEvent?: (event: RunEvent) => void
 }
 
 export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = {}) {
@@ -185,11 +189,27 @@ export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = 
   }
 
   function storeRecorder(): RunRecorder {
+    const emit = options.onRunEvent
+    let flowId = ""
     return {
-      createRun: (flowId, triggerEvent, payloadJson) => store.createRun(flowId, triggerEvent, payloadJson).id,
+      createRun: (fId, triggerEvent, payloadJson) => {
+        const run = store.createRun(fId, triggerEvent, payloadJson)
+        flowId = fId
+        emit?.({ type: "run.started", run })
+        return run.id
+      },
       // simulated/summary are dry-run-only fields; the store schema does not persist them
-      recordStep: (input) => { store.recordStep(input) },
-      completeRun: (id, status, error) => store.completeRun(id, status, error),
+      recordStep: (input) => {
+        const step = store.recordStep(input)
+        emit?.({ type: "run.step", runId: input.run_id, flowId, step })
+      },
+      completeRun: (id, status, error) => {
+        store.completeRun(id, status, error)
+        if (emit) {
+          const run = store.getRun(id)
+          if (run) emit({ type: "run.completed", run })
+        }
+      },
     }
   }
 

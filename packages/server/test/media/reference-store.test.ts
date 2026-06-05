@@ -50,6 +50,21 @@ describe("createMediaReferenceStore", () => {
     expect(store.counts()).toEqual({})
   })
 
+  test("replaceForDocument is atomic: a failed insert rolls back the delete", () => {
+    const { store } = setup()
+    store.replaceForDocument("post", "p1", [{ assetId: "img1", field: "cover", label: "A" }])
+    // The second ref violates NOT NULL on label. The whole replace must abort,
+    // leaving the prior index intact rather than a half-written (deleted) state.
+    expect(() =>
+      store.replaceForDocument("post", "p1", [
+        { assetId: "img2", field: "cover", label: "B" },
+        { assetId: "img3", field: "body", label: null as unknown as string },
+      ]),
+    ).toThrow()
+    expect(store.counts()).toEqual({ img1: 1 })
+    expect(store.references("img2")).toEqual([])
+  })
+
   test("rebuild clears then repopulates from collections", async () => {
     const { store } = setup()
     store.replaceForDocument("post", "stale", [{ assetId: "old", field: "cover", label: "stale" }])

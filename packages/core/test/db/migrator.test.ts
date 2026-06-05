@@ -4,6 +4,7 @@ import { join } from "node:path"
 import { createDatabase } from "../../src/db/connection"
 import { createMigrator } from "../../src/db/migrator"
 import { generateMigrationSQL } from "../../src/db/schema-generator"
+import { bootstrapTables } from "../../src/db/bootstrap"
 import { defineCollection } from "../../src/schema/collection"
 import { field } from "../../src/schema/field"
 import { sql } from "drizzle-orm"
@@ -153,5 +154,18 @@ describe("createMigrator", () => {
     const migration = generateMigrationSQL([post], { db, allowDestructive: true })
 
     expect(migration).toContain("-- Destructive change detected for post.old_field")
+  })
+
+  test("generateMigrationSQL guards system index DDL on already-present indexes", () => {
+    // Fresh DB: nothing exists yet, so the system index DDL is emitted.
+    const fresh = generateMigrationSQL([], { db })
+    expect(fresh).toContain("media_references_asset")
+
+    // After bootstrap creates the tables and their indexes, the DDL is omitted,
+    // matching how table CREATEs are already guarded by tableExists().
+    bootstrapTables(db, [])
+    const afterBootstrap = generateMigrationSQL([], { db })
+    expect(afterBootstrap).not.toContain("media_references_asset")
+    expect(afterBootstrap).not.toContain("idx_versions_lookup")
   })
 })

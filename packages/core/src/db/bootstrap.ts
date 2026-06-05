@@ -144,6 +144,7 @@ export function bootstrapTables(db: AppDatabase, collections: CollectionDef[]) {
   )`)}`)
   db.run(sql`${sql.raw(`CREATE INDEX IF NOT EXISTS media_references_asset ON media_references (asset_id)`)}`)
   db.run(sql`${sql.raw(`CREATE INDEX IF NOT EXISTS media_references_doc ON media_references (collection, document_id)`)}`)
+  db.run(sql`${sql.raw(`CREATE UNIQUE INDEX IF NOT EXISTS media_references_unique ON media_references (collection, document_id, field, asset_id)`)}`)
 
   db.run(sql`${sql.raw(`CREATE TABLE IF NOT EXISTS _webhooks (
     id TEXT PRIMARY KEY,

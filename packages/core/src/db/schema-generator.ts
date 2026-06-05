@@ -108,7 +108,9 @@ function appendSystemMigrationSQL(parts: string[], db?: AppDatabase) {
 );`)
   }
 
-  parts.push(`CREATE INDEX IF NOT EXISTS idx_versions_lookup ON _versions(collection, document_id, version_number DESC);`)
+  if (!db || !indexExists(db, "idx_versions_lookup")) {
+    parts.push(`CREATE INDEX IF NOT EXISTS idx_versions_lookup ON _versions(collection, document_id, version_number DESC);`)
+  }
 
   if (!db || !tableExists(db, "content_fts")) {
     parts.push(`CREATE VIRTUAL TABLE IF NOT EXISTS content_fts USING fts5(
@@ -142,8 +144,15 @@ function appendSystemMigrationSQL(parts: string[], db?: AppDatabase) {
 );`)
   }
 
-  parts.push(`CREATE INDEX IF NOT EXISTS media_references_asset ON media_references (asset_id);`)
-  parts.push(`CREATE INDEX IF NOT EXISTS media_references_doc ON media_references (collection, document_id);`)
+  if (!db || !indexExists(db, "media_references_asset")) {
+    parts.push(`CREATE INDEX IF NOT EXISTS media_references_asset ON media_references (asset_id);`)
+  }
+  if (!db || !indexExists(db, "media_references_doc")) {
+    parts.push(`CREATE INDEX IF NOT EXISTS media_references_doc ON media_references (collection, document_id);`)
+  }
+  if (!db || !indexExists(db, "media_references_unique")) {
+    parts.push(`CREATE UNIQUE INDEX IF NOT EXISTS media_references_unique ON media_references (collection, document_id, field, asset_id);`)
+  }
 }
 
 function getExistingTableColumns(db: AppDatabase, tableName: string): Set<string> | null {
@@ -156,6 +165,13 @@ function getExistingTableColumns(db: AppDatabase, tableName: string): Set<string
 function tableExists(db: AppDatabase, tableName: string): boolean {
   const rows = db.all<{ name: string }>(
     sql`SELECT name FROM sqlite_master WHERE name = ${tableName} AND type IN ('table', 'view')`,
+  ) as Array<{ name: string }>
+  return rows.length > 0
+}
+
+function indexExists(db: AppDatabase, indexName: string): boolean {
+  const rows = db.all<{ name: string }>(
+    sql`SELECT name FROM sqlite_master WHERE name = ${indexName} AND type = 'index'`,
   ) as Array<{ name: string }>
   return rows.length > 0
 }

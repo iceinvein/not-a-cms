@@ -9,11 +9,16 @@ type RebuildEntry = { def: CollectionDef; service: { findMany: () => Promise<Rec
 
 export function createMediaReferenceStore(db: AppDatabase) {
   function replaceForDocument(collection: string, documentId: string, refs: MediaReference[]): void {
-    db.run(sql`DELETE FROM media_references WHERE collection = ${collection} AND document_id = ${documentId}`)
-    for (const ref of refs) {
-      db.run(sql`INSERT INTO media_references (asset_id, collection, document_id, field, label)
-        VALUES (${ref.assetId}, ${collection}, ${documentId}, ${ref.field}, ${ref.label})`)
-    }
+    // Atomic replace: the delete and the re-inserts run in one transaction so a
+    // failed insert (or a crash mid-write) rolls back to the prior index rather
+    // than leaving the document partially indexed until the next boot rebuild.
+    db.transaction((tx) => {
+      tx.run(sql`DELETE FROM media_references WHERE collection = ${collection} AND document_id = ${documentId}`)
+      for (const ref of refs) {
+        tx.run(sql`INSERT INTO media_references (asset_id, collection, document_id, field, label)
+          VALUES (${ref.assetId}, ${collection}, ${documentId}, ${ref.field}, ${ref.label})`)
+      }
+    })
   }
 
   function removeDocument(collection: string, documentId: string): void {
@@ -52,6 +57,11 @@ export function createMediaReferenceStore(db: AppDatabase) {
 
   // Callers may observe empty/partial counts between clear() and completion;
   // acceptable for a derived index that also updates incrementally on writes.
+  //
+  // rebuild indexes whatever each service.findMany() returns. The server wires
+  // findMany() with no status filter (packages/server/src/index.ts), so drafts are
+  // indexed alongside published docs. This is intentional: the Vault surfaces media
+  // usage for unpublished documents too, not only published ones.
   async function rebuild(collections: Map<string, RebuildEntry>): Promise<void> {
     clear()
     for (const [name, entry] of collections) {

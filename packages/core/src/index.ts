@@ -52,7 +52,7 @@ export {
 } from "./roles/invite-store"
 
 // Database
-export { createDatabase, type AppDatabase, type DatabaseConfig } from "./db/connection"
+export { createDatabase, isVectorSearchEnabled, type AppDatabase, type DatabaseConfig } from "./db/connection"
 export { generateTable } from "./db/generate-table"
 export { bootstrapTables } from "./db/bootstrap"
 

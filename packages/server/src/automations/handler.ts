@@ -1,4 +1,4 @@
-import type { FlowStore, FlowEngine, FlowRunStatus } from "@not-a-cms/core"
+import type { FlowStore, FlowEngine, FlowRunStatus, RunEventBus, RunEvent } from "@not-a-cms/core"
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -7,7 +7,7 @@ function json(data: unknown, status = 200) {
   })
 }
 
-export function createAutomationHandler(store: FlowStore, engine: FlowEngine) {
+export function createAutomationHandler(store: FlowStore, engine: FlowEngine, events?: RunEventBus) {
   return async function handler(req: Request): Promise<Response | null> {
     const url = new URL(req.url)
     const pathname = url.pathname
@@ -41,6 +41,54 @@ export function createAutomationHandler(store: FlowStore, engine: FlowEngine) {
         const offset = url.searchParams.has("offset") ? Number(url.searchParams.get("offset")) : 0
         return json({
           data: store.listRecentRuns({ status: status ?? undefined, limit, offset }),
+        })
+      }
+
+      // GET /api/_flows/runs/stream — Server-Sent Events feed of live run progress
+      if (segments.length === 2 && segments[0] === "runs" && segments[1] === "stream" && method === "GET") {
+        if (!events) return json({ error: "Streaming not available" }, 503)
+        const flowFilter = url.searchParams.get("flowId")
+        const encoder = new TextEncoder()
+        let unsubscribe: (() => void) | null = null
+        let heartbeat: ReturnType<typeof setInterval> | null = null
+
+        const flowIdOf = (event: RunEvent): string =>
+          event.type === "run.step" ? event.flowId : event.run.flow_id
+
+        const cleanup = () => {
+          unsubscribe?.()
+          unsubscribe = null
+          if (heartbeat) { clearInterval(heartbeat); heartbeat = null }
+        }
+
+        const stream = new ReadableStream<Uint8Array>({
+          start(controller) {
+            const send = (chunk: string) => {
+              try { controller.enqueue(encoder.encode(chunk)) } catch { /* controller closed */ }
+            }
+            unsubscribe = events.subscribe((event) => {
+              if (flowFilter && flowIdOf(event) !== flowFilter) return
+              send(`event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`)
+            })
+            send(`: connected\n\n`)
+            heartbeat = setInterval(() => send(`: ping\n\n`), 25000)
+            req.signal.addEventListener("abort", () => {
+              cleanup()
+              try { controller.close() } catch { /* already closed */ }
+            })
+          },
+          cancel() {
+            cleanup()
+          },
+        })
+
+        return new Response(stream, {
+          status: 200,
+          headers: {
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache",
+            Connection: "keep-alive",
+          },
         })
       }
 

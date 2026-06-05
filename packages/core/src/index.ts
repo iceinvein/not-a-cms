@@ -122,6 +122,7 @@ export { createWordPressImportPlan, parseWXR, htmlToPortableText } from "./impor
 // Automations
 export { createFlowStore, type FlowStore } from "./automations/store"
 export { createFlowEngine, resolvePayloadPath, interpolate, evaluateCondition, type FlowEngine } from "./automations/engine"
+export { createRunEventBus, type RunEvent, type RunEventBus } from "./automations/events"
 export { matchesCron, createAutomationCron, type AutomationCron } from "./automations/cron"
 export type {
   Flow, FlowTrigger, FlowStep, ConditionStep, ActionStep, ActionType,

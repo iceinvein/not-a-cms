@@ -44,7 +44,7 @@ export function createAutomationHandler(store: FlowStore, engine: FlowEngine, ev
         })
       }
 
-      // GET /api/_flows/runs/stream — Server-Sent Events feed of live run progress
+      // GET /api/_flows/runs/stream: Server-Sent Events feed of live run progress
       if (segments.length === 2 && segments[0] === "runs" && segments[1] === "stream" && method === "GET") {
         if (!events) return json({ error: "Streaming not available" }, 503)
         const flowFilter = url.searchParams.get("flowId")

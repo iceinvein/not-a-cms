@@ -35,6 +35,15 @@ async function readFrames(reader: ReadableStreamDefaultReader<Uint8Array>, want:
 }
 
 describe("GET /api/_flows/runs/stream", () => {
+  test("returns 503 when no event bus is configured", async () => {
+    const db = createDatabase({ url: testDbPath })
+    bootstrapTables(db, [])
+    const store = createFlowStore(db)
+    const handler = createAutomationHandler(store, createFlowEngine(store, {}))
+    const res = await handler(new Request("http://localhost/api/_flows/runs/stream"))
+    expect(res?.status).toBe(503)
+  })
+
   test("returns a text/event-stream response", async () => {
     const { handler } = setup()
     const res = await handler(new Request("http://localhost/api/_flows/runs/stream"))

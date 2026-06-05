@@ -18,22 +18,8 @@ configured, so this is a scale optimization, not a correctness fix.
 
 ## Hardening follow-ups
 
-From the `media_references` index review (2026-06-03). None block correctness; the
-index is derived state that heals on boot rebuild.
-
-- **Transaction-wrap `replaceForDocument`** (`packages/server/src/media/reference-store.ts`):
-  the delete + N inserts run as separate implicit transactions. A crash mid-write
-  leaves a document partially indexed until the next boot rebuild. Wrap in one
-  transaction for atomic replace. `later`
-- **`UNIQUE(collection, document_id, field, asset_id)` on `media_references`**: a
-  DB-level safety net against any future path that bypasses the extractor's dedupe.
-  Needs a migration since `CREATE TABLE IF NOT EXISTS` will not alter existing tables. `later`
-- **Comment that rebuild indexes drafts intentionally** (`reference-store.ts` `rebuild`):
-  `findMany()` includes all statuses so the Vault shows references for drafts too;
-  document this so it is not mistaken for a bug. `idea`
-- **Guard the index DDL in `schema-generator.ts`** the same way the table CREATE is
-  guarded (or add an `indexExists` helper), for consistency. Harmless today
-  (`CREATE INDEX IF NOT EXISTS` is idempotent). `idea`
+All four follow-ups from the `media_references` index review (2026-06-03) are done;
+see "Recently shipped" below.
 
 ## Deferred enhancements
 
@@ -73,3 +59,9 @@ For reference, not action. Detailed specs/plans were in `docs/superpowers/`.
   run.started/step/completed from the live `storeRecorder` via an in-process
   `RunEventBus`; the Console subscribes with `EventSource` and falls back to the
   2s poll on failure (2026-06-05).
+- `media_references` hardening: `replaceForDocument` now does an atomic
+  delete+reinsert in one transaction; a `media_references_unique` index enforces
+  `UNIQUE(collection, document_id, field, asset_id)` (added in both `bootstrap.ts`
+  and `schema-generator.ts`); system index DDL in `schema-generator.ts` is guarded
+  by a new `indexExists` helper; and `rebuild` documents that it indexes drafts
+  intentionally (2026-06-05).

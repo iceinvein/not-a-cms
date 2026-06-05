@@ -83,16 +83,29 @@ export function Console({ apiBase = "", flowId, initialRuns, initialSelected, in
       return () => { if (pollId) clearInterval(pollId) }
     }
 
+    const parseData = (event: Event): any | null => {
+      try {
+        return JSON.parse((event as MessageEvent).data)
+      } catch {
+        // Ignore a malformed frame rather than throwing inside the listener.
+        return null
+      }
+    }
+
     source.addEventListener("run.started", (event) => {
-      const run = JSON.parse((event as MessageEvent).data).run as FlowRun
-      setRuns((current) => upsertRun(current, run))
+      const data = parseData(event)
+      if (!data) return
+      setRuns((current) => upsertRun(current, data.run as FlowRun))
     })
     source.addEventListener("run.step", (event) => {
-      const { runId, step } = JSON.parse((event as MessageEvent).data) as { runId: string; step: FlowRunStep }
-      setSelectedRun((current) => applyRunStep(current, runId, step))
+      const data = parseData(event) as { runId: string; step: FlowRunStep } | null
+      if (!data) return
+      setSelectedRun((current) => applyRunStep(current, data.runId, data.step))
     })
     source.addEventListener("run.completed", (event) => {
-      const run = JSON.parse((event as MessageEvent).data).run as FlowRun
+      const data = parseData(event)
+      if (!data) return
+      const run = data.run as FlowRun
       setRuns((current) => upsertRun(current, run))
       setSelectedRun((current) => applyRunCompleted(current, run))
     })

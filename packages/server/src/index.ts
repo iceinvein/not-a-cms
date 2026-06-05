@@ -20,6 +20,7 @@ import {
   createFlowStore,
   createFlowEngine,
   createAutomationCron,
+  createRunEventBus,
   type AskConfig,
   type CollectionDef,
   type CollectionSettings,
@@ -110,6 +111,7 @@ export type CreatedServer = {
   componentRegistry: ReturnType<typeof createComponentRegistry>
   flowStore: ReturnType<typeof createFlowStore>
   flowEngine: ReturnType<typeof createFlowEngine>
+  runEvents: ReturnType<typeof createRunEventBus>
   scheduler: ReturnType<typeof createScheduler>
   mediaReferenceStore: ReturnType<typeof createMediaReferenceStore>
   /** Resolves once the boot-time media reference index rebuild has finished (or failed). */
@@ -135,6 +137,7 @@ export function createServer(config: ServerConfig): CreatedServer {
 
   const flowStore = createFlowStore(db)
   const collections = new Map<string, CollectionRegistryEntry>()
+  const runEvents = createRunEventBus()
   const flowEngine = createFlowEngine(flowStore, {
     content: {
       create: async (name, data) => {
@@ -154,8 +157,9 @@ export function createServer(config: ServerConfig): CreatedServer {
       },
     },
     sendEmail: config.email?.send,
+    onRunEvent: runEvents.publish,
   })
-  const automationHandler = createAutomationHandler(flowStore, flowEngine)
+  const automationHandler = createAutomationHandler(flowStore, flowEngine, runEvents)
   const automationCron = createAutomationCron(flowStore, flowEngine)
 
   const mediaReferenceStore = createMediaReferenceStore(db)
@@ -654,7 +658,7 @@ export function createServer(config: ServerConfig): CreatedServer {
     console.log(`not-a-cms API server on http://localhost:${server.port}`)
   }
 
-  return { server, db, collections, versioning, search, embeddings, trpcRouter, webhookStore, webhookService, previewTokenService, settingsService, roleService, auditLogStore, userRoleStore, inviteStore, componentRegistry, flowStore, flowEngine, scheduler, mediaReferenceStore, rebuildIndex }
+  return { server, db, collections, versioning, search, embeddings, trpcRouter, webhookStore, webhookService, previewTokenService, settingsService, roleService, auditLogStore, userRoleStore, inviteStore, componentRegistry, flowStore, flowEngine, runEvents, scheduler, mediaReferenceStore, rebuildIndex }
 }
 
 // Re-exports for external consumers

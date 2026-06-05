@@ -9,7 +9,7 @@ cd my-site && bun install && bun run dev
 
 **Admin:** `http://localhost:4322` | **Site:** `http://localhost:3000` | **API:** `http://localhost:4321/api`
 
-> **Status:** Actively developed. The content engine, visual site builder, automations, channel rendering, media library, and the collaborative admin are shipped and covered by 687 passing tests across six packages. See the [roadmap](#roadmap) for what's next.
+> **Status:** Actively developed. The content engine, visual site builder, automations, channel rendering, media library, and the collaborative admin are shipped and covered by 708 passing tests across six packages. See the [roadmap](#roadmap) for what's next.
 
 ---
 
@@ -338,7 +338,7 @@ Every rule has a **Test** button that runs a dry-run: the engine walks the whole
 
 Full-text search is built in: every collection is indexed with SQLite FTS5 (porter stemmer), and is exposed through the admin search bar, the Command Deck, and a REST `?search=` parameter.
 
-**Natural-language Ask** sits on top. With no configuration it answers questions by ranking full-text results. Configure an `AskProvider` (opt-in OpenAI or Anthropic adapters, with no AI dependency added to core) and it switches to semantic search over content embeddings, falling back to full-text whenever no provider is set.
+**Natural-language Ask** sits on top. With no configuration it answers questions by ranking full-text results. Configure an `AskProvider` (opt-in OpenAI or Anthropic adapters, with no AI dependency added to core) and it switches to semantic search over content embeddings, falling back to full-text whenever no provider is set. Vector search is served by a `sqlite-vec` ANN index (a derived `vec0` table, auto-detected at boot) so it scales beyond small catalogs, with a transparent fallback to in-memory cosine when the extension is unavailable.
 
 ```bash
 curl "http://localhost:4321/api/_ask?q=posts%20about%20our%20pricing%20change"
@@ -666,7 +666,7 @@ not-a-cms/
 - [x] **Visual Automations**: event-driven rules (WHEN / IF / THEN), run console, dry-run testing, content/email/webhook actions
 - [x] **Collaborative Admin**: Command Deck, document editor with live channel mirror, dashboard horizons, media Vault (folders, tags, usage)
 - [x] **Real-time**: Y.js collaboration with live presence and per-caret cursors
-- [x] **Natural-language Ask**: semantic search with a pluggable AI provider and full-text fallback
+- [x] **Natural-language Ask**: semantic search (sqlite-vec ANN index with in-memory cosine fallback) with a pluggable AI provider and full-text fallback
 
 **Next**
 

@@ -14,7 +14,7 @@
 
 **Planned:** Phase G (Email, Newsletters & Integrations), Phase H (Membership & Paywall), Phase I (Plugin Marketplace), Phase J (AI Infrastructure).
 
-687 passing tests across 6 packages (core, server, admin, editor, renderer, cli). The admin is a schema-driven Astro + React-islands app with a `⌘K` command palette, a document-canvas editor with live collaboration and channel preview, a dashboard of publishing/expiry horizons and review/automation queues, a visual page builder, a media Vault with folders/tags/usage tracking, and a visual automations engine with dry-run testing. Content is stored as Portable Text and served over REST, tRPC, and GraphQL.
+708 passing tests across 6 packages (core, server, admin, editor, renderer, cli). The admin is a schema-driven Astro + React-islands app with a `⌘K` command palette, a document-canvas editor with live collaboration and channel preview, a dashboard of publishing/expiry horizons and review/automation queues, a visual page builder, a media Vault with folders/tags/usage tracking, and a visual automations engine with dry-run testing. Content is stored as Portable Text and served over REST, tRPC, and GraphQL.
 
 ---
 
@@ -116,7 +116,7 @@
 
 - [x] **E8: Live presence + cursors.** `PresenceRegistry` over the collab WebSocket plus `GET /api/_presence`, feeding the Desk's Live-now panel. Per-caret remote cursors via a ProseMirror decoration plugin (`packages/editor/src/collaboration/remote-cursors.ts`) and a server relay.
 
-- [x] **E9: Natural-language Ask.** Pluggable `AskProvider` plus a `content_embeddings` table (cosine similarity in JS) and `GET /api/_ask`, with FTS fallback when no provider is configured. Opt-in OpenAI/Anthropic adapters; no AI dependency added to core (`packages/core/src/ai/`, `packages/server/src/ask/`).
+- [x] **E9: Natural-language Ask.** Pluggable `AskProvider` plus a `content_embeddings` table and `GET /api/_ask`, with FTS fallback when no provider is configured. Vector search is served by a derived `sqlite-vec` `vec0` KNN index when the extension loads, falling back transparently to in-memory JS cosine otherwise (see Phase J4). Opt-in OpenAI/Anthropic adapters; no AI dependency added to core (`packages/core/src/ai/`, `packages/server/src/ask/`).
 
 - [x] **E10: Real email mirror.** `POST /api/_email-preview` runs MJML server-side; the editor's `ChannelMirror` renders it in an `<iframe srcDoc>` for live email preview.
 
@@ -192,7 +192,7 @@
 
 - [ ] **J3: AI content generation.** Generate full posts from a prompt. Auto-generate SEO metadata. Suggest tags and categories. Image generation for cover images.
 
-- [ ] **J4: AI-powered search (extends Phase E).** Semantic search over embeddings shipped as Natural-language Ask; "find posts similar to this one" and embedding-based auto-tagging are still planned. The `sqlite-vec` extension is queued to scale vector search beyond small catalogs.
+- [ ] **J4: AI-powered search (extends Phase E).** Semantic search over embeddings shipped as Natural-language Ask, and the `sqlite-vec` extension now backs it (a derived `vec0` KNN index, auto-detected at boot with a JS-cosine fallback) so vector search scales beyond small catalogs. "Find posts similar to this one" and embedding-based auto-tagging are still planned.
 
 ---
 

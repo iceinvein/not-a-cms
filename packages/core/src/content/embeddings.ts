@@ -19,7 +19,7 @@ const VEC_TABLE = "content_embeddings_vec"
 export type EmbeddingStoreOptions = { vectorSearch?: boolean }
 
 export function createEmbeddingStore(db: any, options: EmbeddingStoreOptions = {}) {
-  const hasRaw = Boolean(db.query)
+  const hasRaw = typeof db.query === "function"
   const vectorSearch = Boolean(options.vectorSearch)
   let vecDim: number | null = null
 
@@ -136,7 +136,7 @@ export function createEmbeddingStore(db: any, options: EmbeddingStoreOptions = {
   return {
     upsert(collection: string, documentId: string, vector: Float32Array, model: string): void {
       const updatedAt = new Date().toISOString()
-      if (db.query) {
+      if (hasRaw) {
         run(
           `INSERT INTO content_embeddings (collection, document_id, dim, vector, model, updated_at)
            VALUES (?, ?, ?, ?, ?, ?)
@@ -169,7 +169,7 @@ export function createEmbeddingStore(db: any, options: EmbeddingStoreOptions = {
     },
 
     remove(collection: string, documentId: string): void {
-      if (db.query) {
+      if (hasRaw) {
         run("DELETE FROM content_embeddings WHERE collection = ? AND document_id = ?", [collection, documentId])
       } else {
         db.run(sql`DELETE FROM content_embeddings WHERE collection = ${collection} AND document_id = ${documentId}`)
@@ -194,10 +194,10 @@ export function createEmbeddingStore(db: any, options: EmbeddingStoreOptions = {
       }
 
       const rows: Row[] = collection
-        ? db.query
+        ? hasRaw
           ? all<Row>("SELECT collection, document_id, vector, dim FROM content_embeddings WHERE collection = ?", [collection])
           : db.all(sql`SELECT collection, document_id, vector, dim FROM content_embeddings WHERE collection = ${collection}`) as Row[]
-        : db.query
+        : hasRaw
           ? all<Row>("SELECT collection, document_id, vector, dim FROM content_embeddings")
           : db.all(sql`SELECT collection, document_id, vector, dim FROM content_embeddings`) as Row[]
 

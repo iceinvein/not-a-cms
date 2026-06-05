@@ -1,6 +1,7 @@
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch"
 import {
   createDatabase,
+  isVectorSearchEnabled,
   generateTable,
   createContentService,
   bootstrapTables,
@@ -48,7 +49,7 @@ import { buildExpiring } from "./expiring/build"
 
 export type ServerConfig = {
   port?: number
-  database: { url: string }
+  database: { url: string; vectorSearch?: { enabled?: boolean; sqlitePath?: string } }
   email?: {
     send: (msg: { to: string; subject: string; html?: string; text?: string }) => Promise<void>
   }
@@ -119,7 +120,11 @@ export type CreatedServer = {
 }
 
 export function createServer(config: ServerConfig): CreatedServer {
-  const db = createDatabase(config.database)
+  const db = createDatabase({
+    ...config.database,
+    vectorSearch: { enabled: true, ...config.database.vectorSearch },
+  })
+  const vectorSearch = isVectorSearchEnabled(db)
 
   // Bootstrap tables for dev convenience
   bootstrapTables(db, config.collections)
@@ -130,7 +135,7 @@ export function createServer(config: ServerConfig): CreatedServer {
   const versioning = createVersioningService(db)
   const search = createSearchService(db)
   const askProvider = config.ai?.provider
-  const embeddings = askProvider ? createEmbeddingStore(db) : undefined
+  const embeddings = askProvider ? createEmbeddingStore(db, { vectorSearch }) : undefined
   const webhookStore = createWebhookStore(db)
   const webhookService = createWebhookService(webhookStore)
   const settingsService = createSettingsService(db)
@@ -196,6 +201,7 @@ export function createServer(config: ServerConfig): CreatedServer {
   }
 
   const rebuildIndex = mediaReferenceStore.rebuild(collections).catch(() => {})
+  embeddings?.rebuild()
 
   const roleService = createRoleService(settingsService)
   const auditLogStore = createAuditLogStore(db)

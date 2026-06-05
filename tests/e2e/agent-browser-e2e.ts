@@ -3,6 +3,7 @@ import { join } from "node:path"
 import { runAdminContentSmoke } from "./admin-content.spec"
 import { runMediaPreviewSmoke } from "./media-preview.spec"
 import { runAutomationDryRunSmoke } from "./automation-dry-run.spec"
+import { runAutomationLiveStreamSmoke } from "./automation-live-stream.spec"
 
 type AgentResult = {
   stdout: string
@@ -123,6 +124,7 @@ async function main() {
       { name: "Admin content publish smoke", run: runAdminContentSmoke },
       { name: "Media upload and preview smoke", run: runMediaPreviewSmoke },
       { name: "Automation dry-run smoke", run: runAutomationDryRunSmoke },
+      { name: "Automation live run streaming smoke", run: runAutomationLiveStreamSmoke },
     ]
     const scenarioFailures: string[] = []
     for (const scenario of scenarios) {

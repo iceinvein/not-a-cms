@@ -101,6 +101,16 @@ export function createEmbeddingStore(db: any, options: EmbeddingStoreOptions = {
     )
   }
 
+  function bulkLoad(dim: number): void {
+    const rows: Row[] = hasRaw
+      ? all<Row>("SELECT collection, document_id, vector, dim FROM content_embeddings")
+      : db.all(sql`SELECT collection, document_id, vector, dim FROM content_embeddings`) as Row[]
+    for (const row of rows) {
+      if (row.dim !== dim) continue
+      vecInsert(row.collection, row.document_id, row.vector)
+    }
+  }
+
   function vecSearch(query: Float32Array, k: number, collection?: string): EmbeddingHit[] {
     const blob = toBlob(query)
     type Hit = { collection: string; document_id: string; distance: number }
@@ -200,6 +210,26 @@ export function createEmbeddingStore(db: any, options: EmbeddingStoreOptions = {
         }))
         .sort((a, b) => b.score - a.score)
         .slice(0, k)
+    },
+
+    rebuild(): void {
+      if (!vectorSearch) return
+      try {
+        dropVec()
+        vecDim = null
+
+        const latest: { dim: number } | undefined = hasRaw
+          ? db.query("SELECT dim FROM content_embeddings ORDER BY updated_at DESC LIMIT 1").get()
+          : db.get(sql`SELECT dim FROM content_embeddings ORDER BY updated_at DESC LIMIT 1`)
+        if (!latest) return // nothing to index yet
+
+        createVec(latest.dim)
+        vecDim = latest.dim
+        bulkLoad(latest.dim)
+      } catch {
+        // Could not build the index; leave vecDim null so search uses JS cosine.
+        vecDim = null
+      }
     },
   }
 }

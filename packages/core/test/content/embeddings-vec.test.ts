@@ -99,4 +99,32 @@ describe("embedding store vec0 write path", () => {
     // a dim-2 query: vecDim (3) !== 2, so JS cosine runs and filters by dim -> []
     expect(store.search(new Float32Array([1, 0]), 5)).toEqual([])
   })
+
+  test.skipIf(!OK)("rebuild populates vec0 from content_embeddings", () => {
+    const db = new Database(":memory:")
+    sqliteVec.load(db)
+    db.run(`CREATE TABLE content_embeddings (
+      collection TEXT NOT NULL, document_id TEXT NOT NULL, dim INTEGER NOT NULL,
+      vector BLOB NOT NULL, model TEXT NOT NULL, updated_at TEXT NOT NULL,
+      PRIMARY KEY(collection, document_id))`)
+    const blob = (v: number[]) => new Uint8Array(new Float32Array(v).buffer)
+    db.run("INSERT INTO content_embeddings VALUES (?,?,?,?,?,?)", ["post", "a", 3, blob([1, 0, 0]), "m", "2026-01-01"])
+    db.run("INSERT INTO content_embeddings VALUES (?,?,?,?,?,?)", ["post", "b", 3, blob([0, 1, 0]), "m", "2026-01-01"])
+
+    const store = createEmbeddingStore(db as any, { vectorSearch: true })
+    // before rebuild there is no vec0 table; search falls back to JS (still correct)
+    store.rebuild()
+
+    expect((db.query("SELECT count(*) AS c FROM content_embeddings_vec").get() as any).c).toBe(2)
+    const hits = store.search(new Float32Array([1, 0, 0]), 1)
+    expect(hits[0].document_id).toBe("a")
+  })
+
+  test.skipIf(!OK)("rebuild is a no-op when content_embeddings is empty", () => {
+    const { store, db } = makeStore()
+    store.rebuild()
+    // no rows -> no vec0 table created
+    const exists = db.query("SELECT name FROM sqlite_master WHERE name = 'content_embeddings_vec'").get()
+    expect(exists).toBeNull()
+  })
 })

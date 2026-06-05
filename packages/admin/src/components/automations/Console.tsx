@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react"
-import type { FlowRun, FlowRunDetail } from "./flow-types"
+import { useEffect, useRef, useState } from "react"
+import type { FlowRun, FlowRunDetail, FlowRunStep } from "./flow-types"
 import { RunInspector, statusDot, formatMs } from "./RunInspector"
-import { adminApiFetch, messageForAdminResponse } from "../../lib/api"
+import { adminApiFetch, joinAdminApiUrl, messageForAdminResponse } from "../../lib/api"
+import { upsertRun, applyRunStep, applyRunCompleted } from "../../lib/automations/run-stream"
 import { EmptyState, ErrorState, LoadingState } from "../AdminState"
 
 type Props = {
@@ -23,6 +24,8 @@ export function Console({ apiBase = "", flowId, initialRuns, initialSelected, in
   const [selectedRun, setSelectedRun] = useState<FlowRunDetail | null>(initialSelected ?? null)
   const [loading, setLoading] = useState(!initialRuns)
   const [error, setError] = useState("")
+  const selectedRunRef = useRef<FlowRunDetail | null>(initialSelected ?? null)
+  useEffect(() => { selectedRunRef.current = selectedRun }, [selectedRun])
 
   const fetchRuns = async () => {
     setError("")
@@ -61,13 +64,52 @@ export function Console({ apiBase = "", flowId, initialRuns, initialSelected, in
   }, [selectedRunId, runs, apiBase])
 
   useEffect(() => {
-    if (!selectedRun || selectedRun.status !== "running") return
-    const id = setInterval(() => {
-      const run = runs.find((item) => item.id === selectedRun.id)
-      if (run) fetchSelected(run)
-    }, 2000)
-    return () => clearInterval(id)
-  }, [selectedRun, runs, apiBase])
+    const streamPath = `/api/_flows/runs/stream${flowId ? `?flowId=${encodeURIComponent(flowId)}` : ""}`
+    let pollId: ReturnType<typeof setInterval> | null = null
+    const startPolling = () => {
+      if (pollId) return
+      pollId = setInterval(() => {
+        const current = selectedRunRef.current
+        if (current && current.status === "running") fetchSelected(current)
+      }, 2000)
+    }
+
+    let source: EventSource | null = null
+    try {
+      source = new EventSource(joinAdminApiUrl(apiBase, streamPath), { withCredentials: true })
+    } catch {
+      // EventSource unavailable (or constructor threw): degrade to polling.
+      startPolling()
+      return () => { if (pollId) clearInterval(pollId) }
+    }
+
+    source.addEventListener("run.started", (event) => {
+      const run = JSON.parse((event as MessageEvent).data).run as FlowRun
+      setRuns((current) => upsertRun(current, run))
+    })
+    source.addEventListener("run.step", (event) => {
+      const { runId, step } = JSON.parse((event as MessageEvent).data) as { runId: string; step: FlowRunStep }
+      setSelectedRun((current) => applyRunStep(current, runId, step))
+    })
+    source.addEventListener("run.completed", (event) => {
+      const run = JSON.parse((event as MessageEvent).data).run as FlowRun
+      setRuns((current) => upsertRun(current, run))
+      setSelectedRun((current) => applyRunCompleted(current, run))
+    })
+    source.onerror = () => {
+      // EventSource auto-reconnects while CONNECTING. Only fall back to polling
+      // once it has given up (CLOSED).
+      if (source && source.readyState === EventSource.CLOSED) {
+        source.close()
+        startPolling()
+      }
+    }
+
+    return () => {
+      source?.close()
+      if (pollId) clearInterval(pollId)
+    }
+  }, [apiBase, flowId])
 
   if (loading) return <LoadingState title="Loading console" description="Fetching recent automation runs." />
 

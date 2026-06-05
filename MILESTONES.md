@@ -196,6 +196,31 @@
 
 ---
 
+## Deferred Enhancements (Icebox)
+
+> Captured but not committed to a phase: polish and v2 follow-ons, mostly from the Phase F media work. Revisit when demand appears.
+
+**Media / Vault**
+
+- Bulk **delete** of selected assets (the bulk bar only adds/removes tags and moves today).
+- Dangling-reference cleanup when an asset is deleted (references simply stop being queried).
+- Drag-and-drop asset move between folders (today: explicit "Move to").
+- Recursive "include subfolders" view (a folder shows only its direct assets).
+- Filter-aware tag chip counts (counts are global per tag today).
+
+**Tags**
+
+- Multi-tag **OR** filtering (only AND is built).
+- Tag descriptions, tag groups/namespaces, and tag merging.
+- Range / shift-click selection in the grid.
+
+**Folders**
+
+- Folder colors / icons and per-folder permissions.
+- Folder reordering beyond name sort.
+
+---
+
 ## Success Metrics
 
 | Milestone | "Done" when... |

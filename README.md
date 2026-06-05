@@ -675,7 +675,7 @@ not-a-cms/
 - [ ] **Plugin Marketplace**: npm distribution, sandboxed execution
 - [ ] **AI Infrastructure**: MCP server, in-editor writing assistant, content generation
 
-See [`MILESTONES.md`](MILESTONES.md) for the detailed phase log and [`docs/BACKLOG.md`](docs/BACKLOG.md) for open work.
+See [`MILESTONES.md`](MILESTONES.md) for the detailed phase log, planned phases, and deferred enhancements.
 
 ---
 

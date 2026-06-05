@@ -101,6 +101,28 @@ export function createEmbeddingStore(db: any, options: EmbeddingStoreOptions = {
     )
   }
 
+  function vecSearch(query: Float32Array, k: number, collection?: string): EmbeddingHit[] {
+    const blob = toBlob(query)
+    type Hit = { collection: string; document_id: string; distance: number }
+    const rows: Hit[] = collection
+      ? hasRaw
+        ? db.query(
+            `SELECT collection, document_id, distance FROM ${VEC_TABLE}
+             WHERE embedding MATCH ? AND k = ? AND collection = ? ORDER BY distance`,
+          ).all(blob, k, collection) as Hit[]
+        : db.all(sql`SELECT collection, document_id, distance FROM content_embeddings_vec
+             WHERE embedding MATCH ${blob} AND k = ${k} AND collection = ${collection} ORDER BY distance`) as Hit[]
+      : hasRaw
+        ? db.query(
+            `SELECT collection, document_id, distance FROM ${VEC_TABLE}
+             WHERE embedding MATCH ? AND k = ? ORDER BY distance`,
+          ).all(blob, k) as Hit[]
+        : db.all(sql`SELECT collection, document_id, distance FROM content_embeddings_vec
+             WHERE embedding MATCH ${blob} AND k = ${k} ORDER BY distance`) as Hit[]
+
+    return rows.map((r) => ({ collection: r.collection, document_id: r.document_id, score: 1 - r.distance }))
+  }
+
   return {
     upsert(collection: string, documentId: string, vector: Float32Array, model: string): void {
       const updatedAt = new Date().toISOString()
@@ -153,6 +175,14 @@ export function createEmbeddingStore(db: any, options: EmbeddingStoreOptions = {
     },
 
     search(query: Float32Array, k: number, collection?: string): EmbeddingHit[] {
+      if (vectorSearch && vecDim === query.length) {
+        try {
+          return vecSearch(query, k, collection)
+        } catch {
+          // fall through to the JS cosine scan below
+        }
+      }
+
       const rows: Row[] = collection
         ? db.query
           ? all<Row>("SELECT collection, document_id, vector, dim FROM content_embeddings WHERE collection = ?", [collection])

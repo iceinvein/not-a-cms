@@ -64,4 +64,39 @@ describe("embedding store vec0 write path", () => {
     const ddl = (db.query("SELECT sql FROM sqlite_master WHERE name = 'content_embeddings_vec'").get() as any).sql
     expect(ddl).toContain("float[4]")
   })
+
+  test.skipIf(!OK)("search reads from the vec0 index, not from content_embeddings", () => {
+    const { db, store } = makeStore()
+    store.upsert("post", "a", new Float32Array([1, 0, 0]), "m")
+    store.upsert("post", "b", new Float32Array([0, 1, 0]), "m")
+    // Wipe the BLOB table: the JS cosine fallback would now find nothing.
+    db.run("DELETE FROM content_embeddings")
+    const hits = store.search(new Float32Array([1, 0, 0]), 1)
+    expect(hits.map((h) => h.document_id)).toEqual(["a"]) // only vec0 still holds the data
+  })
+
+  test.skipIf(!OK)("vec0 search ranks neighbours by cosine, best score first", () => {
+    const { store } = makeStore()
+    store.upsert("post", "a", new Float32Array([1, 0, 0]), "m")
+    store.upsert("post", "b", new Float32Array([0, 1, 0]), "m")
+    store.upsert("post", "c", new Float32Array([0.9, 0.1, 0]), "m")
+    const hits = store.search(new Float32Array([1, 0, 0]), 2)
+    expect(hits.map((h) => h.document_id)).toEqual(["a", "c"])
+    expect(hits[0].score).toBeGreaterThan(hits[1].score)
+  })
+
+  test.skipIf(!OK)("collection filter scopes the vec0 search", () => {
+    const { store } = makeStore()
+    store.upsert("post", "a", new Float32Array([1, 0]), "m")
+    store.upsert("page", "x", new Float32Array([1, 0]), "m")
+    const hits = store.search(new Float32Array([1, 0]), 5, "page")
+    expect(hits.map((h) => h.document_id)).toEqual(["x"])
+  })
+
+  test.skipIf(!OK)("a query whose dimension differs from the index falls back to JS cosine", () => {
+    const { store } = makeStore()
+    store.upsert("post", "a", new Float32Array([1, 0, 0]), "m") // index is float[3]
+    // a dim-2 query: vecDim (3) !== 2, so JS cosine runs and filters by dim -> []
+    expect(store.search(new Float32Array([1, 0]), 5)).toEqual([])
+  })
 })

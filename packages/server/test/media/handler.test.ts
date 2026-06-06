@@ -361,6 +361,42 @@ describe("media API", () => {
       expect(res.status).toBe(400)
     }
   })
+
+  test("PATCH tags sets description/group; POST tags/merge folds tags", async () => {
+    const adminCookie = await signInAndGetCookie("media-admin@example.test")
+    const up = async (name: string, tags: string[]) => {
+      const fd = new FormData()
+      fd.append("file", new Blob(["x"], { type: "text/plain" }), name)
+      const id = (await (await fetch(`${baseUrl}/api/media/upload`, { method: "POST", headers: { cookie: adminCookie }, body: fd })).json()).id
+      await fetch(`${baseUrl}/api/media/${id}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json", cookie: adminCookie }, body: JSON.stringify({ tags }),
+      })
+      return id
+    }
+    await up("ta.txt", ["alpha"])
+    await up("tb.txt", ["alpha", "beta"])
+
+    const patched = await fetch(`${baseUrl}/api/media/tags/alpha`, {
+      method: "PATCH", headers: { "Content-Type": "application/json", cookie: adminCookie },
+      body: JSON.stringify({ description: "First tag", group: "Greek" }),
+    })
+    const entry = await patched.json()
+    expect(entry.description).toBe("First tag")
+    expect(entry.group).toBe("Greek")
+
+    const merged = await fetch(`${baseUrl}/api/media/tags/merge`, {
+      method: "POST", headers: { "Content-Type": "application/json", cookie: adminCookie },
+      body: JSON.stringify({ source: "beta", target: "alpha" }),
+    })
+    expect(merged.status).toBe(200)
+    expect((await merged.json()).merged).toBe(1)
+
+    const bad = await fetch(`${baseUrl}/api/media/tags/merge`, {
+      method: "POST", headers: { "Content-Type": "application/json", cookie: adminCookie },
+      body: JSON.stringify({ source: "x" }),
+    })
+    expect(bad.status).toBe(400)
+  })
 })
 
 async function signInAndGetCookie(email: string): Promise<string> {

@@ -10,6 +10,7 @@ import {
   listMediaFolders,
   listMediaTags,
   mediaDisplayUrl,
+  mergeMediaTag,
   moveMediaAssets,
   moveMediaFolder,
   normalizeTagInput,
@@ -20,6 +21,8 @@ import {
   setMediaFolderColor,
   setMediaFolderIcon,
   setMediaTagColor,
+  setMediaTagDescription,
+  setMediaTagGroup,
   updateMediaItem,
   uploadMediaFile,
 } from "../../src/lib/media"
@@ -253,6 +256,26 @@ describe("admin media API client", () => {
     expect(calls[4]?.init?.method).toBe("DELETE")
     expect(calls[5]?.url).toBe("https://cms.example.test/api/media/move")
     expect(moved[0]?.folderId).toBe("f1")
+  })
+
+  test("tag description/group/merge client fns hit the right routes", async () => {
+    const calls: Array<{ url: string; init?: RequestInit }> = []
+    globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
+      calls.push({ url: String(url), init })
+      return Response.json({ merged: 1, name: "x", color: "#abcdef", count: 1 })
+    }) as typeof fetch
+
+    await setMediaTagDescription("https://cms.example.test", "x", "desc")
+    await setMediaTagGroup("https://cms.example.test", "x", "grp")
+    await mergeMediaTag("https://cms.example.test", "src", "dst")
+
+    expect(calls[0]?.url).toBe("https://cms.example.test/api/media/tags/x")
+    expect(calls[0]?.init?.method).toBe("PATCH")
+    expect(JSON.parse(String(calls[0]?.init?.body))).toEqual({ description: "desc" })
+    expect(JSON.parse(String(calls[1]?.init?.body))).toEqual({ group: "grp" })
+    expect(calls[2]?.url).toBe("https://cms.example.test/api/media/tags/merge")
+    expect(calls[2]?.init?.method).toBe("POST")
+    expect(JSON.parse(String(calls[2]?.init?.body))).toEqual({ source: "src", target: "dst" })
   })
 
   test("folder style + reorder client fns PATCH the right body", async () => {

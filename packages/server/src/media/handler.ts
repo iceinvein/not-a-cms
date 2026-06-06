@@ -66,6 +66,16 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
       return json({ data: updated.map(toPublicRecord) })
     }
 
+    if (req.method === "POST" && subpath === "tags" && action === "merge") {
+      const forbidden = await requireManager(req)
+      if (forbidden) return forbidden
+      const body = await req.json().catch(() => null)
+      if (!isRecord(body) || typeof body.source !== "string" || !body.source.trim() || typeof body.target !== "string" || !body.target.trim()) {
+        return json({ error: "source and target are required" }, 400)
+      }
+      return json({ merged: storage.mergeTag(body.source, body.target) })
+    }
+
     if (req.method === "POST" && subpath === "delete" && !action) {
       const forbidden = await requireManager(req)
       if (forbidden) return forbidden
@@ -201,6 +211,14 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
       if (body.color !== undefined) {
         if (typeof body.color !== "string" || !/^#[0-9a-f]{6}$/i.test(body.color)) return json({ error: "color must be a #rrggbb hex" }, 400)
         storage.setTagColor(name, body.color)
+      }
+      if (body.description !== undefined) {
+        if (body.description !== null && typeof body.description !== "string") return json({ error: "description must be a string or null" }, 400)
+        storage.setTagDescription(name, body.description)
+      }
+      if (body.group !== undefined) {
+        if (body.group !== null && typeof body.group !== "string") return json({ error: "group must be a string or null" }, 400)
+        storage.setTagGroup(name, body.group)
       }
       if (body.newName !== undefined) {
         if (typeof body.newName !== "string") return json({ error: "newName must be a non-empty string" }, 400)

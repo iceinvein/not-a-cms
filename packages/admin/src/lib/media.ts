@@ -85,7 +85,7 @@ export async function bulkUpdateMediaTags(
   return (body.data ?? []).map((record) => normalizeMediaRecord(apiBase, record))
 }
 
-export type MediaTag = { name: string; color: string; count: number }
+export type MediaTag = { name: string; color: string; count: number; description?: string; group?: string }
 
 export async function listMediaTags(apiBase: string): Promise<MediaTag[]> {
   const res = await adminApiFetch(apiBase, "/api/media/tags")
@@ -112,6 +112,37 @@ export async function setMediaTagColor(apiBase: string, name: string, color: str
   })
   if (!res.ok) throw new Error("Failed to set tag color")
   return await res.json() as MediaTag
+}
+
+export async function setMediaTagDescription(apiBase: string, name: string, description: string | null): Promise<MediaTag> {
+  const res = await adminApiFetch(apiBase, `/api/media/tags/${encodeURIComponent(name)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ description }),
+  })
+  if (!res.ok) throw new Error("Failed to set tag description")
+  return await res.json() as MediaTag
+}
+
+export async function setMediaTagGroup(apiBase: string, name: string, group: string | null): Promise<MediaTag> {
+  const res = await adminApiFetch(apiBase, `/api/media/tags/${encodeURIComponent(name)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ group }),
+  })
+  if (!res.ok) throw new Error("Failed to set tag group")
+  return await res.json() as MediaTag
+}
+
+export async function mergeMediaTag(apiBase: string, source: string, target: string): Promise<number> {
+  const res = await adminApiFetch(apiBase, "/api/media/tags/merge", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ source, target }),
+  })
+  if (!res.ok) throw new Error("Failed to merge tags")
+  const body = await res.json() as { merged?: number }
+  return body.merged ?? 0
 }
 
 export async function deleteMediaTag(apiBase: string, name: string): Promise<void> {

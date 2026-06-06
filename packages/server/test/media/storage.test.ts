@@ -158,6 +158,38 @@ describe("local media storage", () => {
     expect(list.every((t) => /^#[0-9a-f]{6}$/i.test(t.color))).toBe(true)
   })
 
+  test("tag description/group set, clear, and survive setTagColor", async () => {
+    const storage = createLocalStorage({ provider: "local", path: uploadsDir })
+    await storage.store(new File(["x"], "a.txt"), { tags: ["hero"] })
+    storage.setTagDescription("hero", "Homepage hero shots")
+    storage.setTagGroup("hero", "Marketing")
+    storage.setTagColor("hero", "#123456")
+    let entry = storage.listTags().find((t) => t.name === "hero")!
+    expect(entry.description).toBe("Homepage hero shots")
+    expect(entry.group).toBe("Marketing")
+    expect(entry.color).toBe("#123456")
+    storage.setTagDescription("hero", null)
+    entry = storage.listTags().find((t) => t.name === "hero")!
+    expect(entry.description).toBeUndefined()
+    expect(entry.group).toBe("Marketing")
+  })
+
+  test("mergeTag moves assets to the target, drops the source, keeps target metadata", async () => {
+    const storage = createLocalStorage({ provider: "local", path: uploadsDir })
+    const a = await storage.store(new File(["x"], "a.txt"), { tags: ["old"] })
+    const b = await storage.store(new File(["x"], "b.txt"), { tags: ["old", "new"] })
+    storage.setTagColor("new", "#abcdef")
+    storage.setTagDescription("new", "Target tag")
+    expect(storage.mergeTag("old", "new")).toBe(2)
+    expect(storage.get(a.id)?.tags).toEqual(["new"])
+    expect(storage.get(b.id)?.tags).toEqual(["new"])
+    const entry = storage.listTags().find((t) => t.name === "new")!
+    expect(entry.color).toBe("#abcdef")
+    expect(entry.description).toBe("Target tag")
+    expect(storage.listTags().find((t) => t.name === "old")).toBeUndefined()
+    expect(storage.mergeTag("x", "x")).toBe(0)
+  })
+
   test("folder CRUD: create, rename, move with cycle rejection", () => {
     const storage = createLocalStorage({ provider: "local", path: uploadsDir })
     const brand = storage.createFolder("Brand", null)

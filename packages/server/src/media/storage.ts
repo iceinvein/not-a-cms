@@ -70,9 +70,12 @@ export type MediaStorage = {
   remove(id: string): Promise<boolean>
   tagColors(): Record<string, string>
   setTagColor(name: string, color: string): void
+  setTagDescription(name: string, description: string | null): void
+  setTagGroup(name: string, group: string | null): void
+  mergeTag(source: string, target: string): number
   renameTag(from: string, to: string): number
   removeTag(name: string): number
-  listTags(): { name: string; color: string; count: number }[]
+  listTags(): { name: string; color: string; count: number; description?: string; group?: string }[]
   listFolders(): Folder[]
   createFolder(name: string, parentId: string | null): Folder
   renameFolder(id: string, name: string): Folder | null
@@ -241,8 +244,49 @@ function createIndexedMediaStorage(config: StorageConfig, provider: ObjectProvid
       if (!HEX_COLOR.test(color)) throw new Error("color must be a #rrggbb hex string")
       const key = normalizeTag(name)
       if (!key) return
-      tagRegistry[key] = { color }
+      tagRegistry[key] = { ...tagRegistry[key], color }
       persistTagRegistry()
+    },
+
+    setTagDescription(name: string, description: string | null): void {
+      const key = normalizeTag(name)
+      if (!key) return
+      const existing = tagRegistry[key]
+      if (description === null || description.trim() === "") {
+        if (existing) { delete existing.description; persistTagRegistry() }
+        return
+      }
+      tagRegistry[key] = { ...(existing ?? { color: defaultTagColor(key) }), description }
+      persistTagRegistry()
+    },
+
+    setTagGroup(name: string, group: string | null): void {
+      const key = normalizeTag(name)
+      if (!key) return
+      const existing = tagRegistry[key]
+      if (group === null || group.trim() === "") {
+        if (existing) { delete existing.group; persistTagRegistry() }
+        return
+      }
+      tagRegistry[key] = { ...(existing ?? { color: defaultTagColor(key) }), group: group.trim() }
+      persistTagRegistry()
+    },
+
+    mergeTag(source: string, target: string): number {
+      const from = normalizeTag(source)
+      const to = normalizeTag(target)
+      if (!from || !to || from === to) return 0
+      let changed = 0
+      for (const record of records.values()) {
+        if ((record.tags ?? []).includes(from)) {
+          records.set(record.id, { ...record, tags: applyTagOps(record.tags ?? [], [to], [from]) })
+          changed++
+        }
+      }
+      delete tagRegistry[from]
+      persistIndex()
+      persistTagRegistry()
+      return changed
     },
 
     renameTag(from: string, to: string): number {
@@ -287,7 +331,13 @@ function createIndexedMediaStorage(config: StorageConfig, provider: ObjectProvid
         for (const tag of record.tags ?? []) counts.set(tag, (counts.get(tag) ?? 0) + 1)
       }
       return [...counts.entries()]
-        .map(([name, count]) => ({ name, count, color: tagRegistry[name]?.color ?? defaultTagColor(name) }))
+        .map(([name, count]) => ({
+          name,
+          count,
+          color: tagRegistry[name]?.color ?? defaultTagColor(name),
+          ...(tagRegistry[name]?.description !== undefined && { description: tagRegistry[name]!.description }),
+          ...(tagRegistry[name]?.group !== undefined && { group: tagRegistry[name]!.group }),
+        }))
         .sort((a, b) => a.name.localeCompare(b.name))
     },
 
@@ -669,10 +719,10 @@ function loadFolders(path: string): Folder[] {
   }
 }
 
-function loadTagRegistry(path: string): Record<string, { color: string }> {
+function loadTagRegistry(path: string): Record<string, { color: string; description?: string; group?: string }> {
   if (!existsSync(path)) return {}
   try {
-    return JSON.parse(readFileSync(path, "utf8")) as Record<string, { color: string }>
+    return JSON.parse(readFileSync(path, "utf8")) as Record<string, { color: string; description?: string; group?: string }>
   } catch {
     return {}
   }

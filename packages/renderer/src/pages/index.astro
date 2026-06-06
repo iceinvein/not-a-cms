@@ -1,6 +1,6 @@
 ---
 import DefaultLayout from "../defaults/layouts/default.astro"
-import { createContentFetcher } from "../runtime/content-fetcher"
+import { createContentFetcher, documentPath } from "../runtime/content-fetcher"
 import { renderDocumentContent } from "../runtime/document-renderer"
 
 const apiBase = import.meta.env.PUBLIC_API_BASE || "http://localhost:4321"
@@ -41,7 +41,7 @@ try {
       {posts.map((post) => (
         <article class="border-b border-gray-200 pb-8 last:border-0">
           <h2 class="text-2xl font-semibold mb-2">
-            <a href={`/${post.slug || post.title}`} class="hover:text-blue-600 transition-colors">
+            <a href={documentPath("blog_post", post) ?? "#"} class="hover:text-blue-600 transition-colors">
               {post.title}
             </a>
           </h2>

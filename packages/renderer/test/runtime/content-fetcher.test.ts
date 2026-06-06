@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { createContentFetcher, resolveRouteMatch, type RouteConfig } from "../../src/runtime/content-fetcher"
+import { createContentFetcher, documentPath, resolveRouteMatch, type RouteConfig } from "../../src/runtime/content-fetcher"
 
 describe("resolveRouteMatch", () => {
   const routes: RouteConfig[] = [
@@ -28,6 +28,34 @@ describe("resolveRouteMatch", () => {
 
   test("returns null for unknown paths", () => {
     expect(resolveRouteMatch("/blog/hello-world/comments", routes)).toBeNull()
+  })
+})
+
+describe("documentPath", () => {
+  const routes: RouteConfig[] = [
+    { collection: "page", path: "/", slug: "home" },
+    { collection: "blog_post", path: "/blog/:slug" },
+    { collection: "page", path: "/:slug" },
+  ]
+
+  test("maps the home page to /", () => {
+    expect(documentPath("page", { slug: "home" }, routes)).toBe("/")
+  })
+
+  test("maps a regular page to /:slug", () => {
+    expect(documentPath("page", { slug: "about" }, routes)).toBe("/about")
+  })
+
+  test("maps a blog post under /blog/:slug", () => {
+    expect(documentPath("blog_post", { slug: "hello-world" }, routes)).toBe("/blog/hello-world")
+  })
+
+  test("returns null when no route exists for the collection", () => {
+    expect(documentPath("author", { slug: "jane" }, routes)).toBeNull()
+  })
+
+  test("returns null when a variable route has no slug to fill", () => {
+    expect(documentPath("blog_post", { slug: "" }, routes)).toBeNull()
   })
 })
 

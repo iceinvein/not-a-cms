@@ -99,6 +99,29 @@ export function createContentFetcher(config: FetchConfig) {
   }
 }
 
+/**
+ * Build the public path for a document, the inverse of resolveRouteMatch.
+ * Prefers a fixed-slug route whose slug matches the document (e.g. the homepage),
+ * then falls back to the first variable (`:slug`) route for the collection.
+ * Returns null when the collection has no route or a variable route has no slug to fill.
+ */
+export function documentPath(
+  collection: string,
+  doc: { slug?: string | null },
+  routes: RouteConfig[] = DEFAULT_ROUTES,
+): string | null {
+  const candidates = routes.filter((route) => route.collection === collection)
+  if (candidates.length === 0) return null
+
+  const fixed = candidates.find((route) => route.slug && route.slug === doc.slug)
+  if (fixed) return fixed.path
+
+  const variable = candidates.find((route) => route.path.includes(":slug"))
+  if (variable && doc.slug) return variable.path.replace(":slug", doc.slug)
+
+  return null
+}
+
 export function resolveRouteMatch(pathname: string, routes: RouteConfig[]): RouteMatch | null {
   const normalizedPath = normalizePath(pathname)
   for (const route of routes) {

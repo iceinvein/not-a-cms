@@ -22,7 +22,8 @@ import {
 } from "../../lib/media"
 import { clusterAssets, type Cluster } from "../../lib/media/cluster"
 import { buildFolderTree, filterByFolder, folderPath } from "../../lib/media/folders"
-import { allTags, filterByTags, filterUntagged, tagColor } from "../../lib/media/tags"
+import { allTags, filterByTags, filterUntagged, tagColor, tagPreviewCounts } from "../../lib/media/tags"
+import { rangeBetween } from "../../lib/media/selection"
 import { TagManager } from "./TagManager"
 import { FolderTree, type ActiveFolder } from "./FolderTree"
 
@@ -86,6 +87,8 @@ export function Vault({
   const [error, setError] = useState<string | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(initialSelected?.id ?? initialItems[0]?.id ?? null)
   const [activeTags, setActiveTags] = useState<string[]>([])
+  const [filterMode, setFilterMode] = useState<"and" | "or">("and")
+  const [anchorId, setAnchorId] = useState<string | null>(null)
   const [showUntagged, setShowUntagged] = useState(false)
   const [activeFolder, setActiveFolder] = useState<ActiveFolder>("all")
   const [checkedIds, setCheckedIds] = useState<string[]>([])
@@ -103,13 +106,14 @@ export function Vault({
   const selectedItem = items.find((item) => item.id === selectedId) ?? initialSelected ?? null
   const folderTree = useMemo(() => buildFolderTree(folders), [folders])
   const folderScoped = useMemo(() => filterByFolder(items, activeFolder), [items, activeFolder])
-  const tags = useMemo(() => allTags(folderScoped), [folderScoped])
+  const tags = useMemo(() => tagPreviewCounts(folderScoped, activeTags, filterMode), [folderScoped, activeTags, filterMode])
   const untaggedTotal = useMemo(() => filterUntagged(folderScoped).length, [folderScoped])
   const visible = useMemo(
-    () => (showUntagged ? filterUntagged(folderScoped) : filterByTags(folderScoped, activeTags)),
-    [folderScoped, activeTags, showUntagged],
+    () => (showUntagged ? filterUntagged(folderScoped) : filterByTags(folderScoped, activeTags, filterMode)),
+    [folderScoped, activeTags, showUntagged, filterMode],
   )
   const clusters = useMemo(() => clusterAssets(visible, counts), [visible, counts])
+  const orderedIds = useMemo(() => clusters.flatMap((cluster) => cluster.items.map((item) => item.id)), [clusters])
 
   const applyTagList = (list: MediaTag[]) => {
     setTagList(list)
@@ -293,7 +297,13 @@ export function Vault({
     setShowUntagged((value) => !value)
   }
 
-  const toggleChecked = (id: string) => {
+  const toggleChecked = (id: string, shiftKey = false) => {
+    if (shiftKey && anchorId) {
+      const range = rangeBetween(orderedIds, anchorId, id)
+      setCheckedIds((current) => Array.from(new Set([...current, ...range])))
+      return
+    }
+    setAnchorId(id)
     setCheckedIds((current) => (current.includes(id) ? current.filter((checkedId) => checkedId !== id) : [...current, id]))
   }
 
@@ -474,6 +484,8 @@ export function Vault({
                     showUntagged={showUntagged}
                     untaggedCount={untaggedTotal}
                     colors={tagColors}
+                    mode={filterMode}
+                    onSetMode={setFilterMode}
                     onToggleTag={toggleTag}
                     onToggleUntagged={toggleUntagged}
                     onClear={clearFilter}
@@ -543,6 +555,8 @@ function TagFilterBar({
   showUntagged,
   untaggedCount,
   colors,
+  mode,
+  onSetMode,
   onToggleTag,
   onToggleUntagged,
   onClear,
@@ -552,6 +566,8 @@ function TagFilterBar({
   showUntagged: boolean
   untaggedCount: number
   colors: Record<string, string>
+  mode: "and" | "or"
+  onSetMode: (mode: "and" | "or") => void
   onToggleTag: (tag: string) => void
   onToggleUntagged: () => void
   onClear: () => void
@@ -569,6 +585,28 @@ function TagFilterBar({
       <button type="button" onClick={onClear} className={chip(noFilter)} aria-pressed={noFilter}>
         All
       </button>
+      {activeTags.length >= 2 && (
+        <span className="inline-flex overflow-hidden rounded-full border border-[rgba(255,255,255,0.12)] text-xs font-medium" role="group" aria-label="Match mode">
+          <button
+            type="button"
+            onClick={() => onSetMode("and")}
+            aria-pressed={mode === "and"}
+            title="Match all selected tags"
+            className={`px-2.5 py-1 ${mode === "and" ? "bg-[rgba(201,149,107,0.18)] text-[#fafafa]" : "text-[#d4d4d8] hover:bg-[rgba(255,255,255,0.04)]"}`}
+          >
+            AND
+          </button>
+          <button
+            type="button"
+            onClick={() => onSetMode("or")}
+            aria-pressed={mode === "or"}
+            title="Match any selected tag"
+            className={`px-2.5 py-1 ${mode === "or" ? "bg-[rgba(201,149,107,0.18)] text-[#fafafa]" : "text-[#d4d4d8] hover:bg-[rgba(255,255,255,0.04)]"}`}
+          >
+            OR
+          </button>
+        </span>
+      )}
       {untaggedCount > 0 && (
         <button type="button" onClick={onToggleUntagged} className={chip(showUntagged)} aria-pressed={showUntagged}>
           Untagged
@@ -578,7 +616,13 @@ function TagFilterBar({
       {tags.map(({ tag, count }) => {
         const active = activeTags.includes(tag)
         return (
-          <button key={tag} type="button" onClick={() => onToggleTag(tag)} className={chip(active)} aria-pressed={active}>
+          <button
+            key={tag}
+            type="button"
+            onClick={() => onToggleTag(tag)}
+            className={`${chip(active)}${count === 0 && !active ? " opacity-40" : ""}`}
+            aria-pressed={active}
+          >
             <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: tagColor(tag, colors) }} />
             #{tag}
             <span className="text-[#71717a]">{count}</span>
@@ -710,7 +754,7 @@ function ClusterSection({
   selectedId: string | null
   checkedIds: string[]
   onSelect: (id: string) => void
-  onToggleChecked: (id: string) => void
+  onToggleChecked: (id: string, shiftKey: boolean) => void
 }) {
   return (
     <section className="space-y-3">
@@ -732,7 +776,8 @@ function ClusterSection({
                   type="checkbox"
                   className="h-3.5 w-3.5 accent-[#c9956b]"
                   checked={checkedIds.includes(item.id)}
-                  onChange={() => onToggleChecked(item.id)}
+                  onChange={() => {}}
+                  onClick={(event) => onToggleChecked(item.id, event.shiftKey)}
                   aria-label={`Select ${item.title || item.filename}`}
                 />
               </label>

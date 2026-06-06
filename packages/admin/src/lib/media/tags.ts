@@ -12,9 +12,23 @@ export function allTags(items: AdminMediaItem[]): { tag: string; count: number }
     .sort((a, b) => a.tag.localeCompare(b.tag))
 }
 
-export function filterByTags(items: AdminMediaItem[], tags: string[]): AdminMediaItem[] {
+export function filterByTags(items: AdminMediaItem[], tags: string[], mode: "and" | "or" = "and"): AdminMediaItem[] {
   if (tags.length === 0) return items
+  if (mode === "or") return items.filter((item) => tags.some((tag) => (item.tags ?? []).includes(tag)))
   return items.filter((item) => tags.every((tag) => (item.tags ?? []).includes(tag)))
+}
+
+// Filter-aware facet counts: each count is the result size if that tag were added
+// to the active selection under the current mode (drill-down preview).
+export function tagPreviewCounts(
+  items: AdminMediaItem[],
+  activeTags: string[],
+  mode: "and" | "or",
+): { tag: string; count: number }[] {
+  return allTags(items).map(({ tag }) => ({
+    tag,
+    count: filterByTags(items, [...activeTags, tag], mode).length,
+  }))
 }
 
 export function filterUntagged(items: AdminMediaItem[]): AdminMediaItem[] {

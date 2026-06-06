@@ -192,6 +192,17 @@ export async function deleteMediaItem(apiBase: string, id: string): Promise<void
   if (!res.ok) throw new Error("Failed to delete media")
 }
 
+export async function bulkDeleteMediaItems(apiBase: string, ids: string[]): Promise<string[]> {
+  const res = await adminApiFetch(apiBase, "/api/media/delete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ids }),
+  })
+  if (!res.ok) throw new Error("Failed to delete media")
+  const body = await res.json() as { deleted?: string[] }
+  return body.deleted ?? []
+}
+
 export function mediaDisplayUrl(value: unknown, apiBase: string): string {
   if (!value) return ""
   if (typeof value === "string") {

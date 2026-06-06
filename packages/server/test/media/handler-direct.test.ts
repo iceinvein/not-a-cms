@@ -70,4 +70,58 @@ describe("media handler file responses", () => {
     expect(unknownFormat?.status).toBe(400)
     expect(missingFormat?.status).toBe(400)
   })
+
+  test("single DELETE fires onAssetsDeleted with the removed id", async () => {
+    const storage = createLocalStorage({ provider: "local", path: uploadsDir })
+    const stored = await storage.store(new File(["x"], "x.txt", { type: "text/plain" }))
+    const deleted: string[][] = []
+    const handler = createMediaHandler(storage, { onAssetsDeleted: (ids) => deleted.push(ids) })
+
+    const res = await handler(new Request(`https://cms.example.test/api/media/${stored.id}`, { method: "DELETE" }))
+
+    expect((await res?.json()).deleted).toBe(true)
+    expect(deleted).toEqual([[stored.id]])
+    expect(storage.get(stored.id)).toBeNull()
+  })
+
+  test("single DELETE of a missing id does not fire onAssetsDeleted", async () => {
+    const storage = createLocalStorage({ provider: "local", path: uploadsDir })
+    const deleted: string[][] = []
+    const handler = createMediaHandler(storage, { onAssetsDeleted: (ids) => deleted.push(ids) })
+
+    const res = await handler(new Request(`https://cms.example.test/api/media/missing`, { method: "DELETE" }))
+
+    expect((await res?.json()).deleted).toBe(false)
+    expect(deleted).toEqual([])
+  })
+
+  test("POST /api/media/delete removes records and returns only really-deleted ids", async () => {
+    const storage = createLocalStorage({ provider: "local", path: uploadsDir })
+    const a = await storage.store(new File(["a"], "a.txt", { type: "text/plain" }))
+    const b = await storage.store(new File(["b"], "b.txt", { type: "text/plain" }))
+    const deleted: string[][] = []
+    const handler = createMediaHandler(storage, { onAssetsDeleted: (ids) => deleted.push(ids) })
+
+    const res = await handler(new Request("https://cms.example.test/api/media/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: [a.id, "missing", b.id] }),
+    }))
+
+    const body = await res?.json()
+    expect(body.deleted.sort()).toEqual([a.id, b.id].sort())
+    expect(deleted[0]?.sort()).toEqual([a.id, b.id].sort())
+    expect(storage.list()).toEqual([])
+  })
+
+  test("POST /api/media/delete rejects a non-array ids body", async () => {
+    const storage = createLocalStorage({ provider: "local", path: uploadsDir })
+    const handler = createMediaHandler(storage)
+    const res = await handler(new Request("https://cms.example.test/api/media/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: "nope" }),
+    }))
+    expect(res?.status).toBe(400)
+  })
 })

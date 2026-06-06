@@ -7,14 +7,21 @@ export type UsageReference = { collection: string; documentId: string; label: st
 // logical name, e.g. doc.cover), since extractMediaReferences reads logical names.
 type RebuildEntry = { def: CollectionDef; service: { findMany: () => Promise<Record<string, unknown>[]> } }
 
-export function createMediaReferenceStore(db: AppDatabase) {
+export type MediaReferenceStoreOptions = {
+  // When provided, references to assets that no longer exist are filtered out at
+  // write/rebuild time so a deleted asset never re-enters the reverse index.
+  assetExists?: (assetId: string) => boolean
+}
+
+export function createMediaReferenceStore(db: AppDatabase, options: MediaReferenceStoreOptions = {}) {
   function replaceForDocument(collection: string, documentId: string, refs: MediaReference[]): void {
+    const live = options.assetExists ? refs.filter((ref) => options.assetExists!(ref.assetId)) : refs
     // Atomic replace: the delete and the re-inserts run in one transaction so a
     // failed insert (or a crash mid-write) rolls back to the prior index rather
     // than leaving the document partially indexed until the next boot rebuild.
     db.transaction((tx) => {
       tx.run(sql`DELETE FROM media_references WHERE collection = ${collection} AND document_id = ${documentId}`)
-      for (const ref of refs) {
+      for (const ref of live) {
         tx.run(sql`INSERT INTO media_references (asset_id, collection, document_id, field, label)
           VALUES (${ref.assetId}, ${collection}, ${documentId}, ${ref.field}, ${ref.label})`)
       }
@@ -23,6 +30,10 @@ export function createMediaReferenceStore(db: AppDatabase) {
 
   function removeDocument(collection: string, documentId: string): void {
     db.run(sql`DELETE FROM media_references WHERE collection = ${collection} AND document_id = ${documentId}`)
+  }
+
+  function removeAsset(assetId: string): void {
+    db.run(sql`DELETE FROM media_references WHERE asset_id = ${assetId}`)
   }
 
   function counts(): Record<string, number> {
@@ -72,7 +83,7 @@ export function createMediaReferenceStore(db: AppDatabase) {
     }
   }
 
-  return { replaceForDocument, removeDocument, counts, references, usage, clear, rebuild }
+  return { replaceForDocument, removeDocument, removeAsset, counts, references, usage, clear, rebuild }
 }
 
 export type MediaReferenceStore = ReturnType<typeof createMediaReferenceStore>

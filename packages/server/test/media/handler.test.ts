@@ -6,7 +6,7 @@ import { unlinkSync, rmSync, existsSync } from "node:fs"
 const testDbPath = "test-media.db"
 const uploadsDir = "./test-uploads"
 
-const page = defineCollection({ name: "page", fields: { title: field.text() } })
+const page = defineCollection({ name: "page", fields: { title: field.text(), cover: field.media({ accept: ["image/*"] }) } })
 
 let baseUrl: string
 let server: ReturnType<typeof createServer>
@@ -177,6 +177,42 @@ describe("media API", () => {
       body: JSON.stringify({ ids: [ids[0]], remove: ["campaign"] }),
     })
     expect((await remove.json()).data[0].tags).toEqual([])
+  })
+
+  test("bulk delete clears a referenced asset's usage count", async () => {
+    const adminCookie = await signInAndGetCookie("media-admin@example.test")
+    const fd = new FormData()
+    fd.append("file", new Blob(["pixels"], { type: "image/png" }), "z.png")
+    const up = await fetch(`${baseUrl}/api/media/upload`, { method: "POST", headers: { cookie: adminCookie }, body: fd })
+    const asset = await up.json()
+
+    // Reference the asset from content so the reverse index records a usage.
+    const created = await fetch(`${baseUrl}/api/page`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", cookie: adminCookie },
+      body: JSON.stringify({ title: "Has cover", cover: asset.id }),
+    })
+    expect(created.status).toBe(201)
+
+    const before = await fetch(`${baseUrl}/api/media/usage`, { headers: { cookie: adminCookie } })
+    expect((await before.json()).counts[asset.id]).toBe(1)
+
+    const del = await fetch(`${baseUrl}/api/media/delete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", cookie: adminCookie },
+      body: JSON.stringify({ ids: [asset.id] }),
+    })
+    expect(del.status).toBe(200)
+    expect((await del.json()).deleted).toEqual([asset.id])
+
+    // onAssetsDeleted must purge the reverse-index rows for the deleted asset.
+    const after = await fetch(`${baseUrl}/api/media/usage`, { headers: { cookie: adminCookie } })
+    expect((await after.json()).counts[asset.id]).toBeUndefined()
+
+    const anon = await fetch(`${baseUrl}/api/media/delete`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids: ["x"] }),
+    })
+    expect(anon.status).toBe(401)
   })
 
   test("POST /api/media/tags rejects anonymous and bad bodies", async () => {

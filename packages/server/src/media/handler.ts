@@ -25,6 +25,7 @@ function toPublicRecord(record: MediaRecord): PublicMediaRecord {
 
 type MediaHandlerOptions = {
   canManage?: (req: Request) => boolean | Promise<boolean>
+  onAssetsDeleted?: (ids: string[]) => void
 }
 
 export function createMediaHandler(storage: MediaStorage, options: MediaHandlerOptions = {}) {
@@ -63,6 +64,21 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
         if (next) updated.push(next)
       }
       return json({ data: updated.map(toPublicRecord) })
+    }
+
+    if (req.method === "POST" && subpath === "delete" && !action) {
+      const forbidden = await requireManager(req)
+      if (forbidden) return forbidden
+      const body = await req.json().catch(() => null)
+      if (!isRecord(body) || !Array.isArray(body.ids) || body.ids.some((id) => typeof id !== "string")) {
+        return json({ error: "ids must be an array of strings" }, 400)
+      }
+      const deleted: string[] = []
+      for (const id of body.ids as string[]) {
+        if (await storage.remove(id)) deleted.push(id)
+      }
+      if (deleted.length > 0) options.onAssetsDeleted?.(deleted)
+      return json({ deleted })
     }
 
     if (req.method === "GET" && !subpath) {
@@ -208,6 +224,7 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
       const forbidden = await requireManager(req)
       if (forbidden) return forbidden
       const deleted = await storage.remove(subpath)
+      if (deleted) options.onAssetsDeleted?.([subpath])
       return json({ deleted })
     }
 

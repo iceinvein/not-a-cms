@@ -75,4 +75,42 @@ describe("createMediaReferenceStore", () => {
     expect(store.counts()).toEqual({ img1: 1 })
     expect(store.references("old")).toEqual([])
   })
+
+  test("removeAsset deletes only the target asset's rows", () => {
+    const { store } = setup()
+    store.replaceForDocument("post", "p1", [
+      { assetId: "img1", field: "cover", label: "A" },
+      { assetId: "img2", field: "body", label: "A" },
+    ])
+    store.removeAsset("img1")
+    expect(store.counts()).toEqual({ img2: 1 })
+    expect(store.references("img1")).toEqual([])
+  })
+
+  test("assetExists filters refs to missing assets in replaceForDocument", () => {
+    const db = createDatabase({ url: testDbPath })
+    bootstrapTables(db, [])
+    const store = createMediaReferenceStore(db, { assetExists: (id) => id === "img1" })
+    store.replaceForDocument("post", "p1", [
+      { assetId: "img1", field: "cover", label: "A" },
+      { assetId: "gone", field: "body", label: "A" },
+    ])
+    expect(store.counts()).toEqual({ img1: 1 })
+    expect(store.references("gone")).toEqual([])
+  })
+
+  test("rebuild skips references to assets that no longer exist", async () => {
+    const db = createDatabase({ url: testDbPath })
+    bootstrapTables(db, [])
+    const store = createMediaReferenceStore(db, { assetExists: (id) => id === "img1" })
+    const collections = new Map([
+      ["post", { def: post, service: { findMany: async () => [
+        { id: "p1", title: "Has live asset", cover: "img1" },
+        { id: "p2", title: "Has dead asset", cover: "gone" },
+      ] } }],
+    ])
+    await store.rebuild(collections as any)
+    expect(store.counts()).toEqual({ img1: 1 })
+    expect(store.references("gone")).toEqual([])
+  })
 })

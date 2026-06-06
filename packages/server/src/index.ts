@@ -167,7 +167,12 @@ export function createServer(config: ServerConfig): CreatedServer {
   const automationHandler = createAutomationHandler(flowStore, flowEngine, runEvents)
   const automationCron = createAutomationCron(flowStore, flowEngine)
 
-  const mediaReferenceStore = createMediaReferenceStore(db)
+  const storagePath = config.storage?.provider === "local" ? config.storage.path : config.storage?.path ?? "./uploads"
+  const optimizer = createImageOptimizer(storagePath)
+  const storage = createMediaStorage(config.storage ?? { provider: "local", path: storagePath }, optimizer)
+  const mediaReferenceStore = createMediaReferenceStore(db, {
+    assetExists: (id) => storage.get(id) !== null,
+  })
 
   // Build collection registry
   for (const def of config.collections) {
@@ -237,10 +242,9 @@ export function createServer(config: ServerConfig): CreatedServer {
     getRole: async (req) => (await getSession(req))?.role ?? null,
   })
 
-  const storagePath = config.storage?.provider === "local" ? config.storage.path : config.storage?.path ?? "./uploads"
-  const optimizer = createImageOptimizer(storagePath)
-  const storage = createMediaStorage(config.storage ?? { provider: "local", path: storagePath }, optimizer)
-  const mediaHandler = createMediaHandler(storage)
+  const mediaHandler = createMediaHandler(storage, {
+    onAssetsDeleted: (ids) => ids.forEach((id) => mediaReferenceStore.removeAsset(id)),
+  })
   const trpcRouter = appRouter(collections)
   const restHandler = createRestHandler(collections, versioning, search, webhookStore, settingsService, {
     authorize: async (req) => Boolean(await getSession(req)),

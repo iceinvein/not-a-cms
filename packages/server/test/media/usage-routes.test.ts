@@ -18,6 +18,9 @@ const article = defineCollection({
 let baseUrl: string
 let server: ReturnType<typeof createServer>
 let latestMagicLink: string | null = null
+// A real uploaded asset id. The reverse index filters references to assets that
+// do not exist in storage, so usage fixtures must point at an actual upload.
+let assetId: string
 
 describe("media usage routes", () => {
   beforeAll(async () => {
@@ -39,9 +42,15 @@ describe("media usage routes", () => {
     })
     baseUrl = `http://localhost:${server.server.port}`
 
+    const cookie = await signInAndGetCookie("vault-seed@example.test")
+    const fd = new FormData()
+    fd.append("file", new Blob(["pixels"], { type: "image/png" }), "cover.png")
+    const up = await fetch(`${baseUrl}/api/media/upload`, { method: "POST", headers: { cookie }, body: fd })
+    assetId = (await up.json()).id
+
     await server.collections.get("article")!.service.create({
       title: "Vault Launch",
-      coverImage: "img1",
+      coverImage: assetId,
     })
   })
 
@@ -55,7 +64,7 @@ describe("media usage routes", () => {
 
   test("GET /api/media/:id/usage returns exact media-field references", async () => {
     const cookie = await signInAndGetCookie("vault-routes@example.test")
-    const res = await fetch(`${baseUrl}/api/media/img1/usage`, { headers: { cookie } })
+    const res = await fetch(`${baseUrl}/api/media/${assetId}/usage`, { headers: { cookie } })
 
     expect(res.status).toBe(200)
     const body = await res.json()
@@ -75,13 +84,13 @@ describe("media usage routes", () => {
 
     expect(res.status).toBe(200)
     const body = await res.json()
-    expect(body.counts).toEqual({ img1: 1 })
+    expect(body.counts).toEqual({ [assetId]: 1 })
   })
 
   test("indexes rich-text media and a fresh server rebuilds the index", async () => {
     await server.collections.get("article")!.service.create({
       title: "Body Ref",
-      body: [{ type: "image", id: "img1" }],
+      body: [{ type: "image", id: assetId }],
     })
     // a fresh server on the same DB triggers a boot rebuild over existing docs
     const second = createServer({
@@ -111,8 +120,8 @@ describe("media usage routes", () => {
       await second.rebuildIndex
       const res = await fetch(`${base}/api/media/usage`, { headers: { cookie } })
       const body = await res.json()
-      // img1 is referenced by the cover doc (from the first test's seed) AND the body doc = 2 distinct documents
-      expect(body.counts.img1).toBe(2)
+      // the asset is referenced by the cover doc (from the first test's seed) AND the body doc = 2 distinct documents
+      expect(body.counts[assetId]).toBe(2)
     } finally {
       second.server.stop()
     }

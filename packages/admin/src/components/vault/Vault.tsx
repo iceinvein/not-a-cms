@@ -3,6 +3,7 @@ import { FileText, ImageIcon, RefreshCw, Tags, Trash2, Upload, Video, X } from "
 import { EmptyState, ErrorState, LoadingState } from "../AdminState"
 import { adminApiFetch } from "../../lib/api"
 import {
+  bulkDeleteMediaItems,
   bulkUpdateMediaTags,
   createMediaFolder,
   deleteMediaItem,
@@ -315,6 +316,33 @@ export function Vault({
     }
   }
 
+  const handleBulkDelete = async () => {
+    if (checkedIds.length === 0) return
+    const inUse = checkedIds.filter((id) => (counts[id] ?? 0) > 0).length
+    const noun = checkedIds.length === 1 ? "asset" : "assets"
+    const message =
+      inUse > 0
+        ? `Delete ${checkedIds.length} ${noun}? ${inUse} ${inUse === 1 ? "is" : "are"} used in content.`
+        : `Delete ${checkedIds.length} ${noun}?`
+    if (!confirm(message)) return
+    setError(null)
+    try {
+      const deleted = new Set(await bulkDeleteMediaItems(apiBase, checkedIds))
+      setItems((current) => current.filter((item) => !deleted.has(item.id)))
+      setCheckedIds((current) => current.filter((id) => !deleted.has(id)))
+      if (selectedId && deleted.has(selectedId)) {
+        setSelectedId(null)
+        setUsage(null)
+      }
+      setCounts(await fetchUsageCounts(apiBase))
+      setActiveTags((current) =>
+        current.filter((tag) => items.some((item) => !deleted.has(item.id) && (item.tags ?? []).includes(tag))),
+      )
+    } catch (err: any) {
+      setError(err.message || "Failed to delete selected assets")
+    }
+  }
+
   const mergeUpdatedItems = (updated: AdminMediaItem[]) => {
     const byId = new Map(updated.map((item) => [item.id, item]))
     setItems((current) => current.map((item) => byId.get(item.id) ?? item))
@@ -460,6 +488,7 @@ export function Vault({
                     onRemove={() => runBulk("remove")}
                     folders={folders}
                     onMove={handleMoveSelected}
+                    onDelete={handleBulkDelete}
                     onClear={() => setCheckedIds([])}
                   />
                 )}
@@ -611,6 +640,7 @@ function BulkActionBar({
   onRemove,
   folders,
   onMove,
+  onDelete,
   onClear,
 }: {
   count: number
@@ -620,6 +650,7 @@ function BulkActionBar({
   onRemove: () => void
   folders: MediaFolder[]
   onMove: (folderId: string | null) => void
+  onDelete: () => void
   onClear: () => void
 }) {
   return (
@@ -651,7 +682,15 @@ function BulkActionBar({
         <option value="__unsorted">Unsorted</option>
         {folders.map((folder) => <option key={folder.id} value={folder.id}>{folder.name}</option>)}
       </select>
-      <button type="button" onClick={onClear} className="ml-auto text-sm text-[#71717a] hover:text-[#fafafa]">
+      <button
+        type="button"
+        onClick={onDelete}
+        className="ml-auto inline-flex items-center gap-2 rounded-lg border border-[rgba(239,68,68,0.35)] px-3 py-1.5 text-sm font-medium text-[#f87171] hover:bg-[rgba(239,68,68,0.08)]"
+      >
+        <Trash2 className="h-4 w-4" />
+        Delete
+      </button>
+      <button type="button" onClick={onClear} className="text-sm text-[#71717a] hover:text-[#fafafa]">
         Clear
       </button>
     </div>

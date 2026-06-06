@@ -1,6 +1,7 @@
 ---
 import Header from "../components/Header.astro"
 import Footer from "../components/Footer.astro"
+import { createContentFetcher, buildNav, type NavItem } from "../../runtime/content-fetcher"
 
 interface Props {
   title: string
@@ -9,6 +10,15 @@ interface Props {
 }
 
 const { title, siteName = "not-a-cms", description = "" } = Astro.props
+
+const apiBase = import.meta.env.PUBLIC_API_BASE || "http://localhost:4321"
+let navItems: NavItem[] = []
+try {
+  const pages = await createContentFetcher({ apiBase }).list("page", { limit: 50 })
+  navItems = buildNav(pages.filter((p) => p.status === "published"))
+} catch {
+  // API may be unavailable during build; render without nav.
+}
 ---
 <html lang="en">
 <head>
@@ -19,7 +29,7 @@ const { title, siteName = "not-a-cms", description = "" } = Astro.props
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 </head>
 <body class="bg-white text-gray-900 min-h-screen flex flex-col">
-  <Header siteName={siteName} />
+  <Header siteName={siteName} navItems={navItems} />
   <main class="flex-1 max-w-4xl mx-auto px-4 py-8 w-full">
     <slot />
   </main>

@@ -122,6 +122,28 @@ export function documentPath(
   return null
 }
 
+export type NavItem = { label: string; href: string }
+
+/**
+ * Build top-level navigation from the published pages: one link per page
+ * (excluding the homepage), with a Blog link appended by default. Keeps a
+ * brand-new site navigable without requiring explicit nav configuration.
+ */
+export function buildNav(
+  pages: Array<{ title?: string; slug?: string | null }>,
+  opts: { includeBlog?: boolean; routes?: RouteConfig[] } = {},
+): NavItem[] {
+  const routes = opts.routes ?? DEFAULT_ROUTES
+  const items: NavItem[] = []
+  for (const page of pages) {
+    if (!page.slug || page.slug === "home") continue
+    const href = documentPath("page", page, routes)
+    if (href) items.push({ label: page.title ?? page.slug, href })
+  }
+  if (opts.includeBlog !== false) items.push({ label: "Blog", href: "/blog" })
+  return items
+}
+
 export function resolveRouteMatch(pathname: string, routes: RouteConfig[]): RouteMatch | null {
   const normalizedPath = normalizePath(pathname)
   for (const route of routes) {

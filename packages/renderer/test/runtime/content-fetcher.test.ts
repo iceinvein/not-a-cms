@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { createContentFetcher, documentPath, resolveRouteMatch, type RouteConfig } from "../../src/runtime/content-fetcher"
+import { buildNav, createContentFetcher, documentPath, resolveRouteMatch, type RouteConfig } from "../../src/runtime/content-fetcher"
 
 describe("resolveRouteMatch", () => {
   const routes: RouteConfig[] = [
@@ -56,6 +56,39 @@ describe("documentPath", () => {
 
   test("returns null when a variable route has no slug to fill", () => {
     expect(documentPath("blog_post", { slug: "" }, routes)).toBeNull()
+  })
+})
+
+describe("buildNav", () => {
+  test("links every non-home page and appends a Blog link", () => {
+    const nav = buildNav([
+      { title: "Home", slug: "home" },
+      { title: "About", slug: "about" },
+      { title: "Pricing", slug: "pricing" },
+    ])
+    expect(nav).toEqual([
+      { label: "About", href: "/about" },
+      { label: "Pricing", href: "/pricing" },
+      { label: "Blog", href: "/blog" },
+    ])
+  })
+
+  test("returns just the Blog link when there are no other pages", () => {
+    expect(buildNav([{ title: "Home", slug: "home" }])).toEqual([{ label: "Blog", href: "/blog" }])
+  })
+
+  test("skips pages without a slug", () => {
+    const nav = buildNav([{ title: "Draftish", slug: "" }, { title: "Docs", slug: "docs" }])
+    expect(nav).toEqual([
+      { label: "Docs", href: "/docs" },
+      { label: "Blog", href: "/blog" },
+    ])
+  })
+
+  test("can omit the Blog link", () => {
+    expect(buildNav([{ title: "About", slug: "about" }], { includeBlog: false })).toEqual([
+      { label: "About", href: "/about" },
+    ])
   })
 })
 

@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, rmSync } from "node:fs"
 import { join } from "node:path"
 import { runAdminContentSmoke } from "./admin-content.spec"
 import { runMediaPreviewSmoke } from "./media-preview.spec"
+import { runVaultPolishSmoke } from "./vault-polish.spec"
 import { runAutomationDryRunSmoke } from "./automation-dry-run.spec"
 import { runAutomationLiveStreamSmoke } from "./automation-live-stream.spec"
 
@@ -123,6 +124,7 @@ async function main() {
     const scenarios: Array<{ name: string; run: (ctx: E2EContext) => Promise<ScenarioResult> }> = [
       { name: "Admin content publish smoke", run: runAdminContentSmoke },
       { name: "Media upload and preview smoke", run: runMediaPreviewSmoke },
+      { name: "Vault polish (Phase F2) smoke", run: runVaultPolishSmoke },
       { name: "Automation dry-run smoke", run: runAutomationDryRunSmoke },
       { name: "Automation live run streaming smoke", run: runAutomationLiveStreamSmoke },
     ]

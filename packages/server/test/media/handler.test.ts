@@ -397,6 +397,39 @@ describe("media API", () => {
     })
     expect(bad.status).toBe(400)
   })
+
+  test("GET /api/media/context returns the viewer role and role list", async () => {
+    const adminCookie = await signInAndGetCookie("media-admin@example.test")
+    const res = await fetch(`${baseUrl}/api/media/context`, { headers: { cookie: adminCookie } })
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.role).toBe("admin")
+    expect(Array.isArray(body.roles)).toBe(true)
+    expect(body.roles.some((r: any) => r.key === "editor")).toBe(true)
+    expect((await fetch(`${baseUrl}/api/media/context`)).status).toBe(401)
+  })
+
+  test("admin still sees a restricted folder's assets and usage", async () => {
+    const adminCookie = await signInAndGetCookie("media-admin@example.test")
+    const fd = new FormData()
+    fd.append("file", new Blob(["x"], { type: "image/png" }), "r.png")
+    const asset = await (await fetch(`${baseUrl}/api/media/upload`, { method: "POST", headers: { cookie: adminCookie }, body: fd })).json()
+    const folder = await (await fetch(`${baseUrl}/api/media/folders`, {
+      method: "POST", headers: { "Content-Type": "application/json", cookie: adminCookie }, body: JSON.stringify({ name: "Locked" }),
+    })).json()
+    const restricted = await fetch(`${baseUrl}/api/media/folders/${folder.id}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json", cookie: adminCookie }, body: JSON.stringify({ roles: ["editor"] }),
+    })
+    expect((await restricted.json()).roles).toEqual(["editor"])
+    await fetch(`${baseUrl}/api/media/move`, {
+      method: "POST", headers: { "Content-Type": "application/json", cookie: adminCookie }, body: JSON.stringify({ ids: [asset.id], folderId: folder.id }),
+    })
+    const usage = await fetch(`${baseUrl}/api/media/usage`, { headers: { cookie: adminCookie } })
+    expect(usage.status).toBe(200)
+    expect((await usage.json()).counts).toBeDefined()
+    const list = await (await fetch(`${baseUrl}/api/media`, { headers: { cookie: adminCookie } })).json()
+    expect(list.data.some((r: any) => r.id === asset.id)).toBe(true)
+  })
 })
 
 async function signInAndGetCookie(email: string): Promise<string> {

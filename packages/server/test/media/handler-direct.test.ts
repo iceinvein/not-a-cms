@@ -124,4 +124,54 @@ describe("media handler file responses", () => {
     }))
     expect(res?.status).toBe(400)
   })
+
+  test("enforces folder roles when getRole is provided", async () => {
+    const storage = createLocalStorage({ provider: "local", path: uploadsDir })
+    const open = await storage.store(new File(["x"], "open.txt", { type: "text/plain" }))
+    const restricted = storage.createFolder("Restricted", null)
+    storage.setFolderRoles(restricted.id, ["editor"])
+    const secret = await storage.store(new File(["x"], "secret.txt", { type: "text/plain" }))
+    storage.moveAssets([secret.id], restricted.id)
+
+    const asViewer = createMediaHandler(storage, { getRole: () => "viewer" })
+    const asAdmin = createMediaHandler(storage, { getRole: () => "admin" })
+
+    const viewerList = await (await asViewer(new Request("https://x/api/media")))!.json()
+    expect(viewerList.data.map((r: any) => r.id)).toEqual([open.id])
+    const adminList = await (await asAdmin(new Request("https://x/api/media")))!.json()
+    expect(adminList.data.map((r: any) => r.id).sort()).toEqual([open.id, secret.id].sort())
+
+    const viewerFolders = await (await asViewer(new Request("https://x/api/media/folders")))!.json()
+    expect(viewerFolders.data.find((f: any) => f.id === restricted.id)).toBeUndefined()
+
+    const viewerGet = await asViewer(new Request(`https://x/api/media/${secret.id}`))
+    expect(viewerGet!.status).toBe(404)
+    const adminGet = await asAdmin(new Request(`https://x/api/media/${secret.id}`))
+    expect(adminGet!.status).toBe(200)
+  })
+
+  test("blocks moving into a restricted folder and role-setting for non-admins", async () => {
+    const storage = createLocalStorage({ provider: "local", path: uploadsDir })
+    const open = await storage.store(new File(["x"], "o.txt", { type: "text/plain" }))
+    const restricted = storage.createFolder("R", null)
+    storage.setFolderRoles(restricted.id, ["editor"])
+
+    const asViewer = createMediaHandler(storage, { getRole: () => "viewer" })
+    const move = await asViewer(new Request("https://x/api/media/move", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids: [open.id], folderId: restricted.id }),
+    }))
+    expect(move!.status).toBe(403)
+
+    const setRoles = await asViewer(new Request(`https://x/api/media/folders/${restricted.id}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ roles: ["viewer"] }),
+    }))
+    expect(setRoles!.status).toBe(403)
+
+    const asAdmin = createMediaHandler(storage, { getRole: () => "admin" })
+    const ok = await asAdmin(new Request(`https://x/api/media/folders/${restricted.id}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ roles: ["author"] }),
+    }))
+    expect(ok!.status).toBe(200)
+    expect((await ok!.json()).roles).toEqual(["author"])
+  })
 })

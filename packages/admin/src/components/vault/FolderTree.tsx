@@ -9,6 +9,7 @@ import {
   FolderPlus,
   Heart,
   Image as ImageIcon,
+  Lock,
   Star,
   Video,
 } from "lucide-react"
@@ -82,6 +83,7 @@ export function FolderTree({
         >
           <Glyph className="h-4 w-4 shrink-0" />
           <span className="truncate" style={{ color: node.color }}>{node.name}</span>
+          {node.roles && node.roles.length > 0 && <Lock className="ml-1 h-3 w-3 shrink-0 text-[#71717a]" aria-label="Restricted" />}
         </button>
         <span className="absolute right-1 hidden gap-0.5 group-hover/folder:flex">
           <button type="button" aria-label={`Move ${node.name} up`} onClick={() => onReorder(node.id, "up")} className="text-[#71717a] hover:text-[#fafafa]">

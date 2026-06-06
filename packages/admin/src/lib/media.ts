@@ -21,7 +21,9 @@ export type AdminMediaItem = {
 }
 
 export type MediaMetadataInput = Pick<AdminMediaItem, "alt" | "title" | "caption" | "focalX" | "focalY" | "tags">
-export type MediaFolder = { id: string; name: string; parentId: string | null; position?: number; color?: string; icon?: string }
+export type MediaFolder = { id: string; name: string; parentId: string | null; position?: number; color?: string; icon?: string; roles?: string[] }
+
+export type MediaContext = { role: string | null; roles: { key: string; label: string }[] }
 
 type RawMediaRecord = Omit<AdminMediaItem, "url"> & {
   url?: string
@@ -215,6 +217,22 @@ export async function reorderMediaFolder(apiBase: string, id: string, direction:
   })
   if (!res.ok) throw new Error("Failed to reorder folder")
   return await res.json() as MediaFolder
+}
+
+export async function setMediaFolderRoles(apiBase: string, id: string, roles: string[] | null): Promise<MediaFolder> {
+  const res = await adminApiFetch(apiBase, `/api/media/folders/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ roles }),
+  })
+  if (!res.ok) throw new Error("Failed to set folder roles")
+  return await res.json() as MediaFolder
+}
+
+export async function getMediaContext(apiBase: string): Promise<MediaContext> {
+  const res = await adminApiFetch(apiBase, "/api/media/context")
+  if (!res.ok) throw new Error("Failed to load media context")
+  return await res.json() as MediaContext
 }
 
 export async function deleteMediaFolder(apiBase: string, id: string): Promise<{ reassigned: number; reparented: number }> {

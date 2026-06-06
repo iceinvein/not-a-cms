@@ -8,6 +8,7 @@ import {
   createMediaFolder,
   deleteMediaItem,
   deleteMediaFolder,
+  getMediaContext,
   listMediaFolders,
   listMediaTags,
   listMediaItems,
@@ -17,6 +18,7 @@ import {
   replaceMediaFile,
   setMediaFolderColor,
   setMediaFolderIcon,
+  setMediaFolderRoles,
   type AdminMediaItem,
   type MediaFolder,
   type MediaTag,
@@ -96,6 +98,8 @@ export function Vault({
   const [activeFolder, setActiveFolder] = useState<ActiveFolder>("all")
   const [recursive, setRecursive] = useState(false)
   const draggingId = useRef<string | null>(null)
+  const [viewerRole, setViewerRole] = useState<string | null>(null)
+  const [availableRoles, setAvailableRoles] = useState<{ key: string; label: string }[]>([])
   const [checkedIds, setCheckedIds] = useState<string[]>([])
   const [bulkTag, setBulkTag] = useState("")
   const [usage, setUsage] = useState<Usage | null>(initialUsage)
@@ -171,6 +175,12 @@ export function Vault({
   }
 
   useEffect(() => {
+    getMediaContext(apiBase)
+      .then((ctx) => {
+        setViewerRole(ctx.role)
+        setAvailableRoles(ctx.roles)
+      })
+      .catch(() => {})
     if (initialItems.length > 0) {
       Promise.all([
         loadTags(),
@@ -460,6 +470,16 @@ export function Vault({
     }
   }
 
+  const handleSetFolderRoles = async (id: string, roles: string[] | null) => {
+    setError(null)
+    try {
+      await setMediaFolderRoles(apiBase, id, roles)
+      await loadFolders()
+    } catch (err: any) {
+      setError(err.message || "Failed to set folder permissions")
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -524,7 +544,14 @@ export function Vault({
             {activeFolder !== "all" && activeFolder !== null && (() => {
               const folder = folders.find((entry) => entry.id === activeFolder)
               return folder ? (
-                <FolderStylePanel folder={folder} onSetColor={handleSetFolderColor} onSetIcon={handleSetFolderIcon} />
+                <FolderStylePanel
+                  folder={folder}
+                  onSetColor={handleSetFolderColor}
+                  onSetIcon={handleSetFolderIcon}
+                  viewerRole={viewerRole}
+                  availableRoles={availableRoles}
+                  onSetRoles={handleSetFolderRoles}
+                />
               ) : null
             })()}
             {items.length === 0 ? (
@@ -762,11 +789,22 @@ function FolderStylePanel({
   folder,
   onSetColor,
   onSetIcon,
+  viewerRole,
+  availableRoles,
+  onSetRoles,
 }: {
   folder: MediaFolder
   onSetColor: (id: string, color: string | null) => void
   onSetIcon: (id: string, icon: string | null) => void
+  viewerRole: string | null
+  availableRoles: { key: string; label: string }[]
+  onSetRoles: (id: string, roles: string[] | null) => void
 }) {
+  const restricted = folder.roles ?? []
+  const toggleRole = (key: string) => {
+    const next = restricted.includes(key) ? restricted.filter((entry) => entry !== key) : [...restricted, key]
+    onSetRoles(folder.id, next.length > 0 ? next : null)
+  }
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b] px-3 py-2">
       <div className="flex items-center gap-1.5">
@@ -800,6 +838,23 @@ function FolderStylePanel({
           )
         })}
       </div>
+      {viewerRole === "admin" && availableRoles.length > 0 && (
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-[#71717a]">Permissions</span>
+          {availableRoles.filter((role) => role.key !== "admin").map((role) => (
+            <label key={role.key} className="flex items-center gap-1 text-xs text-[#d4d4d8]">
+              <input
+                type="checkbox"
+                className="h-3.5 w-3.5 accent-[#c9956b]"
+                checked={restricted.includes(role.key)}
+                onChange={() => toggleRole(role.key)}
+              />
+              {role.label}
+            </label>
+          ))}
+          <span className="text-[11px] text-[#52525b]">{restricted.length === 0 ? "All roles" : "Restricted"}</span>
+        </div>
+      )}
     </div>
   )
 }

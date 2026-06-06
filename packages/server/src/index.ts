@@ -34,7 +34,7 @@ import { createRestHandler } from "./rest/handler"
 import { createSchemaHandler } from "./schema/handler"
 import { createAuth, getAuthCapabilities } from "./auth/setup"
 import { getSessionFromRequest } from "./auth/middleware"
-import { createMediaStorage, type MediaStorage, type StorageConfig } from "./media/storage"
+import { canAccessFolder, createMediaStorage, type MediaStorage, type StorageConfig } from "./media/storage"
 import { createImageOptimizer } from "./media/optimizer"
 import { createMediaHandler } from "./media/handler"
 import { createMediaReferenceStore } from "./media/reference-store"
@@ -244,6 +244,7 @@ export function createServer(config: ServerConfig): CreatedServer {
 
   const mediaHandler = createMediaHandler(storage, {
     onAssetsDeleted: (ids) => ids.forEach((id) => mediaReferenceStore.removeAsset(id)),
+    getRole: async (req) => (await getSession(req))?.role ?? null,
   })
   const trpcRouter = appRouter(collections)
   const restHandler = createRestHandler(collections, versioning, search, webhookStore, settingsService, {
@@ -572,6 +573,17 @@ export function createServer(config: ServerConfig): CreatedServer {
         return withCors(Response.json({ rooms: await buildPresenceRooms(presenceSnapshot(), resolveTitle) }))
       }
 
+      // Viewer role + role list, so the Vault can show admin-only permission controls
+      if (url.pathname === "/api/media/context") {
+        if (req.method !== "GET") {
+          return withCors(Response.json({ error: "Method not allowed" }, { status: 405 }))
+        }
+        const unauthorized = await requireAuthorized()
+        if (unauthorized) return withCors(unauthorized)
+        const session = await getSession(req)
+        return withCors(Response.json({ role: session?.role ?? null, roles: roleService.listRoles() }))
+      }
+
       // Media usage counts for Vault clustering
       if (url.pathname === "/api/media/usage") {
         if (req.method !== "GET") {
@@ -580,7 +592,17 @@ export function createServer(config: ServerConfig): CreatedServer {
         const unauthorized = await requireAuthorized()
         if (unauthorized) return withCors(unauthorized)
 
-        return withCors(Response.json({ counts: mediaReferenceStore.counts() }))
+        const role = (await getSession(req))?.role ?? null
+        const counts = mediaReferenceStore.counts()
+        if (role === "admin") return withCors(Response.json({ counts }))
+        const folders = storage.listFolders()
+        const filtered = Object.fromEntries(
+          Object.entries(counts).filter(([assetId]) => {
+            const rec = storage.get(assetId)
+            return rec ? canAccessFolder(folders, rec.folderId ?? null, role) : false
+          }),
+        )
+        return withCors(Response.json({ counts: filtered }))
       }
 
       // Media usage detail for one asset
@@ -593,6 +615,11 @@ export function createServer(config: ServerConfig): CreatedServer {
         if (unauthorized) return withCors(unauthorized)
 
         const assetId = decodeURIComponent(mediaUsageMatch[1])
+        const role = (await getSession(req))?.role ?? null
+        const rec = storage.get(assetId)
+        if (rec && !canAccessFolder(storage.listFolders(), rec.folderId ?? null, role)) {
+          return withCors(Response.json({ count: 0, references: [] }))
+        }
         return withCors(Response.json(mediaReferenceStore.usage(assetId)))
       }
 

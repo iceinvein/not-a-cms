@@ -47,7 +47,7 @@ export type MediaRecord = {
 
 export type MediaMetadataInput = Pick<MediaRecord, "alt" | "title" | "caption" | "focalX" | "focalY" | "tags">
 
-export type Folder = { id: string; name: string; parentId: string | null; position: number; color?: string; icon?: string }
+export type Folder = { id: string; name: string; parentId: string | null; position: number; color?: string; icon?: string; roles?: string[] }
 
 export type StoredMediaFile = {
   body: Blob
@@ -84,6 +84,7 @@ export type MediaStorage = {
   setFolderColor(id: string, color: string | null): Folder | null
   setFolderIcon(id: string, icon: string | null): Folder | null
   reorderFolder(id: string, direction: "up" | "down"): Folder | null
+  setFolderRoles(id: string, roles: string[] | null): Folder | null
   moveAssets(ids: string[], folderId: string | null): MediaRecord[]
 }
 
@@ -112,6 +113,28 @@ export type S3SignedRequest = {
 }
 
 const IMAGE_MIMES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp", "image/avif", "image/svg+xml"])
+
+export function effectiveFolderRoles(folders: Pick<Folder, "id" | "parentId" | "roles">[], folderId: string | null): string[] | null {
+  if (folderId === null) return null
+  const byId = new Map(folders.map((folder) => [folder.id, folder]))
+  let current: string | null = folderId
+  const seen = new Set<string>()
+  while (current && !seen.has(current)) {
+    seen.add(current)
+    const folder = byId.get(current)
+    if (!folder) return null
+    if (folder.roles && folder.roles.length > 0) return folder.roles
+    current = folder.parentId
+  }
+  return null
+}
+
+export function canAccessFolder(folders: Pick<Folder, "id" | "parentId" | "roles">[], folderId: string | null, role: string | null): boolean {
+  if (role === "admin") return true
+  const required = effectiveFolderRoles(folders, folderId)
+  if (!required) return true
+  return role !== null && required.includes(role)
+}
 
 export function isDescendant(folders: Pick<Folder, "id" | "parentId">[], ancestorId: string, nodeId: string): boolean {
   const byId = new Map(folders.map((folder) => [folder.id, folder]))
@@ -437,6 +460,16 @@ function createIndexedMediaStorage(config: StorageConfig, provider: ObjectProvid
       const tmp = folder.position
       folder.position = swapWith.position
       swapWith.position = tmp
+      persistFolders()
+      return folder
+    },
+
+    setFolderRoles(id: string, roles: string[] | null): Folder | null {
+      const folder = folders.find((entry) => entry.id === id)
+      if (!folder) return null
+      const cleaned = Array.isArray(roles) ? roles.filter((role) => typeof role === "string" && role.length > 0) : []
+      if (cleaned.length === 0) delete folder.roles
+      else folder.roles = cleaned
       persistFolders()
       return folder
     },

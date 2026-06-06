@@ -2,10 +2,12 @@ import { test, expect, describe, afterEach } from "bun:test"
 import { existsSync, rmSync } from "node:fs"
 import {
   applyTagOps,
+  canAccessFolder,
   createLocalStorage,
   createMediaStorage,
   createS3SignedRequest,
   defaultTagColor,
+  effectiveFolderRoles,
   isDescendant,
 } from "../../src/media/storage"
 
@@ -242,6 +244,15 @@ describe("local media storage", () => {
     expect(ordered()).toEqual(["B", "A", "C"])
   })
 
+  test("setFolderRoles sets and clears the allowed roles", () => {
+    const storage = createLocalStorage({ provider: "local", path: uploadsDir })
+    const f = storage.createFolder("Restricted", null)
+    expect(storage.setFolderRoles(f.id, ["editor"])?.roles).toEqual(["editor"])
+    expect(storage.setFolderRoles(f.id, null)?.roles).toBeUndefined()
+    expect(storage.setFolderRoles(f.id, [])?.roles).toBeUndefined()
+    expect(storage.setFolderRoles("missing", ["editor"])).toBeNull()
+  })
+
   test("removeFolder reassigns assets and reparents children to the parent", async () => {
     const storage = createLocalStorage({ provider: "local", path: uploadsDir })
     const brand = storage.createFolder("Brand", null)
@@ -344,5 +355,30 @@ describe("s3 media storage", () => {
     expect(removed).toBe(true)
     expect(calls.map((call) => call.method)).toEqual(["PUT", "GET", "DELETE"])
     expect(calls.every((call) => call.authorization?.startsWith("AWS4-HMAC-SHA256 "))).toBe(true)
+  })
+})
+
+describe("folder access helpers", () => {
+  const folders = [
+    { id: "a", name: "A", parentId: null, position: 0, roles: ["editor"] },
+    { id: "b", name: "B", parentId: "a", position: 0 },
+    { id: "c", name: "C", parentId: null, position: 1 },
+  ] as any
+
+  test("effectiveFolderRoles returns own, then inherited, then null", () => {
+    expect(effectiveFolderRoles(folders, "a")).toEqual(["editor"])
+    expect(effectiveFolderRoles(folders, "b")).toEqual(["editor"]) // inherited from A
+    expect(effectiveFolderRoles(folders, "c")).toBeNull()
+    expect(effectiveFolderRoles(folders, null)).toBeNull()
+  })
+
+  test("canAccessFolder honors admin bypass, unrestricted, and membership", () => {
+    expect(canAccessFolder(folders, "a", "admin")).toBe(true) // admin bypass
+    expect(canAccessFolder(folders, "a", "editor")).toBe(true) // allowed
+    expect(canAccessFolder(folders, "b", "editor")).toBe(true) // inherited allow
+    expect(canAccessFolder(folders, "a", "viewer")).toBe(false) // denied
+    expect(canAccessFolder(folders, "b", "viewer")).toBe(false) // inherited deny
+    expect(canAccessFolder(folders, "c", "viewer")).toBe(true) // unrestricted
+    expect(canAccessFolder(folders, null, "viewer")).toBe(true) // unsorted
   })
 })

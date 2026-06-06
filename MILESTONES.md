@@ -11,10 +11,11 @@
 - [x] Phase D: Visual Site Builder
 - [x] Phase E: Radical Admin & Real-Time
 - [x] Phase F: Media Library
+- [x] Phase F2: Vault Polish (former Icebox)
 
 **Planned:** Phase G (Email, Newsletters & Integrations), Phase H (Membership & Paywall), Phase I (Plugin Marketplace), Phase J (AI Infrastructure).
 
-708 passing tests across 6 packages (core, server, admin, editor, renderer, cli). The admin is a schema-driven Astro + React-islands app with a `⌘K` command palette, a document-canvas editor with live collaboration and channel preview, a dashboard of publishing/expiry horizons and review/automation queues, a visual page builder, a media Vault with folders/tags/usage tracking, and a visual automations engine with dry-run testing. Content is stored as Portable Text and served over REST, tRPC, and GraphQL.
+751 passing tests across 6 packages (core, server, admin, editor, renderer, cli). The admin is a schema-driven Astro + React-islands app with a `⌘K` command palette, a document-canvas editor with live collaboration and channel preview, a dashboard of publishing/expiry horizons and review/automation queues, a visual page builder, a media Vault with folders/tags/usage tracking, and a visual automations engine with dry-run testing. Content is stored as Portable Text and served over REST, tRPC, and GraphQL.
 
 ---
 
@@ -142,6 +143,22 @@
 
 ---
 
+## Phase F2: Vault Polish (DONE)
+
+> Goal: Close out the Phase F media follow-ons that were captured in the Icebox. Five specs/plans under `docs/superpowers/`.
+
+- [x] **F2.1: Delete & reference integrity.** Bulk-delete of selected assets (`POST /api/media/delete`) and dangling-reference cleanup: `reference-store.removeAsset` plus an `assetExists` filter in `replaceForDocument`/`rebuild`, wired via an `onAssetsDeleted` handler hook, so deleting an asset purges its reverse-index rows and missing assets are never re-indexed.
+
+- [x] **F2.2: Filtering & selection power.** `filterByTags` AND/OR mode with an on-bar toggle, filter-aware tag chip counts (`tagPreviewCounts`), and shift-click range selection in the grid (`rangeBetween`).
+
+- [x] **F2.3: Folder UX.** Native drag-and-drop asset move onto folders, an "include subfolders" recursive view (`folderDescendantIds`), per-folder color + a curated icon set, and up/down sibling reordering (`Folder.position` + `reorderFolder`).
+
+- [x] **F2.4: Tag entities v2.** Tag descriptions and groups in the registry, a grouped Manage-tags view, and tag merging (`mergeTag`, `POST /api/media/tags/merge`).
+
+- [x] **F2.5: Per-folder permissions.** Role-based folder restrictions, inherited from the nearest ancestor, admin-managed and admin-bypassed (`Folder.roles`, `canAccessFolder`). The handler enforces access across list/folders/usage/get/move/delete via a `getRole` seam; the Vault shows a lock glyph and an admin-only permissions control (`GET /api/media/context`). Scope: governs the admin management surface; raw file delivery by URL stays public (as before).
+
+---
+
 ## Phase G: Email, Newsletters & Integrations (PLANNED)
 
 > Goal: Reach subscribers and connect to outside services. (The automations engine itself shipped in Phase E; the `email.send` seam exists with a dev console logger.)
@@ -198,26 +215,22 @@
 
 ## Deferred Enhancements (Icebox)
 
-> Captured but not committed to a phase: polish and v2 follow-ons, mostly from the Phase F media work. Revisit when demand appears.
+> The Phase F follow-ons captured here all shipped in Phase F2. What remains below are narrower sub-options that were intentionally scoped out; revisit when demand appears.
 
 **Media / Vault**
 
-- Bulk **delete** of selected assets (the bulk bar only adds/removes tags and moves today).
-- Dangling-reference cleanup when an asset is deleted (references simply stop being queried).
-- Drag-and-drop asset move between folders (today: explicit "Move to").
-- Recursive "include subfolders" view (a folder shows only its direct assets).
-- Filter-aware tag chip counts (counts are global per tag today).
+- Drag-to-reorder folders (Phase F2 shipped up/down buttons instead).
+- Auto-expand of collapsed folders while dragging an asset over them.
 
 **Tags**
 
-- Multi-tag **OR** filtering (only AND is built).
-- Tag descriptions, tag groups/namespaces, and tag merging.
-- Range / shift-click selection in the grid.
+- Grouping the filter-bar chips by tag group (grouping is in the Manage-tags view only).
+- Hierarchical/nested tag groups and `group:tag` namespace auto-parsing.
 
-**Folders**
+**Permissions**
 
-- Folder colors / icons and per-folder permissions.
-- Folder reordering beyond name sort.
+- Gating raw file bytes (`/api/media/:id/file`) by role; today per-folder permissions govern the admin management surface only, and file URLs stay public.
+- Per-user (non-role) folder ACLs, and read-vs-write distinctions within a folder.
 
 ---
 

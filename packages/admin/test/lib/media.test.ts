@@ -6,6 +6,7 @@ import {
   deleteMediaItem,
   deleteMediaFolder,
   deleteMediaTag,
+  getMediaContext,
   listMediaItems,
   listMediaFolders,
   listMediaTags,
@@ -15,14 +16,15 @@ import {
   moveMediaFolder,
   normalizeTagInput,
   renameMediaTag,
+  setMediaTagDescription,
+  setMediaTagGroup,
   renameMediaFolder,
   reorderMediaFolder,
   replaceMediaFile,
   setMediaFolderColor,
   setMediaFolderIcon,
+  setMediaFolderRoles,
   setMediaTagColor,
-  setMediaTagDescription,
-  setMediaTagGroup,
   updateMediaItem,
   uploadMediaFile,
 } from "../../src/lib/media"
@@ -276,6 +278,26 @@ describe("admin media API client", () => {
     expect(calls[2]?.url).toBe("https://cms.example.test/api/media/tags/merge")
     expect(calls[2]?.init?.method).toBe("POST")
     expect(JSON.parse(String(calls[2]?.init?.body))).toEqual({ source: "src", target: "dst" })
+  })
+
+  test("setMediaFolderRoles PATCHes roles; getMediaContext GETs context", async () => {
+    const calls: Array<{ url: string; init?: RequestInit }> = []
+    globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
+      calls.push({ url: String(url), init })
+      if (String(url).endsWith("/api/media/context")) return Response.json({ role: "admin", roles: [{ key: "editor", label: "Editor" }] })
+      return Response.json({ id: "f1", name: "F", parentId: null, position: 0, roles: ["editor"] })
+    }) as typeof fetch
+
+    const folder = await setMediaFolderRoles("https://cms.example.test", "f1", ["editor"])
+    const context = await getMediaContext("https://cms.example.test")
+
+    expect(calls[0]?.url).toBe("https://cms.example.test/api/media/folders/f1")
+    expect(calls[0]?.init?.method).toBe("PATCH")
+    expect(JSON.parse(String(calls[0]?.init?.body))).toEqual({ roles: ["editor"] })
+    expect(folder.roles).toEqual(["editor"])
+    expect(calls[1]?.url).toBe("https://cms.example.test/api/media/context")
+    expect(context.role).toBe("admin")
+    expect(context.roles[0]?.key).toBe("editor")
   })
 
   test("folder style + reorder client fns PATCH the right body", async () => {

@@ -1,4 +1,4 @@
-import { applyTagOps, type MediaMetadataInput, type MediaRecord, type MediaStorage } from "./storage"
+import { applyTagOps, canAccessFolder, type MediaMetadataInput, type MediaRecord, type MediaStorage } from "./storage"
 
 type PublicMediaRecord = Omit<MediaRecord, "path"> & {
   url: string
@@ -26,6 +26,7 @@ function toPublicRecord(record: MediaRecord): PublicMediaRecord {
 type MediaHandlerOptions = {
   canManage?: (req: Request) => boolean | Promise<boolean>
   onAssetsDeleted?: (ids: string[]) => void
+  getRole?: (req: Request) => string | null | Promise<string | null>
 }
 
 export function createMediaHandler(storage: MediaStorage, options: MediaHandlerOptions = {}) {
@@ -36,6 +37,15 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
     const parts = url.pathname.replace("/api/media", "").split("/").filter(Boolean)
     const subpath = parts[0]
     const action = parts[1]
+
+    const enforce = Boolean(options.getRole)
+    let cachedRole: string | null | undefined
+    const role = async (): Promise<string | null> => {
+      if (cachedRole === undefined) cachedRole = options.getRole ? await options.getRole(req) : null
+      return cachedRole
+    }
+    const accessible = async (folderId: string | null): Promise<boolean> =>
+      !enforce || canAccessFolder(storage.listFolders(), folderId, await role())
 
     if (req.method === "POST" && (subpath === "upload" || !subpath)) {
       const forbidden = await requireManager(req)
@@ -83,8 +93,14 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
       if (!isRecord(body) || !Array.isArray(body.ids) || body.ids.some((id) => typeof id !== "string")) {
         return json({ error: "ids must be an array of strings" }, 400)
       }
+      const r = enforce ? await role() : null
+      const folders = storage.listFolders()
       const deleted: string[] = []
       for (const id of body.ids as string[]) {
+        if (enforce) {
+          const rec = storage.get(id)
+          if (rec && !canAccessFolder(folders, rec.folderId ?? null, r)) continue
+        }
         if (await storage.remove(id)) deleted.push(id)
       }
       if (deleted.length > 0) options.onAssetsDeleted?.(deleted)
@@ -92,7 +108,10 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
     }
 
     if (req.method === "GET" && !subpath) {
-      return json({ data: storage.list().map(toPublicRecord) })
+      const folders = storage.listFolders()
+      const r = enforce ? await role() : null
+      const list = storage.list().filter((rec) => !enforce || canAccessFolder(folders, rec.folderId ?? null, r))
+      return json({ data: list.map(toPublicRecord) })
     }
 
     if (req.method === "GET" && subpath === "tags" && !action) {
@@ -100,7 +119,10 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
     }
 
     if (req.method === "GET" && subpath === "folders" && !action) {
-      return json({ data: storage.listFolders() })
+      const folders = storage.listFolders()
+      const r = enforce ? await role() : null
+      const visible = enforce ? folders.filter((f) => canAccessFolder(folders, f.id, r)) : folders
+      return json({ data: visible })
     }
 
     if (req.method === "POST" && subpath === "folders" && !action) {
@@ -152,6 +174,13 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
         }
         folder = storage.reorderFolder(action, body.direction)
       }
+      if (body.roles !== undefined) {
+        if (enforce && (await role()) !== "admin") return json({ error: "Forbidden" }, 403)
+        if (body.roles !== null && (!Array.isArray(body.roles) || body.roles.some((x) => typeof x !== "string"))) {
+          return json({ error: "roles must be an array of strings or null" }, 400)
+        }
+        folder = storage.setFolderRoles(action, body.roles)
+      }
       return json(folder)
     }
 
@@ -172,6 +201,20 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
       }
       const folderId = body.folderId === undefined ? null : body.folderId
       if (folderId !== null && typeof folderId !== "string") return json({ error: "folderId must be a string or null" }, 400)
+      if (enforce) {
+        const r = await role()
+        const folders = storage.listFolders()
+        if (!canAccessFolder(folders, folderId, r)) return json({ error: "Forbidden" }, 403)
+        const ids = (body.ids as string[]).filter((id) => {
+          const rec = storage.get(id)
+          return rec ? canAccessFolder(folders, rec.folderId ?? null, r) : false
+        })
+        try {
+          return json({ data: storage.moveAssets(ids, folderId).map(toPublicRecord) })
+        } catch {
+          return json({ error: "folder not found" }, 400)
+        }
+      }
       try {
         return json({ data: storage.moveAssets(body.ids as string[], folderId).map(toPublicRecord) })
       } catch {
@@ -193,6 +236,8 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
     if (req.method === "POST" && subpath && action === "replace") {
       const forbidden = await requireManager(req)
       if (forbidden) return forbidden
+      const target = storage.get(subpath)
+      if (target && !(await accessible(target.folderId ?? null))) return json({ error: "Not found" }, 404)
       const formData = await req.formData()
       const file = formData.get("file") as File | null
       if (!file) return json({ error: "No file provided" }, 400)
@@ -234,6 +279,7 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
     if (req.method === "GET" && subpath && !action) {
       const record = storage.get(subpath)
       if (!record) return json({ error: "Not found" }, 404)
+      if (!(await accessible(record.folderId ?? null))) return json({ error: "Not found" }, 404)
       return json(toPublicRecord(record))
     }
 
@@ -245,6 +291,8 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
       const metadata = metadataFromRecord(body)
       const validationError = validateMetadata(metadata)
       if (validationError) return json({ error: validationError }, 400)
+      const existing = storage.get(subpath)
+      if (existing && !(await accessible(existing.folderId ?? null))) return json({ error: "Not found" }, 404)
       const record = storage.update(subpath, metadata)
       if (!record) return json({ error: "Not found" }, 404)
       return json(toPublicRecord(record))
@@ -259,6 +307,8 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
     if (req.method === "DELETE" && subpath && !action) {
       const forbidden = await requireManager(req)
       if (forbidden) return forbidden
+      const existing = storage.get(subpath)
+      if (existing && !(await accessible(existing.folderId ?? null))) return json({ error: "Not found" }, 404)
       const deleted = await storage.remove(subpath)
       if (deleted) options.onAssetsDeleted?.([subpath])
       return json({ deleted })

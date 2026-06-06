@@ -13,7 +13,10 @@ import {
   listMediaItems,
   moveMediaAssets,
   normalizeTagInput,
+  reorderMediaFolder,
   replaceMediaFile,
+  setMediaFolderColor,
+  setMediaFolderIcon,
   type AdminMediaItem,
   type MediaFolder,
   type MediaTag,
@@ -21,11 +24,11 @@ import {
   uploadMediaFile,
 } from "../../lib/media"
 import { clusterAssets, type Cluster } from "../../lib/media/cluster"
-import { buildFolderTree, filterByFolder, folderPath } from "../../lib/media/folders"
+import { buildFolderTree, filterByFolder, folderDescendantIds, folderPath } from "../../lib/media/folders"
 import { allTags, filterByTags, filterUntagged, tagColor, tagPreviewCounts } from "../../lib/media/tags"
 import { rangeBetween } from "../../lib/media/selection"
 import { TagManager } from "./TagManager"
-import { FolderTree, type ActiveFolder } from "./FolderTree"
+import { FolderTree, FOLDER_ICONS, FOLDER_ICON_KEYS, type ActiveFolder } from "./FolderTree"
 
 type UsageReference = {
   collection: string
@@ -91,6 +94,8 @@ export function Vault({
   const [anchorId, setAnchorId] = useState<string | null>(null)
   const [showUntagged, setShowUntagged] = useState(false)
   const [activeFolder, setActiveFolder] = useState<ActiveFolder>("all")
+  const [recursive, setRecursive] = useState(false)
+  const draggingId = useRef<string | null>(null)
   const [checkedIds, setCheckedIds] = useState<string[]>([])
   const [bulkTag, setBulkTag] = useState("")
   const [usage, setUsage] = useState<Usage | null>(initialUsage)
@@ -105,7 +110,13 @@ export function Vault({
 
   const selectedItem = items.find((item) => item.id === selectedId) ?? initialSelected ?? null
   const folderTree = useMemo(() => buildFolderTree(folders), [folders])
-  const folderScoped = useMemo(() => filterByFolder(items, activeFolder), [items, activeFolder])
+  const folderScoped = useMemo(() => {
+    if (recursive && activeFolder !== "all" && activeFolder !== null) {
+      const ids = folderDescendantIds(folders, activeFolder)
+      return items.filter((item) => item.folderId && ids.has(item.folderId))
+    }
+    return filterByFolder(items, activeFolder)
+  }, [items, activeFolder, recursive, folders])
   const tags = useMemo(() => tagPreviewCounts(folderScoped, activeTags, filterMode), [folderScoped, activeTags, filterMode])
   const untaggedTotal = useMemo(() => filterUntagged(folderScoped).length, [folderScoped])
   const visible = useMemo(
@@ -406,6 +417,49 @@ export function Vault({
     }
   }
 
+  const handleDropAssets = async (folderId: string | null) => {
+    const dragged = draggingId.current
+    draggingId.current = null
+    if (!dragged) return
+    const ids = checkedIds.includes(dragged) ? checkedIds : [dragged]
+    setError(null)
+    try {
+      mergeUpdatedItems(await moveMediaAssets(apiBase, ids, folderId))
+    } catch (err: any) {
+      setError(err.message || "Failed to move asset")
+    }
+  }
+
+  const handleReorderFolder = async (id: string, direction: "up" | "down") => {
+    setError(null)
+    try {
+      await reorderMediaFolder(apiBase, id, direction)
+      await loadFolders()
+    } catch (err: any) {
+      setError(err.message || "Failed to reorder folder")
+    }
+  }
+
+  const handleSetFolderColor = async (id: string, color: string | null) => {
+    setError(null)
+    try {
+      await setMediaFolderColor(apiBase, id, color)
+      await loadFolders()
+    } catch (err: any) {
+      setError(err.message || "Failed to set folder color")
+    }
+  }
+
+  const handleSetFolderIcon = async (id: string, icon: string | null) => {
+    setError(null)
+    try {
+      await setMediaFolderIcon(apiBase, id, icon)
+      await loadFolders()
+    } catch (err: any) {
+      setError(err.message || "Failed to set folder icon")
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -453,13 +507,26 @@ export function Vault({
       ) : (
         <div className="grid gap-5 xl:grid-cols-[210px_minmax(0,1fr)_360px]">
           <aside className="hidden xl:block">
-            <FolderTree tree={folderTree} active={activeFolder} onSelect={setActiveFolder} onCreate={handleCreateFolder} />
+            <FolderTree tree={folderTree} active={activeFolder} onSelect={setActiveFolder} onCreate={handleCreateFolder} onDropAssets={handleDropAssets} onReorder={handleReorderFolder} />
           </aside>
           <div className="space-y-6">
             <div className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b] p-3 xl:hidden">
-              <FolderTree tree={folderTree} active={activeFolder} onSelect={setActiveFolder} onCreate={handleCreateFolder} />
+              <FolderTree tree={folderTree} active={activeFolder} onSelect={setActiveFolder} onCreate={handleCreateFolder} onDropAssets={handleDropAssets} onReorder={handleReorderFolder} />
             </div>
-            <Breadcrumb folders={folders} active={activeFolder} onSelect={setActiveFolder} onDelete={handleDeleteFolder} />
+            <Breadcrumb
+              folders={folders}
+              active={activeFolder}
+              onSelect={setActiveFolder}
+              onDelete={handleDeleteFolder}
+              recursive={recursive}
+              onToggleRecursive={() => setRecursive((value) => !value)}
+            />
+            {activeFolder !== "all" && activeFolder !== null && (() => {
+              const folder = folders.find((entry) => entry.id === activeFolder)
+              return folder ? (
+                <FolderStylePanel folder={folder} onSetColor={handleSetFolderColor} onSetIcon={handleSetFolderIcon} />
+              ) : null
+            })()}
             {items.length === 0 ? (
               <EmptyState
                 title="No media files yet"
@@ -513,6 +580,7 @@ export function Vault({
                     checkedIds={checkedIds}
                     onSelect={setSelectedId}
                     onToggleChecked={toggleChecked}
+                    onDragStartItem={(id) => { draggingId.current = id }}
                   />
                 ))}
               </>
@@ -638,11 +706,15 @@ function Breadcrumb({
   active,
   onSelect,
   onDelete,
+  recursive,
+  onToggleRecursive,
 }: {
   folders: MediaFolder[]
   active: ActiveFolder
   onSelect: (id: ActiveFolder) => void
   onDelete: (id: string) => void
+  recursive: boolean
+  onToggleRecursive: () => void
 }) {
   const trail = active === "all" || active === null ? [] : folderPath(folders, active)
 
@@ -668,13 +740,71 @@ function Breadcrumb({
         </span>
       ))}
       {active !== "all" && active !== null && (
-        <button type="button" onClick={() => onDelete(active)} className="ml-2 text-xs text-[#f87171] hover:text-[#fca5a5]">
-          Delete folder
-        </button>
+        <>
+          <button type="button" onClick={() => onDelete(active)} className="ml-2 text-xs text-[#f87171] hover:text-[#fca5a5]">
+            Delete folder
+          </button>
+          <button
+            type="button"
+            onClick={onToggleRecursive}
+            aria-pressed={recursive}
+            className={`ml-2 text-xs ${recursive ? "text-[#c9956b]" : "text-[#71717a] hover:text-[#fafafa]"}`}
+          >
+            {recursive ? "Subfolders: on" : "Include subfolders"}
+          </button>
+        </>
       )}
     </nav>
   )
 }
+
+function FolderStylePanel({
+  folder,
+  onSetColor,
+  onSetIcon,
+}: {
+  folder: MediaFolder
+  onSetColor: (id: string, color: string | null) => void
+  onSetIcon: (id: string, icon: string | null) => void
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-3 rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b] px-3 py-2">
+      <div className="flex items-center gap-1.5">
+        <span className="text-xs text-[#71717a]">Color</span>
+        {FOLDER_SWATCHES.map((color) => (
+          <button
+            key={color}
+            type="button"
+            aria-label={`Set folder color ${color}`}
+            onClick={() => onSetColor(folder.id, color)}
+            className={`h-4 w-4 rounded-full border ${folder.color === color ? "border-[#fafafa]" : "border-transparent"}`}
+            style={{ backgroundColor: color }}
+          />
+        ))}
+        <button type="button" onClick={() => onSetColor(folder.id, null)} className="text-xs text-[#71717a] hover:text-[#fafafa]">Reset</button>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className="text-xs text-[#71717a]">Icon</span>
+        {FOLDER_ICON_KEYS.map((key) => {
+          const Glyph = FOLDER_ICONS[key]
+          return (
+            <button
+              key={key}
+              type="button"
+              aria-label={`Set folder icon ${key}`}
+              onClick={() => onSetIcon(folder.id, key)}
+              className={`rounded-md p-1 ${folder.icon === key ? "bg-[rgba(201,149,107,0.18)] text-[#fafafa]" : "text-[#d4d4d8] hover:bg-[rgba(255,255,255,0.04)]"}`}
+            >
+              <Glyph className="h-4 w-4" />
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+const FOLDER_SWATCHES = ["#c9956b", "#6b9bc9", "#8bbf7a", "#c97a8b", "#b08bc9", "#c9b06b", "#6bc9b0", "#9b9b6b"]
 
 function BulkActionBar({
   count,
@@ -748,6 +878,7 @@ function ClusterSection({
   checkedIds,
   onSelect,
   onToggleChecked,
+  onDragStartItem,
 }: {
   cluster: Cluster
   counts: Record<string, number>
@@ -755,6 +886,7 @@ function ClusterSection({
   checkedIds: string[]
   onSelect: (id: string) => void
   onToggleChecked: (id: string, shiftKey: boolean) => void
+  onDragStartItem: (id: string) => void
 }) {
   return (
     <section className="space-y-3">
@@ -770,7 +902,16 @@ function ClusterSection({
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
           {cluster.items.map((item) => (
-            <div key={`${cluster.key}-${item.id}`} className="group/cell relative">
+            <div
+              key={`${cluster.key}-${item.id}`}
+              className="group/cell relative"
+              draggable
+              onDragStart={(event) => {
+                event.dataTransfer.effectAllowed = "move"
+                event.dataTransfer.setData("text/plain", item.id)
+                onDragStartItem(item.id)
+              }}
+            >
               <label className="absolute left-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-md border border-[rgba(255,255,255,0.2)] bg-[#0a0a0c]/70 opacity-0 transition-opacity hover:opacity-100 has-[:checked]:opacity-100 group-hover/cell:opacity-100">
                 <input
                   type="checkbox"

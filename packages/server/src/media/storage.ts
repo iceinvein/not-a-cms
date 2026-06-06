@@ -47,7 +47,7 @@ export type MediaRecord = {
 
 export type MediaMetadataInput = Pick<MediaRecord, "alt" | "title" | "caption" | "focalX" | "focalY" | "tags">
 
-export type Folder = { id: string; name: string; parentId: string | null }
+export type Folder = { id: string; name: string; parentId: string | null; position: number; color?: string; icon?: string }
 
 export type StoredMediaFile = {
   body: Blob
@@ -78,6 +78,9 @@ export type MediaStorage = {
   renameFolder(id: string, name: string): Folder | null
   moveFolder(id: string, parentId: string | null): Folder | null
   removeFolder(id: string): { reassigned: number; reparented: number } | null
+  setFolderColor(id: string, color: string | null): Folder | null
+  setFolderIcon(id: string, icon: string | null): Folder | null
+  reorderFolder(id: string, direction: "up" | "down"): Folder | null
   moveAssets(ids: string[], folderId: string | null): MediaRecord[]
 }
 
@@ -107,7 +110,7 @@ export type S3SignedRequest = {
 
 const IMAGE_MIMES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp", "image/avif", "image/svg+xml"])
 
-export function isDescendant(folders: Folder[], ancestorId: string, nodeId: string): boolean {
+export function isDescendant(folders: Pick<Folder, "id" | "parentId">[], ancestorId: string, nodeId: string): boolean {
   const byId = new Map(folders.map((folder) => [folder.id, folder]))
   let current: string | null = nodeId
   const seen = new Set<string>()
@@ -294,7 +297,8 @@ function createIndexedMediaStorage(config: StorageConfig, provider: ObjectProvid
 
     createFolder(name: string, parentId: string | null): Folder {
       if (parentId !== null && !folders.some((folder) => folder.id === parentId)) throw new Error("parent not found")
-      const folder: Folder = { id: crypto.randomUUID(), name: name.trim(), parentId }
+      const position = folders.filter((folder) => folder.parentId === parentId).reduce((max, folder) => Math.max(max, folder.position), -1) + 1
+      const folder: Folder = { id: crypto.randomUUID(), name: name.trim(), parentId, position }
       folders.push(folder)
       persistFolders()
       return folder
@@ -345,6 +349,46 @@ function createIndexedMediaStorage(config: StorageConfig, provider: ObjectProvid
       persistIndex()
       persistFolders()
       return { reassigned, reparented }
+    },
+
+    setFolderColor(id: string, color: string | null): Folder | null {
+      const folder = folders.find((entry) => entry.id === id)
+      if (!folder) return null
+      if (color === null) delete folder.color
+      else {
+        if (!HEX_COLOR.test(color)) throw new Error("color must be a #rrggbb hex string")
+        folder.color = color
+      }
+      persistFolders()
+      return folder
+    },
+
+    setFolderIcon(id: string, icon: string | null): Folder | null {
+      const folder = folders.find((entry) => entry.id === id)
+      if (!folder) return null
+      if (icon === null) delete folder.icon
+      else {
+        if (!FOLDER_ICON_KEY.test(icon)) throw new Error("icon must be a short lowercase key")
+        folder.icon = icon
+      }
+      persistFolders()
+      return folder
+    },
+
+    reorderFolder(id: string, direction: "up" | "down"): Folder | null {
+      const folder = folders.find((entry) => entry.id === id)
+      if (!folder) return null
+      const siblings = folders
+        .filter((entry) => entry.parentId === folder.parentId)
+        .sort((a, b) => a.position - b.position || a.name.localeCompare(b.name))
+      const index = siblings.findIndex((entry) => entry.id === id)
+      const swapWith = direction === "up" ? siblings[index - 1] : siblings[index + 1]
+      if (!swapWith) return folder
+      const tmp = folder.position
+      folder.position = swapWith.position
+      swapWith.position = tmp
+      persistFolders()
+      return folder
     },
 
     moveAssets(ids: string[], folderId: string | null): MediaRecord[] {
@@ -564,6 +608,7 @@ const MAX_TAG_LENGTH = 25
 const MAX_TAGS = 30
 const TAG_PALETTE = ["#c9956b", "#6b9bc9", "#8bbf7a", "#c97a8b", "#b08bc9", "#c9b06b", "#6bc9b0", "#9b9b6b"]
 const HEX_COLOR = /^#[0-9a-f]{6}$/i
+const FOLDER_ICON_KEY = /^[a-z][a-z0-9-]{0,23}$/
 
 export function defaultTagColor(name: string): string {
   let hash = 0
@@ -615,7 +660,10 @@ function loadIndex(indexPath: string): Map<string, MediaRecord> {
 function loadFolders(path: string): Folder[] {
   if (!existsSync(path)) return []
   try {
-    return JSON.parse(readFileSync(path, "utf8")) as Folder[]
+    const parsed = JSON.parse(readFileSync(path, "utf8")) as Folder[]
+    // Backfill position for legacy folders saved before ordering existed,
+    // preserving their on-disk order via the array index.
+    return parsed.map((folder, index) => ({ ...folder, position: typeof folder.position === "number" ? folder.position : index }))
   } catch {
     return []
   }

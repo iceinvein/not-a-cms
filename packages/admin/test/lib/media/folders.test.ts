@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { buildFolderTree, filterByFolder, folderPath } from "../../../src/lib/media/folders"
+import { buildFolderTree, filterByFolder, folderDescendantIds, folderPath } from "../../../src/lib/media/folders"
 
 const folders = [
   { id: "a", name: "Brand", parentId: null },
@@ -16,6 +16,30 @@ describe("buildFolderTree", () => {
     const tree = buildFolderTree(folders as any)
     expect(tree.map((node) => node.name)).toEqual(["Brand", "Campaigns"])
     expect(tree[0].children.map((node) => node.name)).toEqual(["Logos"])
+  })
+})
+
+describe("buildFolderTree ordering by position", () => {
+  test("orders siblings by position, then name", () => {
+    const f = [
+      { id: "a", name: "Zeta", parentId: null, position: 0 },
+      { id: "b", name: "Alpha", parentId: null, position: 1 },
+      { id: "c", name: "Mid", parentId: null }, // no position -> treated as 0, ties break by name
+    ]
+    expect(buildFolderTree(f as any).map((n) => n.name)).toEqual(["Mid", "Zeta", "Alpha"])
+  })
+})
+
+describe("folderDescendantIds", () => {
+  test("returns the folder plus all transitive descendants", () => {
+    const f = [
+      { id: "a", name: "A", parentId: null },
+      { id: "b", name: "B", parentId: "a" },
+      { id: "c", name: "C", parentId: "b" },
+      { id: "d", name: "D", parentId: null },
+    ]
+    expect([...folderDescendantIds(f as any, "a")].sort()).toEqual(["a", "b", "c"])
+    expect([...folderDescendantIds(f as any, "d")]).toEqual(["d"])
   })
 })
 

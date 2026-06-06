@@ -124,6 +124,24 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
           return json({ error: "invalid move" }, 400)
         }
       }
+      if (body.color !== undefined) {
+        if (body.color !== null && (typeof body.color !== "string" || !/^#[0-9a-f]{6}$/i.test(body.color))) {
+          return json({ error: "color must be a #rrggbb hex or null" }, 400)
+        }
+        folder = storage.setFolderColor(action, body.color)
+      }
+      if (body.icon !== undefined) {
+        if (body.icon !== null && (typeof body.icon !== "string" || !/^[a-z][a-z0-9-]{0,23}$/.test(body.icon))) {
+          return json({ error: "icon must be a short lowercase key or null" }, 400)
+        }
+        folder = storage.setFolderIcon(action, body.icon)
+      }
+      if (body.direction !== undefined) {
+        if (body.direction !== "up" && body.direction !== "down") {
+          return json({ error: "direction must be up or down" }, 400)
+        }
+        folder = storage.reorderFolder(action, body.direction)
+      }
       return json(folder)
     }
 

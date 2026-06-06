@@ -329,6 +329,38 @@ describe("media API", () => {
     })
     expect(cycle.status).toBe(400)
   })
+
+  test("PATCH folders sets color, icon, and reorders; rejects bad values", async () => {
+    const adminCookie = await signInAndGetCookie("media-admin@example.test")
+    const mk = async (name: string) =>
+      (await (await fetch(`${baseUrl}/api/media/folders`, {
+        method: "POST", headers: { "Content-Type": "application/json", cookie: adminCookie }, body: JSON.stringify({ name }),
+      })).json())
+    const f1 = await mk("F1")
+    const f2 = await mk("F2")
+
+    const color = await fetch(`${baseUrl}/api/media/folders/${f1.id}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json", cookie: adminCookie }, body: JSON.stringify({ color: "#123abc" }),
+    })
+    expect((await color.json()).color).toBe("#123abc")
+
+    const icon = await fetch(`${baseUrl}/api/media/folders/${f1.id}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json", cookie: adminCookie }, body: JSON.stringify({ icon: "image" }),
+    })
+    expect((await icon.json()).icon).toBe("image")
+
+    const reorder = await fetch(`${baseUrl}/api/media/folders/${f2.id}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json", cookie: adminCookie }, body: JSON.stringify({ direction: "up" }),
+    })
+    expect(reorder.status).toBe(200)
+
+    for (const bad of [{ color: "red" }, { icon: "Nope!" }, { direction: "sideways" }]) {
+      const res = await fetch(`${baseUrl}/api/media/folders/${f1.id}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json", cookie: adminCookie }, body: JSON.stringify(bad),
+      })
+      expect(res.status).toBe(400)
+    }
+  })
 })
 
 async function signInAndGetCookie(email: string): Promise<string> {

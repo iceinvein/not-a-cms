@@ -168,6 +168,48 @@ describe("local media storage", () => {
     expect(storage.moveFolder(logos.id, null)?.parentId).toBeNull()
   })
 
+  test("createFolder assigns increasing position among siblings", () => {
+    const storage = createLocalStorage({ provider: "local", path: uploadsDir })
+    const a = storage.createFolder("A", null)
+    const b = storage.createFolder("B", null)
+    const childA = storage.createFolder("Child", a.id)
+    expect(a.position).toBe(0)
+    expect(b.position).toBe(1)
+    expect(childA.position).toBe(0) // first child of A, separate sibling group
+  })
+
+  test("setFolderColor sets and clears, rejects bad hex", () => {
+    const storage = createLocalStorage({ provider: "local", path: uploadsDir })
+    const f = storage.createFolder("F", null)
+    expect(storage.setFolderColor(f.id, "#abcdef")?.color).toBe("#abcdef")
+    expect(storage.setFolderColor(f.id, null)?.color).toBeUndefined()
+    expect(() => storage.setFolderColor(f.id, "red")).toThrow()
+    expect(storage.setFolderColor("missing", "#abcdef")).toBeNull()
+  })
+
+  test("setFolderIcon sets and clears, rejects bad key", () => {
+    const storage = createLocalStorage({ provider: "local", path: uploadsDir })
+    const f = storage.createFolder("F", null)
+    expect(storage.setFolderIcon(f.id, "image")?.icon).toBe("image")
+    expect(storage.setFolderIcon(f.id, null)?.icon).toBeUndefined()
+    expect(() => storage.setFolderIcon(f.id, "BadKey!")).toThrow()
+  })
+
+  test("reorderFolder swaps adjacent siblings and no-ops at the ends", () => {
+    const storage = createLocalStorage({ provider: "local", path: uploadsDir })
+    const a = storage.createFolder("A", null)
+    const b = storage.createFolder("B", null)
+    const c = storage.createFolder("C", null)
+    const ordered = () =>
+      storage.listFolders().filter((f) => f.parentId === null).sort((x, y) => x.position - y.position).map((f) => f.name)
+    storage.reorderFolder(b.id, "up")
+    expect(ordered()).toEqual(["B", "A", "C"])
+    storage.reorderFolder(b.id, "up") // already at top -> no-op
+    expect(ordered()).toEqual(["B", "A", "C"])
+    storage.reorderFolder(c.id, "down") // already at bottom -> no-op
+    expect(ordered()).toEqual(["B", "A", "C"])
+  })
+
   test("removeFolder reassigns assets and reparents children to the parent", async () => {
     const storage = createLocalStorage({ provider: "local", path: uploadsDir })
     const brand = storage.createFolder("Brand", null)

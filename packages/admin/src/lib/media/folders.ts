@@ -13,7 +13,7 @@ export function buildFolderTree(folders: MediaFolder[]): FolderNode[] {
   }
 
   const sort = (list: FolderNode[]) => {
-    list.sort((a, b) => a.name.localeCompare(b.name))
+    list.sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.name.localeCompare(b.name))
     list.forEach((node) => sort(node.children))
   }
   sort(roots)
@@ -41,4 +41,26 @@ export function filterByFolder(items: AdminMediaItem[], folderId: string | null 
   if (folderId === "all") return items
   if (folderId === null) return items.filter((item) => !item.folderId)
   return items.filter((item) => item.folderId === folderId)
+}
+
+// The folder id plus all transitive descendant ids, for the "include subfolders" view.
+export function folderDescendantIds(folders: MediaFolder[], id: string): Set<string> {
+  const childrenByParent = new Map<string | null, MediaFolder[]>()
+  for (const folder of folders) {
+    const siblings = childrenByParent.get(folder.parentId) ?? []
+    siblings.push(folder)
+    childrenByParent.set(folder.parentId, siblings)
+  }
+  const ids = new Set<string>([id])
+  const stack = [id]
+  while (stack.length > 0) {
+    const current = stack.pop()!
+    for (const child of childrenByParent.get(current) ?? []) {
+      if (!ids.has(child.id)) {
+        ids.add(child.id)
+        stack.push(child.id)
+      }
+    }
+  }
+  return ids
 }

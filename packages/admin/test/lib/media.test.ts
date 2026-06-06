@@ -15,7 +15,10 @@ import {
   normalizeTagInput,
   renameMediaTag,
   renameMediaFolder,
+  reorderMediaFolder,
   replaceMediaFile,
+  setMediaFolderColor,
+  setMediaFolderIcon,
   setMediaTagColor,
   updateMediaItem,
   uploadMediaFile,
@@ -93,6 +96,22 @@ describe("admin media API client", () => {
     expect(calls[0]?.url).toBe("https://cms.example.test/api/media/asset-1")
     expect(calls[0]?.init?.method).toBe("DELETE")
     expect(calls[0]?.init?.credentials).toBe("include")
+  })
+
+  test("bulkDeleteMediaItems posts ids and returns deleted ids", async () => {
+    const calls: Array<{ url: string; init?: RequestInit }> = []
+    globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
+      calls.push({ url: String(url), init })
+      return Response.json({ deleted: ["a", "b"] })
+    }) as typeof fetch
+
+    const deleted = await bulkDeleteMediaItems("https://cms.example.test", ["a", "b"])
+
+    expect(calls[0]?.url).toBe("https://cms.example.test/api/media/delete")
+    expect(calls[0]?.init?.method).toBe("POST")
+    expect(calls[0]?.init?.credentials).toBe("include")
+    expect(JSON.parse(String(calls[0]?.init?.body))).toEqual({ ids: ["a", "b"] })
+    expect(deleted).toEqual(["a", "b"])
   })
 
   test("updates media metadata", async () => {
@@ -234,6 +253,24 @@ describe("admin media API client", () => {
     expect(calls[4]?.init?.method).toBe("DELETE")
     expect(calls[5]?.url).toBe("https://cms.example.test/api/media/move")
     expect(moved[0]?.folderId).toBe("f1")
+  })
+
+  test("folder style + reorder client fns PATCH the right body", async () => {
+    const calls: Array<{ url: string; init?: RequestInit }> = []
+    globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
+      calls.push({ url: String(url), init })
+      return Response.json({ id: "f1", name: "F", parentId: null, position: 0 })
+    }) as typeof fetch
+
+    await setMediaFolderColor("https://cms.example.test", "f1", "#abcdef")
+    await setMediaFolderIcon("https://cms.example.test", "f1", "image")
+    await reorderMediaFolder("https://cms.example.test", "f1", "up")
+
+    expect(calls[0]?.url).toBe("https://cms.example.test/api/media/folders/f1")
+    expect(calls[0]?.init?.method).toBe("PATCH")
+    expect(JSON.parse(String(calls[0]?.init?.body))).toEqual({ color: "#abcdef" })
+    expect(JSON.parse(String(calls[1]?.init?.body))).toEqual({ icon: "image" })
+    expect(JSON.parse(String(calls[2]?.init?.body))).toEqual({ direction: "up" })
   })
 
   test("replaces a media file as multipart form data", async () => {

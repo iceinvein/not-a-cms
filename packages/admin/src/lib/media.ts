@@ -21,7 +21,7 @@ export type AdminMediaItem = {
 }
 
 export type MediaMetadataInput = Pick<AdminMediaItem, "alt" | "title" | "caption" | "focalX" | "focalY" | "tags">
-export type MediaFolder = { id: string; name: string; parentId: string | null }
+export type MediaFolder = { id: string; name: string; parentId: string | null; position?: number; color?: string; icon?: string }
 
 type RawMediaRecord = Omit<AdminMediaItem, "url"> & {
   url?: string
@@ -153,6 +153,36 @@ export async function moveMediaFolder(apiBase: string, id: string, parentId: str
     body: JSON.stringify({ parentId }),
   })
   if (!res.ok) throw new Error("Failed to move folder")
+  return await res.json() as MediaFolder
+}
+
+export async function setMediaFolderColor(apiBase: string, id: string, color: string | null): Promise<MediaFolder> {
+  const res = await adminApiFetch(apiBase, `/api/media/folders/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ color }),
+  })
+  if (!res.ok) throw new Error("Failed to set folder color")
+  return await res.json() as MediaFolder
+}
+
+export async function setMediaFolderIcon(apiBase: string, id: string, icon: string | null): Promise<MediaFolder> {
+  const res = await adminApiFetch(apiBase, `/api/media/folders/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ icon }),
+  })
+  if (!res.ok) throw new Error("Failed to set folder icon")
+  return await res.json() as MediaFolder
+}
+
+export async function reorderMediaFolder(apiBase: string, id: string, direction: "up" | "down"): Promise<MediaFolder> {
+  const res = await adminApiFetch(apiBase, `/api/media/folders/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ direction }),
+  })
+  if (!res.ok) throw new Error("Failed to reorder folder")
   return await res.json() as MediaFolder
 }
 

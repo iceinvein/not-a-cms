@@ -43,7 +43,10 @@ const page = defineCollection({
     title: field.text({ required: true }),
     slug: field.slug({ from: "title" }),
     author: field.relation("author"),
-    layout: field.pageLayout(),
+    // The page body is rich text, matching the CLI scaffold (collections/page.ts).
+    // The previous field.pageLayout() had no editor in the admin, so pages could not
+    // be authored; richText is both editable (Continuum) and renderable.
+    body: field.richText(),
     status: field.select(["draft", "in_review", "published", "archived", "scheduled"], { default: "draft" }),
     publishedAt: field.datetime(),
   },

@@ -5,6 +5,18 @@ import type { AdminFieldDef } from "../../lib/content-fields"
 
 export type WorkflowAction = "save_draft" | "submit_review" | "publish" | "archive"
 
+/**
+ * Whether a "Save" should run a workflow status transition after persisting edits.
+ *
+ * "Save" (save_draft) only writes the document's fields via PATCH and must leave the
+ * publication status untouched: firing the save_draft transition would pull a live,
+ * published document back to draft and silently take it off the public site (F-016).
+ * Only the explicit Review / Publish / Archive actions change status.
+ */
+export function shouldRunWorkflowTransition(action: WorkflowAction): boolean {
+  return action !== "save_draft"
+}
+
 export function useDocument(opts: {
   collection: string
   fields: Record<string, AdminFieldDef>
@@ -66,7 +78,7 @@ export function useDocument(opts: {
       let result = await res.json()
       const savedId = String(result.id ?? documentId ?? "")
 
-      if (savedId && (action !== "save_draft" || result.status !== "draft")) {
+      if (savedId && shouldRunWorkflowTransition(action)) {
         const workflowRes = await adminApiFetch(apiBase, `/api/${collection}/${savedId}/workflow`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },

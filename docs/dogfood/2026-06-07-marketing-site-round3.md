@@ -244,19 +244,23 @@ verified on a fresh `studio.db`.
 | F-028 (install friction) | Resolved in the foundation: workspace wiring, the `--site` boot selector, and the test-auth seam. A real `not-a-cms init` scaffold remains a future onboarding pass. |
 | F-029 (full-bleed) | Section bands break out to full width via the `nac-band` 100vw technique with `overflow-x: hidden`; rhythm tightened. (A full-width-`main` refactor was judged unnecessary given the working breakout.) |
 
-### New finding (discovered during Wave 4)
+### New finding (discovered during Wave 4) — RESOLVED
 
 **F-030 (GAP): custom collections have no public route.** The renderer's `DEFAULT_ROUTES`
-maps only `page` and `blog_post`. The studio's `project` collection therefore has no
-detail-page route, so `collectionList` portfolio cards link to `#` and case-study pages
-are unreachable. `CMSConfig.routes` already exists as a type but is not plumbed into the
-renderer (the page fetchers, `documentPath`, and the `collectionList` serializer all use
-`DEFAULT_ROUTES`). Closing this (serve `config.routes` via `/api/_site`, thread them
-through the fetcher + `documentPath` + the serializer, and resolve `/work/:slug` in
-`[...slug].astro`) is the top follow-up: a real "dynamic website for your company" needs
-custom content types with their own pages. The studio's landing, portfolio grid, journal,
-and all `page`/`blog_post` routes render correctly today; only `project` detail pages are
-unreachable.
+mapped only `page` and `blog_post`, so the studio's `project` collection had no
+detail-page route: `collectionList` portfolio cards linked to `#` and case-study pages
+were unreachable.
+
+Resolved: `config.routes` is now served via `/api/_site`, merged with the renderer
+defaults (`mergeRoutes`, config routes first), and threaded through the page fetchers,
+`documentPath`, and the `collectionList` serializer (`RenderOpts.routes`). The studio
+config declares `routes: [{ collection: "project", path: "/work/:slug" }]`, and a "Work"
+index page lists the projects. Verified live: portfolio cards link to `/work/<slug>`,
+`/work/<slug>` returns 200 and renders the project's case study in the dark theme
+(`after-f030-project-detail`, `after-f030-work-index`). `blog_post`/`page` behavior is
+unchanged and the change is backward compatible (sites without `config.routes` get the
+defaults). A real "dynamic website for your company" can now define custom content types
+with their own public pages.
 
 ### Result
 

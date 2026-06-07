@@ -117,6 +117,35 @@ Each collection becomes its own SQL table with real typed columns. Rich text is 
 
 ---
 
+## Example sites
+
+Two complete example sites live under `dogfood-sites/`, each a real project
+(`not-a-cms.config.ts` + its own theme and database) rendered by the same engine. They
+are the fastest way to see what a finished not-a-cms site looks like, and a useful
+starting point to copy from:
+
+| Example | Identity | Shows off |
+|---|---|---|
+| `not-a-cms` | Warm, serif, light | Marketing home (hero, stats, feature grid, testimonial, pricing cards, FAQ), a blog with related posts |
+| `studio` (Atelier) | Dark, grotesk, bold | A dynamic portfolio (`collectionList` over a custom `project` collection), case-study pages at `/work/:slug`, a journal |
+
+Load either with the `--site` selector (alt ports shown so they do not clash):
+
+```bash
+# The warm marketing site
+bun scripts/dev.ts --site=not-a-cms
+
+# The dark studio site (a contrasting brand on the same engine)
+E2E_TEST_AUTH=1 bun scripts/dev.ts --site=studio --port=4341 --admin-port=4342 --renderer-port=3001
+```
+
+The studio starts empty; seed it with `bun scripts/seed-studio.ts` (and
+`bun scripts/seed-notacms.ts` re-applies the enriched marketing pages). See
+`dogfood-sites/README.md` for details. Together they prove the theme tokens span light to
+dark and that a custom content model gets its own public routes, both from config alone.
+
+---
+
 ## Configuration
 
 ```typescript

@@ -259,6 +259,134 @@ describe("faq section block", () => {
   })
 })
 
+describe("pricingCards section block", () => {
+  test("renders band/container/heading and one card per tier", () => {
+    const html = renderPortableText([
+      {
+        type: "pricingCards",
+        heading: "Simple pricing",
+        tiers: [
+          {
+            name: "Starter",
+            price: "$0",
+            period: "/mo",
+            features: ["Up to 3 projects", "Community support"],
+            ctaLabel: "Get started",
+            ctaUrl: "/signup",
+            highlighted: false,
+          },
+          {
+            name: "Pro",
+            price: "$29",
+            period: "/mo",
+            features: ["Unlimited projects"],
+            ctaLabel: "Upgrade",
+            ctaUrl: "/upgrade",
+            highlighted: true,
+          },
+        ],
+      },
+    ])
+    expect(html).toContain("nac-band")
+    expect(html).toContain("nac-pricing-cards")
+    expect(html).toContain("nac-container")
+    expect(html).toContain('class="nac-section-heading"')
+    expect(html).toContain("Simple pricing")
+    expect(html).toContain('<div class="nac-pricing">')
+    expect(html.match(/class="nac-tier"/g)?.length).toBe(2)
+    expect(html).toContain('data-highlight="false"')
+    expect(html).toContain('data-highlight="true"')
+    expect(html).toContain('<h3 class="nac-tier-name">Starter</h3>')
+    expect(html).toContain('<h3 class="nac-tier-name">Pro</h3>')
+    expect(html).toContain("$0")
+    expect(html).toContain("$29")
+    expect(html).toContain('<span class="nac-tier-period">/mo</span>')
+    expect(html).toContain("<li>Up to 3 projects</li>")
+    expect(html).toContain("<li>Community support</li>")
+    expect(html).toContain("<li>Unlimited projects</li>")
+    expect(html).toContain('href="/signup"')
+    expect(html).toContain("Get started")
+    expect(html).toContain('href="/upgrade"')
+    expect(html).toContain("Upgrade")
+  })
+
+  test("pricingCards omits heading element when heading is empty", () => {
+    const html = renderPortableText([
+      { type: "pricingCards", heading: "", tiers: [] },
+    ])
+    expect(html).not.toContain("nac-section-heading")
+  })
+
+  test("pricingCards omits CTA when ctaLabel is absent", () => {
+    const html = renderPortableText([
+      {
+        type: "pricingCards",
+        tiers: [{ name: "Free", price: "$0", period: "", features: [], ctaLabel: "", ctaUrl: "", highlighted: false }],
+      },
+    ])
+    expect(html).not.toContain("nac-cta-btn")
+  })
+
+  test("pricingCards omits period span when period is empty", () => {
+    const html = renderPortableText([
+      {
+        type: "pricingCards",
+        tiers: [{ name: "Free", price: "$0", period: "", features: [], ctaLabel: "", ctaUrl: "", highlighted: false }],
+      },
+    ])
+    expect(html).not.toContain("nac-tier-period")
+  })
+
+  test("pricingCards handles non-array tiers gracefully", () => {
+    const html = renderPortableText([{ type: "pricingCards", tiers: null }])
+    expect(html).toContain("nac-pricing-cards")
+    expect(html).not.toContain("nac-tier")
+  })
+
+  test("pricingCards handles empty tiers safely", () => {
+    const html = renderPortableText([{ type: "pricingCards", tiers: [] }])
+    expect(html).toContain('<div class="nac-pricing">')
+    expect(html).not.toContain("nac-tier")
+  })
+
+  test("pricingCards escapes html in tier text fields", () => {
+    const html = renderPortableText([
+      {
+        type: "pricingCards",
+        tiers: [
+          { name: "<script>x</script>", price: "$0", period: "", features: ["<b>bad</b>"], ctaLabel: "", ctaUrl: "", highlighted: false },
+        ],
+      },
+    ])
+    expect(html).not.toContain("<script>x</script>")
+    expect(html).not.toContain("<b>bad</b>")
+    expect(html).toContain("&lt;script&gt;")
+    expect(html).toContain("&lt;b&gt;")
+  })
+
+  test("pricingCards sanitizes dangerous CTA urls", () => {
+    const html = renderPortableText([
+      {
+        type: "pricingCards",
+        tiers: [{ name: "Bad", price: "$0", period: "", features: [], ctaLabel: "Click", ctaUrl: "javascript:alert(1)", highlighted: false }],
+      },
+    ])
+    expect(html).not.toContain("javascript:")
+    expect(html).toContain('href="#"')
+  })
+
+  test("pricingCards handles non-array features gracefully", () => {
+    const html = renderPortableText([
+      {
+        type: "pricingCards",
+        tiers: [{ name: "Free", price: "$0", period: "", features: null, ctaLabel: "", ctaUrl: "", highlighted: false }],
+      },
+    ])
+    expect(html).toContain("nac-tier")
+    expect(html).not.toContain("<li>")
+  })
+})
+
 describe("testimonial section block", () => {
   test("renders quote, name, role, and avatar", () => {
     const html = renderPortableText([

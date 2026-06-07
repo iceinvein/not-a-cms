@@ -185,6 +185,38 @@ function renderBlock(block: PTBlock): string {
       const figcaption = `<figcaption class="nac-quote-by">${avatarImg}<span class="nac-quote-name">${name}</span>${role}</figcaption>`
       return `<section class="nac-band nac-testimonial-block not-prose"><div class="nac-container"><figure class="nac-testimonial"><blockquote class="nac-quote">${quote}</blockquote>${figcaption}</figure></div></section>`
     }
+    case "pricingCards": {
+      const pricingHeading = block.heading ? `<h2 class="nac-section-heading">${escapeHtml(String(block.heading))}</h2>` : ""
+      const tierList = Array.isArray(block.tiers) ? block.tiers : []
+      const tierCards = tierList
+        .map((entry: unknown) => {
+          const tier = (entry ?? {}) as {
+            name?: unknown
+            price?: unknown
+            period?: unknown
+            features?: unknown
+            ctaLabel?: unknown
+            ctaUrl?: unknown
+            highlighted?: unknown
+          }
+          const name = escapeHtml(String(tier.name ?? ""))
+          const price = escapeHtml(String(tier.price ?? ""))
+          const period = String(tier.period ?? "").trim()
+          const periodSpan = period ? `<span class="nac-tier-period">${escapeHtml(period)}</span>` : ""
+          const features = Array.isArray(tier.features) ? tier.features : []
+          const featureItems = features
+            .map((f: unknown) => `<li>${escapeHtml(String(f ?? ""))}</li>`)
+            .join("")
+          const ctaLabel = String(tier.ctaLabel ?? "").trim()
+          const cta = ctaLabel
+            ? `<a class="nac-cta-btn" data-variant="primary" href="${escapeHtml(sanitizeUrl(tier.ctaUrl))}">${escapeHtml(ctaLabel)}</a>`
+            : ""
+          const highlight = Boolean(tier.highlighted)
+          return `<div class="nac-tier" data-highlight="${highlight}"><h3 class="nac-tier-name">${name}</h3><div class="nac-tier-price">${price}${periodSpan}</div><ul class="nac-tier-features">${featureItems}</ul>${cta}</div>`
+        })
+        .join("")
+      return `<section class="nac-band nac-pricing-cards not-prose"><div class="nac-container">${pricingHeading}<div class="nac-pricing">${tierCards}</div></div></section>`
+    }
     case "faq": {
       const faqHeading = block.heading ? `<h2 class="nac-section-heading">${escapeHtml(String(block.heading))}</h2>` : ""
       const faqItems = Array.isArray(block.items) ? block.items : []

@@ -3,6 +3,7 @@ import { AuthorBlockView } from "./author-block"
 import { CtaBlockView } from "./cta-block"
 import { FaqBlockView } from "./faq-block"
 import { FeatureGridBlockView } from "./feature-grid-block"
+import { PricingCardsBlockView } from "./pricing-cards-block"
 import { GalleryBlockView } from "./gallery-block"
 import { HeroBlockView } from "./hero-block"
 import { ImageBlockView } from "./image-block"
@@ -118,6 +119,15 @@ export const continuumBlocks: DefinedBlock[] = [
     },
     editor: FaqBlockView,
   }),
+  defineBlock({
+    name: "pricingCards",
+    label: "Pricing cards",
+    schema: {
+      heading: { type: "text", default: "" },
+      tiers: { type: "array", default: [] },
+    },
+    editor: PricingCardsBlockView,
+  }),
 ]
 
 const insert = (name: string) => (editor: any, range: any) =>
@@ -135,4 +145,5 @@ export const continuumSlashCommands: SlashCommandItem[] = [
   { title: "Logo cloud", description: "Row of partner or customer logos", group: "sections", command: insert("logoCloud") },
   { title: "Testimonial", description: "Pull-quote with name, role, and avatar", group: "sections", command: insert("testimonial") },
   { title: "FAQ", description: "Collapsible question and answer list", group: "sections", command: insert("faq") },
+  { title: "Pricing cards", description: "Tier cards with features and CTA buttons", group: "sections", command: insert("pricingCards") },
 ]

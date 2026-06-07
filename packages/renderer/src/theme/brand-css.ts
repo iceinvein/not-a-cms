@@ -402,4 +402,96 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.95rem;
   line-height: 1.6;
 }
+
+/* Pricing cards section block: responsive grid of tier cards with an accented highlight. */
+.nac-pricing-cards {
+  padding-block: 3.5rem;
+  text-align: center;
+}
+
+.nac-pricing {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 640px) {
+  .nac-pricing {
+    grid-template-columns: 1fr;
+  }
+}
+
+.nac-tier {
+  padding: 1.75rem 1.5rem;
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  text-align: left;
+  transition: transform 0.15s ease;
+}
+
+.nac-tier[data-highlight="true"] {
+  border-color: var(--accent);
+  transform: scale(1.025);
+  box-shadow: 0 4px 24px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.nac-tier-name {
+  margin: 0 0 1rem;
+  font-family: var(--font-display, "Fraunces", Georgia, serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.nac-tier-price {
+  margin-bottom: 1.25rem;
+  font-family: var(--font-display, "Fraunces", Georgia, serif);
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.nac-tier-period {
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.85rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--muted);
+  margin-left: 0.15em;
+}
+
+.nac-tier-features {
+  margin: 0 0 1.5rem;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.nac-tier-features li {
+  padding-left: 1.25em;
+  position: relative;
+  font-size: 0.9rem;
+  color: var(--body);
+}
+
+.nac-tier-features li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.nac-tier .nac-cta-btn {
+  display: block;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+}
 `

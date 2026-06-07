@@ -196,4 +196,92 @@ describe("custom block round-trip", () => {
       },
     })
   })
+
+  test("pricingCards block preserves heading and tiers with nested features and highlighted bool", () => {
+    const doc = {
+      type: "doc",
+      content: [
+        {
+          type: "pricingCards",
+          attrs: {
+            heading: "Simple pricing",
+            tiers: [
+              {
+                name: "Starter",
+                price: "$0",
+                period: "/mo",
+                features: ["Up to 3 projects", "Community support"],
+                ctaLabel: "Get started",
+                ctaUrl: "/signup",
+                highlighted: false,
+              },
+              {
+                name: "Pro",
+                price: "$29",
+                period: "/mo",
+                features: ["Unlimited projects", "Priority support"],
+                ctaLabel: "Upgrade",
+                ctaUrl: "/upgrade",
+                highlighted: true,
+              },
+            ],
+          },
+        },
+      ],
+    }
+    const pt = toPortableText(doc as any)
+    expect(pt).toEqual([
+      {
+        type: "pricingCards",
+        heading: "Simple pricing",
+        tiers: [
+          {
+            name: "Starter",
+            price: "$0",
+            period: "/mo",
+            features: ["Up to 3 projects", "Community support"],
+            ctaLabel: "Get started",
+            ctaUrl: "/signup",
+            highlighted: false,
+          },
+          {
+            name: "Pro",
+            price: "$29",
+            period: "/mo",
+            features: ["Unlimited projects", "Priority support"],
+            ctaLabel: "Upgrade",
+            ctaUrl: "/upgrade",
+            highlighted: true,
+          },
+        ],
+      },
+    ])
+    const back = fromPortableText(pt)
+    expect(back.content[0]).toEqual({
+      type: "pricingCards",
+      attrs: {
+        heading: "Simple pricing",
+        tiers: [
+          {
+            name: "Starter",
+            price: "$0",
+            period: "/mo",
+            features: ["Up to 3 projects", "Community support"],
+            ctaLabel: "Get started",
+            ctaUrl: "/signup",
+            highlighted: false,
+          },
+          {
+            name: "Pro",
+            price: "$29",
+            period: "/mo",
+            features: ["Unlimited projects", "Priority support"],
+            ctaLabel: "Upgrade",
+            ctaUrl: "/upgrade",
+            highlighted: true,
+          },
+        ],
+      },
+    })
+  })
 })

@@ -1,6 +1,7 @@
 import { defineBlock, type DefinedBlock, type SlashCommandItem } from "@not-a-cms/editor"
 import { AuthorBlockView } from "./author-block"
 import { CtaBlockView } from "./cta-block"
+import { FaqBlockView } from "./faq-block"
 import { FeatureGridBlockView } from "./feature-grid-block"
 import { GalleryBlockView } from "./gallery-block"
 import { HeroBlockView } from "./hero-block"
@@ -108,6 +109,15 @@ export const continuumBlocks: DefinedBlock[] = [
     },
     editor: TestimonialBlockView,
   }),
+  defineBlock({
+    name: "faq",
+    label: "FAQ",
+    schema: {
+      heading: { type: "text", default: "" },
+      items: { type: "array", default: [] },
+    },
+    editor: FaqBlockView,
+  }),
 ]
 
 const insert = (name: string) => (editor: any, range: any) =>
@@ -124,4 +134,5 @@ export const continuumSlashCommands: SlashCommandItem[] = [
   { title: "Stats", description: "Grid of key metrics or social proof numbers", group: "sections", command: insert("stats") },
   { title: "Logo cloud", description: "Row of partner or customer logos", group: "sections", command: insert("logoCloud") },
   { title: "Testimonial", description: "Pull-quote with name, role, and avatar", group: "sections", command: insert("testimonial") },
+  { title: "FAQ", description: "Collapsible question and answer list", group: "sections", command: insert("faq") },
 ]

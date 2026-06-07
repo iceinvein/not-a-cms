@@ -201,6 +201,64 @@ describe("logoCloud section block", () => {
   })
 })
 
+describe("faq section block", () => {
+  test("renders band/container structure with optional heading and dl", () => {
+    const html = renderPortableText([
+      {
+        type: "faq",
+        heading: "Common questions",
+        items: [
+          { question: "How does it work?", answer: "Very well." },
+          { question: "Is it free?", answer: "Yes, forever." },
+        ],
+      },
+    ])
+    expect(html).toContain("nac-band")
+    expect(html).toContain("nac-faq")
+    expect(html).toContain("nac-container")
+    expect(html).toContain('class="nac-section-heading"')
+    expect(html).toContain("Common questions")
+    expect(html).toContain('<dl class="nac-faq">')
+    expect(html.match(/<details class="nac-faq-item">/g)?.length).toBe(2)
+    expect(html).toContain('<summary class="nac-faq-q">How does it work?</summary>')
+    expect(html).toContain('<div class="nac-faq-a">Very well.</div>')
+    expect(html).toContain('<summary class="nac-faq-q">Is it free?</summary>')
+    expect(html).toContain('<div class="nac-faq-a">Yes, forever.</div>')
+  })
+
+  test("faq omits heading element when heading is empty", () => {
+    const html = renderPortableText([
+      { type: "faq", heading: "", items: [{ question: "Q?", answer: "A." }] },
+    ])
+    expect(html).not.toContain("nac-section-heading")
+  })
+
+  test("faq handles non-array items gracefully", () => {
+    const html = renderPortableText([{ type: "faq", items: null }])
+    expect(html).toContain("nac-faq")
+    expect(html).not.toContain("nac-faq-item")
+  })
+
+  test("faq renders empty items list safely", () => {
+    const html = renderPortableText([{ type: "faq", items: [] }])
+    expect(html).toContain('<dl class="nac-faq">')
+    expect(html).not.toContain("nac-faq-item")
+  })
+
+  test("faq escapes html in question and answer", () => {
+    const html = renderPortableText([
+      {
+        type: "faq",
+        items: [{ question: "<script>bad</script>", answer: "<b>bold</b>" }],
+      },
+    ])
+    expect(html).not.toContain("<script>bad</script>")
+    expect(html).not.toContain("<b>bold</b>")
+    expect(html).toContain("&lt;script&gt;")
+    expect(html).toContain("&lt;b&gt;")
+  })
+})
+
 describe("testimonial section block", () => {
   test("renders quote, name, role, and avatar", () => {
     const html = renderPortableText([

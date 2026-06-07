@@ -156,4 +156,44 @@ describe("custom block round-trip", () => {
       },
     })
   })
+
+  test("faq block preserves heading and items array", () => {
+    const doc = {
+      type: "doc",
+      content: [
+        {
+          type: "faq",
+          attrs: {
+            heading: "Common questions",
+            items: [
+              { question: "How does it work?", answer: "Very well." },
+              { question: "Is it fast?", answer: "Yes." },
+            ],
+          },
+        },
+      ],
+    }
+    const pt = toPortableText(doc as any)
+    expect(pt).toEqual([
+      {
+        type: "faq",
+        heading: "Common questions",
+        items: [
+          { question: "How does it work?", answer: "Very well." },
+          { question: "Is it fast?", answer: "Yes." },
+        ],
+      },
+    ])
+    const back = fromPortableText(pt)
+    expect(back.content[0]).toEqual({
+      type: "faq",
+      attrs: {
+        heading: "Common questions",
+        items: [
+          { question: "How does it work?", answer: "Very well." },
+          { question: "Is it fast?", answer: "Yes." },
+        ],
+      },
+    })
+  })
 })

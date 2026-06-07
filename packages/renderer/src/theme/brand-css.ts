@@ -351,4 +351,55 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.8rem;
   color: var(--muted);
 }
+
+/* FAQ section block: constrained column of collapsible question/answer pairs. */
+.nac-faq {
+  padding-block: 3rem;
+}
+
+.nac-section-heading {
+  margin: 0 0 2rem;
+  font-family: var(--font-display, "Fraunces", Georgia, serif);
+  font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.nac-faq dl {
+  max-width: 52ch;
+  margin-inline: auto;
+}
+
+.nac-faq-item {
+  border-bottom: 1px solid var(--border);
+  padding-block: 0.75rem;
+  list-style: none;
+}
+
+.nac-faq-item:first-child {
+  border-top: 1px solid var(--border);
+}
+
+.nac-faq-q {
+  cursor: pointer;
+  font-family: var(--font-display, "Fraunces", Georgia, serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink);
+  list-style: none;
+  padding-block: 0.25rem;
+  user-select: none;
+}
+
+.nac-faq-q::-webkit-details-marker {
+  display: none;
+}
+
+.nac-faq-a {
+  margin-top: 0.5rem;
+  padding-bottom: 0.25rem;
+  color: var(--body, var(--muted));
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
 `

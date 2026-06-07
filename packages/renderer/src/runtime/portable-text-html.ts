@@ -185,6 +185,19 @@ function renderBlock(block: PTBlock): string {
       const figcaption = `<figcaption class="nac-quote-by">${avatarImg}<span class="nac-quote-name">${name}</span>${role}</figcaption>`
       return `<section class="nac-band nac-testimonial-block not-prose"><div class="nac-container"><figure class="nac-testimonial"><blockquote class="nac-quote">${quote}</blockquote>${figcaption}</figure></div></section>`
     }
+    case "faq": {
+      const faqHeading = block.heading ? `<h2 class="nac-section-heading">${escapeHtml(String(block.heading))}</h2>` : ""
+      const faqItems = Array.isArray(block.items) ? block.items : []
+      const details = faqItems
+        .map((entry: unknown) => {
+          const item = (entry ?? {}) as { question?: unknown; answer?: unknown }
+          const question = escapeHtml(String(item.question ?? ""))
+          const answer = escapeHtml(String(item.answer ?? ""))
+          return `<details class="nac-faq-item"><summary class="nac-faq-q">${question}</summary><div class="nac-faq-a">${answer}</div></details>`
+        })
+        .join("")
+      return `<section class="nac-band nac-faq not-prose"><div class="nac-container">${faqHeading}<dl class="nac-faq">${details}</dl></div></section>`
+    }
     case "author":
       return `<div data-author><span data-author-name>${escapeHtml(String(block.name ?? ""))}</span>${block.role ? `<span data-author-role>${escapeHtml(String(block.role))}</span>` : ""}</div>`
     case "gallery": {

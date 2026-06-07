@@ -1,0 +1,57 @@
+import { describe, expect, test } from "bun:test"
+import { renderPortableText } from "../../src/runtime/portable-text-html"
+
+describe("section blocks (F-012)", () => {
+  test("renders a hero with eyebrow, headline, subheadline and alignment", () => {
+    const html = renderPortableText([
+      { type: "hero", eyebrow: "New", headline: "Ship faster", subheadline: "The CMS for 2026", align: "left" },
+    ])
+    expect(html).toContain('class="nac-hero not-prose"')
+    expect(html).toContain('data-align="left"')
+    expect(html).toContain("nac-hero-eyebrow")
+    expect(html).toContain("Ship faster")
+    expect(html).toContain("The CMS for 2026")
+  })
+
+  test("defaults hero alignment to center", () => {
+    const html = renderPortableText([{ type: "hero", headline: "Hi" }])
+    expect(html).toContain('data-align="center"')
+  })
+
+  test("renders a CTA button with a safe href and variant", () => {
+    const html = renderPortableText([{ type: "cta", label: "Get started", url: "/signup", variant: "primary" }])
+    expect(html).toContain('class="nac-cta-btn"')
+    expect(html).toContain('data-variant="primary"')
+    expect(html).toContain('href="/signup"')
+    expect(html).toContain("Get started")
+  })
+
+  test("CTA sanitizes dangerous urls", () => {
+    const html = renderPortableText([{ type: "cta", label: "x", url: "javascript:alert(1)" }])
+    expect(html).not.toContain("javascript:")
+    expect(html).toContain('href="#"')
+  })
+
+  test("renders a feature grid of cards", () => {
+    const html = renderPortableText([
+      {
+        type: "featureGrid",
+        items: [
+          { title: "Typed", text: "Real columns" },
+          { title: "Fast", text: "Astro output" },
+        ],
+      },
+    ])
+    expect(html).toContain('class="nac-feature-grid not-prose"')
+    expect(html).toContain("Typed")
+    expect(html).toContain("Real columns")
+    expect(html).toContain("Fast")
+    expect(html.match(/class="nac-feature"/g)?.length).toBe(2)
+  })
+
+  test("escapes hero content", () => {
+    const html = renderPortableText([{ type: "hero", headline: "<script>x</script>" }])
+    expect(html).not.toContain("<script>x")
+    expect(html).toContain("&lt;script&gt;")
+  })
+})

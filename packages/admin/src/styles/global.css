@@ -602,6 +602,43 @@ a.crumb:hover {
   padding: 7px 10px;
 }
 
+/* Marketing section blocks (hero / cta / feature grid) */
+.cn-section-headline {
+  font-family: var(--font-serif);
+  font-size: 20px;
+}
+
+.cn-section-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: start;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.cn-section-control select {
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: rgba(10, 10, 12, 0.7);
+  color: var(--text-primary);
+  font-size: 13px;
+  padding: 6px 8px;
+}
+
+.cn-feature-cards {
+  display: grid;
+  gap: 10px;
+}
+
+.cn-feature-card {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+}
+
 .cn-gallery-strip {
   display: flex;
   flex-wrap: wrap;

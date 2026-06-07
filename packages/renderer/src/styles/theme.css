@@ -47,3 +47,103 @@ h1, h2, h3, h4, h5, h6 {
 .prose :where(h1, h2, h3, h4):not(:where([class~="not-prose"] *)) {
   font-family: var(--font-display);
 }
+
+/* Marketing section blocks (F-012): hero, CTA, and feature grid. */
+.nac-hero {
+  margin: 2.5rem 0;
+  padding: 3.5rem 2rem;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 6%, var(--surface)), var(--surface));
+}
+
+.nac-hero[data-align="center"] {
+  text-align: center;
+}
+
+.nac-hero-eyebrow {
+  margin: 0 0 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.nac-hero-headline {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.nac-hero-sub {
+  margin: 1rem auto 0;
+  max-width: 42ch;
+  font-size: 1.2rem;
+  color: var(--body);
+}
+
+.nac-hero[data-align="left"] .nac-hero-sub {
+  margin-left: 0;
+}
+
+.nac-cta {
+  margin: 1.75rem 0;
+}
+
+.nac-cta-btn {
+  display: inline-block;
+  padding: 0.8rem 1.6rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: opacity 0.15s ease;
+}
+
+.nac-cta-btn[data-variant="primary"] {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.nac-cta-btn[data-variant="secondary"] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.nac-cta-btn[data-variant="outline"] {
+  border: 1.5px solid var(--accent);
+  color: var(--accent);
+}
+
+.nac-cta-btn:hover {
+  opacity: 0.9;
+}
+
+.nac-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin: 2.5rem 0;
+}
+
+.nac-feature {
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.nac-feature-title {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--ink);
+}
+
+.nac-feature-text {
+  margin: 0;
+  color: var(--body);
+}

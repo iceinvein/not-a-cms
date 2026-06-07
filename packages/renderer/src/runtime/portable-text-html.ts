@@ -106,6 +106,31 @@ function renderBlock(block: PTBlock): string {
     }
     case "callout":
       return `<div data-callout data-variant="${escapeHtml(String(block.variant ?? "info"))}">${renderText((block.children || []) as PTTextNode[])}</div>`
+    case "hero": {
+      const align = block.align === "left" ? "left" : "center"
+      const eyebrow = block.eyebrow ? `<p class="nac-hero-eyebrow">${escapeHtml(String(block.eyebrow))}</p>` : ""
+      const headline = block.headline ? `<h1 class="nac-hero-headline">${escapeHtml(String(block.headline))}</h1>` : ""
+      const sub = block.subheadline ? `<p class="nac-hero-sub">${escapeHtml(String(block.subheadline))}</p>` : ""
+      return `<section class="nac-hero not-prose" data-align="${align}">${eyebrow}${headline}${sub}</section>`
+    }
+    case "cta": {
+      const variant = block.variant === "outline" ? "outline" : block.variant === "secondary" ? "secondary" : "primary"
+      const href = escapeHtml(sanitizeUrl(block.url))
+      const label = escapeHtml(String(block.label ?? "Learn more"))
+      return `<div class="nac-cta not-prose"><a class="nac-cta-btn" data-variant="${variant}" href="${href}">${label}</a></div>`
+    }
+    case "featureGrid": {
+      const items = Array.isArray(block.items) ? block.items : []
+      const cards = items
+        .map((entry: unknown) => {
+          const item = (entry ?? {}) as { title?: unknown; text?: unknown }
+          const title = item.title ? `<h3 class="nac-feature-title">${escapeHtml(String(item.title))}</h3>` : ""
+          const text = item.text ? `<p class="nac-feature-text">${escapeHtml(String(item.text))}</p>` : ""
+          return `<div class="nac-feature">${title}${text}</div>`
+        })
+        .join("")
+      return `<section class="nac-feature-grid not-prose">${cards}</section>`
+    }
     case "author":
       return `<div data-author><span data-author-name>${escapeHtml(String(block.name ?? ""))}</span>${block.role ? `<span data-author-role>${escapeHtml(String(block.role))}</span>` : ""}</div>`
     case "gallery": {

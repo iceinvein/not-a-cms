@@ -27,7 +27,7 @@ try {
       </div>
     ) : (
       <article class="prose prose-gray max-w-none">
-        {!homepageRendered.html.trimStart().startsWith('<section class="nac-hero') && <h1>{homepage.title}</h1>}
+        {!homepageRendered.leadsWithHero && <h1>{homepage.title}</h1>}
         <Fragment set:html={homepageRendered.html} />
       </article>
     )

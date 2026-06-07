@@ -16,6 +16,9 @@ export const defaultRenderers: ComponentRendererMap = {
 export type RenderedDocument = {
   isPageLayout: boolean
   html: string
+  // True when the body's first block is a hero, so templates can suppress the
+  // duplicate auto-rendered page title on a hero-led landing page.
+  leadsWithHero: boolean
 }
 
 export function renderDocumentContent(document: ContentItem, renderers: ComponentRendererOverrides = {}): RenderedDocument {
@@ -24,7 +27,7 @@ export function renderDocumentContent(document: ContentItem, renderers: Componen
     try {
       const layout = typeof document.layout === "string" ? JSON.parse(document.layout) : document.layout
       if (layout && layout._type === "page") {
-        return { isPageLayout: true, html: renderPageLayout(layout, componentRenderers) }
+        return { isPageLayout: true, html: renderPageLayout(layout, componentRenderers), leadsWithHero: false }
       }
     } catch {
       // Fall through to body rendering.
@@ -34,11 +37,12 @@ export function renderDocumentContent(document: ContentItem, renderers: Componen
   if (document.body) {
     try {
       const blocks = typeof document.body === "string" ? JSON.parse(document.body) : document.body
-      return { isPageLayout: false, html: portableTextToHtml(blocks) }
+      const leadsWithHero = Array.isArray(blocks) && blocks[0]?.type === "hero"
+      return { isPageLayout: false, html: portableTextToHtml(blocks), leadsWithHero }
     } catch {
-      return { isPageLayout: false, html: "<p>Error rendering content.</p>" }
+      return { isPageLayout: false, html: "<p>Error rendering content.</p>", leadsWithHero: false }
     }
   }
 
-  return { isPageLayout: false, html: "" }
+  return { isPageLayout: false, html: "", leadsWithHero: false }
 }

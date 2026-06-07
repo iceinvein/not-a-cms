@@ -31,7 +31,7 @@ const showsDate = resolved.collection === "blog_post"
       {coverUrl && (
         <img src={coverUrl} alt={String(post.title || "")} class="w-full rounded-lg mb-8" />
       )}
-      {!rendered.html.trimStart().startsWith('<section class="nac-hero') && <h1>{post.title}</h1>}
+      {!rendered.leadsWithHero && <h1>{post.title}</h1>}
       {showsDate && post.created_at && (
         <time class="text-sm text-gray-400 block mb-8">
           {new Date(post.created_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}

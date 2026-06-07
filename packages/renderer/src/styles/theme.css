@@ -12,6 +12,8 @@ html {
 body {
   font-family: var(--font-body, "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
   -webkit-font-smoothing: antialiased;
+  /* Contain the full-bleed section bands' 100vw breakout. */
+  overflow-x: hidden;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -36,13 +38,28 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
 }
 
-/* Marketing section blocks (F-012): hero, CTA, and feature grid. */
+/* Marketing section blocks (F-012): full-bleed bands with a centered content column. */
+
+/*
+ * A band breaks out of the surrounding content column to span the full viewport
+ * width, so heroes and feature sections go edge-to-edge while body text stays in the
+ * column. The inner .nac-container re-constrains the band's content.
+ */
+.nac-band {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+}
+
+.nac-container {
+  max-width: 64rem;
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+
 .nac-hero {
-  margin: 2.5rem 0;
-  padding: 3.5rem 2rem;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 6%, var(--surface)), var(--surface));
+  padding-block: 4.5rem;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 7%, var(--surface)), var(--surface));
+  border-block: 1px solid var(--border);
 }
 
 .nac-hero[data-align="center"] {
@@ -79,7 +96,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .nac-cta {
-  margin: 1.75rem 0;
+  padding-block: 1.25rem;
+  text-align: center;
 }
 
 .nac-cta-btn {
@@ -110,11 +128,14 @@ h1, h2, h3, h4, h5, h6 {
   opacity: 0.9;
 }
 
+.nac-features {
+  padding-block: 3rem;
+}
+
 .nac-feature-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1.5rem;
-  margin: 2.5rem 0;
 }
 
 .nac-feature {

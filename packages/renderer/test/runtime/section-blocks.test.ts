@@ -6,7 +6,9 @@ describe("section blocks (F-012)", () => {
     const html = renderPortableText([
       { type: "hero", eyebrow: "New", headline: "Ship faster", subheadline: "The CMS for 2026", align: "left" },
     ])
-    expect(html).toContain('class="nac-hero not-prose"')
+    expect(html).toContain("nac-band")
+    expect(html).toContain("nac-hero")
+    expect(html).toContain("nac-container")
     expect(html).toContain('data-align="left"')
     expect(html).toContain("nac-hero-eyebrow")
     expect(html).toContain("Ship faster")
@@ -42,7 +44,8 @@ describe("section blocks (F-012)", () => {
         ],
       },
     ])
-    expect(html).toContain('class="nac-feature-grid not-prose"')
+    expect(html).toContain("nac-features")
+    expect(html).toContain("nac-feature-grid")
     expect(html).toContain("Typed")
     expect(html).toContain("Real columns")
     expect(html).toContain("Fast")

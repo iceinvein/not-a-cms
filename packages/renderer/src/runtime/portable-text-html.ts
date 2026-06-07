@@ -111,13 +111,13 @@ function renderBlock(block: PTBlock): string {
       const eyebrow = block.eyebrow ? `<p class="nac-hero-eyebrow">${escapeHtml(String(block.eyebrow))}</p>` : ""
       const headline = block.headline ? `<h1 class="nac-hero-headline">${escapeHtml(String(block.headline))}</h1>` : ""
       const sub = block.subheadline ? `<p class="nac-hero-sub">${escapeHtml(String(block.subheadline))}</p>` : ""
-      return `<section class="nac-hero not-prose" data-align="${align}">${eyebrow}${headline}${sub}</section>`
+      return `<section class="nac-band nac-hero not-prose" data-align="${align}"><div class="nac-container">${eyebrow}${headline}${sub}</div></section>`
     }
     case "cta": {
       const variant = block.variant === "outline" ? "outline" : block.variant === "secondary" ? "secondary" : "primary"
       const href = escapeHtml(sanitizeUrl(block.url))
       const label = escapeHtml(String(block.label ?? "Learn more"))
-      return `<div class="nac-cta not-prose"><a class="nac-cta-btn" data-variant="${variant}" href="${href}">${label}</a></div>`
+      return `<div class="nac-band nac-cta not-prose"><div class="nac-container"><a class="nac-cta-btn" data-variant="${variant}" href="${href}">${label}</a></div></div>`
     }
     case "featureGrid": {
       const items = Array.isArray(block.items) ? block.items : []
@@ -129,7 +129,7 @@ function renderBlock(block: PTBlock): string {
           return `<div class="nac-feature">${title}${text}</div>`
         })
         .join("")
-      return `<section class="nac-feature-grid not-prose">${cards}</section>`
+      return `<section class="nac-band nac-features not-prose"><div class="nac-container"><div class="nac-feature-grid">${cards}</div></div></section>`
     }
     case "author":
       return `<div data-author><span data-author-name>${escapeHtml(String(block.name ?? ""))}</span>${block.role ? `<span data-author-role>${escapeHtml(String(block.role))}</span>` : ""}</div>`

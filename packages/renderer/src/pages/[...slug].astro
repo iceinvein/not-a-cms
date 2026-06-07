@@ -1,6 +1,6 @@
 ---
 import DefaultLayout from "../defaults/layouts/default.astro"
-import { createContentFetcher } from "../runtime/content-fetcher"
+import { createContentFetcher, mediaUrl } from "../runtime/content-fetcher"
 import { renderDocumentContent } from "../runtime/document-renderer"
 
 const apiBase = import.meta.env.PUBLIC_API_BASE || "http://localhost:4321"
@@ -16,6 +16,7 @@ if (!resolved) {
 
 const post = resolved.document
 const rendered = renderDocumentContent(post)
+const coverUrl = mediaUrl(apiBase, post.coverImage)
 ---
 <DefaultLayout title={String(post.title || slugPath)}>
   {rendered.isPageLayout ? (
@@ -24,6 +25,9 @@ const rendered = renderDocumentContent(post)
     </div>
   ) : (
     <article class="prose prose-gray max-w-none">
+      {coverUrl && (
+        <img src={coverUrl} alt={String(post.title || "")} class="w-full rounded-lg mb-8" />
+      )}
       <h1>{post.title}</h1>
       {post.created_at && (
         <time class="text-sm text-gray-400 block mb-8">

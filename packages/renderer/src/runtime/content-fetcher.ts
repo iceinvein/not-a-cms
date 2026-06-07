@@ -122,6 +122,38 @@ export function documentPath(
   return null
 }
 
+/**
+ * Resolve a media field value to an absolute, public file URL the browser can load.
+ *
+ * The list/get endpoints return a media field as a bare asset id (e.g. "abc-123");
+ * with `?populate=` it becomes an object with a root-relative `url`. The public site
+ * runs on a different origin than the API, so a root-relative `/api/media/...` path
+ * must be prefixed with the API base. Accepts: a bare id, an absolute URL (passed
+ * through), a root-relative path, or a populated object ({ id } or { url }/{ src }).
+ * Returns null when there is nothing to render.
+ */
+export function mediaUrl(apiBase: string, value: unknown): string | null {
+  if (value == null) return null
+
+  if (typeof value === "string") {
+    const trimmed = value.trim()
+    if (!trimmed) return null
+    if (/^https?:\/\//i.test(trimmed)) return trimmed
+    const base = apiBase.replace(/\/+$/, "")
+    if (trimmed.startsWith("/")) return `${base}${trimmed}`
+    return `${base}/api/media/${encodeURIComponent(trimmed)}/file`
+  }
+
+  if (typeof value === "object") {
+    const record = value as { id?: unknown; url?: unknown; src?: unknown }
+    const url = typeof record.url === "string" ? record.url : typeof record.src === "string" ? record.src : ""
+    if (url.trim()) return mediaUrl(apiBase, url)
+    if (record.id != null) return mediaUrl(apiBase, String(record.id))
+  }
+
+  return null
+}
+
 export type NavItem = { label: string; href: string }
 
 /**

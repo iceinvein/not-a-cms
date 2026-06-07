@@ -602,7 +602,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @media (max-width: 768px) {
-  .nac-nav {
+  /* Higher specificity than Tailwind's .flex utility on the desktop nav. */
+  .nac-header .nac-nav {
     display: none;
   }
 

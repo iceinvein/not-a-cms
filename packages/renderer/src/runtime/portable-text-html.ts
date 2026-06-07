@@ -1,20 +1,13 @@
 import { documentPath, mediaUrl } from "./content-fetcher"
+import type { ContentItem } from "./content-fetcher"
 
 export type ChannelKind = "web" | "rss"
 type PTMark = string | { type: string; [key: string]: unknown }
 type PTTextNode = { type: "text"; value: string; marks?: PTMark[] }
 type PTBlock = { type: string; [key: string]: any }
 
-type CollectionEntry = {
-  id: string
-  title?: string
-  slug?: string
-  excerpt?: string
-  coverImage?: unknown
-  publishedAt?: string
-  created_at?: string
-  [key: string]: unknown
-}
+// CollectionEntry aliases ContentItem; the index signature covers excerpt, coverImage, publishedAt.
+type CollectionEntry = ContentItem
 
 type RenderOpts = {
   apiBase?: string
@@ -121,10 +114,13 @@ function renderBlock(block: PTBlock, index: number, opts?: RenderOpts): string {
       return `<h${level}>${html}</h${level}>`
     }
     case "blockquote":
+      // opts not forwarded: collectionList is a top-level atom and cannot nest here.
       return `<blockquote>${renderPortableText(block.children as PTBlock[])}</blockquote>`
     case "bulletList":
+      // opts not forwarded: collectionList is a top-level atom and cannot nest here.
       return `<ul>${(block.items as PTBlock[][]).map((item) => `<li>${renderPortableText(item)}</li>`).join("")}</ul>`
     case "orderedList":
+      // opts not forwarded: collectionList is a top-level atom and cannot nest here.
       return `<ol>${(block.items as PTBlock[][]).map((item) => `<li>${renderPortableText(item)}</li>`).join("")}</ol>`
     case "codeBlock":
       return `<pre><code>${escapeXml(String(block.code || ""))}</code></pre>`
@@ -189,9 +185,8 @@ function renderBlock(block: PTBlock, index: number, opts?: RenderOpts): string {
         .map((entry: unknown) => {
           const logo = (entry ?? {}) as { url?: unknown; mediaId?: unknown; alt?: unknown }
           const src = imageSource(logo)
-          const id = src.id ?? (logo.mediaId !== undefined ? String(logo.mediaId) : undefined)
           const alt = escapeHtml(String(logo.alt ?? src.alt ?? ""))
-          return `<img class="nac-logo" src="${escapeHtml(sanitizeUrl(src.url, { allowDataImage: true }))}" alt="${alt}"${mediaIdAttribute(id)} />`
+          return `<img class="nac-logo" src="${escapeHtml(sanitizeUrl(src.url, { allowDataImage: true }))}" alt="${alt}"${mediaIdAttribute(src.id)} />`
         })
         .join("")
       return `<section class="nac-band nac-logo-cloud not-prose"><div class="nac-container">${eyebrow}<div class="nac-logo-row">${logoImgs}</div></div></section>`
@@ -219,7 +214,7 @@ function renderBlock(block: PTBlock, index: number, opts?: RenderOpts): string {
         ? `<img class="nac-quote-avatar" src="${escapeHtml(sanitizeUrl(avatarSrc, { allowDataImage: true }))}" alt="" />`
         : ""
       const figcaption = `<figcaption class="nac-quote-by">${avatarImg}<span class="nac-quote-name">${name}</span>${role}</figcaption>`
-      return `<section class="nac-band nac-testimonial-block not-prose"><div class="nac-container"><figure class="nac-testimonial"><blockquote class="nac-quote">${quote}</blockquote>${figcaption}</figure></div></section>`
+      return `<section class="nac-band nac-testimonial-block not-prose"><div class="nac-container"><figure class="nac-testimonial"><blockquote class="nac-quote"><p>${quote}</p></blockquote>${figcaption}</figure></div></section>`
     }
     case "pricingCards": {
       const pricingHeading = block.heading ? `<h2 class="nac-section-heading">${escapeHtml(String(block.heading))}</h2>` : ""

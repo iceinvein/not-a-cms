@@ -41,8 +41,9 @@ export const defaultTheme = defineTheme({
 
 /**
  * Resolve the active site theme into render-ready outputs: the project's theme
- * (served from /api/_theme, possibly partial or null) merged over the bundled
- * default, so editing config.theme rebrands the site while defaults fill any gaps.
+ * (fetched from /api/_site as part of the full site payload, possibly partial or null)
+ * merged over the bundled default, so editing config.theme rebrands the site while
+ * defaults fill any gaps. Note: /api/_theme still exists for the admin channel mirror.
  */
 export function resolveActiveThemeCss(apiTheme: { settings?: unknown } | null | undefined): {
   variables: string

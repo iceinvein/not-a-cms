@@ -62,12 +62,12 @@ export function createDevProcessSpecs(options: DevPorts & {
   })
   return {
     admin: {
-      command: ["bunx", "astro", "dev", "--port", options.adminPort],
+      command: ["bunx", "astro", "dev", "--port", options.adminPort, "--host", "127.0.0.1"],
       cwd: options.adminDir,
       env: { PUBLIC_API_BASE: apiBase, PUBLIC_SITE_BASE: siteBase },
     },
     renderer: {
-      command: ["bunx", "astro", "dev", "--port", options.rendererPort],
+      command: ["bunx", "astro", "dev", "--port", options.rendererPort, "--host", "127.0.0.1"],
       cwd: options.rendererDir,
       env: { PUBLIC_API_BASE: apiBase, PUBLIC_SITE_BASE: siteBase, NOT_A_CMS_CHANNEL_CONFIG: channelConfig },
     },
@@ -120,6 +120,9 @@ registerCommand({
   async run(args) {
     console.log("Starting not-a-cms dev server...")
 
+    // Track spawned children so a startup failure tears them down instead of
+    // orphaning an astro process that already holds a port.
+    const children: Bun.Subprocess[] = []
     try {
       const userConfig = await loadConfig({ cwd: process.cwd() })
       const { apiPort, adminPort, rendererPort } = parseDevPorts(args, process.env, userConfig.port)
@@ -145,10 +148,12 @@ registerCommand({
       })
 
       const admin = spawnDevProcess(specs.admin)
-      await waitForServer(`http://localhost:${adminPort}`, 15_000)
+      children.push(admin)
+      await waitForServer(`http://127.0.0.1:${adminPort}`, 15_000)
 
       const renderer = spawnDevProcess(specs.renderer)
-      await waitForServer(`http://localhost:${rendererPort}`, 15_000)
+      children.push(renderer)
+      await waitForServer(`http://127.0.0.1:${rendererPort}`, 15_000)
 
       console.log(`
   not-a-cms dev server ready
@@ -174,6 +179,9 @@ registerCommand({
 
       await Promise.all([admin.exited, renderer.exited])
     } catch (err: any) {
+      for (const child of children) {
+        try { child.kill() } catch {}
+      }
       console.error("Failed to start dev server:", err.message)
       if (err?.code === "CONFIG_NOT_FOUND") {
         console.error("Run 'not-a-cms init' to create a project first")

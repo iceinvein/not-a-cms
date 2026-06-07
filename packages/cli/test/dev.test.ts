@@ -19,6 +19,10 @@ describe("dev command wiring", () => {
       channels: { rss: { title: "Example Feed" } },
     })
 
+    // Bind astro to 127.0.0.1 so it matches the IPv4 health check (no ::1 ambiguity)
+    expect(specs.admin.command).toEqual(["bunx", "astro", "dev", "--port", "5001", "--host", "127.0.0.1"])
+    expect(specs.renderer.command).toEqual(["bunx", "astro", "dev", "--port", "5002", "--host", "127.0.0.1"])
+
     expect(specs.admin.cwd).toBe("/repo/packages/admin")
     expect(specs.admin.env.PUBLIC_API_BASE).toBe("http://localhost:5000")
     expect(specs.admin.env.PUBLIC_SITE_BASE).toBe("http://localhost:5002")

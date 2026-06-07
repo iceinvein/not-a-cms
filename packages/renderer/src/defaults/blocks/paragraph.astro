@@ -1,6 +1,0 @@
----
-import { renderTextChildren } from "../../runtime/block-renderer"
-const { block } = Astro.props
-const html = renderTextChildren(block.children || [])
----
-<p set:html={html} />

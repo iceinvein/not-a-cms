@@ -1,4 +1,6 @@
-import type { ComponentRendererMap } from "../runtime/page-renderer"
+/** A theme component override: renders props to an HTML string. */
+export type ComponentRenderer = (props: Record<string, unknown>) => string
+export type ComponentRendererMap = Record<string, ComponentRenderer>
 
 type ThemeSettingField = {
   type: "color" | "text" | "select" | "boolean" | "media" | "array"

@@ -14,13 +14,17 @@ export {
   type RSSFeedConfig,
 } from "./runtime/channel"
 export { portableTextToEmail, resolveEmailOptions, type EmailOptions, type EmailRuntimeInput } from "./runtime/email-channel"
-export { renderDocumentContent, defaultRenderers, type RenderedDocument } from "./runtime/document-renderer"
-
-// Page Builder
-export { renderPageLayout, escapeHtml, type ComponentRenderer, type ComponentRendererMap } from "./runtime/page-renderer"
+export { renderDocumentContent, type RenderedDocument } from "./runtime/document-renderer"
 
 // Theme
-export { defineTheme, type ThemeDefinition, type ThemeSettings, type DefinedTheme } from "./theme/define-theme"
+export {
+  defineTheme,
+  type ThemeDefinition,
+  type ThemeSettings,
+  type DefinedTheme,
+  type ComponentRenderer,
+  type ComponentRendererMap,
+} from "./theme/define-theme"
 export { defineComponent, type ComponentDefinition, type ComponentPropDef } from "./theme/define-component"
 export { defaultTheme, resolveActiveThemeCss } from "./theme/default-theme"
 export { themeToCssVariables } from "./theme/theme-css"

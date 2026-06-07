@@ -8,7 +8,7 @@ const fetcher = createContentFetcher({ apiBase })
 
 let posts: Array<{ title?: string; slug?: string; excerpt?: string; created_at?: string; status?: string }> = []
 let homepage: any = null
-let homepageRendered = { isPageLayout: false, html: "" }
+let homepageRendered = { html: "", leadsWithHero: false }
 try {
   const resolvedHomepage = await fetcher.resolvePath("/")
   homepage = resolvedHomepage?.document ?? null
@@ -21,16 +21,10 @@ try {
 ---
 <DefaultLayout title="Home">
   {homepage ? (
-    homepageRendered.isPageLayout ? (
-      <div class="page-layout">
-        <Fragment set:html={homepageRendered.html} />
-      </div>
-    ) : (
-      <article class="prose prose-gray max-w-none">
-        {!homepageRendered.leadsWithHero && <h1>{homepage.title}</h1>}
-        <Fragment set:html={homepageRendered.html} />
-      </article>
-    )
+    <article class="prose prose-gray max-w-none">
+      {!homepageRendered.leadsWithHero && <h1>{homepage.title}</h1>}
+      <Fragment set:html={homepageRendered.html} />
+    </article>
   ) : (
   <>
     <h1 class="text-4xl font-bold mb-8">Latest Posts</h1>

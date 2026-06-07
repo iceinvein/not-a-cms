@@ -1,7 +1,8 @@
 ---
 import DefaultLayout from "../defaults/layouts/default.astro"
-import { createContentFetcher, mediaUrl } from "../runtime/content-fetcher"
+import { createContentFetcher, documentPath, mediaUrl } from "../runtime/content-fetcher"
 import { renderDocumentContent } from "../runtime/document-renderer"
+import { relatedPosts } from "../runtime/related"
 
 const apiBase = import.meta.env.PUBLIC_API_BASE || "http://localhost:4321"
 const fetcher = createContentFetcher({ apiBase })
@@ -19,7 +20,21 @@ const rendered = await renderDocumentContent(post, { apiBase })
 const coverUrl = mediaUrl(apiBase, post.coverImage)
 // Only time-stamped content (blog posts) shows a published date; standalone pages
 // like About and Pricing are evergreen and should not carry an article date (F-018).
-const showsDate = resolved.collection === "blog_post"
+const isBlogPost = resolved.collection === "blog_post"
+const showsDate = isBlogPost
+
+// Fetch related posts only for blog post pages.
+async function fetchRelated() {
+  if (!isBlogPost) return [] as typeof post[]
+  try {
+    const all = await fetcher.list("blog_post", { limit: 20 })
+    return relatedPosts(post, all.filter((p) => p.status === "published"), 3)
+  } catch {
+    return [] as typeof post[]
+  }
+}
+
+const relatedItems = await fetchRelated()
 ---
 <DefaultLayout title={String(post.title || slugPath)}>
   <article class="prose prose-gray max-w-none">
@@ -34,4 +49,25 @@ const showsDate = resolved.collection === "blog_post"
     )}
     <Fragment set:html={rendered.html} />
   </article>
+  {isBlogPost && relatedItems.length > 0 && (
+    <section class="nac-band nac-collection-block not-prose">
+      <div class="nac-container">
+        <h2 class="nac-section-heading">More from the blog</h2>
+        <div class="nac-collection" data-layout="grid">
+          {relatedItems.map((p) => (
+            <a class="nac-collection-card" href={documentPath("blog_post", p) ?? "#"}>
+              {mediaUrl(apiBase, p.coverImage) && <img class="nac-collection-cover" src={mediaUrl(apiBase, p.coverImage)!} alt="" />}
+              <h3 class="nac-collection-title">{p.title}</h3>
+              {p.excerpt && <p class="nac-collection-excerpt">{p.excerpt}</p>}
+              {(p.publishedAt || p.created_at) && (
+                <time class="nac-collection-date">
+                  {new Date(String(p.publishedAt ?? p.created_at)).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                </time>
+              )}
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
 </DefaultLayout>

@@ -1,29 +1,44 @@
 import { NodeViewWrapper } from "@tiptap/react"
 
-type FeatureCard = { title: string; text: string }
+type FeatureCard = { icon: string; title: string; text: string }
 
 function cards(value: unknown): FeatureCard[] {
   if (!Array.isArray(value)) return []
   return value.map((item) => {
     const card = (item ?? {}) as Partial<FeatureCard>
-    return { title: String(card.title ?? ""), text: String(card.text ?? "") }
+    return { icon: String(card.icon ?? ""), title: String(card.title ?? ""), text: String(card.text ?? "") }
   })
 }
 
 /**
- * Feature grid block (F-012): a set of title/text cards rendered as responsive
+ * Feature grid block (F-012): a set of icon/title/text cards rendered as responsive
  * columns on the public site, for "why teams switch"-style sections.
  */
 export function FeatureGridBlockView({ node, updateAttributes }: any) {
   const items = cards(node.attrs.items)
+  const columns = [2, 3, 4].includes(Number(node.attrs.columns)) ? Number(node.attrs.columns) : 3
 
   const update = (next: FeatureCard[]) => updateAttributes({ items: next })
 
   return (
     <NodeViewWrapper className="cn-block cn-section" contentEditable={false}>
+      <label className="cn-section-control">
+        Columns
+        <select value={String(columns)} onChange={(event) => updateAttributes({ columns: Number(event.target.value) })}>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+        </select>
+      </label>
       <div className="cn-feature-cards">
         {items.map((card, index) => (
           <div key={index} className="cn-feature-card">
+            <input
+              className="cn-block-input cn-feature-icon-input"
+              value={card.icon}
+              placeholder="Icon (emoji, optional)"
+              onChange={(event) => update(items.map((c, i) => (i === index ? { ...c, icon: event.target.value } : c)))}
+            />
             <input
               className="cn-block-input"
               value={card.title}
@@ -46,7 +61,7 @@ export function FeatureGridBlockView({ node, updateAttributes }: any) {
           </div>
         ))}
       </div>
-      <button type="button" className="cn-block-action" onClick={() => update([...items, { title: "", text: "" }])}>
+      <button type="button" className="cn-block-action" onClick={() => update([...items, { icon: "", title: "", text: "" }])}>
         + Add card
       </button>
       <span className="cn-block-label">feature grid</span>

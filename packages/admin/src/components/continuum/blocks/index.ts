@@ -16,6 +16,8 @@ export const continuumBlocks: DefinedBlock[] = [
       headline: { type: "text", default: "" },
       subheadline: { type: "text", default: "" },
       align: { type: "select", default: "center", options: ["center", "left"] },
+      backgroundImage: { type: "text", default: "" },
+      overlay: { type: "boolean", default: true },
     },
     editor: HeroBlockView,
   }),
@@ -34,6 +36,7 @@ export const continuumBlocks: DefinedBlock[] = [
     label: "Feature grid",
     schema: {
       items: { type: "array", default: [] },
+      columns: { type: "number", default: 3 },
     },
     editor: FeatureGridBlockView,
   }),

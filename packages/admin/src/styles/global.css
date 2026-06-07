@@ -626,6 +626,12 @@ a.crumb:hover {
   padding: 6px 8px;
 }
 
+.cn-section-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
 .cn-feature-cards {
   display: grid;
   gap: 10px;
@@ -637,6 +643,37 @@ a.crumb:hover {
   padding: 12px;
   border: 1px solid var(--border-default);
   border-radius: 8px;
+}
+
+.cn-feature-icon-input {
+  max-width: 200px;
+}
+
+/* Shared Vault media picker (image + hero background blocks) */
+.cn-media-pick {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cn-media-pick-thumb {
+  width: 96px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--border-default);
+}
+
+.cn-media-pick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cn-media-pick-upload {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
 }
 
 .cn-gallery-strip {

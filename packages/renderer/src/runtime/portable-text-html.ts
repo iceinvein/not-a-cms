@@ -45,6 +45,14 @@ function sanitizeUrl(value: unknown, opts: { allowDataImage?: boolean } = {}): s
   return "#"
 }
 
+/**
+ * Make a sanitized URL safe to embed inside a CSS url('...') value by stripping the
+ * characters that could close the quote/paren or inject further declarations.
+ */
+function cssUrl(value: string): string {
+  return value.replace(/['"()\\;{}]/g, "").trim()
+}
+
 function renderText(children: PTTextNode[] = []): string {
   return children
     .map((node) => {
@@ -111,7 +119,13 @@ function renderBlock(block: PTBlock): string {
       const eyebrow = block.eyebrow ? `<p class="nac-hero-eyebrow">${escapeHtml(String(block.eyebrow))}</p>` : ""
       const headline = block.headline ? `<h1 class="nac-hero-headline">${escapeHtml(String(block.headline))}</h1>` : ""
       const sub = block.subheadline ? `<p class="nac-hero-sub">${escapeHtml(String(block.subheadline))}</p>` : ""
-      return `<section class="nac-band nac-hero not-prose" data-align="${align}"><div class="nac-container">${eyebrow}${headline}${sub}</div></section>`
+      const bgRaw = block.backgroundImage ? imageSource(block.backgroundImage).url : ""
+      const bgSanitized = bgRaw ? sanitizeUrl(bgRaw, { allowDataImage: true }) : ""
+      const bgUrl = bgSanitized && bgSanitized !== "#" ? cssUrl(bgSanitized) : ""
+      const hasBg = Boolean(bgUrl)
+      const overlay = hasBg && block.overlay !== false
+      const style = hasBg ? ` style="background-image:url('${bgUrl}')"` : ""
+      return `<section class="nac-band nac-hero not-prose" data-align="${align}" data-has-bg="${hasBg}" data-overlay="${overlay}"${style}><div class="nac-container">${eyebrow}${headline}${sub}</div></section>`
     }
     case "cta": {
       const variant = block.variant === "outline" ? "outline" : block.variant === "secondary" ? "secondary" : "primary"
@@ -121,15 +135,17 @@ function renderBlock(block: PTBlock): string {
     }
     case "featureGrid": {
       const items = Array.isArray(block.items) ? block.items : []
+      const columns = [2, 3, 4].includes(Number(block.columns)) ? Number(block.columns) : 3
       const cards = items
         .map((entry: unknown) => {
-          const item = (entry ?? {}) as { title?: unknown; text?: unknown }
+          const item = (entry ?? {}) as { icon?: unknown; title?: unknown; text?: unknown }
+          const icon = item.icon ? `<div class="nac-feature-icon">${escapeHtml(String(item.icon))}</div>` : ""
           const title = item.title ? `<h3 class="nac-feature-title">${escapeHtml(String(item.title))}</h3>` : ""
           const text = item.text ? `<p class="nac-feature-text">${escapeHtml(String(item.text))}</p>` : ""
-          return `<div class="nac-feature">${title}${text}</div>`
+          return `<div class="nac-feature">${icon}${title}${text}</div>`
         })
         .join("")
-      return `<section class="nac-band nac-features not-prose"><div class="nac-container"><div class="nac-feature-grid">${cards}</div></div></section>`
+      return `<section class="nac-band nac-features not-prose"><div class="nac-container"><div class="nac-feature-grid" data-columns="${columns}">${cards}</div></div></section>`
     }
     case "author":
       return `<div data-author><span data-author-name>${escapeHtml(String(block.name ?? ""))}</span>${block.role ? `<span data-author-role>${escapeHtml(String(block.role))}</span>` : ""}</div>`

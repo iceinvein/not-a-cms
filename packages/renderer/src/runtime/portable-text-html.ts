@@ -228,7 +228,7 @@ function renderBlock(block: PTBlock): string {
           return `<details class="nac-faq-item"><summary class="nac-faq-q">${question}</summary><div class="nac-faq-a">${answer}</div></details>`
         })
         .join("")
-      return `<section class="nac-band nac-faq not-prose"><div class="nac-container">${faqHeading}<dl class="nac-faq">${details}</dl></div></section>`
+      return `<section class="nac-band nac-faq-block not-prose"><div class="nac-container">${faqHeading}<div class="nac-faq">${details}</div></div></section>`
     }
     case "author":
       return `<div data-author><span data-author-name>${escapeHtml(String(block.name ?? ""))}</span>${block.role ? `<span data-author-role>${escapeHtml(String(block.role))}</span>` : ""}</div>`

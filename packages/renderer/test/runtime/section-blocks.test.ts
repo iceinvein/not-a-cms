@@ -218,7 +218,7 @@ describe("faq section block", () => {
     expect(html).toContain("nac-container")
     expect(html).toContain('class="nac-section-heading"')
     expect(html).toContain("Common questions")
-    expect(html).toContain('<dl class="nac-faq">')
+    expect(html).toContain('<div class="nac-faq">')
     expect(html.match(/<details class="nac-faq-item">/g)?.length).toBe(2)
     expect(html).toContain('<summary class="nac-faq-q">How does it work?</summary>')
     expect(html).toContain('<div class="nac-faq-a">Very well.</div>')
@@ -241,7 +241,7 @@ describe("faq section block", () => {
 
   test("faq renders empty items list safely", () => {
     const html = renderPortableText([{ type: "faq", items: [] }])
-    expect(html).toContain('<dl class="nac-faq">')
+    expect(html).toContain('<div class="nac-faq">')
     expect(html).not.toContain("nac-faq-item")
   })
 

@@ -353,7 +353,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* FAQ section block: constrained column of collapsible question/answer pairs. */
-.nac-faq {
+.nac-faq-block {
   padding-block: 3rem;
 }
 
@@ -365,7 +365,7 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--ink);
 }
 
-.nac-faq dl {
+.nac-faq {
   max-width: 52ch;
   margin-inline: auto;
 }

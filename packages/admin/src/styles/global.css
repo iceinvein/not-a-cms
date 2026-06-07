@@ -854,7 +854,8 @@ a.crumb:hover {
   padding: 12px;
 }
 
-.cn-mirror-email-frame {
+.cn-mirror-email-frame,
+.cn-mirror-web-frame {
   display: block;
   width: 100%;
   min-height: 640px;
@@ -862,6 +863,10 @@ a.crumb:hover {
   border-radius: 8px;
   background: #fdfcf8;
   box-shadow: 0 20px 70px rgba(0, 0, 0, 0.25);
+}
+
+.cn-mirror-web-frame {
+  min-height: 720px;
 }
 
 .cn-mirror-loading {

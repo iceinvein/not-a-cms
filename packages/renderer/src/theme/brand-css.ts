@@ -1,10 +1,12 @@
-/*
- * Brand design layer (F-017). The active theme's CSS variables are injected into the
- * <head> by the renderer from the project's config.theme (merged over the bundled
- * default), so editing the theme rebrands the site. The values must NOT be redeclared
- * in a :root here, or this stylesheet would override the injected theme; instead the
- * var() usages below carry the bundled defaults as fallbacks for the build/offline case.
+/**
+ * The brand design layer as a string, so it can be both injected into the public
+ * layout's <head> and inlined into the admin's channel-mirror iframe for a faithful
+ * preview. The active theme's CSS variables are injected separately (see theme-css.ts),
+ * merged over the bundled default; the var() usages here carry defaults as fallbacks
+ * for the build/offline case. Do NOT add a :root here, or it would override the
+ * injected theme.
  */
+export const brandCss = `
 html {
   background-color: var(--paper, #faf8f4);
 }
@@ -38,13 +40,10 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
 }
 
-/* Marketing section blocks (F-012): full-bleed bands with a centered content column. */
-
-/*
- * A band breaks out of the surrounding content column to span the full viewport
- * width, so heroes and feature sections go edge-to-edge while body text stays in the
- * column. The inner .nac-container re-constrains the band's content.
- */
+/* Marketing section blocks (F-012): full-bleed bands with a centered content column.
+ * A band breaks out of the surrounding content column to span the full viewport width,
+ * so heroes and feature sections go edge-to-edge while body text stays in the column.
+ * The inner .nac-container re-constrains the band's content. */
 .nac-band {
   width: 100vw;
   margin-left: calc(50% - 50vw);
@@ -217,3 +216,4 @@ h1, h2, h3, h4, h5, h6 {
     grid-template-columns: 1fr;
   }
 }
+`

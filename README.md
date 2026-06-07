@@ -9,7 +9,7 @@ cd my-site && bun install && bun run dev
 
 **Admin:** `http://localhost:4322` | **Site:** `http://localhost:3000` | **API:** `http://localhost:4321/api`
 
-> **Status:** Actively developed. The content engine, visual site builder, automations, channel rendering, media library, and the collaborative admin are shipped and covered by 708 passing tests across six packages. See the [roadmap](#roadmap) for what's next.
+> **Status:** Actively developed. The content engine, automations, channel rendering, media library, and the collaborative admin are shipped and covered by tests across six packages. See the [roadmap](#roadmap) for what's next.
 
 ---
 
@@ -662,7 +662,6 @@ not-a-cms/
 - [x] **Content Engine**: schema, Tiptap editor, REST/tRPC/GraphQL APIs, passwordless auth, admin, renderer, CLI
 - [x] **Production Essentials**: versioning, full-text search, migrations, image optimization, RSS, Docker/Fly deployment
 - [x] **Differentiators**: GraphQL, webhooks, scheduled publishing, preview links, role-based field access, theme customizer, email rendering, WordPress import
-- [x] **Visual Site Builder**: drag-and-drop page canvas, visual CSS editor, free grid positioning, responsive breakpoints
 - [x] **Visual Automations**: event-driven rules (WHEN / IF / THEN), run console, dry-run testing, content/email/webhook actions
 - [x] **Collaborative Admin**: Command Deck, document editor with live channel mirror, dashboard horizons, media Vault (folders, tags, usage)
 - [x] **Real-time**: Y.js collaboration with live presence and per-caret cursors
@@ -670,6 +669,7 @@ not-a-cms/
 
 **Next**
 
+- [ ] **Visual Site Builder**: drag-and-drop page canvas, visual CSS editor, responsive breakpoints (prototype removed; pages are authored as rich text today)
 - [ ] **Channels**: newsletter delivery to subscribers, multi-channel preview
 - [ ] **Membership & Paywall**: paid tiers, subscriber management, Stripe
 - [ ] **Plugin Marketplace**: npm distribution, sandboxed execution

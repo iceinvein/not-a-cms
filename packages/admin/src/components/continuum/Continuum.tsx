@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react"
 import { ErrorBoundary } from "../ErrorBoundary"
 import { ToastProvider, useToast } from "../Toast"
-import { portableTextValue } from "../ContentEditor"
+import { portableTextValue } from "../../lib/portable-text-value"
 import { buildCollaborationConfig, defaultCollabUser } from "../../lib/collaboration"
 import type { AdminFieldDef } from "../../lib/content-fields"
 import type { CollabUser } from "@not-a-cms/editor"

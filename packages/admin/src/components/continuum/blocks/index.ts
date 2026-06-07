@@ -8,6 +8,7 @@ import { ImageBlockView } from "./image-block"
 import { SeoBlockView } from "./seo-block"
 import { StatsBlockView } from "./stats-block"
 import { LogoCloudBlockView } from "./logo-cloud-block"
+import { TestimonialBlockView } from "./testimonial-block"
 
 export const continuumBlocks: DefinedBlock[] = [
   defineBlock({
@@ -96,6 +97,17 @@ export const continuumBlocks: DefinedBlock[] = [
     },
     editor: LogoCloudBlockView,
   }),
+  defineBlock({
+    name: "testimonial",
+    label: "Testimonial",
+    schema: {
+      quote: { type: "text", default: "" },
+      name: { type: "text", default: "" },
+      role: { type: "text", default: "" },
+      avatar: { type: "text", default: "" },
+    },
+    editor: TestimonialBlockView,
+  }),
 ]
 
 const insert = (name: string) => (editor: any, range: any) =>
@@ -111,4 +123,5 @@ export const continuumSlashCommands: SlashCommandItem[] = [
   { title: "SEO & meta", description: "Title, description", group: "fields", command: insert("seo") },
   { title: "Stats", description: "Grid of key metrics or social proof numbers", group: "sections", command: insert("stats") },
   { title: "Logo cloud", description: "Row of partner or customer logos", group: "sections", command: insert("logoCloud") },
+  { title: "Testimonial", description: "Pull-quote with name, role, and avatar", group: "sections", command: insert("testimonial") },
 ]

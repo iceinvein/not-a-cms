@@ -305,4 +305,50 @@ h1, h2, h3, h4, h5, h6 {
 .nac-logo:hover {
   opacity: 1;
 }
+
+/* Testimonial section block: centered pull-quote with avatar and attribution. */
+.nac-testimonial-block {
+  padding-block: 4rem;
+  text-align: center;
+}
+
+.nac-testimonial {
+  margin: 0 auto;
+  max-width: 44ch;
+}
+
+.nac-quote {
+  margin: 0 0 1.5rem;
+  font-family: var(--font-display, "Fraunces", Georgia, serif);
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  font-style: italic;
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+.nac-quote-by {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.nac-quote-avatar {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 0.25rem;
+}
+
+.nac-quote-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+
+.nac-quote-role {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
 `

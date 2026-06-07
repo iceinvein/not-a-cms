@@ -174,6 +174,17 @@ function renderBlock(block: PTBlock): string {
         .join("")
       return `<section class="nac-band nac-logo-cloud not-prose"><div class="nac-container">${eyebrow}<div class="nac-logo-row">${logoImgs}</div></div></section>`
     }
+    case "testimonial": {
+      const quote = escapeHtml(String(block.quote ?? ""))
+      const name = escapeHtml(String(block.name ?? ""))
+      const role = block.role ? `<span class="nac-quote-role">${escapeHtml(String(block.role))}</span>` : ""
+      const avatarSrc = String(block.avatar ?? "").trim()
+      const avatarImg = avatarSrc
+        ? `<img class="nac-quote-avatar" src="${escapeHtml(sanitizeUrl(avatarSrc, { allowDataImage: true }))}" alt="" />`
+        : ""
+      const figcaption = `<figcaption class="nac-quote-by">${avatarImg}<span class="nac-quote-name">${name}</span>${role}</figcaption>`
+      return `<section class="nac-band nac-testimonial-block not-prose"><div class="nac-container"><figure class="nac-testimonial"><blockquote class="nac-quote">${quote}</blockquote>${figcaption}</figure></div></section>`
+    }
     case "author":
       return `<div data-author><span data-author-name>${escapeHtml(String(block.name ?? ""))}</span>${block.role ? `<span data-author-role>${escapeHtml(String(block.role))}</span>` : ""}</div>`
     case "gallery": {

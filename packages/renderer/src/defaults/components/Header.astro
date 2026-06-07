@@ -1,19 +1,103 @@
 ---
+import type { SiteNav } from "../../runtime/site-chrome"
+
 interface Props {
   siteName?: string
-  navItems?: Array<{ label: string; href: string }>
+  nav?: SiteNav | null
 }
-const { siteName = "not-a-cms", navItems = [] } = Astro.props
+const { siteName = "not-a-cms", nav = null } = Astro.props
+const hasNav = !!(nav?.links?.length || nav?.cta)
 ---
-<header class="border-b border-[var(--border)] bg-[var(--paper)]">
+<header class="nac-header border-b border-[var(--border)] bg-[var(--paper)]">
   <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
     <a href="/" class="text-xl font-semibold text-[var(--ink)] [font-family:var(--font-display)] tracking-tight">{siteName}</a>
-    {navItems.length > 0 && (
-      <nav class="flex gap-6">
-        {navItems.map(item => (
-          <a href={item.href} class="text-sm text-[var(--muted)] hover:text-[var(--accent)] transition-colors">{item.label}</a>
-        ))}
-      </nav>
+    {hasNav && (
+      <>
+        <nav class="nac-nav flex items-center gap-6" id="nac-desktop-nav">
+          {nav?.links?.map(item => (
+            <a
+              href={item.href}
+              class="text-sm text-[var(--muted)] hover:text-[var(--accent)] transition-colors"
+              {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+            >{item.label}</a>
+          ))}
+          {nav?.cta && (
+            <a
+              class="nac-cta-btn"
+              data-variant="primary"
+              href={nav.cta.href}
+            >{nav.cta.label}</a>
+          )}
+        </nav>
+        <button
+          class="nac-nav-toggle"
+          aria-label="Menu"
+          aria-expanded="false"
+          aria-controls="nac-mobile-nav"
+          type="button"
+        >
+          <span class="nac-hamburger-bar"></span>
+          <span class="nac-hamburger-bar"></span>
+          <span class="nac-hamburger-bar"></span>
+        </button>
+        <nav class="nac-mobile-nav" id="nac-mobile-nav" aria-label="Mobile navigation">
+          {nav?.links?.map(item => (
+            <a
+              href={item.href}
+              class="nac-mobile-nav-link"
+              {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+            >{item.label}</a>
+          ))}
+          {nav?.cta && (
+            <a
+              class="nac-cta-btn nac-mobile-cta"
+              data-variant="primary"
+              href={nav.cta.href}
+            >{nav.cta.label}</a>
+          )}
+        </nav>
+      </>
     )}
   </div>
 </header>
+
+<script is:inline>
+(function () {
+  var header = document.querySelector(".nac-header");
+  var toggle = header && header.querySelector(".nac-nav-toggle");
+  var mobileNav = header && header.querySelector(".nac-mobile-nav");
+  if (!toggle || !mobileNav) return;
+
+  function openMenu() {
+    header.setAttribute("data-open", "");
+    toggle.setAttribute("aria-expanded", "true");
+  }
+
+  function closeMenu() {
+    header.removeAttribute("data-open");
+    toggle.setAttribute("aria-expanded", "false");
+  }
+
+  toggle.addEventListener("click", function () {
+    if (header.hasAttribute("data-open")) {
+      closeMenu();
+    } else {
+      openMenu();
+    }
+  });
+
+  // Close when any link in the mobile nav is clicked.
+  var links = mobileNav.querySelectorAll("a");
+  links.forEach(function (link) {
+    link.addEventListener("click", closeMenu);
+  });
+
+  // Close on Escape key.
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && header.hasAttribute("data-open")) {
+      closeMenu();
+      toggle.focus();
+    }
+  });
+})();
+</script>

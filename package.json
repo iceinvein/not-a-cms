@@ -2,7 +2,7 @@
   "name": "not-a-cms",
   "private": true,
   "packageManager": "bun@1.2.0",
-  "workspaces": ["packages/*"],
+  "workspaces": ["packages/*", "dogfood-sites/*"],
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
     "@astrojs/node": "^9.5.5",

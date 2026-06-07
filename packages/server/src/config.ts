@@ -1,4 +1,4 @@
-import type { CMSConfig } from "@not-a-cms/core"
+import type { CMSConfig, LoadConfigOptions } from "@not-a-cms/core"
 import type { ServerConfig } from "./index"
 import type { StorageConfig } from "./media/storage"
 
@@ -7,12 +7,19 @@ type ProjectConfig = CMSConfig & {
   components?: ServerConfig["components"]
 }
 
+export function resolveConfigLoadOptions(env: Env = process.env): LoadConfigOptions {
+  return env.CONFIG_PATH ? { path: env.CONFIG_PATH } : {}
+}
+
 export function createServerConfigFromCMSConfig(userConfig: ProjectConfig, env: Env = process.env): ServerConfig {
   const port = parseInt(env.PORT ?? String(userConfig.port ?? 4321), 10)
   const corsOrigins = (env.CORS_ORIGINS ?? "")
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean)
+
+  const testAuthEnabled = env.E2E_TEST_AUTH === "1"
+  const e2eMagicLinks = new Map<string, string>()
 
   return {
     port,
@@ -25,6 +32,7 @@ export function createServerConfigFromCMSConfig(userConfig: ProjectConfig, env: 
       trustedOrigins: corsOrigins.length > 0 ? corsOrigins : ["http://localhost:4322", "http://localhost:3000"],
       magicLink: {
         sendMagicLink: async ({ email, url }) => {
+          if (testAuthEnabled) e2eMagicLinks.set(email, url)
           console.log(`\n  Magic link for ${email}: ${url}\n`)
         },
       },
@@ -42,10 +50,15 @@ export function createServerConfigFromCMSConfig(userConfig: ProjectConfig, env: 
     storage: resolveServerStorageConfig(userConfig.storage, env),
     collections: userConfig.collections,
     components: userConfig.components ?? [],
+    site: userConfig.site,
     theme: userConfig.theme as ServerConfig["theme"],
+    routes: userConfig.routes,
     cors: {
       origins: corsOrigins.length > 0 ? corsOrigins : ["http://localhost:4322", "http://localhost:3000"],
     },
+    ...(testAuthEnabled
+      ? { testAuth: { enabled: true, getMagicLink: (email: string) => e2eMagicLinks.get(email) ?? null } }
+      : {}),
   }
 }
 

@@ -1,37 +1,39 @@
 ---
 import Header from "../components/Header.astro"
 import Footer from "../components/Footer.astro"
-import { createContentFetcher, buildNav, type NavItem } from "../../runtime/content-fetcher"
+import { resolveSiteChrome } from "../../runtime/site-chrome"
 import { resolveActiveThemeCss } from "../../theme/default-theme"
 import { brandCss } from "../../theme/brand-css"
 
 interface Props {
   title: string
-  siteName?: string
   description?: string
 }
 
-const { title, siteName = "not-a-cms", description = "" } = Astro.props
+const { title, description = "" } = Astro.props
 
 const apiBase = import.meta.env.PUBLIC_API_BASE || "http://localhost:4321"
 
-// Brand the site from the project's theme (served at /api/_theme), falling back to
-// the bundled default if the API is unavailable during build.
-let apiTheme: { settings?: unknown } | null = null
-let navItems: NavItem[] = []
+// Fetch /api/_site once: provides siteName, nav, footer, and the active theme.
+// Falls back gracefully when the API is unavailable during build.
+let apiSite: {
+  siteName?: string | null
+  nav?: { links?: Array<{ label: string; href: string; external?: boolean }>; cta?: { label: string; href: string } } | null
+  footer?: { tagline?: string; columns?: Array<{ heading: string; links: Array<{ label: string; href: string; external?: boolean }> }>; social?: Array<{ label: string; href: string }>; legal?: string } | null
+  theme?: { name?: string | null; version?: string | null; settings?: unknown } | null
+} | null = null
 try {
-  const res = await fetch(`${apiBase}/api/_theme`)
-  if (res.ok) apiTheme = await res.json()
+  const res = await fetch(`${apiBase}/api/_site`)
+  if (res.ok) apiSite = await res.json()
 } catch {
-  // API may be unavailable during build; fall back to the bundled default theme.
+  // API may be unavailable during build; fall back to bundled defaults.
 }
-const { variables: themeVariables, fontImport } = resolveActiveThemeCss(apiTheme)
-try {
-  const pages = await createContentFetcher({ apiBase }).list("page", { limit: 50 })
-  navItems = buildNav(pages.filter((p) => p.status === "published"))
-} catch {
-  // API may be unavailable during build; render without nav.
-}
+
+const { siteName, nav, footer } = resolveSiteChrome(apiSite)
+
+// resolveActiveThemeCss accepts { settings? } and merges over the bundled default.
+// /api/_site returns the same theme shape as /api/_theme used to: { name, version, settings }.
+const { variables: themeVariables, fontImport } = resolveActiveThemeCss(apiSite?.theme ?? null)
 ---
 <html lang="en">
 <head>
@@ -51,10 +53,28 @@ try {
   )}
 </head>
 <body class="bg-[var(--paper)] text-[var(--ink)] min-h-screen flex flex-col">
-  <Header siteName={siteName} navItems={navItems} />
+  <Header siteName={siteName} nav={nav} />
   <main class="flex-1 max-w-4xl mx-auto px-4 py-8 w-full">
     <slot />
   </main>
-  <Footer siteName={siteName} />
+  <Footer siteName={siteName} footer={footer} />
+  <script is:inline>
+    (function () {
+      var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (reduce) return;
+      document.documentElement.classList.add("js-reveal");
+      var els = document.querySelectorAll(".nac-band, .nac-collection-card");
+      if (!("IntersectionObserver" in window) || !els.length) {
+        document.documentElement.classList.remove("js-reveal");
+        return;
+      }
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) { e.target.classList.add("is-revealed"); io.unobserve(e.target); }
+        });
+      }, { rootMargin: "0px 0px -10% 0px", threshold: 0.05 });
+      els.forEach(function (el) { el.classList.add("reveal"); io.observe(el); });
+    })();
+  </script>
 </body>
 </html>

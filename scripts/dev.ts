@@ -3,11 +3,13 @@
  * not-a-cms dev script
  *
  * Boots the API server, admin UI, and public site renderer together.
- * Usage: bun scripts/dev.ts [--port=4321] [--admin-port=4322] [--renderer-port=3000]
+ * Usage: bun scripts/dev.ts [--port=4321] [--admin-port=4322] [--renderer-port=3000] [--site=<name>]
  */
+import { resolveSiteConfigPath } from "./dev-site"
 export {}
 
 const args = Bun.argv.slice(2)
+const configPath = resolveSiteConfigPath(args, process.env)
 const apiPort = args.find(a => a.startsWith("--port="))?.split("=")[1] ?? process.env.PORT ?? "4321"
 const adminPort = args.find(a => a.startsWith("--admin-port="))?.split("=")[1] ?? process.env.ADMIN_PORT ?? "4322"
 const rendererPort = args.find(a => a.startsWith("--renderer-port="))?.split("=")[1] ?? process.env.RENDERER_PORT ?? "3000"
@@ -32,6 +34,7 @@ const api = Bun.spawn(["bun", "--hot", "packages/server/src/dev.ts"], {
     PORT: apiPort,
     QUIET: "1",
     CORS_ORIGINS: `http://localhost:${adminPort},http://localhost:${rendererPort}`,
+    ...(configPath ? { CONFIG_PATH: configPath } : {}),
   },
   stdout: "inherit",
   stderr: "inherit",

@@ -21,6 +21,7 @@
     "packages/*/.turbo",
     "packages/*/test",
     "tests",
+    "scripts",
     "dogfood-output",
     "uploads"
   ]

@@ -1,11 +1,18 @@
 import { defineBlock, type DefinedBlock, type SlashCommandItem } from "@not-a-cms/editor"
+import { CollectionListBlockView } from "./collection-list-block"
 import { AuthorBlockView } from "./author-block"
 import { CtaBlockView } from "./cta-block"
+import { FaqBlockView } from "./faq-block"
 import { FeatureGridBlockView } from "./feature-grid-block"
+import { PricingCardsBlockView } from "./pricing-cards-block"
 import { GalleryBlockView } from "./gallery-block"
 import { HeroBlockView } from "./hero-block"
 import { ImageBlockView } from "./image-block"
 import { SeoBlockView } from "./seo-block"
+import { StatsBlockView } from "./stats-block"
+import { LogoCloudBlockView } from "./logo-cloud-block"
+import { SplitMediaBlockView } from "./split-media-block"
+import { TestimonialBlockView } from "./testimonial-block"
 
 export const continuumBlocks: DefinedBlock[] = [
   defineBlock({
@@ -76,6 +83,81 @@ export const continuumBlocks: DefinedBlock[] = [
     },
     editor: SeoBlockView,
   }),
+  defineBlock({
+    name: "stats",
+    label: "Stats",
+    schema: {
+      items: { type: "array", default: [] },
+      columns: { type: "number", default: 3 },
+    },
+    editor: StatsBlockView,
+  }),
+  defineBlock({
+    name: "logoCloud",
+    label: "Logo cloud",
+    schema: {
+      eyebrow: { type: "text", default: "" },
+      logos: { type: "array", default: [] },
+    },
+    editor: LogoCloudBlockView,
+  }),
+  defineBlock({
+    name: "splitMedia",
+    label: "Split media",
+    schema: {
+      media: { type: "text", default: "" },
+      side: { type: "select", default: "left", options: ["left", "right"] },
+      heading: { type: "text", default: "" },
+      body: { type: "text", default: "" },
+      ctaLabel: { type: "text", default: "" },
+      ctaUrl: { type: "text", default: "" },
+    },
+    editor: SplitMediaBlockView,
+  }),
+  defineBlock({
+    name: "testimonial",
+    label: "Testimonial",
+    schema: {
+      quote: { type: "text", default: "" },
+      name: { type: "text", default: "" },
+      role: { type: "text", default: "" },
+      avatar: { type: "text", default: "" },
+    },
+    editor: TestimonialBlockView,
+  }),
+  defineBlock({
+    name: "faq",
+    label: "FAQ",
+    schema: {
+      heading: { type: "text", default: "" },
+      items: { type: "array", default: [] },
+    },
+    editor: FaqBlockView,
+  }),
+  defineBlock({
+    name: "pricingCards",
+    label: "Pricing cards",
+    schema: {
+      heading: { type: "text", default: "" },
+      tiers: { type: "array", default: [] },
+    },
+    editor: PricingCardsBlockView,
+  }),
+  defineBlock({
+    name: "collectionList",
+    label: "Collection list",
+    schema: {
+      collection: { type: "text", default: "blog_post" },
+      limit: { type: "number", default: 3 },
+      filterTag: { type: "text", default: "" },
+      layout: { type: "select", default: "grid", options: ["grid", "list", "cards"] },
+      showCover: { type: "boolean", default: true },
+      showExcerpt: { type: "boolean", default: true },
+      showDate: { type: "boolean", default: true },
+      heading: { type: "text", default: "" },
+    },
+    editor: CollectionListBlockView,
+  }),
 ]
 
 const insert = (name: string) => (editor: any, range: any) =>
@@ -89,4 +171,11 @@ export const continuumSlashCommands: SlashCommandItem[] = [
   { title: "Author", description: "Structured byline", group: "fields", command: insert("author") },
   { title: "Gallery", description: "Images from the library", group: "fields", command: insert("gallery") },
   { title: "SEO & meta", description: "Title, description", group: "fields", command: insert("seo") },
+  { title: "Stats", description: "Grid of key metrics or social proof numbers", group: "sections", command: insert("stats") },
+  { title: "Logo cloud", description: "Row of partner or customer logos", group: "sections", command: insert("logoCloud") },
+  { title: "Split media", description: "Two-column image and text layout", group: "sections", command: insert("splitMedia") },
+  { title: "Testimonial", description: "Pull-quote with name, role, and avatar", group: "sections", command: insert("testimonial") },
+  { title: "FAQ", description: "Collapsible question and answer list", group: "sections", command: insert("faq") },
+  { title: "Pricing cards", description: "Tier cards with features and CTA buttons", group: "sections", command: insert("pricingCards") },
+  { title: "Collection list", description: "Live list of published documents from a collection", group: "sections", command: insert("collectionList") },
 ]

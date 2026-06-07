@@ -80,6 +80,21 @@ export type ServerConfig = {
     icon?: string
     props: Record<string, any>
   }>
+  // Public site identity served at GET /api/_site. Structural (no @not-a-cms/renderer dependency).
+  site?: {
+    name?: string
+    url?: string
+    nav?: {
+      links?: Array<{ label: string; href: string; external?: boolean }>
+      cta?: { label: string; href: string }
+    }
+    footer?: {
+      tagline?: string
+      columns?: Array<{ heading: string; links: Array<{ label: string; href: string; external?: boolean }> }>
+      social?: Array<{ label: string; href: string }>
+      legal?: string
+    }
+  }
   // Public theme served at GET /api/_theme so the renderer can brand the site from
   // the project's config.theme. Structural (no @not-a-cms/renderer dependency).
   theme?: {
@@ -87,6 +102,9 @@ export type ServerConfig = {
     version?: string
     settings?: Record<string, Record<string, { default?: unknown }>>
   }
+  // Custom collection routes served at GET /api/_site so the renderer can build
+  // correct public paths for non-default collections (e.g. project -> /work/:slug).
+  routes?: Array<{ collection: string; path: string; slug?: string }>
   testAuth?: {
     enabled: boolean
     getMagicLink: (email: string) => string | null
@@ -361,6 +379,27 @@ export function createServer(config: ServerConfig): CreatedServer {
             name: theme?.name ?? null,
             version: theme?.version ?? null,
             settings: theme?.settings ?? null,
+          }),
+        )
+      }
+
+      // Public site identity: name, nav, footer, theme, and routes for the renderer.
+      if (url.pathname === "/api/_site") {
+        if (req.method !== "GET") {
+          return withCors(Response.json({ error: "Method not allowed" }, { status: 405 }))
+        }
+        const theme = config.theme ?? null
+        return withCors(
+          Response.json({
+            siteName: config.site?.name ?? null,
+            nav: config.site?.nav ?? null,
+            footer: config.site?.footer ?? null,
+            theme: {
+              name: theme?.name ?? null,
+              version: theme?.version ?? null,
+              settings: theme?.settings ?? null,
+            },
+            routes: config.routes ?? null,
           }),
         )
       }

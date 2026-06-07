@@ -46,4 +46,334 @@ describe("custom block round-trip", () => {
       { type: "paragraph", children: [{ type: "text", value: "hi" }] },
     ])
   })
+
+  test("stats block preserves items array and columns", () => {
+    const doc = {
+      type: "doc",
+      content: [
+        {
+          type: "stats",
+          attrs: {
+            items: [
+              { value: "10k+", label: "Users" },
+              { value: "99.9%", label: "Uptime" },
+            ],
+            columns: 2,
+          },
+        },
+      ],
+    }
+    const pt = toPortableText(doc as any)
+    expect(pt).toEqual([
+      {
+        type: "stats",
+        items: [
+          { value: "10k+", label: "Users" },
+          { value: "99.9%", label: "Uptime" },
+        ],
+        columns: 2,
+      },
+    ])
+    const back = fromPortableText(pt)
+    expect(back.content[0]).toEqual({
+      type: "stats",
+      attrs: {
+        items: [
+          { value: "10k+", label: "Users" },
+          { value: "99.9%", label: "Uptime" },
+        ],
+        columns: 2,
+      },
+    })
+  })
+
+  test("logoCloud block preserves eyebrow and logos array", () => {
+    const doc = {
+      type: "doc",
+      content: [
+        {
+          type: "logoCloud",
+          attrs: {
+            eyebrow: "Trusted by",
+            logos: [
+              { url: "https://cdn.example.com/logo.png", mediaId: "m_1", alt: "Acme" },
+            ],
+          },
+        },
+      ],
+    }
+    const pt = toPortableText(doc as any)
+    expect(pt).toEqual([
+      {
+        type: "logoCloud",
+        eyebrow: "Trusted by",
+        logos: [{ url: "https://cdn.example.com/logo.png", mediaId: "m_1", alt: "Acme" }],
+      },
+    ])
+    const back = fromPortableText(pt)
+    expect(back.content[0]).toEqual({
+      type: "logoCloud",
+      attrs: {
+        eyebrow: "Trusted by",
+        logos: [{ url: "https://cdn.example.com/logo.png", mediaId: "m_1", alt: "Acme" }],
+      },
+    })
+  })
+
+  test("testimonial block preserves all scalar fields", () => {
+    const doc = {
+      type: "doc",
+      content: [
+        {
+          type: "testimonial",
+          attrs: {
+            quote: "It changed everything.",
+            name: "Jane Doe",
+            role: "CTO",
+            avatar: "https://cdn.example.com/jane.jpg",
+          },
+        },
+      ],
+    }
+    const pt = toPortableText(doc as any)
+    expect(pt).toEqual([
+      {
+        type: "testimonial",
+        quote: "It changed everything.",
+        name: "Jane Doe",
+        role: "CTO",
+        avatar: "https://cdn.example.com/jane.jpg",
+      },
+    ])
+    const back = fromPortableText(pt)
+    expect(back.content[0]).toEqual({
+      type: "testimonial",
+      attrs: {
+        quote: "It changed everything.",
+        name: "Jane Doe",
+        role: "CTO",
+        avatar: "https://cdn.example.com/jane.jpg",
+      },
+    })
+  })
+
+  test("faq block preserves heading and items array", () => {
+    const doc = {
+      type: "doc",
+      content: [
+        {
+          type: "faq",
+          attrs: {
+            heading: "Common questions",
+            items: [
+              { question: "How does it work?", answer: "Very well." },
+              { question: "Is it fast?", answer: "Yes." },
+            ],
+          },
+        },
+      ],
+    }
+    const pt = toPortableText(doc as any)
+    expect(pt).toEqual([
+      {
+        type: "faq",
+        heading: "Common questions",
+        items: [
+          { question: "How does it work?", answer: "Very well." },
+          { question: "Is it fast?", answer: "Yes." },
+        ],
+      },
+    ])
+    const back = fromPortableText(pt)
+    expect(back.content[0]).toEqual({
+      type: "faq",
+      attrs: {
+        heading: "Common questions",
+        items: [
+          { question: "How does it work?", answer: "Very well." },
+          { question: "Is it fast?", answer: "Yes." },
+        ],
+      },
+    })
+  })
+
+  test("splitMedia block preserves all six attrs", () => {
+    const doc = {
+      type: "doc",
+      content: [
+        {
+          type: "splitMedia",
+          attrs: {
+            media: "https://cdn.example.com/hero.jpg",
+            side: "right",
+            heading: "Build faster",
+            body: "Paragraph text here.",
+            ctaLabel: "Get started",
+            ctaUrl: "/signup",
+          },
+        },
+      ],
+    }
+    const pt = toPortableText(doc as any)
+    expect(pt).toEqual([
+      {
+        type: "splitMedia",
+        media: "https://cdn.example.com/hero.jpg",
+        side: "right",
+        heading: "Build faster",
+        body: "Paragraph text here.",
+        ctaLabel: "Get started",
+        ctaUrl: "/signup",
+      },
+    ])
+    const back = fromPortableText(pt)
+    expect(back.content[0]).toEqual({
+      type: "splitMedia",
+      attrs: {
+        media: "https://cdn.example.com/hero.jpg",
+        side: "right",
+        heading: "Build faster",
+        body: "Paragraph text here.",
+        ctaLabel: "Get started",
+        ctaUrl: "/signup",
+      },
+    })
+  })
+
+  test("collectionList block preserves all 8 attrs through portable-text round-trip", () => {
+    const doc = {
+      type: "doc",
+      content: [
+        {
+          type: "collectionList",
+          attrs: {
+            collection: "blog_post",
+            limit: 5,
+            filterTag: "featured",
+            layout: "cards",
+            showCover: true,
+            showExcerpt: false,
+            showDate: true,
+            heading: "Recent posts",
+          },
+        },
+      ],
+    }
+    const pt = toPortableText(doc as any)
+    expect(pt).toEqual([
+      {
+        type: "collectionList",
+        collection: "blog_post",
+        limit: 5,
+        filterTag: "featured",
+        layout: "cards",
+        showCover: true,
+        showExcerpt: false,
+        showDate: true,
+        heading: "Recent posts",
+      },
+    ])
+    const back = fromPortableText(pt)
+    expect(back.content[0]).toEqual({
+      type: "collectionList",
+      attrs: {
+        collection: "blog_post",
+        limit: 5,
+        filterTag: "featured",
+        layout: "cards",
+        showCover: true,
+        showExcerpt: false,
+        showDate: true,
+        heading: "Recent posts",
+      },
+    })
+  })
+
+  test("pricingCards block preserves heading and tiers with nested features and highlighted bool", () => {
+    const doc = {
+      type: "doc",
+      content: [
+        {
+          type: "pricingCards",
+          attrs: {
+            heading: "Simple pricing",
+            tiers: [
+              {
+                name: "Starter",
+                price: "$0",
+                period: "/mo",
+                features: ["Up to 3 projects", "Community support"],
+                ctaLabel: "Get started",
+                ctaUrl: "/signup",
+                highlighted: false,
+              },
+              {
+                name: "Pro",
+                price: "$29",
+                period: "/mo",
+                features: ["Unlimited projects", "Priority support"],
+                ctaLabel: "Upgrade",
+                ctaUrl: "/upgrade",
+                highlighted: true,
+              },
+            ],
+          },
+        },
+      ],
+    }
+    const pt = toPortableText(doc as any)
+    expect(pt).toEqual([
+      {
+        type: "pricingCards",
+        heading: "Simple pricing",
+        tiers: [
+          {
+            name: "Starter",
+            price: "$0",
+            period: "/mo",
+            features: ["Up to 3 projects", "Community support"],
+            ctaLabel: "Get started",
+            ctaUrl: "/signup",
+            highlighted: false,
+          },
+          {
+            name: "Pro",
+            price: "$29",
+            period: "/mo",
+            features: ["Unlimited projects", "Priority support"],
+            ctaLabel: "Upgrade",
+            ctaUrl: "/upgrade",
+            highlighted: true,
+          },
+        ],
+      },
+    ])
+    const back = fromPortableText(pt)
+    expect(back.content[0]).toEqual({
+      type: "pricingCards",
+      attrs: {
+        heading: "Simple pricing",
+        tiers: [
+          {
+            name: "Starter",
+            price: "$0",
+            period: "/mo",
+            features: ["Up to 3 projects", "Community support"],
+            ctaLabel: "Get started",
+            ctaUrl: "/signup",
+            highlighted: false,
+          },
+          {
+            name: "Pro",
+            price: "$29",
+            period: "/mo",
+            features: ["Unlimited projects", "Priority support"],
+            ctaLabel: "Upgrade",
+            ctaUrl: "/upgrade",
+            highlighted: true,
+          },
+        ],
+      },
+    })
+  })
 })

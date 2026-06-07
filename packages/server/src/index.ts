@@ -80,6 +80,13 @@ export type ServerConfig = {
     icon?: string
     props: Record<string, any>
   }>
+  // Public theme served at GET /api/_theme so the renderer can brand the site from
+  // the project's config.theme. Structural (no @not-a-cms/renderer dependency).
+  theme?: {
+    name?: string
+    version?: string
+    settings?: Record<string, Record<string, { default?: unknown }>>
+  }
   testAuth?: {
     enabled: boolean
     getMagicLink: (email: string) => string | null
@@ -341,6 +348,21 @@ export function createServer(config: ServerConfig): CreatedServer {
           return withCors(Response.json({ error: "Method not allowed" }, { status: 405 }))
         }
         return withCors(Response.json({ data: getPublicChannelSettings(settingsService.getAll("channel.")) }))
+      }
+
+      // Public theme: lets the renderer brand the site from the project's config.theme.
+      if (url.pathname === "/api/_theme") {
+        if (req.method !== "GET") {
+          return withCors(Response.json({ error: "Method not allowed" }, { status: 405 }))
+        }
+        const theme = config.theme ?? null
+        return withCors(
+          Response.json({
+            name: theme?.name ?? null,
+            version: theme?.version ?? null,
+            settings: theme?.settings ?? null,
+          }),
+        )
       }
 
       if (url.pathname === "/api/_docs/openapi.json") {

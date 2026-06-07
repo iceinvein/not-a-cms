@@ -1,4 +1,9 @@
 import { defineTheme } from "./define-theme"
+import {
+  cssVariablesFromSettings,
+  mergeResolvedSettings,
+  resolveThemeSettings,
+} from "./theme-css"
 
 /**
  * The default public theme. Ships a real design layer (warm-neutral palette, a single
@@ -24,6 +29,28 @@ export const defaultTheme = defineTheme({
     fonts: {
       display: { type: "text", default: '"Fraunces", Georgia, "Times New Roman", serif', label: "Display font" },
       body: { type: "text", default: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', label: "Body font" },
+      import: {
+        type: "text",
+        default:
+          "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap",
+        label: "Webfont stylesheet URL",
+      },
     },
   },
 })
+
+/**
+ * Resolve the active site theme into render-ready outputs: the project's theme
+ * (served from /api/_theme, possibly partial or null) merged over the bundled
+ * default, so editing config.theme rebrands the site while defaults fill any gaps.
+ */
+export function resolveActiveThemeCss(apiTheme: { settings?: unknown } | null | undefined): {
+  variables: string
+  fontImport?: string
+} {
+  const merged = mergeResolvedSettings(
+    resolveThemeSettings(defaultTheme),
+    resolveThemeSettings(apiTheme as { settings?: never } | null),
+  )
+  return { variables: cssVariablesFromSettings(merged), fontImport: merged.fonts?.import }
+}

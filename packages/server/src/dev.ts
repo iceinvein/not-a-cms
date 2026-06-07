@@ -196,6 +196,16 @@ function createSampleDevServerConfig() {
     storage: resolveDevStorage(),
     collections: [author, blogPost, page],
     components: sampleComponents,
+    // Demonstrates the theming loop: the renderer merges this over its bundled
+    // default, so editing config.theme here rebrands the public site (a brighter
+    // accent than the renderer default proves it flows through /api/_theme).
+    theme: {
+      name: "not-a-cms dogfood",
+      version: "1.0.0",
+      settings: {
+        colors: { accent: { default: "#c2410c" } },
+      },
+    },
     cors: { origins: corsOrigins },
     ...(process.env.E2E_TEST_AUTH === "1"
       ? {

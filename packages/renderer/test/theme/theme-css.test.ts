@@ -1,6 +1,11 @@
 import { describe, expect, test } from "bun:test"
 import { defineTheme } from "../../src/theme/define-theme"
-import { themeToCssVariables } from "../../src/theme/theme-css"
+import {
+  cssVariablesFromSettings,
+  mergeResolvedSettings,
+  resolveThemeSettings,
+  themeToCssVariables,
+} from "../../src/theme/theme-css"
 
 describe("themeToCssVariables (F-017)", () => {
   test("emits color settings as --<key> custom properties under :root", () => {
@@ -55,5 +60,45 @@ describe("themeToCssVariables (F-017)", () => {
   test("returns an empty :root block for a theme with no settings", () => {
     const css = themeToCssVariables(defineTheme({ name: "t", version: "1.0.0" }))
     expect(css).toBe(":root {\n}")
+  })
+})
+
+describe("resolveThemeSettings", () => {
+  test("flattens field defaults to values and skips missing defaults", () => {
+    const resolved = resolveThemeSettings({
+      settings: {
+        colors: { paper: { type: "color", default: "#fff" }, none: { type: "color" } },
+        fonts: { body: { type: "text", default: "Inter" } },
+      },
+    } as any)
+    expect(resolved).toEqual({ colors: { paper: "#fff" }, fonts: { body: "Inter" } })
+  })
+
+  test("tolerates null/undefined themes", () => {
+    expect(resolveThemeSettings(null)).toEqual({})
+    expect(resolveThemeSettings(undefined)).toEqual({})
+  })
+})
+
+describe("mergeResolvedSettings", () => {
+  test("overlays override values onto the base, keeping untouched base keys", () => {
+    const base = { colors: { paper: "#fff", accent: "#000" }, fonts: { body: "Inter" } }
+    const override = { colors: { accent: "#b4520a" } }
+    expect(mergeResolvedSettings(base, override)).toEqual({
+      colors: { paper: "#fff", accent: "#b4520a" },
+      fonts: { body: "Inter" },
+    })
+  })
+})
+
+describe("cssVariablesFromSettings", () => {
+  test("emits vars and excludes fonts.import (a <link> url, not a style value)", () => {
+    const css = cssVariablesFromSettings({
+      colors: { accent: "#b4520a" },
+      fonts: { display: "Fraunces", import: "https://fonts.example/x.css" },
+    })
+    expect(css).toContain("--accent: #b4520a")
+    expect(css).toContain("--font-display: Fraunces")
+    expect(css).not.toContain("font-import")
   })
 })

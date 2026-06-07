@@ -2,8 +2,7 @@
 import Header from "../components/Header.astro"
 import Footer from "../components/Footer.astro"
 import { createContentFetcher, buildNav, type NavItem } from "../../runtime/content-fetcher"
-import { defaultTheme } from "../../theme/default-theme"
-import { themeToCssVariables } from "../../theme/theme-css"
+import { resolveActiveThemeCss } from "../../theme/default-theme"
 import "../../styles/theme.css"
 
 interface Props {
@@ -13,10 +12,20 @@ interface Props {
 }
 
 const { title, siteName = "not-a-cms", description = "" } = Astro.props
-const themeVariables = themeToCssVariables(defaultTheme)
 
 const apiBase = import.meta.env.PUBLIC_API_BASE || "http://localhost:4321"
+
+// Brand the site from the project's theme (served at /api/_theme), falling back to
+// the bundled default if the API is unavailable during build.
+let apiTheme: { settings?: unknown } | null = null
 let navItems: NavItem[] = []
+try {
+  const res = await fetch(`${apiBase}/api/_theme`)
+  if (res.ok) apiTheme = await res.json()
+} catch {
+  // API may be unavailable during build; fall back to the bundled default theme.
+}
+const { variables: themeVariables, fontImport } = resolveActiveThemeCss(apiTheme)
 try {
   const pages = await createContentFetcher({ apiBase }).list("page", { limit: 50 })
   navItems = buildNav(pages.filter((p) => p.status === "published"))
@@ -32,12 +41,13 @@ try {
   {description && <meta name="description" content={description} />}
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <style is:global set:html={themeVariables}></style>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap"
-  />
+  {fontImport && (
+    <>
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+      <link rel="stylesheet" href={fontImport} />
+    </>
+  )}
 </head>
 <body class="bg-[var(--paper)] text-[var(--ink)] min-h-screen flex flex-col">
   <Header siteName={siteName} navItems={navItems} />

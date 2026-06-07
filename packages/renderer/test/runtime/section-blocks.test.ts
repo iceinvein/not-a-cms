@@ -99,3 +99,162 @@ describe("section blocks (F-012)", () => {
     expect(renderPortableText([{ type: "featureGrid", columns: 7, items: [] }])).toContain('data-columns="3"')
   })
 })
+
+describe("stats section block", () => {
+  test("renders a stat grid with value and label", () => {
+    const html = renderPortableText([
+      {
+        type: "stats",
+        items: [
+          { value: "10k+", label: "Users" },
+          { value: "99.9%", label: "Uptime" },
+        ],
+        columns: 2,
+      },
+    ])
+    expect(html).toContain("nac-band")
+    expect(html).toContain("nac-stats")
+    expect(html).toContain("nac-container")
+    expect(html).toContain('class="nac-stat-grid"')
+    expect(html).toContain('data-columns="2"')
+    expect(html).toContain("nac-stat-value")
+    expect(html).toContain("10k+")
+    expect(html).toContain("nac-stat-label")
+    expect(html).toContain("Users")
+    expect(html).toContain("99.9%")
+    expect(html).toContain("Uptime")
+    expect(html.match(/class="nac-stat"/g)?.length).toBe(2)
+  })
+
+  test("stats defaults to 3 columns and clamps invalid values", () => {
+    const html3 = renderPortableText([{ type: "stats", items: [] }])
+    expect(html3).toContain('data-columns="3"')
+    const htmlClamped = renderPortableText([{ type: "stats", columns: 99, items: [] }])
+    expect(htmlClamped).toContain('data-columns="3"')
+  })
+
+  test("stats accepts 2 and 4 column counts", () => {
+    expect(renderPortableText([{ type: "stats", columns: 2, items: [] }])).toContain('data-columns="2"')
+    expect(renderPortableText([{ type: "stats", columns: 4, items: [] }])).toContain('data-columns="4"')
+  })
+
+  test("stats escapes html in value and label", () => {
+    const html = renderPortableText([
+      { type: "stats", items: [{ value: "<b>bold</b>", label: "<script>x</script>" }] },
+    ])
+    expect(html).not.toContain("<b>bold</b>")
+    expect(html).not.toContain("<script>")
+    expect(html).toContain("&lt;b&gt;")
+  })
+
+  test("stats handles non-array items gracefully", () => {
+    const html = renderPortableText([{ type: "stats", items: null }])
+    expect(html).toContain("nac-stats")
+    expect(html).not.toContain("nac-stat-value")
+  })
+})
+
+describe("logoCloud section block", () => {
+  test("renders logos in a row with optional eyebrow", () => {
+    const html = renderPortableText([
+      {
+        type: "logoCloud",
+        eyebrow: "Trusted by",
+        logos: [
+          { url: "https://cdn.example.com/logo.png", mediaId: "m_1", alt: "Acme" },
+          { url: "https://cdn.example.com/logo2.png", mediaId: "", alt: "Bravo" },
+        ],
+      },
+    ])
+    expect(html).toContain("nac-band")
+    expect(html).toContain("nac-logo-cloud")
+    expect(html).toContain("nac-container")
+    expect(html).toContain("nac-eyebrow")
+    expect(html).toContain("Trusted by")
+    expect(html).toContain('class="nac-logo-row"')
+    expect(html).toContain('class="nac-logo"')
+    expect(html).toContain("https://cdn.example.com/logo.png")
+    expect(html).toContain('alt="Acme"')
+    expect(html).toContain('data-media-id="m_1"')
+    expect(html.match(/class="nac-logo"/g)?.length).toBe(2)
+  })
+
+  test("logoCloud omits eyebrow element when empty", () => {
+    const html = renderPortableText([
+      { type: "logoCloud", eyebrow: "", logos: [] },
+    ])
+    expect(html).not.toContain("nac-eyebrow")
+  })
+
+  test("logoCloud handles non-array logos gracefully", () => {
+    const html = renderPortableText([{ type: "logoCloud", logos: null }])
+    expect(html).toContain("nac-logo-cloud")
+    expect(html).not.toContain("nac-logo")
+  })
+
+  test("logoCloud sanitizes dangerous logo urls", () => {
+    const html = renderPortableText([
+      { type: "logoCloud", logos: [{ url: "javascript:alert(1)", alt: "bad" }] },
+    ])
+    expect(html).not.toContain("javascript:")
+    expect(html).toContain('src="#"')
+  })
+})
+
+describe("testimonial section block", () => {
+  test("renders quote, name, role, and avatar", () => {
+    const html = renderPortableText([
+      {
+        type: "testimonial",
+        quote: "It changed everything.",
+        name: "Jane Doe",
+        role: "CTO",
+        avatar: "https://cdn.example.com/jane.jpg",
+      },
+    ])
+    expect(html).toContain("nac-band")
+    expect(html).toContain("nac-testimonial-block")
+    expect(html).toContain("nac-container")
+    expect(html).toContain('<figure class="nac-testimonial">')
+    expect(html).toContain("nac-quote")
+    expect(html).toContain("It changed everything.")
+    expect(html).toContain("nac-quote-by")
+    expect(html).toContain("nac-quote-avatar")
+    expect(html).toContain("https://cdn.example.com/jane.jpg")
+    expect(html).toContain("nac-quote-name")
+    expect(html).toContain("Jane Doe")
+    expect(html).toContain("nac-quote-role")
+    expect(html).toContain("CTO")
+  })
+
+  test("testimonial omits avatar img when avatar is empty", () => {
+    const html = renderPortableText([
+      { type: "testimonial", quote: "Great.", name: "Bob", role: "", avatar: "" },
+    ])
+    expect(html).not.toContain("nac-quote-avatar")
+  })
+
+  test("testimonial omits role span when role is empty", () => {
+    const html = renderPortableText([
+      { type: "testimonial", quote: "Great.", name: "Bob", role: "", avatar: "" },
+    ])
+    expect(html).not.toContain("nac-quote-role")
+  })
+
+  test("testimonial escapes html in all text fields", () => {
+    const html = renderPortableText([
+      { type: "testimonial", quote: "<script>bad</script>", name: "<b>Name</b>", role: "<i>r</i>", avatar: "" },
+    ])
+    expect(html).not.toContain("<script>")
+    expect(html).not.toContain("<b>Name")
+    expect(html).toContain("&lt;script&gt;")
+  })
+
+  test("testimonial sanitizes dangerous avatar urls", () => {
+    const html = renderPortableText([
+      { type: "testimonial", quote: "q", name: "n", role: "", avatar: "javascript:alert(1)" },
+    ])
+    expect(html).not.toContain("javascript:")
+    expect(html).toContain('src="#"')
+  })
+})

@@ -147,6 +147,19 @@ function renderBlock(block: PTBlock): string {
         .join("")
       return `<section class="nac-band nac-features not-prose"><div class="nac-container"><div class="nac-feature-grid" data-columns="${columns}">${cards}</div></div></section>`
     }
+    case "stats": {
+      const items = Array.isArray(block.items) ? block.items : []
+      const columns = [2, 3, 4].includes(Number(block.columns)) ? Number(block.columns) : 3
+      const stats = items
+        .map((entry: unknown) => {
+          const item = (entry ?? {}) as { value?: unknown; label?: unknown }
+          const value = item.value ? `<div class="nac-stat-value">${escapeHtml(String(item.value))}</div>` : ""
+          const label = item.label ? `<div class="nac-stat-label">${escapeHtml(String(item.label))}</div>` : ""
+          return `<div class="nac-stat">${value}${label}</div>`
+        })
+        .join("")
+      return `<section class="nac-band nac-stats not-prose"><div class="nac-container"><div class="nac-stat-grid" data-columns="${columns}">${stats}</div></div></section>`
+    }
     case "author":
       return `<div data-author><span data-author-name>${escapeHtml(String(block.name ?? ""))}</span>${block.role ? `<span data-author-role>${escapeHtml(String(block.role))}</span>` : ""}</div>`
     case "gallery": {

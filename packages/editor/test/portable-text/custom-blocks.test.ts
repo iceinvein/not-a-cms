@@ -46,4 +46,114 @@ describe("custom block round-trip", () => {
       { type: "paragraph", children: [{ type: "text", value: "hi" }] },
     ])
   })
+
+  test("stats block preserves items array and columns", () => {
+    const doc = {
+      type: "doc",
+      content: [
+        {
+          type: "stats",
+          attrs: {
+            items: [
+              { value: "10k+", label: "Users" },
+              { value: "99.9%", label: "Uptime" },
+            ],
+            columns: 2,
+          },
+        },
+      ],
+    }
+    const pt = toPortableText(doc as any)
+    expect(pt).toEqual([
+      {
+        type: "stats",
+        items: [
+          { value: "10k+", label: "Users" },
+          { value: "99.9%", label: "Uptime" },
+        ],
+        columns: 2,
+      },
+    ])
+    const back = fromPortableText(pt)
+    expect(back.content[0]).toEqual({
+      type: "stats",
+      attrs: {
+        items: [
+          { value: "10k+", label: "Users" },
+          { value: "99.9%", label: "Uptime" },
+        ],
+        columns: 2,
+      },
+    })
+  })
+
+  test("logoCloud block preserves eyebrow and logos array", () => {
+    const doc = {
+      type: "doc",
+      content: [
+        {
+          type: "logoCloud",
+          attrs: {
+            eyebrow: "Trusted by",
+            logos: [
+              { url: "https://cdn.example.com/logo.png", mediaId: "m_1", alt: "Acme" },
+            ],
+          },
+        },
+      ],
+    }
+    const pt = toPortableText(doc as any)
+    expect(pt).toEqual([
+      {
+        type: "logoCloud",
+        eyebrow: "Trusted by",
+        logos: [{ url: "https://cdn.example.com/logo.png", mediaId: "m_1", alt: "Acme" }],
+      },
+    ])
+    const back = fromPortableText(pt)
+    expect(back.content[0]).toEqual({
+      type: "logoCloud",
+      attrs: {
+        eyebrow: "Trusted by",
+        logos: [{ url: "https://cdn.example.com/logo.png", mediaId: "m_1", alt: "Acme" }],
+      },
+    })
+  })
+
+  test("testimonial block preserves all scalar fields", () => {
+    const doc = {
+      type: "doc",
+      content: [
+        {
+          type: "testimonial",
+          attrs: {
+            quote: "It changed everything.",
+            name: "Jane Doe",
+            role: "CTO",
+            avatar: "https://cdn.example.com/jane.jpg",
+          },
+        },
+      ],
+    }
+    const pt = toPortableText(doc as any)
+    expect(pt).toEqual([
+      {
+        type: "testimonial",
+        quote: "It changed everything.",
+        name: "Jane Doe",
+        role: "CTO",
+        avatar: "https://cdn.example.com/jane.jpg",
+      },
+    ])
+    const back = fromPortableText(pt)
+    expect(back.content[0]).toEqual({
+      type: "testimonial",
+      attrs: {
+        quote: "It changed everything.",
+        name: "Jane Doe",
+        role: "CTO",
+        avatar: "https://cdn.example.com/jane.jpg",
+      },
+    })
+  })
 })

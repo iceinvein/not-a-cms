@@ -18,6 +18,9 @@ export function createServerConfigFromCMSConfig(userConfig: ProjectConfig, env: 
     .map((origin) => origin.trim())
     .filter(Boolean)
 
+  const testAuthEnabled = env.E2E_TEST_AUTH === "1"
+  const e2eMagicLinks = new Map<string, string>()
+
   return {
     port,
     database: {
@@ -29,6 +32,7 @@ export function createServerConfigFromCMSConfig(userConfig: ProjectConfig, env: 
       trustedOrigins: corsOrigins.length > 0 ? corsOrigins : ["http://localhost:4322", "http://localhost:3000"],
       magicLink: {
         sendMagicLink: async ({ email, url }) => {
+          if (testAuthEnabled) e2eMagicLinks.set(email, url)
           console.log(`\n  Magic link for ${email}: ${url}\n`)
         },
       },
@@ -50,6 +54,9 @@ export function createServerConfigFromCMSConfig(userConfig: ProjectConfig, env: 
     cors: {
       origins: corsOrigins.length > 0 ? corsOrigins : ["http://localhost:4322", "http://localhost:3000"],
     },
+    ...(testAuthEnabled
+      ? { testAuth: { enabled: true, getMagicLink: (email: string) => e2eMagicLinks.get(email) ?? null } }
+      : {}),
   }
 }
 

@@ -253,3 +253,27 @@ styles) to the renderer [F-010]; reconcile the two contradictory `page` definiti
 Screenshots in `dogfood-output/marketing-site/`: `01-login`, `02-magic-link-sent`,
 `03-admin-dashboard`, `10-public-home`, `11about`, `12pricing`, `13post`, `20admin-posts`,
 `21command-deck`, `22command-deck-search`, `23automations`.
+
+---
+
+## Resolution (2026-06-07)
+
+All eleven findings were addressed on branch `fix/dogfood-gaps`, TDD where there was
+testable logic, with the full suite green (11/11 turbo tasks) and the integrated stack
+re-verified through the real `bun run dev`. Before/after screenshots: `10-public-home.png`
+(flat, no nav) vs `50final-home.png` (hero hierarchy + nav), and `51final-blog.png` (the
+new blog index).
+
+| Finding | Resolution |
+|---|---|
+| F-001 | Scaffold pins `@not-a-cms/*` to the CLI version, not `latest`. Residual: packages must be published to npm for `bun install` to resolve (a release step, not a code change). |
+| F-002 | Dev orchestrator (root script and CLI `dev`) uses 127.0.0.1 health checks, binds astro with `--host 127.0.0.1`, and kills spawned children on a startup timeout. |
+| F-003 | New `/blog` index route lists published posts. |
+| F-004 | Resolved by F-003: posts are always listed at `/blog`, independent of the homepage. |
+| F-005 | `documentPath()` (tested) builds correct `/blog/:slug` URLs; homepage listing fixed. |
+| F-006 | Removed the unreachable visual builder (PageBuilder/ContentEditor, ~2.5k LOC); kept the one used helper; README no longer advertises it as shipped. |
+| F-007 | Bundled `page` collection uses a richText body, matching the scaffold and editable in Continuum. |
+| F-008 | `FieldsPanel` in Continuum edits slug, tags, excerpt, datetime, select, relation, and media. |
+| F-009 | `applyGeneratedSlugs()` runs on create/update: an empty slug is filled from its source field; admin-authored docs now get URLs. |
+| F-010 | Added `@tailwindcss/typography`; headings render with hierarchy (36/24 vs 16px). |
+| F-011 | `buildNav()` auto-builds nav from published pages + a Blog link, wired into the layout. |

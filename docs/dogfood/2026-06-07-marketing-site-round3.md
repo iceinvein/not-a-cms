@@ -210,3 +210,58 @@ two findings that most define whether the round succeeds.
 `before-notacms-pricing`, `before-notacms-post`, `before-notacms-admin`,
 `before-admin-editor` (the minimal B/I/code/link/H1/H2 body toolbar),
 `before-studio-home` (the "not-a-cms"-branded empty studio), `before-studio-admin`.
+
+---
+
+## Resolution (2026-06-07)
+
+All findings were addressed on branch `fix/dogfood-round3`, executed in waves with TDD
+where there was logic, two-stage review per task, and the full suite green
+(`turbo run test` + `turbo run typecheck` 11/11) before every commit. Live-verified
+through the real dev orchestrator on both sites. After evidence:
+`after-w2-studio-home` (Atelier branded, no "Powered by"), `after-w4-studio-dark-empty`
++ `after-w4-studio-home` + `after-w4-studio-home-scrolled` (the dark grotesk studio with
+a live portfolio grid), `after-w4-notacms-pricing` (real pricing cards),
+`after-w4-notacms-home`, `after-w3-home-mobile`/`after-w3-mobile-fixed` (responsive nav).
+
+**Foundation (Plan 0).** Both sites became real `loadConfig` projects under
+`dogfood-sites/` rendered by one engine; the dev orchestrator gained a `--site=<name>`
+selector (`CONFIG_PATH`), the server dev entry honors it, and the real config path
+gained an `E2E_TEST_AUTH` test-auth seam so dogfood login works. First-run auto-admin
+verified on a fresh `studio.db`.
+
+| Finding | Resolution |
+|---|---|
+| F-019 (branding BLOCKER) | New `GET /api/_site` serves `{siteName, nav, footer, theme}`; the renderer brands from it. Config-driven nav (logo, links, CTA) and footer (tagline, columns, social, legal). Verified live: Atelier renders its own wordmark/title/footer with no "Powered by not-a-cms". |
+| F-020 (collectionList, headline) | New `collectionList` block resolves live published docs at render time (async pre-pass in `renderDocumentContent` injects fetched data into the serializer). Powers the studio portfolio grid and the homepage "From the blog". |
+| F-021 (thin block set) | Added `stats`, `logoCloud`, `testimonial`, `faq`, `pricingCards`, `splitMedia` section blocks (NodeView + slash command + Portable Text round-trip + renderer band). Pricing now renders as real cards (verified). |
+| F-022 (dark brand) | The theme token set already spanned the needed colors/fonts; the studio config now declares a full dark palette + Space Grotesk/Inter pairing, proving light to dark from config alone with no renderer changes. |
+| F-023 (hero CTA / cramped cards) | Tightened section rhythm and card generosity (consistent band padding, larger feature cards, comfortable measure). The isolated-CTA composition was resolved by re-authoring the homepage from the richer block set. |
+| F-024 (nav/footer chrome) | Real config-driven header (wordmark + links + CTA) and multi-column footer, plus a mobile disclosure nav (accessible, `aria-expanded`); live-verified at 390px (a cascade fix was caught and applied so the desktop nav hides under Tailwind's `.flex`). |
+| F-025 (no motion) | CSS-first scroll-reveal via a dependency-free IntersectionObserver, plus hover/focus transitions and card lift; fully gated on `prefers-reduced-motion` and `html.js-reveal` so content is never hidden without JS or for reduced-motion users. |
+| F-026 (dead-end posts) | `relatedPosts` (shared-tag overlap then recency, recency fallback) renders a "More from the blog" band on blog posts only. |
+| F-027 (imagery) | Partially addressed: the dark theme + bold typography carry the studio without photos (no image-gen tool available; `mediaUrl` mangles data-URIs). Real photographic imagery remains a deferral. |
+| F-028 (install friction) | Resolved in the foundation: workspace wiring, the `--site` boot selector, and the test-auth seam. A real `not-a-cms init` scaffold remains a future onboarding pass. |
+| F-029 (full-bleed) | Section bands break out to full width via the `nac-band` 100vw technique with `overflow-x: hidden`; rhythm tightened. (A full-width-`main` refactor was judged unnecessary given the working breakout.) |
+
+### New finding (discovered during Wave 4)
+
+**F-030 (GAP): custom collections have no public route.** The renderer's `DEFAULT_ROUTES`
+maps only `page` and `blog_post`. The studio's `project` collection therefore has no
+detail-page route, so `collectionList` portfolio cards link to `#` and case-study pages
+are unreachable. `CMSConfig.routes` already exists as a type but is not plumbed into the
+renderer (the page fetchers, `documentPath`, and the `collectionList` serializer all use
+`DEFAULT_ROUTES`). Closing this (serve `config.routes` via `/api/_site`, thread them
+through the fetcher + `documentPath` + the serializer, and resolve `/work/:slug` in
+`[...slug].astro`) is the top follow-up: a real "dynamic website for your company" needs
+custom content types with their own pages. The studio's landing, portfolio grid, journal,
+and all `page`/`blog_post` routes render correctly today; only `project` detail pages are
+unreachable.
+
+### Result
+
+The product can now build two visually distinct, professional, dynamic company sites on
+one engine: not-a-cms (warm, serif, light) with a richer composed homepage and real
+pricing cards, and Atelier (dark, grotesk, bold) with a live portfolio grid, both fully
+branded from config. The headline blockers (F-019 branding, F-020 dynamic content) are
+closed. The remaining gap to a complete studio is custom-collection routing (F-030).

@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+export {}
 /**
  * Seed script for the not-a-cms flagship marketing site.
  *

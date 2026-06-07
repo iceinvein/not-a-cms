@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+export {}
 /**
  * Seed script for the Atelier studio site.
  *

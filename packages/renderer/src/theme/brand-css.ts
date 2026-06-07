@@ -561,6 +561,108 @@ h1, h2, h3, h4, h5, h6 {
   z-index: 10;
 }
 
+/* Mobile nav toggle: hidden by default, shown only below 768px. */
+.nac-nav-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  color: var(--ink);
+}
+
+.nac-nav-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.nac-hamburger-bar {
+  display: block;
+  width: 1.25rem;
+  height: 2px;
+  background: currentColor;
+  border-radius: 2px;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+/* Mobile nav panel: hidden by default, stacked when header[data-open]. */
+.nac-mobile-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .nac-nav {
+    display: none;
+  }
+
+  .nac-nav-toggle {
+    display: inline-flex;
+  }
+
+  /* The mobile nav panel sits below the header bar, full-width. */
+  .nac-header .nac-mobile-nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    background: var(--paper);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 1.5rem 1.5rem;
+    gap: 0.25rem;
+    z-index: 9;
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--ink) 8%, transparent);
+  }
+
+  .nac-header[data-open] .nac-mobile-nav {
+    display: flex;
+  }
+
+  /* Ensure the header is a positioning context for the dropdown. */
+  .nac-header {
+    position: sticky;
+    top: 0;
+  }
+
+  .nac-mobile-nav-link {
+    display: block;
+    padding: 0.625rem 0;
+    font-size: 1rem;
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+    transition: color 0.15s ease;
+  }
+
+  .nac-mobile-nav-link:last-of-type {
+    border-bottom: none;
+  }
+
+  .nac-mobile-nav-link:hover,
+  .nac-mobile-nav-link:focus-visible {
+    color: var(--accent);
+  }
+
+  .nac-mobile-nav-link:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  .nac-mobile-cta {
+    margin-top: 0.75rem;
+    text-align: center;
+  }
+}
+
 /* Site footer multi-column layout. */
 .nac-footer-columns {
   display: grid;

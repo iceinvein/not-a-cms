@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import type { AdminFieldDef } from "../../lib/content-fields"
 import {
   addArrayItem,
@@ -10,6 +10,7 @@ import {
   updateArrayItem,
 } from "../../lib/content-fields"
 import { adminApiFetch } from "../../lib/api"
+import { listMediaItems, mediaDisplayUrl, uploadMediaFile, type AdminMediaItem } from "../../lib/media"
 
 type Props = {
   fields: Record<string, AdminFieldDef>
@@ -119,16 +120,7 @@ function FieldControl({ id, def, value, apiBase, onChange }: { id: string } & Om
     case "relation":
       return <RelationField id={id} def={def} value={value} apiBase={apiBase} onChange={onChange} />
     case "media":
-      return (
-        <input
-          id={id}
-          type="text"
-          className="cn-field-input"
-          placeholder="Asset id"
-          value={mediaId(value)}
-          onChange={(e) => onChange(e.target.value.trim() === "" ? null : e.target.value.trim())}
-        />
-      )
+      return <MediaField id={id} value={value} apiBase={apiBase} onChange={onChange} />
     case "text":
       if (def.multiline) {
         return (
@@ -215,6 +207,122 @@ function RelationField({ id, def, value, apiBase, onChange }: { id: string; def:
         </option>
       ))}
     </select>
+  )
+}
+
+/**
+ * Media field control: a real Vault picker instead of a bare "Asset id" text box
+ * (F-014). Shows a thumbnail of the current selection, a "Choose from Vault" picker
+ * listing existing assets, an inline upload, and a clear control.
+ */
+function MediaField({ id, value, apiBase, onChange }: { id: string; value: unknown; apiBase: string; onChange: (v: unknown) => void }) {
+  const selectedId = mediaId(value)
+  const [open, setOpen] = useState(false)
+  const [items, setItems] = useState<AdminMediaItem[]>([])
+  const [loading, setLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  const loadItems = useCallback(() => {
+    setLoading(true)
+    setError(null)
+    listMediaItems(apiBase)
+      .then(setItems)
+      .catch(() => setError("Failed to load media"))
+      .finally(() => setLoading(false))
+  }, [apiBase])
+
+  function openPicker() {
+    setOpen(true)
+    if (items.length === 0) loadItems()
+  }
+
+  async function handleUpload(file: File) {
+    setUploading(true)
+    setError(null)
+    try {
+      const item = await uploadMediaFile(apiBase, file)
+      setItems((prev) => [item, ...prev])
+      onChange(item.id)
+    } catch {
+      setError("Upload failed")
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const previewUrl = selectedId ? mediaDisplayUrl({ id: selectedId }, apiBase) : ""
+
+  return (
+    <div className="cn-media" id={id}>
+      {selectedId ? (
+        <div className="cn-media-selected">
+          <img className="cn-media-thumb" src={previewUrl} alt="" />
+          <span className="cn-media-name">{selectedId}</span>
+          <button type="button" className="cn-field-remove" aria-label="Remove image" onClick={() => onChange(null)}>
+            ×
+          </button>
+        </div>
+      ) : (
+        <p className="cn-media-empty">No image selected.</p>
+      )}
+
+      <div className="cn-media-actions">
+        <button type="button" className="cn-media-btn" onClick={openPicker}>
+          {selectedId ? "Replace" : "Choose from Vault"}
+        </button>
+        <button type="button" className="cn-media-btn" disabled={uploading} onClick={() => fileRef.current?.click()}>
+          {uploading ? "Uploading…" : "Upload"}
+        </button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          style={{ display: "none" }}
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) handleUpload(file)
+            e.target.value = ""
+          }}
+        />
+      </div>
+
+      {error && <p className="cn-media-error">{error}</p>}
+
+      {open && (
+        <div className="cn-media-picker" role="dialog" aria-label="Choose media">
+          <div className="cn-media-picker-head">
+            <span>Choose an image</span>
+            <button type="button" className="cn-field-remove" aria-label="Close picker" onClick={() => setOpen(false)}>
+              ×
+            </button>
+          </div>
+          {loading ? (
+            <p className="cn-media-empty">Loading…</p>
+          ) : items.length === 0 ? (
+            <p className="cn-media-empty">No media yet. Upload one above.</p>
+          ) : (
+            <div className="cn-media-grid">
+              {items.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`cn-media-tile${item.id === selectedId ? " is-selected" : ""}`}
+                  title={item.filename}
+                  onClick={() => {
+                    onChange(item.id)
+                    setOpen(false)
+                  }}
+                >
+                  <img src={mediaDisplayUrl({ id: item.id }, apiBase)} alt={item.alt || item.filename} />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   )
 }
 

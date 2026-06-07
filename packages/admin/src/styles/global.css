@@ -992,6 +992,122 @@ a.crumb:hover {
   cursor: pointer;
 }
 
+/* Media field picker (FieldsPanel) */
+.cn-media {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cn-media-selected {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+}
+
+.cn-media-thumb {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--surface-sunken, #f3f3f3);
+}
+
+.cn-media-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cn-media-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.cn-media-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.cn-media-btn {
+  padding: 6px 12px;
+  font-size: 13px;
+  color: var(--text-default);
+  background: var(--surface-default, #fff);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.cn-media-btn:hover {
+  border-color: var(--text-muted);
+}
+
+.cn-media-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.cn-media-error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--danger, #dc2626);
+}
+
+.cn-media-picker {
+  padding: 10px;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: var(--surface-default, #fff);
+}
+
+.cn-media-picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.cn-media-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.cn-media-tile {
+  padding: 0;
+  aspect-ratio: 1 / 1;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  background: var(--surface-sunken, #f3f3f3);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.cn-media-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cn-media-tile.is-selected {
+  border-color: var(--accent, #2563eb);
+}
+
 .cn-status {
   position: fixed;
   right: 0;

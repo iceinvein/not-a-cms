@@ -1,0 +1,8 @@
+{
+  "name": "@not-a-cms/dogfood-not-a-cms",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@not-a-cms/core": "workspace:*"
+  }
+}

@@ -12,6 +12,18 @@
         "typescript": "^5.7.0",
       },
     },
+    "dogfood-sites/not-a-cms": {
+      "name": "@not-a-cms/dogfood-not-a-cms",
+      "dependencies": {
+        "@not-a-cms/core": "workspace:*",
+      },
+    },
+    "dogfood-sites/studio": {
+      "name": "@not-a-cms/dogfood-studio",
+      "dependencies": {
+        "@not-a-cms/core": "workspace:*",
+      },
+    },
     "packages/admin": {
       "name": "@not-a-cms/admin",
       "version": "0.0.1",
@@ -420,6 +432,10 @@
     "@not-a-cms/cli": ["@not-a-cms/cli@workspace:packages/cli"],
 
     "@not-a-cms/core": ["@not-a-cms/core@workspace:packages/core"],
+
+    "@not-a-cms/dogfood-not-a-cms": ["@not-a-cms/dogfood-not-a-cms@workspace:dogfood-sites/not-a-cms"],
+
+    "@not-a-cms/dogfood-studio": ["@not-a-cms/dogfood-studio@workspace:dogfood-sites/studio"],
 
     "@not-a-cms/editor": ["@not-a-cms/editor@workspace:packages/editor"],
 

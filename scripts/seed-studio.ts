@@ -396,6 +396,33 @@ const contactPage = {
   ],
 }
 
+const workPage = {
+  title: "Work",
+  slug: "work",
+  body: [
+    {
+      type: "hero",
+      eyebrow: "SELECTED WORK",
+      headline: "Work",
+      subheadline: "A few recent projects.",
+      align: "left",
+      backgroundImage: "",
+      overlay: true,
+    },
+    {
+      type: "collectionList",
+      collection: "project",
+      limit: 12,
+      filterTag: "",
+      layout: "cards",
+      showCover: false,
+      showExcerpt: true,
+      showDate: false,
+      heading: "",
+    },
+  ],
+}
+
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
@@ -422,6 +449,7 @@ async function main() {
   await createAndPublish(cookie, "page", homePage)
   await createAndPublish(cookie, "page", aboutPage)
   await createAndPublish(cookie, "page", contactPage)
+  await createAndPublish(cookie, "page", workPage)
 
   console.log("\n  Seed complete.\n")
 }

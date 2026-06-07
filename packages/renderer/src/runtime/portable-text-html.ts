@@ -1,5 +1,5 @@
 import { documentPath, mediaUrl } from "./content-fetcher"
-import type { ContentItem } from "./content-fetcher"
+import type { ContentItem, RouteConfig } from "./content-fetcher"
 
 export type ChannelKind = "web" | "rss"
 type PTMark = string | { type: string; [key: string]: unknown }
@@ -12,6 +12,7 @@ type CollectionEntry = ContentItem
 type RenderOpts = {
   apiBase?: string
   collectionData?: Record<number, CollectionEntry[]>
+  routes?: RouteConfig[]
 }
 
 const MARK_TAG: Record<string, string> = {
@@ -283,7 +284,7 @@ function renderBlock(block: PTBlock, index: number, opts?: RenderOpts): string {
 
       const cards = entries
         .map((entry) => {
-          const href = escapeHtml(documentPath(String(block.collection ?? ""), entry) ?? "#")
+          const href = escapeHtml(documentPath(String(block.collection ?? ""), entry, opts?.routes) ?? "#")
           const coverSrc = showCover ? mediaUrl(apiBase, entry.coverImage) : null
           const coverImg = coverSrc
             ? `<img class="nac-collection-cover" src="${escapeHtml(coverSrc)}" alt="" />`

@@ -36,11 +36,20 @@ type ResolvedRoute = RouteMatch & {
   document: ContentItem
 }
 
-const DEFAULT_ROUTES: RouteConfig[] = [
+export const DEFAULT_ROUTES: RouteConfig[] = [
   { collection: "page", path: "/", slug: "home" },
   { collection: "blog_post", path: "/blog/:slug" },
   { collection: "page", path: "/:slug" },
 ]
+
+/**
+ * Merge custom config routes with the built-in defaults.
+ * Config routes are placed first so they win when a segment count matches a default,
+ * allowing /work/:slug (2 segs) to coexist with /:slug (1 seg) without conflict.
+ */
+export function mergeRoutes(configRoutes?: RouteConfig[] | null): RouteConfig[] {
+  return [...(configRoutes ?? []), ...DEFAULT_ROUTES]
+}
 
 export function createContentFetcher(config: FetchConfig) {
   const { apiBase } = config

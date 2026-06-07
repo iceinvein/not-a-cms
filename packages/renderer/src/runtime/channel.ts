@@ -116,7 +116,7 @@ ${itemsXml}
 
 // --- Portable Text to HTML (for RSS descriptions) ---
 
-export function portableTextToHtml(blocks: PTBlock[], opts?: { apiBase?: string; collectionData?: Record<number, ContentItem[]> }): string {
+export function portableTextToHtml(blocks: PTBlock[], opts?: { apiBase?: string; collectionData?: Record<number, ContentItem[]>; routes?: import("./content-fetcher").RouteConfig[] }): string {
   return renderPortableText(blocks, "web", opts)
 }
 

@@ -1,10 +1,19 @@
 ---
 import DefaultLayout from "../defaults/layouts/default.astro"
-import { createContentFetcher, documentPath } from "../runtime/content-fetcher"
+import { createContentFetcher, documentPath, mergeRoutes } from "../runtime/content-fetcher"
 import { renderDocumentContent } from "../runtime/document-renderer"
 
 const apiBase = import.meta.env.PUBLIC_API_BASE || "http://localhost:4321"
-const fetcher = createContentFetcher({ apiBase })
+
+let apiSite: { routes?: Array<{ collection: string; path: string; slug?: string }> | null } | null = null
+try {
+  const siteRes = await fetch(`${apiBase}/api/_site`)
+  if (siteRes.ok) apiSite = await siteRes.json()
+} catch {
+  // API may not be available during build; fall back to defaults
+}
+const routes = mergeRoutes(apiSite?.routes)
+const fetcher = createContentFetcher({ apiBase, routes })
 
 let posts: Array<{ title?: string; slug?: string; excerpt?: string; created_at?: string; status?: string }> = []
 let homepage: any = null
@@ -12,7 +21,7 @@ let homepageRendered = { html: "", leadsWithHero: false }
 try {
   const resolvedHomepage = await fetcher.resolvePath("/")
   homepage = resolvedHomepage?.document ?? null
-  if (homepage) homepageRendered = await renderDocumentContent(homepage, { apiBase })
+  if (homepage) homepageRendered = await renderDocumentContent(homepage, { apiBase, routes })
   const allPosts = homepage ? [] : await fetcher.list("blog_post", { limit: 20 })
   posts = allPosts.filter((p) => p.status === "published")
 } catch {

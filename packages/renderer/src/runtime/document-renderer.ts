@@ -1,5 +1,5 @@
 import { portableTextToHtml } from "./channel"
-import { createContentFetcher, type ContentItem } from "./content-fetcher"
+import { createContentFetcher, type ContentItem, type RouteConfig } from "./content-fetcher"
 
 export type RenderedDocument = {
   html: string
@@ -11,6 +11,7 @@ export type RenderedDocument = {
 type RenderOpts = {
   apiBase: string
   fetch?: typeof fetch
+  routes?: RouteConfig[]
 }
 
 /**
@@ -59,7 +60,7 @@ export async function renderDocumentContent(document: ContentItem, opts: RenderO
         )
       }
 
-      const html = portableTextToHtml(blocks, { apiBase: opts.apiBase, collectionData })
+      const html = portableTextToHtml(blocks, { apiBase: opts.apiBase, collectionData, routes: opts.routes })
       return { html, leadsWithHero }
     } catch {
       return { html: "<p>Error rendering content.</p>", leadsWithHero: false }

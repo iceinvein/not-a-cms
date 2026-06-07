@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { renderPortableText } from "../../src/runtime/portable-text-html"
 import { portableTextToHtml } from "../../src/runtime/channel"
+import type { RouteConfig } from "../../src/runtime/content-fetcher"
 
 const blocks = [
   { type: "heading", level: 2, children: [{ type: "text", value: "Hi" }] },
@@ -41,5 +42,35 @@ describe("renderPortableText", () => {
 
   test("imports cleanly without mjml or core (browser-safe module)", () => {
     expect(typeof renderPortableText).toBe("function")
+  })
+})
+
+describe("collectionList route resolution", () => {
+  const projectEntry = { id: "p1", title: "Branding Work", slug: "branding-work", status: "published" }
+
+  test("links to # when no route is configured for the collection", () => {
+    const block = { type: "collectionList", collection: "project", layout: "grid" }
+    const html = renderPortableText([block], "web", { collectionData: { 0: [projectEntry] } })
+    expect(html).toContain('href="#"')
+  })
+
+  test("links to /work/:slug when a project route is configured", () => {
+    const routes: RouteConfig[] = [
+      { collection: "project", path: "/work/:slug" },
+      { collection: "page", path: "/", slug: "home" },
+      { collection: "blog_post", path: "/blog/:slug" },
+      { collection: "page", path: "/:slug" },
+    ]
+    const block = { type: "collectionList", collection: "project", layout: "grid" }
+    const html = renderPortableText([block], "web", { collectionData: { 0: [projectEntry] }, routes })
+    expect(html).toContain('href="/work/branding-work"')
+    expect(html).not.toContain('href="#"')
+  })
+
+  test("blog_post collectionList links use default /blog/:slug route when no custom routes given", () => {
+    const postEntry = { id: "b1", title: "Hello World", slug: "hello-world", status: "published" }
+    const block = { type: "collectionList", collection: "blog_post", layout: "grid" }
+    const html = renderPortableText([block], "web", { collectionData: { 0: [postEntry] } })
+    expect(html).toContain('href="/blog/hello-world"')
   })
 })

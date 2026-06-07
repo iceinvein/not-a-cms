@@ -1,11 +1,20 @@
 ---
 import DefaultLayout from "../defaults/layouts/default.astro"
-import { createContentFetcher, documentPath, mediaUrl } from "../runtime/content-fetcher"
+import { createContentFetcher, documentPath, mediaUrl, mergeRoutes } from "../runtime/content-fetcher"
 import { renderDocumentContent } from "../runtime/document-renderer"
 import { relatedPosts } from "../runtime/related"
 
 const apiBase = import.meta.env.PUBLIC_API_BASE || "http://localhost:4321"
-const fetcher = createContentFetcher({ apiBase })
+
+let apiSite: { routes?: Array<{ collection: string; path: string; slug?: string }> | null } | null = null
+try {
+  const siteRes = await fetch(`${apiBase}/api/_site`)
+  if (siteRes.ok) apiSite = await siteRes.json()
+} catch {
+  // API may not be available; fall back to default routes
+}
+const routes = mergeRoutes(apiSite?.routes)
+const fetcher = createContentFetcher({ apiBase, routes })
 
 const { slug } = Astro.params
 const slugPath = `/${slug || ""}`
@@ -16,7 +25,7 @@ if (!resolved) {
 }
 
 const post = resolved.document
-const rendered = await renderDocumentContent(post, { apiBase })
+const rendered = await renderDocumentContent(post, { apiBase, routes })
 const coverUrl = mediaUrl(apiBase, post.coverImage)
 // Only time-stamped content (blog posts) shows a published date; standalone pages
 // like About and Pricing are evergreen and should not carry an article date (F-018).

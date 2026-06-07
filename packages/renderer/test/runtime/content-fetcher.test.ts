@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { buildNav, createContentFetcher, documentPath, resolveRouteMatch, type RouteConfig } from "../../src/runtime/content-fetcher"
+import { buildNav, createContentFetcher, DEFAULT_ROUTES, documentPath, mergeRoutes, resolveRouteMatch, type RouteConfig } from "../../src/runtime/content-fetcher"
 
 describe("resolveRouteMatch", () => {
   const routes: RouteConfig[] = [
@@ -89,6 +89,37 @@ describe("buildNav", () => {
     expect(buildNav([{ title: "About", slug: "about" }], { includeBlog: false })).toEqual([
       { label: "About", href: "/about" },
     ])
+  })
+})
+
+describe("mergeRoutes", () => {
+  test("returns DEFAULT_ROUTES when called with null", () => {
+    expect(mergeRoutes(null)).toEqual(DEFAULT_ROUTES)
+  })
+
+  test("returns DEFAULT_ROUTES when called with undefined", () => {
+    expect(mergeRoutes(undefined)).toEqual(DEFAULT_ROUTES)
+  })
+
+  test("places config routes before defaults", () => {
+    const config = [{ collection: "project", path: "/work/:slug" }]
+    const merged = mergeRoutes(config)
+    expect(merged[0]).toEqual({ collection: "project", path: "/work/:slug" })
+    expect(merged.slice(1)).toEqual(DEFAULT_ROUTES)
+  })
+
+  test("merged routes allow resolving a custom collection path", () => {
+    const merged = mergeRoutes([{ collection: "project", path: "/work/:slug" }])
+    const match = resolveRouteMatch("/work/my-project", merged)
+    expect(match?.collection).toBe("project")
+    expect(match?.slug).toBe("my-project")
+  })
+
+  test("default routes still work after merging", () => {
+    const merged = mergeRoutes([{ collection: "project", path: "/work/:slug" }])
+    const match = resolveRouteMatch("/blog/hello", merged)
+    expect(match?.collection).toBe("blog_post")
+    expect(match?.slug).toBe("hello")
   })
 })
 

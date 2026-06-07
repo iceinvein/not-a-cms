@@ -38,7 +38,34 @@ const page = defineCollection({
 })
 
 export default defineConfig({
-  site: { name: "not-a-cms" },
+  site: {
+    name: "not-a-cms",
+    nav: {
+      links: [
+        { label: "Product", href: "/" },
+        { label: "Pricing", href: "/pricing" },
+        { label: "Blog", href: "/blog" },
+      ],
+      cta: { label: "Get started", href: "/pricing" },
+    },
+    footer: {
+      tagline: "The CMS that finally replaced WordPress.",
+      columns: [
+        {
+          heading: "Product",
+          links: [
+            { label: "Pricing", href: "/pricing" },
+            { label: "Blog", href: "/blog" },
+          ],
+        },
+        {
+          heading: "Company",
+          links: [{ label: "About", href: "/about" }],
+        },
+      ],
+      legal: "© 2026 not-a-cms",
+    },
+  },
   database: { url: "dogfood.db" },
   storage: { provider: "local", path: "./uploads" },
   collections: [author, blogPost, page],

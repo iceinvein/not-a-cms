@@ -555,6 +555,25 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+/* Site header: brand wordmark + nav links + optional CTA button. */
+.nac-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Site footer multi-column layout. */
+.nac-footer-columns {
+  display: grid;
+  gap: 2rem;
+}
+
+@media (max-width: 640px) {
+  .nac-footer-columns {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 /* Collection list section block: live-resolved published documents rendered as a card grid. */
 .nac-collection-block {
   padding-block: 3rem;

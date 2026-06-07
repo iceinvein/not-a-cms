@@ -1,11 +1,57 @@
 ---
+import type { SiteFooter } from "../../runtime/site-chrome"
+
 interface Props {
   siteName?: string
+  footer?: SiteFooter | null
 }
-const { siteName = "not-a-cms" } = Astro.props
+const { siteName = "not-a-cms", footer = null } = Astro.props
+const currentYear = new Date().getFullYear()
+const legalLine = footer?.legal ?? `© ${currentYear} ${siteName}`
 ---
-<footer class="border-t border-[var(--border)] mt-16">
-  <div class="max-w-4xl mx-auto px-4 py-8 text-center text-sm text-[var(--muted)]">
-    <p>&copy; {new Date().getFullYear()} {siteName}. Powered by not-a-cms.</p>
-  </div>
+<footer class="nac-footer border-t border-[var(--border)] mt-16">
+  {footer ? (
+    <div class="max-w-4xl mx-auto px-4 py-10">
+      {footer.tagline && (
+        <p class="nac-footer-tagline text-sm text-[var(--muted)] mb-6">{footer.tagline}</p>
+      )}
+      {footer.columns && footer.columns.length > 0 && (
+        <div class="nac-footer-columns grid grid-cols-2 gap-8 mb-8 sm:grid-cols-3 md:grid-cols-4">
+          {footer.columns.map(col => (
+            <div class="nac-footer-col">
+              <p class="nac-footer-col-heading text-xs font-semibold uppercase tracking-widest text-[var(--muted)] mb-3">{col.heading}</p>
+              <ul class="space-y-2">
+                {col.links.map(link => (
+                  <li>
+                    <a
+                      href={link.href}
+                      class="text-sm text-[var(--body)] hover:text-[var(--accent)] transition-colors"
+                      {...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                    >{link.label}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
+      {footer.social && footer.social.length > 0 && (
+        <div class="nac-footer-social flex gap-4 mb-6">
+          {footer.social.map(link => (
+            <a
+              href={link.href}
+              class="text-sm text-[var(--muted)] hover:text-[var(--accent)] transition-colors"
+              target="_blank"
+              rel="noopener noreferrer"
+            >{link.label}</a>
+          ))}
+        </div>
+      )}
+      <p class="nac-footer-legal text-xs text-[var(--muted)]">{legalLine}</p>
+    </div>
+  ) : (
+    <div class="max-w-4xl mx-auto px-4 py-8 text-center text-sm text-[var(--muted)]">
+      <p>{legalLine}</p>
+    </div>
+  )}
 </footer>

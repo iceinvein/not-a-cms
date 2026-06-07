@@ -45,7 +45,25 @@ const page = defineCollection({
 })
 
 export default defineConfig({
-  site: { name: "Atelier" },
+  site: {
+    name: "Atelier",
+    nav: {
+      links: [
+        { label: "Work", href: "/work" },
+        { label: "Studio", href: "/about" },
+        { label: "Journal", href: "/blog" },
+      ],
+      cta: { label: "Start a project", href: "/contact" },
+    },
+    footer: {
+      tagline: "An independent design studio.",
+      social: [
+        { label: "Instagram", href: "https://instagram.com", external: true },
+        { label: "Are.na", href: "https://are.na", external: true },
+      ],
+      legal: "© 2026 Atelier",
+    },
+  },
   database: { url: "studio.db" },
   storage: { provider: "local", path: "./uploads" },
   collections: [project, blogPost, page],

@@ -7,7 +7,7 @@
  */
 import { createServer } from "./index"
 import { ConfigLoadError, defineCollection, field, loadConfig } from "@not-a-cms/core"
-import { createServerConfigFromCMSConfig } from "./config"
+import { createServerConfigFromCMSConfig, resolveConfigLoadOptions } from "./config"
 import type { StorageConfig } from "./media/storage"
 
 // --- Sample collections for development ---
@@ -141,7 +141,7 @@ function resolveDevStorage(): StorageConfig {
 
 async function resolveDevServerConfig() {
   try {
-    const projectConfig = await loadConfig({ cwd: process.cwd() })
+    const projectConfig = await loadConfig(resolveConfigLoadOptions(process.env))
     return createServerConfigFromCMSConfig(projectConfig, process.env)
   } catch (error) {
     if (error instanceof ConfigLoadError && error.code === "CONFIG_NOT_FOUND") {

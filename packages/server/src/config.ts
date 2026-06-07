@@ -1,10 +1,14 @@
-import type { CMSConfig } from "@not-a-cms/core"
+import type { CMSConfig, LoadConfigOptions } from "@not-a-cms/core"
 import type { ServerConfig } from "./index"
 import type { StorageConfig } from "./media/storage"
 
 type Env = Record<string, string | undefined>
 type ProjectConfig = CMSConfig & {
   components?: ServerConfig["components"]
+}
+
+export function resolveConfigLoadOptions(env: Env = process.env): LoadConfigOptions {
+  return env.CONFIG_PATH ? { path: env.CONFIG_PATH } : {}
 }
 
 export function createServerConfigFromCMSConfig(userConfig: ProjectConfig, env: Env = process.env): ServerConfig {

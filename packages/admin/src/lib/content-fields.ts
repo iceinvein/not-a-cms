@@ -12,6 +12,20 @@ export type AdminFieldDef = {
   [key: string]: unknown
 }
 
+/**
+ * The metadata fields a document editor should expose in a side panel: every
+ * declared field except rich text bodies (edited on the canvas) and any names
+ * the caller handles elsewhere (e.g. the title field and status).
+ */
+export function panelFields(
+  fields: Record<string, AdminFieldDef>,
+  exclude: string[] = [],
+): [string, AdminFieldDef][] {
+  return Object.entries(fields).filter(
+    ([name, def]) => def.type !== "richText" && !exclude.includes(name),
+  )
+}
+
 export function emptyValueForField(field: AdminFieldDef): unknown {
   if (field.default !== undefined) return field.default
 

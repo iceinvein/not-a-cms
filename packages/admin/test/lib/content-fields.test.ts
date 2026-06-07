@@ -4,6 +4,7 @@ import {
   coerceArrayValue,
   emptyValueForField,
   formatDateTimeInput,
+  panelFields,
   parseDateTimeInput,
   prepareValueForField,
   removeArrayItem,
@@ -39,6 +40,19 @@ describe("admin content field helpers", () => {
     expect(prepareValueForField({ metaTitle: "SEO" }, { type: "group", fields: { metaTitle: { type: "text" } } })).toEqual({ metaTitle: "SEO" })
     expect(prepareValueForField("media-1", { type: "media" })).toBe("media-1")
     expect(prepareValueForField("author-1", { type: "relation" })).toBe("author-1")
+  })
+
+  test("panelFields lists editable metadata fields, skipping title, body, and excluded names", () => {
+    const fields = {
+      title: { type: "text" },
+      slug: { type: "slug", from: "title" },
+      body: { type: "richText" },
+      tags: { type: "array", items: { type: "text" } },
+      status: { type: "select", options: ["draft", "published"] },
+      publishedAt: { type: "datetime" },
+    }
+    const result = panelFields(fields, ["title", "status"])
+    expect(result.map(([name]) => name)).toEqual(["slug", "tags", "publishedAt"])
   })
 
   test("clears datetime values instead of creating invalid dates", () => {

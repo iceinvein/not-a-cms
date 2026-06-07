@@ -6,6 +6,7 @@ import { buildCollaborationConfig, defaultCollabUser } from "../../lib/collabora
 import type { AdminFieldDef } from "../../lib/content-fields"
 import type { CollabUser } from "@not-a-cms/editor"
 import { ChannelMirror } from "./ChannelMirror"
+import { FieldsPanel } from "./FieldsPanel"
 import { continuumBlocks, continuumSlashCommands } from "./blocks"
 import { useDocument, type WorkflowAction } from "./use-document"
 
@@ -182,6 +183,13 @@ function ContinuumInner({
           ) : (
             <div className="cn-empty">This collection has no rich text field.</div>
           )}
+          <FieldsPanel
+            fields={fields}
+            data={data}
+            updateField={updateField}
+            exclude={[titleField, bodyField, "status"].filter((name): name is string => Boolean(name))}
+            apiBase={apiBase}
+          />
         </section>
       </main>
 

@@ -894,6 +894,104 @@ a.crumb:hover {
   padding: 28px 0;
 }
 
+.cn-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-default);
+}
+
+.cn-fields-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.cn-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cn-field-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-default);
+}
+
+.cn-field-input {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 14px;
+  color: var(--text-default);
+  background: var(--surface-default, #fff);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+}
+
+.cn-field-input:focus {
+  outline: none;
+  border-color: var(--accent, #2563eb);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #2563eb) 18%, transparent);
+}
+
+.cn-field-textarea {
+  resize: vertical;
+  min-height: 60px;
+  font-family: inherit;
+}
+
+.cn-field-checkbox {
+  width: 16px;
+  height: 16px;
+}
+
+.cn-field-array {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cn-field-array-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cn-field-remove {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.cn-field-remove:hover {
+  color: var(--text-default);
+  border-color: var(--text-muted);
+}
+
+.cn-field-add {
+  align-self: flex-start;
+  padding: 4px 10px;
+  font-size: 13px;
+  color: var(--accent, #2563eb);
+  background: transparent;
+  border: 1px dashed var(--border-default);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
 .cn-status {
   position: fixed;
   right: 0;

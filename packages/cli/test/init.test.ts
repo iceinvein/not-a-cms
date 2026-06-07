@@ -44,6 +44,15 @@ describe("init command", () => {
     expect(pkg.scripts.dev).toBe("not-a-cms dev")
     expect(pkg.scripts.preview).toBeUndefined()
 
+    // Dependencies must pin a concrete published version, never "latest"
+    // (which resolves to nothing while the packages are unpublished and is bad
+    // practice once they are).
+    const cliVersion = JSON.parse(readFileSync(join(import.meta.dir, "..", "package.json"), "utf8")).version
+    for (const dep of ["@not-a-cms/core", "@not-a-cms/server", "@not-a-cms/editor", "@not-a-cms/admin", "@not-a-cms/renderer", "@not-a-cms/cli"]) {
+      expect(pkg.dependencies[dep]).not.toBe("latest")
+      expect(pkg.dependencies[dep]).toBe(`^${cliVersion}`)
+    }
+
     const config = readFileSync(join(testDir, "not-a-cms.config.ts"), "utf8")
     expect(config).toContain('import { starterTheme } from "./theme"')
     expect(config).toContain('import { exampleExtension } from "./extensions/example"')

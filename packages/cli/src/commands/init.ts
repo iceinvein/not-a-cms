@@ -1,6 +1,12 @@
 import { registerCommand } from "../router"
 import { join } from "node:path"
 import { mkdirSync, writeFileSync, existsSync } from "node:fs"
+import pkg from "../../package.json"
+
+// Pin scaffolded @not-a-cms/* dependencies to the CLI's own version so a
+// generated project installs a matching, released set (coordinated monorepo
+// release), instead of "latest" which resolves to nothing while unpublished.
+const NACMS_VERSION = `^${pkg.version}`
 
 registerCommand({
   name: "init",
@@ -47,12 +53,12 @@ registerCommand({
             build: "not-a-cms build",
           },
           dependencies: {
-            "@not-a-cms/core": "latest",
-            "@not-a-cms/server": "latest",
-            "@not-a-cms/editor": "latest",
-            "@not-a-cms/admin": "latest",
-            "@not-a-cms/renderer": "latest",
-            "@not-a-cms/cli": "latest",
+            "@not-a-cms/core": NACMS_VERSION,
+            "@not-a-cms/server": NACMS_VERSION,
+            "@not-a-cms/editor": NACMS_VERSION,
+            "@not-a-cms/admin": NACMS_VERSION,
+            "@not-a-cms/renderer": NACMS_VERSION,
+            "@not-a-cms/cli": NACMS_VERSION,
           },
         },
         null,

@@ -22,3 +22,5 @@ export { renderPageLayout, escapeHtml, type ComponentRenderer, type ComponentRen
 // Theme
 export { defineTheme, type ThemeDefinition, type ThemeSettings, type DefinedTheme } from "./theme/define-theme"
 export { defineComponent, type ComponentDefinition, type ComponentPropDef } from "./theme/define-component"
+export { defaultTheme } from "./theme/default-theme"
+export { themeToCssVariables } from "./theme/theme-css"

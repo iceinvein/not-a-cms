@@ -5,13 +5,13 @@ interface Props {
 }
 const { siteName = "not-a-cms", navItems = [] } = Astro.props
 ---
-<header class="border-b border-gray-200 bg-white">
+<header class="border-b border-[var(--border)] bg-[var(--paper)]">
   <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-    <a href="/" class="text-lg font-bold text-gray-900">{siteName}</a>
+    <a href="/" class="text-xl font-semibold text-[var(--ink)] [font-family:var(--font-display)] tracking-tight">{siteName}</a>
     {navItems.length > 0 && (
       <nav class="flex gap-6">
         {navItems.map(item => (
-          <a href={item.href} class="text-sm text-gray-600 hover:text-gray-900 transition-colors">{item.label}</a>
+          <a href={item.href} class="text-sm text-[var(--muted)] hover:text-[var(--accent)] transition-colors">{item.label}</a>
         ))}
       </nav>
     )}

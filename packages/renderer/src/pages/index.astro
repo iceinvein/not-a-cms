@@ -41,12 +41,12 @@ try {
       {posts.map((post) => (
         <article class="border-b border-gray-200 pb-8 last:border-0">
           <h2 class="text-2xl font-semibold mb-2">
-            <a href={documentPath("blog_post", post) ?? "#"} class="hover:text-blue-600 transition-colors">
+            <a href={documentPath("blog_post", post) ?? "#"} class="hover:text-[var(--accent)] transition-colors">
               {post.title}
             </a>
           </h2>
-          {post.excerpt && <p class="text-gray-600 mb-2">{post.excerpt}</p>}
-          <time class="text-sm text-gray-400">
+          {post.excerpt && <p class="text-[var(--body)] mb-2">{post.excerpt}</p>}
+          <time class="text-sm text-[var(--muted)]">
             {post.created_at ? new Date(post.created_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : ""}
           </time>
         </article>

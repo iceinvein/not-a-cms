@@ -2,6 +2,9 @@
 import Header from "../components/Header.astro"
 import Footer from "../components/Footer.astro"
 import { createContentFetcher, buildNav, type NavItem } from "../../runtime/content-fetcher"
+import { defaultTheme } from "../../theme/default-theme"
+import { themeToCssVariables } from "../../theme/theme-css"
+import "../../styles/theme.css"
 
 interface Props {
   title: string
@@ -10,6 +13,7 @@ interface Props {
 }
 
 const { title, siteName = "not-a-cms", description = "" } = Astro.props
+const themeVariables = themeToCssVariables(defaultTheme)
 
 const apiBase = import.meta.env.PUBLIC_API_BASE || "http://localhost:4321"
 let navItems: NavItem[] = []
@@ -27,8 +31,15 @@ try {
   <title>{title} — {siteName}</title>
   {description && <meta name="description" content={description} />}
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <style is:global set:html={themeVariables}></style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap"
+  />
 </head>
-<body class="bg-white text-gray-900 min-h-screen flex flex-col">
+<body class="bg-[var(--paper)] text-[var(--ink)] min-h-screen flex flex-col">
   <Header siteName={siteName} navItems={navItems} />
   <main class="flex-1 max-w-4xl mx-auto px-4 py-8 w-full">
     <slot />

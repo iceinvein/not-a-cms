@@ -1,0 +1,49 @@
+/*
+ * Brand design layer (F-017). The custom-property values here are fallbacks; the
+ * renderer injects the active theme's values from default-theme.ts at the top of
+ * <head>, so editing the theme rebrands the site. Warm paper palette, a single
+ * sharp accent, and a serif/sans pairing instead of stock Tailwind defaults.
+ */
+:root {
+  --paper: #faf8f4;
+  --surface: #ffffff;
+  --ink: #1c1917;
+  --body: #44403c;
+  --muted: #78716c;
+  --border: #e7e2da;
+  --accent: #b4520a;
+  --accent-ink: #ffffff;
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+html {
+  background-color: var(--paper);
+}
+
+body {
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+}
+
+/* Theme the typography plugin so authored content inherits the brand. */
+.prose {
+  --tw-prose-body: var(--body);
+  --tw-prose-headings: var(--ink);
+  --tw-prose-links: var(--accent);
+  --tw-prose-bold: var(--ink);
+  --tw-prose-quotes: var(--ink);
+  --tw-prose-quote-borders: var(--accent);
+  --tw-prose-hr: var(--border);
+  --tw-prose-counters: var(--muted);
+  --tw-prose-bullets: var(--border);
+}
+
+.prose :where(h1, h2, h3, h4):not(:where([class~="not-prose"] *)) {
+  font-family: var(--font-display);
+}

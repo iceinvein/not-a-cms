@@ -43,8 +43,9 @@ await waitForServer(`http://127.0.0.1:${apiPort}/health`, 10_000)
 
 console.log("  Starting admin UI...")
 
-// Start Admin UI (suppress Astro's verbose startup, keep errors)
-const admin = Bun.spawn(["bunx", "astro", "dev", "--port", adminPort], {
+// Start Admin UI (suppress Astro's verbose startup, keep errors). Bind 127.0.0.1
+// explicitly so it matches the IPv4 health check and never resolves to an ::1 squatter.
+const admin = Bun.spawn(["bunx", "astro", "dev", "--port", adminPort, "--host", "127.0.0.1"], {
   cwd: "packages/admin",
   env: { ...process.env, PUBLIC_API_BASE: `http://localhost:${apiPort}`, PUBLIC_SITE_BASE: `http://localhost:${rendererPort}` },
   stdout: "ignore",
@@ -57,7 +58,7 @@ await waitForServer(`http://127.0.0.1:${adminPort}`, 15_000)
 
 console.log("  Starting public site renderer...")
 
-const renderer = Bun.spawn(["bunx", "astro", "dev", "--port", rendererPort], {
+const renderer = Bun.spawn(["bunx", "astro", "dev", "--port", rendererPort, "--host", "127.0.0.1"], {
   cwd: "packages/renderer",
   env: { ...process.env, PUBLIC_API_BASE: `http://localhost:${apiPort}` },
   stdout: "ignore",

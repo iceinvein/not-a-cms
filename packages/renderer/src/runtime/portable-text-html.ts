@@ -1,7 +1,25 @@
+import { documentPath, mediaUrl } from "./content-fetcher"
+
 export type ChannelKind = "web" | "rss"
 type PTMark = string | { type: string; [key: string]: unknown }
 type PTTextNode = { type: "text"; value: string; marks?: PTMark[] }
 type PTBlock = { type: string; [key: string]: any }
+
+type CollectionEntry = {
+  id: string
+  title?: string
+  slug?: string
+  excerpt?: string
+  coverImage?: unknown
+  publishedAt?: string
+  created_at?: string
+  [key: string]: unknown
+}
+
+type RenderOpts = {
+  apiBase?: string
+  collectionData?: Record<number, CollectionEntry[]>
+}
 
 const MARK_TAG: Record<string, string> = {
   bold: "strong",
@@ -89,7 +107,11 @@ function mediaIdAttribute(id: string | undefined): string {
   return id ? ` data-media-id="${escapeHtml(id)}"` : ""
 }
 
-function renderBlock(block: PTBlock): string {
+function formatDate(value: string): string {
+  return new Date(value).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+}
+
+function renderBlock(block: PTBlock, index: number, opts?: RenderOpts): string {
   switch (block.type) {
     case "paragraph":
       return `<p>${renderText((block.children || []) as PTTextNode[])}</p>`
@@ -255,12 +277,44 @@ function renderBlock(block: PTBlock): string {
     }
     case "seo":
       return ""
+    case "collectionList": {
+      const layout = ["grid", "list", "cards"].includes(String(block.layout)) ? String(block.layout) : "grid"
+      const heading = block.heading ? `<h2 class="nac-section-heading">${escapeHtml(String(block.heading))}</h2>` : ""
+      const entries = opts?.collectionData?.[index] ?? []
+      const showCover = block.showCover !== false
+      const showExcerpt = block.showExcerpt !== false
+      const showDate = block.showDate !== false
+      const apiBase = opts?.apiBase ?? ""
+
+      const cards = entries
+        .map((entry) => {
+          const href = escapeHtml(documentPath(String(block.collection ?? ""), entry) ?? "#")
+          const coverSrc = showCover ? mediaUrl(apiBase, entry.coverImage) : null
+          const coverImg = coverSrc
+            ? `<img class="nac-collection-cover" src="${escapeHtml(coverSrc)}" alt="" />`
+            : ""
+          const title = `<h3 class="nac-collection-title">${escapeHtml(String(entry.title ?? ""))}</h3>`
+          const excerptHtml =
+            showExcerpt && entry.excerpt
+              ? `<p class="nac-collection-excerpt">${escapeHtml(String(entry.excerpt))}</p>`
+              : ""
+          const dateValue = entry.publishedAt ?? entry.created_at
+          const dateHtml =
+            showDate && dateValue
+              ? `<time class="nac-collection-date">${escapeHtml(formatDate(String(dateValue)))}</time>`
+              : ""
+          return `<a class="nac-collection-card" href="${href}">${coverImg}${title}${excerptHtml}${dateHtml}</a>`
+        })
+        .join("")
+
+      return `<section class="nac-band nac-collection-block not-prose"><div class="nac-container">${heading}<div class="nac-collection" data-layout="${layout}">${cards}</div></div></section>`
+    }
     default:
       return ""
   }
 }
 
-export function renderPortableText(blocks: PTBlock[], _channel: ChannelKind = "web"): string {
+export function renderPortableText(blocks: PTBlock[], _channel: ChannelKind = "web", opts?: RenderOpts): string {
   if (!Array.isArray(blocks)) return ""
-  return blocks.map(renderBlock).filter(Boolean).join("\n")
+  return blocks.map((b, i) => renderBlock(b, i, opts)).filter(Boolean).join("\n")
 }

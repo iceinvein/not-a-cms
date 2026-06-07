@@ -554,4 +554,80 @@ h1, h2, h3, h4, h5, h6 {
     direction: ltr;
   }
 }
+
+/* Collection list section block: live-resolved published documents rendered as a card grid. */
+.nac-collection-block {
+  padding-block: 3rem;
+}
+
+.nac-collection {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.nac-collection[data-layout="grid"] {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.nac-collection[data-layout="list"] {
+  grid-template-columns: 1fr;
+  max-width: 52ch;
+  margin-inline: auto;
+}
+
+.nac-collection[data-layout="cards"] {
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
+@media (max-width: 640px) {
+  .nac-collection[data-layout] {
+    grid-template-columns: 1fr;
+  }
+}
+
+.nac-collection-card {
+  display: block;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  background: var(--surface);
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.nac-collection-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+.nac-collection-cover {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.nac-collection-title {
+  margin: 0 0 0.4rem;
+  font-family: var(--font-display, "Fraunces", Georgia, serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.nac-collection-excerpt {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--body);
+}
+
+.nac-collection-date {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
 `

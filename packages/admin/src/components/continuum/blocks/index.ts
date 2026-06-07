@@ -1,4 +1,5 @@
 import { defineBlock, type DefinedBlock, type SlashCommandItem } from "@not-a-cms/editor"
+import { CollectionListBlockView } from "./collection-list-block"
 import { AuthorBlockView } from "./author-block"
 import { CtaBlockView } from "./cta-block"
 import { FaqBlockView } from "./faq-block"
@@ -142,6 +143,21 @@ export const continuumBlocks: DefinedBlock[] = [
     },
     editor: PricingCardsBlockView,
   }),
+  defineBlock({
+    name: "collectionList",
+    label: "Collection list",
+    schema: {
+      collection: { type: "text", default: "blog_post" },
+      limit: { type: "number", default: 3 },
+      filterTag: { type: "text", default: "" },
+      layout: { type: "select", default: "grid", options: ["grid", "list", "cards"] },
+      showCover: { type: "boolean", default: true },
+      showExcerpt: { type: "boolean", default: true },
+      showDate: { type: "boolean", default: true },
+      heading: { type: "text", default: "" },
+    },
+    editor: CollectionListBlockView,
+  }),
 ]
 
 const insert = (name: string) => (editor: any, range: any) =>
@@ -161,4 +177,5 @@ export const continuumSlashCommands: SlashCommandItem[] = [
   { title: "Testimonial", description: "Pull-quote with name, role, and avatar", group: "sections", command: insert("testimonial") },
   { title: "FAQ", description: "Collapsible question and answer list", group: "sections", command: insert("faq") },
   { title: "Pricing cards", description: "Tier cards with features and CTA buttons", group: "sections", command: insert("pricingCards") },
+  { title: "Collection list", description: "Live list of published documents from a collection", group: "sections", command: insert("collectionList") },
 ]

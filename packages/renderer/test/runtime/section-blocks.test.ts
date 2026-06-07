@@ -653,3 +653,184 @@ describe("testimonial section block", () => {
     expect(html).toContain('src="#"')
   })
 })
+
+describe("collectionList section block", () => {
+  test("renders a card linking to the document path, with cover, title, excerpt, and formatted date", () => {
+    const html = renderPortableText(
+      [
+        {
+          type: "collectionList",
+          collection: "blog_post",
+          layout: "grid",
+          showCover: true,
+          showExcerpt: true,
+          showDate: true,
+          heading: "",
+          limit: 3,
+          filterTag: "",
+        },
+      ],
+      "web",
+      {
+        apiBase: "http://api",
+        collectionData: {
+          0: [
+            {
+              id: "1",
+              title: "Post A",
+              slug: "a",
+              excerpt: "X",
+              coverImage: "img1",
+              publishedAt: "2026-01-01",
+            },
+          ],
+        },
+      },
+    )
+    expect(html).toContain("nac-collection-block")
+    expect(html).toContain("nac-collection")
+    expect(html).toContain('href="/blog/a"')
+    expect(html).toContain("nac-collection-cover")
+    expect(html).toContain("http://api/api/media/img1/file")
+    expect(html).toContain("nac-collection-title")
+    expect(html).toContain("Post A")
+    expect(html).toContain("nac-collection-excerpt")
+    expect(html).toContain("X")
+    expect(html).toContain("nac-collection-date")
+    expect(html).toContain("January 1, 2026")
+  })
+
+  test("showCover:false omits the cover image", () => {
+    const html = renderPortableText(
+      [{ type: "collectionList", collection: "blog_post", showCover: false, showExcerpt: true, showDate: true }],
+      "web",
+      {
+        apiBase: "http://api",
+        collectionData: {
+          0: [{ id: "1", title: "Post A", slug: "a", excerpt: "X", coverImage: "img1", publishedAt: "2026-01-01" }],
+        },
+      },
+    )
+    expect(html).not.toContain("nac-collection-cover")
+    expect(html).toContain("nac-collection-title")
+  })
+
+  test("showExcerpt:false omits the excerpt", () => {
+    const html = renderPortableText(
+      [{ type: "collectionList", collection: "blog_post", showCover: true, showExcerpt: false, showDate: true }],
+      "web",
+      {
+        apiBase: "http://api",
+        collectionData: {
+          0: [{ id: "1", title: "Post A", slug: "a", excerpt: "X", coverImage: "img1", publishedAt: "2026-01-01" }],
+        },
+      },
+    )
+    expect(html).not.toContain("nac-collection-excerpt")
+    expect(html).toContain("nac-collection-title")
+  })
+
+  test("showDate:false omits the date", () => {
+    const html = renderPortableText(
+      [{ type: "collectionList", collection: "blog_post", showCover: true, showExcerpt: true, showDate: false }],
+      "web",
+      {
+        apiBase: "http://api",
+        collectionData: {
+          0: [{ id: "1", title: "Post A", slug: "a", excerpt: "X", coverImage: "img1", publishedAt: "2026-01-01" }],
+        },
+      },
+    )
+    expect(html).not.toContain("nac-collection-date")
+    expect(html).toContain("nac-collection-title")
+  })
+
+  test("no collectionData renders an empty band without throwing", () => {
+    const html = renderPortableText(
+      [{ type: "collectionList", collection: "blog_post", heading: "Posts" }],
+      "web",
+    )
+    expect(html).toContain("nac-collection-block")
+    expect(html).toContain("nac-collection")
+    expect(html).toContain("Posts")
+    expect(html).not.toContain("nac-collection-card")
+  })
+
+  test("invalid layout clamps to grid", () => {
+    const html = renderPortableText(
+      [{ type: "collectionList", collection: "blog_post", layout: "unknown" }],
+      "web",
+      { apiBase: "http://api", collectionData: { 0: [] } },
+    )
+    expect(html).toContain('data-layout="grid"')
+  })
+
+  test("list layout is honored", () => {
+    const html = renderPortableText(
+      [{ type: "collectionList", collection: "blog_post", layout: "list" }],
+      "web",
+      { apiBase: "http://api", collectionData: { 0: [] } },
+    )
+    expect(html).toContain('data-layout="list"')
+  })
+
+  test("cards layout is honored", () => {
+    const html = renderPortableText(
+      [{ type: "collectionList", collection: "blog_post", layout: "cards" }],
+      "web",
+      { apiBase: "http://api", collectionData: { 0: [] } },
+    )
+    expect(html).toContain('data-layout="cards"')
+  })
+
+  test("heading is rendered when provided", () => {
+    const html = renderPortableText(
+      [{ type: "collectionList", collection: "blog_post", heading: "Latest posts" }],
+      "web",
+      { apiBase: "http://api", collectionData: { 0: [] } },
+    )
+    expect(html).toContain("nac-section-heading")
+    expect(html).toContain("Latest posts")
+  })
+
+  test("heading is omitted when empty", () => {
+    const html = renderPortableText(
+      [{ type: "collectionList", collection: "blog_post", heading: "" }],
+      "web",
+      { apiBase: "http://api", collectionData: { 0: [] } },
+    )
+    expect(html).not.toContain("nac-section-heading")
+  })
+
+  test("falls back to created_at for date when publishedAt is absent", () => {
+    const html = renderPortableText(
+      [{ type: "collectionList", collection: "blog_post", showDate: true }],
+      "web",
+      {
+        apiBase: "http://api",
+        collectionData: {
+          0: [{ id: "1", title: "Post B", slug: "b", created_at: "2025-06-15" }],
+        },
+      },
+    )
+    expect(html).toContain("nac-collection-date")
+    expect(html).toContain("June 15, 2025")
+  })
+
+  test("escapes html in title and excerpt", () => {
+    const html = renderPortableText(
+      [{ type: "collectionList", collection: "blog_post", showExcerpt: true }],
+      "web",
+      {
+        apiBase: "http://api",
+        collectionData: {
+          0: [{ id: "1", title: "<script>bad</script>", slug: "b", excerpt: "<b>xss</b>" }],
+        },
+      },
+    )
+    expect(html).not.toContain("<script>bad")
+    expect(html).not.toContain("<b>xss")
+    expect(html).toContain("&lt;script&gt;")
+    expect(html).toContain("&lt;b&gt;")
+  })
+})

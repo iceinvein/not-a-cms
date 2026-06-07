@@ -115,8 +115,8 @@ ${itemsXml}
 
 // --- Portable Text to HTML (for RSS descriptions) ---
 
-export function portableTextToHtml(blocks: PTBlock[]): string {
-  return renderPortableText(blocks, "web")
+export function portableTextToHtml(blocks: PTBlock[], opts?: { apiBase?: string; collectionData?: Record<number, unknown[]> }): string {
+  return renderPortableText(blocks, "web", opts as any)
 }
 
 // --- JSON Channel (passthrough, but typed) ---

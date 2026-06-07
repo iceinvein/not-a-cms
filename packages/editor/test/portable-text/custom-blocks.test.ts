@@ -240,6 +240,55 @@ describe("custom block round-trip", () => {
     })
   })
 
+  test("collectionList block preserves all 8 attrs through portable-text round-trip", () => {
+    const doc = {
+      type: "doc",
+      content: [
+        {
+          type: "collectionList",
+          attrs: {
+            collection: "blog_post",
+            limit: 5,
+            filterTag: "featured",
+            layout: "cards",
+            showCover: true,
+            showExcerpt: false,
+            showDate: true,
+            heading: "Recent posts",
+          },
+        },
+      ],
+    }
+    const pt = toPortableText(doc as any)
+    expect(pt).toEqual([
+      {
+        type: "collectionList",
+        collection: "blog_post",
+        limit: 5,
+        filterTag: "featured",
+        layout: "cards",
+        showCover: true,
+        showExcerpt: false,
+        showDate: true,
+        heading: "Recent posts",
+      },
+    ])
+    const back = fromPortableText(pt)
+    expect(back.content[0]).toEqual({
+      type: "collectionList",
+      attrs: {
+        collection: "blog_post",
+        limit: 5,
+        filterTag: "featured",
+        layout: "cards",
+        showCover: true,
+        showExcerpt: false,
+        showDate: true,
+        heading: "Recent posts",
+      },
+    })
+  })
+
   test("pricingCards block preserves heading and tiers with nested features and highlighted bool", () => {
     const doc = {
       type: "doc",

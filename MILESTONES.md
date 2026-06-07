@@ -15,7 +15,7 @@
 
 **Planned:** Phase G (Email, Newsletters & Integrations), Phase H (Membership & Paywall), Phase I (Plugin Marketplace), Phase J (AI Infrastructure).
 
-751 passing tests across 6 packages (core, server, admin, editor, renderer, cli). The admin is a schema-driven Astro + React-islands app with a `⌘K` command palette, a document-canvas editor with live collaboration and channel preview, a dashboard of publishing/expiry horizons and review/automation queues, a visual page builder, a media Vault with folders/tags/usage tracking, and a visual automations engine with dry-run testing. Content is stored as Portable Text and served over REST, tRPC, and GraphQL.
+914 passing tests across 6 packages (core, server, admin, editor, renderer, cli). The admin is a schema-driven Astro + React-islands app with a `⌘K` command palette, a document-canvas editor with live collaboration and channel preview, a dashboard of publishing/expiry horizons and review/automation queues, a media Vault with folders/tags/usage tracking, and a visual automations engine with dry-run testing. Content is stored as Portable Text and served over REST, tRPC, and GraphQL. The public renderer builds its header, footer, branding, and custom collection routes from config (`/api/_site`, `/api/_theme`), with section blocks (stats, logo cloud, testimonial, FAQ, pricing cards, split media, dynamic collection lists) for composed marketing pages; two contrasting example sites under `dogfood-sites/` (a warm light marketing site and a dark studio portfolio) exercise it end to end.
 
 ---
 
@@ -81,9 +81,14 @@
 
 ---
 
-## Phase D: Visual Site Builder (DONE)
+## Phase D: Visual Site Builder (DONE, renderer path later superseded)
 
 > Goal: Non-technical users can build pages visually.
+
+> Note: the drag-and-drop builder shipped as below, but during dogfooding the renderer's
+> separate page-layout serialization was removed (F-012 cleanup): pages are now authored
+> and rendered as rich text, with composed marketing layouts built from section blocks
+> (see Current State). A revived visual builder is tracked under "Next" in the README roadmap.
 
 - [x] **D1: Component registry in admin.** `defineComponent()` declarations passed to server config. `/api/_components` REST endpoint returns registry. Admin palette groups components by category. New `field.pageLayout()` field type.
 

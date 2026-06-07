@@ -91,6 +91,97 @@ storage: {
 }
 ```
 
+## Site Identity
+
+The public renderer builds its header, footer, and branding from the `site` block, which the server exposes to the renderer at `GET /api/_site`. Everything here is optional; omit it and the renderer falls back to minimal default chrome.
+
+```typescript
+site: {
+  name: "My Site",
+  url: "https://mysite.com",
+  nav: {
+    links: [
+      { label: "Pricing", href: "/pricing" },
+      { label: "Blog", href: "/blog" },
+      { label: "GitHub", href: "https://github.com/your-org/repo", external: true },
+    ],
+    cta: { label: "Get started", href: "/pricing" },
+  },
+  footer: {
+    tagline: "One line about the site.",
+    columns: [
+      { heading: "Product", links: [{ label: "Pricing", href: "/pricing" }] },
+      { heading: "Company", links: [{ label: "About", href: "/about" }] },
+    ],
+    social: [{ label: "GitHub", href: "https://github.com/your-org/repo" }],
+    legal: "© 2026 My Site",
+  },
+}
+```
+
+| Field | Purpose |
+|---|---|
+| `site.name` | Site title used in chrome and metadata. |
+| `site.url` | Canonical public origin. |
+| `site.nav.links` | Header navigation links. Set `external: true` for off-site links. |
+| `site.nav.cta` | Optional highlighted call-to-action button in the header. |
+| `site.footer.tagline` | Short line shown in the footer. |
+| `site.footer.columns` | Grouped footer link columns (`heading` plus `links`). |
+| `site.footer.social` | Social links row. |
+| `site.footer.legal` | Copyright or legal line. |
+
+## Custom Routes
+
+By default each collection is served under its own path. Use `routes` to mount a collection at a custom URL pattern, so a `project` collection can render case-study pages at `/work/:slug`:
+
+```typescript
+routes: [
+  { collection: "project", path: "/work/:slug" },
+],
+```
+
+| Field | Purpose |
+|---|---|
+| `collection` | Collection name to route. |
+| `path` | URL pattern; `:slug` is filled from the document slug. |
+| `slug` | Optional field name to use as the slug (defaults to the collection's slug field). |
+
+Custom routes are published to the renderer through `GET /api/_site`.
+
+## Theme
+
+`theme` drives the public renderer's design tokens (colors, fonts, spacing) and is served to the renderer at `GET /api/_theme`. Light and dark identities are both expressible from config alone.
+
+```typescript
+theme: {
+  name: "my-theme",
+  version: "1.0.0",
+  settings: {
+    colors: { accent: { default: "#c2410c" } },
+  },
+}
+```
+
+## Channels
+
+Optional per-channel metadata for RSS and email rendering:
+
+```typescript
+channels: {
+  rss: {
+    title: "My Blog",
+    description: "Latest posts",
+    collection: "blog_post",
+    itemPath: "/blog/:slug",
+  },
+  email: {
+    fromName: "My Site",
+    subjectPrefix: "[My Site] ",
+    footerText: "You are receiving this because you subscribed.",
+  },
+}
+```
+
 ## Ports And URLs
 
 Development defaults:
@@ -102,6 +193,31 @@ Development defaults:
 | Site renderer | `http://localhost:3000` |
 
 Production should use externally routable HTTPS URLs in `BASE_URL`, `SITE_URL`, and `CORS_ORIGINS`.
+
+The dev orchestrator (`scripts/dev.ts`) accepts per-surface port flags, each with an environment-variable fallback:
+
+| Flag | Env fallback | Default |
+|---|---|---|
+| `--port` | `PORT` | `4321` (API) |
+| `--admin-port` | `ADMIN_PORT` | `4322` (admin) |
+| `--renderer-port` | `RENDERER_PORT` | `3000` (site renderer) |
+
+## Selecting The Project Config
+
+The server loads its config through `loadConfig`, which reads `not-a-cms.config.ts` from the current directory by default. Point it elsewhere with `CONFIG_PATH`:
+
+| Variable | Purpose |
+|---|---|
+| `CONFIG_PATH` | Absolute or relative path to the `not-a-cms.config.ts` to load. |
+
+The dev orchestrator also takes a `--site=<name>` flag (or the `SITE` env var), which resolves to `dogfood-sites/<name>/not-a-cms.config.ts` and sets `CONFIG_PATH` for you. This is how the two bundled example sites run on the one engine:
+
+```bash
+bun scripts/dev.ts --site=not-a-cms                       # warm marketing site
+bun scripts/dev.ts --site=studio --renderer-port=3001     # dark studio site (alt port)
+```
+
+An explicit `--site` wins over `SITE`, which wins over an existing `CONFIG_PATH`. See `dogfood-sites/README.md` for the full example-site walkthrough.
 
 ## Generated Project Files
 

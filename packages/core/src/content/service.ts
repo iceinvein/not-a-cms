@@ -11,6 +11,7 @@ import {
   storageKeyForField,
 } from "./serialization"
 import { applyDefaultsAndValidate } from "./validation"
+import { applyGeneratedSlugs } from "./slug"
 import { WorkflowError, type WorkflowAction, resolveWorkflowTransition } from "./workflow"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -74,6 +75,7 @@ export function createContentService(
   async function create(data: Record<string, unknown>, opts: WriteOpts = {}) {
     let doc = applyDefaultsAndValidate(collection, data)
     doc = await runHook("beforeSave", collection.hooks, doc, ctx)
+    doc = applyGeneratedSlugs(collection, doc)
     doc = applyDefaultsAndValidate(collection, doc)
 
     const id = crypto.randomUUID()
@@ -162,6 +164,7 @@ export function createContentService(
       doc,
       ctx,
     )
+    doc = applyGeneratedSlugs(collection, doc)
     doc = applyDefaultsAndValidate(collection, doc)
 
     const updatedAt = new Date().toISOString()

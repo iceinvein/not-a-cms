@@ -83,6 +83,24 @@ describe("createContentService", () => {
     expect(doc.created_at).toBeDefined()
   })
 
+  test("create() generates a slug from the source field when none is given", async () => {
+    const doc = await service.create({ title: "Hello World" })
+    expect(doc.slug).toBe("hello-world")
+  })
+
+  test("create() respects an explicitly provided slug", async () => {
+    const doc = await service.create({ title: "Hello World", slug: "custom" })
+    expect(doc.slug).toBe("custom")
+  })
+
+  test("update() backfills a missing slug from the source field", async () => {
+    const created = await service.create({ title: "Untitled Draft", slug: "" })
+    // Simulate a doc saved without a slug, then re-saved.
+    db.run(sql`UPDATE page SET slug = NULL WHERE id = ${created.id as string}`)
+    const updated = await service.update(created.id as string, { title: "Now Titled" })
+    expect(updated.slug).toBe("now-titled")
+  })
+
   test("create() applies schema defaults before insert", async () => {
     const metricService = createContentService(db, metric, generateTable(metric))
     const doc = await metricService.create({ title: "Defaults" })

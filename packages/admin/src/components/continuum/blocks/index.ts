@@ -7,6 +7,7 @@ import { HeroBlockView } from "./hero-block"
 import { ImageBlockView } from "./image-block"
 import { SeoBlockView } from "./seo-block"
 import { StatsBlockView } from "./stats-block"
+import { LogoCloudBlockView } from "./logo-cloud-block"
 
 export const continuumBlocks: DefinedBlock[] = [
   defineBlock({
@@ -86,6 +87,15 @@ export const continuumBlocks: DefinedBlock[] = [
     },
     editor: StatsBlockView,
   }),
+  defineBlock({
+    name: "logoCloud",
+    label: "Logo cloud",
+    schema: {
+      eyebrow: { type: "text", default: "" },
+      logos: { type: "array", default: [] },
+    },
+    editor: LogoCloudBlockView,
+  }),
 ]
 
 const insert = (name: string) => (editor: any, range: any) =>
@@ -100,4 +110,5 @@ export const continuumSlashCommands: SlashCommandItem[] = [
   { title: "Gallery", description: "Images from the library", group: "fields", command: insert("gallery") },
   { title: "SEO & meta", description: "Title, description", group: "fields", command: insert("seo") },
   { title: "Stats", description: "Grid of key metrics or social proof numbers", group: "sections", command: insert("stats") },
+  { title: "Logo cloud", description: "Row of partner or customer logos", group: "sections", command: insert("logoCloud") },
 ]

@@ -271,4 +271,38 @@ h1, h2, h3, h4, h5, h6 {
   text-transform: uppercase;
   color: var(--muted);
 }
+
+/* Logo cloud section block: a centered row of muted partner/customer logos. */
+.nac-logo-cloud {
+  padding-block: 2.5rem;
+  text-align: center;
+}
+
+.nac-eyebrow {
+  margin: 0 0 1.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.nac-logo-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.nac-logo {
+  height: 2rem;
+  width: auto;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.nac-logo:hover {
+  opacity: 1;
+}
 `

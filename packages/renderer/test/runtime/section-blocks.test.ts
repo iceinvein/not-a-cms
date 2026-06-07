@@ -189,7 +189,7 @@ describe("logoCloud section block", () => {
   test("logoCloud handles non-array logos gracefully", () => {
     const html = renderPortableText([{ type: "logoCloud", logos: null }])
     expect(html).toContain("nac-logo-cloud")
-    expect(html).not.toContain("nac-logo")
+    expect(html).not.toContain('class="nac-logo"')
   })
 
   test("logoCloud sanitizes dangerous logo urls", () => {

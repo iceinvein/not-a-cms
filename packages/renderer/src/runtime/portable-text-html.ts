@@ -160,6 +160,20 @@ function renderBlock(block: PTBlock): string {
         .join("")
       return `<section class="nac-band nac-stats not-prose"><div class="nac-container"><div class="nac-stat-grid" data-columns="${columns}">${stats}</div></div></section>`
     }
+    case "logoCloud": {
+      const logos = Array.isArray(block.logos) ? block.logos : []
+      const eyebrow = block.eyebrow ? `<p class="nac-eyebrow">${escapeHtml(String(block.eyebrow))}</p>` : ""
+      const logoImgs = logos
+        .map((entry: unknown) => {
+          const logo = (entry ?? {}) as { url?: unknown; mediaId?: unknown; alt?: unknown }
+          const src = imageSource(logo)
+          const id = src.id ?? (logo.mediaId !== undefined ? String(logo.mediaId) : undefined)
+          const alt = escapeHtml(String(logo.alt ?? src.alt ?? ""))
+          return `<img class="nac-logo" src="${escapeHtml(sanitizeUrl(src.url, { allowDataImage: true }))}" alt="${alt}"${mediaIdAttribute(id)} />`
+        })
+        .join("")
+      return `<section class="nac-band nac-logo-cloud not-prose"><div class="nac-container">${eyebrow}<div class="nac-logo-row">${logoImgs}</div></div></section>`
+    }
     case "author":
       return `<div data-author><span data-author-name>${escapeHtml(String(block.name ?? ""))}</span>${block.role ? `<span data-author-role>${escapeHtml(String(block.role))}</span>` : ""}</div>`
     case "gallery": {

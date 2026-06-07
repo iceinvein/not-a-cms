@@ -84,9 +84,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .nac-hero-sub {
-  margin: 1rem auto 0;
+  margin: 1.25rem auto 0;
   max-width: 42ch;
   font-size: 1.2rem;
+  line-height: 1.6;
   color: var(--body);
 }
 
@@ -128,36 +129,38 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .nac-features {
-  padding-block: 3rem;
+  padding-block: 4rem;
 }
 
 .nac-feature-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.5rem;
+  gap: 1.75rem;
 }
 
 .nac-feature {
-  padding: 1.5rem;
+  padding: 1.75rem;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--surface);
 }
 
 .nac-feature-title {
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.6rem;
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   color: var(--ink);
 }
 
 .nac-feature-text {
   margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
   color: var(--body);
 }
 
 .nac-feature-icon {
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
   font-size: 1.75rem;
   line-height: 1;
 }
@@ -219,7 +222,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Stats section block: a grid of large-number/label pairs for social proof. */
 .nac-stats {
-  padding-block: 3rem;
+  padding-block: 4rem;
   text-align: center;
 }
 
@@ -274,7 +277,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Logo cloud section block: a centered row of muted partner/customer logos. */
 .nac-logo-cloud {
-  padding-block: 2.5rem;
+  padding-block: 3rem;
   text-align: center;
 }
 
@@ -354,14 +357,15 @@ h1, h2, h3, h4, h5, h6 {
 
 /* FAQ section block: constrained column of collapsible question/answer pairs. */
 .nac-faq-block {
-  padding-block: 3rem;
+  padding-block: 4rem;
 }
 
 .nac-section-heading {
-  margin: 0 0 2rem;
+  margin: 0 0 2.5rem;
   font-family: var(--font-display, "Fraunces", Georgia, serif);
   font-size: clamp(1.5rem, 3.5vw, 2.25rem);
   letter-spacing: -0.02em;
+  line-height: 1.2;
   color: var(--ink);
 }
 
@@ -405,7 +409,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Pricing cards section block: responsive grid of tier cards with an accented highlight. */
 .nac-pricing-cards {
-  padding-block: 3.5rem;
+  padding-block: 4rem;
   text-align: center;
 }
 
@@ -677,7 +681,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Collection list section block: live-resolved published documents rendered as a card grid. */
 .nac-collection-block {
-  padding-block: 3rem;
+  padding-block: 4rem;
 }
 
 .nac-collection {

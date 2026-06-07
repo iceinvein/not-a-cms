@@ -663,6 +663,29 @@ a.crumb:hover {
   white-space: nowrap;
 }
 
+/* Inline image block */
+.cn-image-figure {
+  margin: 0;
+}
+
+.cn-image-figure img {
+  display: block;
+  width: 100%;
+  max-height: 360px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.cn-image-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.cn-image-alt {
+  margin-top: 8px;
+}
+
 /* Continuum channel mirror */
 .cn-mirror {
   min-width: 0;

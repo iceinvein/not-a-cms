@@ -1,9 +1,20 @@
 import { defineBlock, type DefinedBlock, type SlashCommandItem } from "@not-a-cms/editor"
 import { AuthorBlockView } from "./author-block"
 import { GalleryBlockView } from "./gallery-block"
+import { ImageBlockView } from "./image-block"
 import { SeoBlockView } from "./seo-block"
 
 export const continuumBlocks: DefinedBlock[] = [
+  defineBlock({
+    name: "image",
+    label: "Image",
+    schema: {
+      url: { type: "text", default: "" },
+      mediaId: { type: "text", default: "" },
+      alt: { type: "text", default: "" },
+    },
+    editor: ImageBlockView,
+  }),
   defineBlock({
     name: "author",
     label: "Author",
@@ -36,6 +47,7 @@ const insert = (name: string) => (editor: any, range: any) =>
   editor.chain().focus().deleteRange(range).insertContent({ type: name }).run()
 
 export const continuumSlashCommands: SlashCommandItem[] = [
+  { title: "Image", description: "Insert an image from the library", group: "fields", command: insert("image") },
   { title: "Author", description: "Structured byline", group: "fields", command: insert("author") },
   { title: "Gallery", description: "Images from the library", group: "fields", command: insert("gallery") },
   { title: "SEO & meta", description: "Title, description", group: "fields", command: insert("seo") },

@@ -55,6 +55,13 @@ export const DEFAULT_COMMANDS: SlashCommandItem[] = [
       editor.chain().focus().deleteRange(range).setBlockquote().run(),
   },
   {
+    title: "Callout",
+    description: "Highlight a note or warning",
+    group: "blocks",
+    command: (editor, range) =>
+      editor.chain().focus().deleteRange(range).setNode("callout").run(),
+  },
+  {
     title: "Code Block",
     description: "Insert a code block",
     group: "blocks",

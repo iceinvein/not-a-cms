@@ -36,6 +36,8 @@ describe("filterCommands", () => {
     expect(titles).toContain("Code Block")
     expect(titles).toContain("Divider")
     expect(titles).toContain("Blockquote")
+    // F-013: the callout node is registered in the editor; it must be insertable.
+    expect(titles).toContain("Callout")
   })
 })
 

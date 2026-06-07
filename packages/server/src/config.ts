@@ -50,6 +50,7 @@ export function createServerConfigFromCMSConfig(userConfig: ProjectConfig, env: 
     storage: resolveServerStorageConfig(userConfig.storage, env),
     collections: userConfig.collections,
     components: userConfig.components ?? [],
+    site: userConfig.site,
     theme: userConfig.theme as ServerConfig["theme"],
     cors: {
       origins: corsOrigins.length > 0 ? corsOrigins : ["http://localhost:4322", "http://localhost:3000"],

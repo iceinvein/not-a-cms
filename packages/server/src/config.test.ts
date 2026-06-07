@@ -30,6 +30,44 @@ test("resolveConfigLoadOptions returns empty options without CONFIG_PATH", () =>
 
 const baseConfig = { collections: [], site: { name: "T" } }
 
+test("createServerConfigFromCMSConfig threads site identity through to ServerConfig", () => {
+  const cfg = createServerConfigFromCMSConfig(
+    {
+      collections: [],
+      site: {
+        name: "Atelier",
+        url: "https://atelier.studio",
+        nav: {
+          links: [{ label: "Work", href: "/work" }, { label: "About", href: "/about", external: false }],
+          cta: { label: "Start", href: "/contact" },
+        },
+        footer: {
+          tagline: "Craft over noise.",
+          columns: [
+            { heading: "Studio", links: [{ label: "Work", href: "/work" }] },
+          ],
+          social: [{ label: "GitHub", href: "https://github.com/atelier" }],
+          legal: "© 2026 Atelier",
+        },
+      },
+    } as any,
+    {},
+  )
+
+  expect(cfg.site?.name).toBe("Atelier")
+  expect(cfg.site?.url).toBe("https://atelier.studio")
+  expect(cfg.site?.nav?.links).toHaveLength(2)
+  expect(cfg.site?.nav?.cta?.label).toBe("Start")
+  expect(cfg.site?.footer?.legal).toBe("© 2026 Atelier")
+  expect(cfg.site?.footer?.tagline).toBe("Craft over noise.")
+  expect(cfg.site?.footer?.social).toHaveLength(1)
+})
+
+test("createServerConfigFromCMSConfig passes undefined site when site is absent", () => {
+  const cfg = createServerConfigFromCMSConfig({ collections: [] } as any, {})
+  expect(cfg.site).toBeUndefined()
+})
+
 test("E2E_TEST_AUTH enables a captured magic-link seam on the real config path", async () => {
   const cfg = createServerConfigFromCMSConfig(baseConfig as any, { E2E_TEST_AUTH: "1" })
   expect(cfg.testAuth?.enabled).toBe(true)

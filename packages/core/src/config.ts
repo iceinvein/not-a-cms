@@ -8,6 +8,16 @@ export type CMSConfig = {
   site?: {
     name?: string
     url?: string
+    nav?: {
+      links?: Array<{ label: string; href: string; external?: boolean }>
+      cta?: { label: string; href: string }
+    }
+    footer?: {
+      tagline?: string
+      columns?: Array<{ heading: string; links: Array<{ label: string; href: string; external?: boolean }> }>
+      social?: Array<{ label: string; href: string }>
+      legal?: string
+    }
   }
   port?: number
   database?: {

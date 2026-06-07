@@ -549,6 +549,21 @@ describe("integration: full server", () => {
     const res = await fetch(`${baseUrl}/nothing`)
     expect(res.status).toBe(404)
   })
+
+  test("GET /api/_site returns nulls when no site is configured", async () => {
+    const res = await fetch(`${baseUrl}/api/_site`)
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.siteName).toBeNull()
+    expect(body.nav).toBeNull()
+    expect(body.footer).toBeNull()
+    expect(body.theme).toEqual({ name: null, version: null, settings: null })
+  })
+
+  test("POST /api/_site returns 405 Method Not Allowed", async () => {
+    const res = await fetch(`${baseUrl}/api/_site`, { method: "POST" })
+    expect(res.status).toBe(405)
+  })
 })
 
 async function signInAndGetCookie(email: string): Promise<string> {

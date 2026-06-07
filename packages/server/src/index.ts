@@ -102,6 +102,9 @@ export type ServerConfig = {
     version?: string
     settings?: Record<string, Record<string, { default?: unknown }>>
   }
+  // Custom collection routes served at GET /api/_site so the renderer can build
+  // correct public paths for non-default collections (e.g. project -> /work/:slug).
+  routes?: Array<{ collection: string; path: string; slug?: string }>
   testAuth?: {
     enabled: boolean
     getMagicLink: (email: string) => string | null
@@ -380,7 +383,7 @@ export function createServer(config: ServerConfig): CreatedServer {
         )
       }
 
-      // Public site identity: name, nav, footer, and theme for the renderer.
+      // Public site identity: name, nav, footer, theme, and routes for the renderer.
       if (url.pathname === "/api/_site") {
         if (req.method !== "GET") {
           return withCors(Response.json({ error: "Method not allowed" }, { status: 405 }))
@@ -396,6 +399,7 @@ export function createServer(config: ServerConfig): CreatedServer {
               version: theme?.version ?? null,
               settings: theme?.settings ?? null,
             },
+            routes: config.routes ?? null,
           }),
         )
       }

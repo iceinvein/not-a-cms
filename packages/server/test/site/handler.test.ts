@@ -27,6 +27,8 @@ const siteConfig = {
   },
 }
 
+const routesConfig = [{ collection: "project", path: "/work/:slug" }]
+
 const themeConfig = {
   name: "atelier-theme",
   version: "1.0.0",
@@ -50,6 +52,7 @@ describe("GET /api/_site", () => {
       collections: [],
       site: siteConfig,
       theme: themeConfig,
+      routes: routesConfig,
     })
     baseUrl = `http://localhost:${server.server.port}`
 
@@ -100,6 +103,18 @@ describe("GET /api/_site", () => {
     expect(body.nav).toBeNull()
     expect(body.footer).toBeNull()
     expect(body.theme).toEqual({ name: null, version: null, settings: null })
+  })
+
+  test("returns configured routes in the response", async () => {
+    const res = await fetch(`${baseUrl}/api/_site`)
+    const body = await res.json()
+    expect(body.routes).toEqual(routesConfig)
+  })
+
+  test("returns null for routes when none are configured", async () => {
+    const res = await fetch(`${baseUrlEmpty}/api/_site`)
+    const body = await res.json()
+    expect(body.routes).toBeNull()
   })
 
   test("non-GET method returns 405", async () => {

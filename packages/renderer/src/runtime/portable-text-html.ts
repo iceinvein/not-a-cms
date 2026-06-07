@@ -174,6 +174,20 @@ function renderBlock(block: PTBlock): string {
         .join("")
       return `<section class="nac-band nac-logo-cloud not-prose"><div class="nac-container">${eyebrow}<div class="nac-logo-row">${logoImgs}</div></div></section>`
     }
+    case "splitMedia": {
+      const side = block.side === "right" ? "right" : "left"
+      const mediaSrc = imageSource(block.media)
+      const mediaImg = mediaSrc.url
+        ? `<img src="${escapeHtml(sanitizeUrl(mediaSrc.url, { allowDataImage: true }))}" alt=""${mediaIdAttribute(mediaSrc.id)} />`
+        : ""
+      const heading = block.heading ? `<h2 class="nac-split-heading">${escapeHtml(String(block.heading))}</h2>` : ""
+      const bodyText = block.body ? `<p class="nac-split-text">${escapeHtml(String(block.body))}</p>` : ""
+      const ctaLabel = String(block.ctaLabel ?? "").trim()
+      const cta = ctaLabel
+        ? `<a class="nac-cta-btn" data-variant="primary" href="${escapeHtml(sanitizeUrl(block.ctaUrl))}">${escapeHtml(ctaLabel)}</a>`
+        : ""
+      return `<section class="nac-band nac-split-block not-prose"><div class="nac-container"><div class="nac-split" data-side="${side}"><div class="nac-split-media">${mediaImg}</div><div class="nac-split-body">${heading}${bodyText}${cta}</div></div></div></section>`
+    }
     case "testimonial": {
       const quote = escapeHtml(String(block.quote ?? ""))
       const name = escapeHtml(String(block.name ?? ""))

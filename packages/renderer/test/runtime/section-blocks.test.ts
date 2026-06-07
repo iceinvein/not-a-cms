@@ -387,6 +387,215 @@ describe("pricingCards section block", () => {
   })
 })
 
+describe("splitMedia section block", () => {
+  test("renders band/container/split structure with media img, heading, body, and CTA", () => {
+    const html = renderPortableText([
+      {
+        type: "splitMedia",
+        media: "https://cdn.example.com/hero.jpg",
+        side: "left",
+        heading: "Build faster",
+        body: "Paragraph text here.",
+        ctaLabel: "Get started",
+        ctaUrl: "/signup",
+      },
+    ])
+    expect(html).toContain("nac-band")
+    expect(html).toContain("nac-split-block")
+    expect(html).toContain("nac-container")
+    expect(html).toContain('data-side="left"')
+    expect(html).toContain('class="nac-split-media"')
+    expect(html).toContain("https://cdn.example.com/hero.jpg")
+    expect(html).toContain('<h2 class="nac-split-heading">Build faster</h2>')
+    expect(html).toContain('<p class="nac-split-text">Paragraph text here.</p>')
+    expect(html).toContain('class="nac-cta-btn"')
+    expect(html).toContain('data-variant="primary"')
+    expect(html).toContain('href="/signup"')
+    expect(html).toContain("Get started")
+  })
+
+  test("renders side=right correctly", () => {
+    const html = renderPortableText([
+      {
+        type: "splitMedia",
+        media: "https://cdn.example.com/img.jpg",
+        side: "right",
+        heading: "",
+        body: "",
+        ctaLabel: "",
+        ctaUrl: "",
+      },
+    ])
+    expect(html).toContain('data-side="right"')
+  })
+
+  test("defaults invalid side value to left", () => {
+    const html = renderPortableText([
+      {
+        type: "splitMedia",
+        media: "https://cdn.example.com/img.jpg",
+        side: "top",
+        heading: "",
+        body: "",
+        ctaLabel: "",
+        ctaUrl: "",
+      },
+    ])
+    expect(html).toContain('data-side="left"')
+    expect(html).not.toContain('data-side="top"')
+  })
+
+  test("omits heading when heading is empty", () => {
+    const html = renderPortableText([
+      {
+        type: "splitMedia",
+        media: "https://cdn.example.com/img.jpg",
+        side: "left",
+        heading: "",
+        body: "Some text.",
+        ctaLabel: "",
+        ctaUrl: "",
+      },
+    ])
+    expect(html).not.toContain("nac-split-heading")
+  })
+
+  test("omits body paragraph when body is empty", () => {
+    const html = renderPortableText([
+      {
+        type: "splitMedia",
+        media: "https://cdn.example.com/img.jpg",
+        side: "left",
+        heading: "Title",
+        body: "",
+        ctaLabel: "",
+        ctaUrl: "",
+      },
+    ])
+    expect(html).not.toContain("nac-split-text")
+  })
+
+  test("omits CTA when ctaLabel is empty", () => {
+    const html = renderPortableText([
+      {
+        type: "splitMedia",
+        media: "https://cdn.example.com/img.jpg",
+        side: "left",
+        heading: "Title",
+        body: "Text.",
+        ctaLabel: "",
+        ctaUrl: "",
+      },
+    ])
+    expect(html).not.toContain("nac-cta-btn")
+  })
+
+  test("omits media img when media is empty", () => {
+    const html = renderPortableText([
+      {
+        type: "splitMedia",
+        media: "",
+        side: "left",
+        heading: "Title",
+        body: "Text.",
+        ctaLabel: "",
+        ctaUrl: "",
+      },
+    ])
+    expect(html).not.toContain("<img")
+  })
+
+  test("sanitizes dangerous media url", () => {
+    const html = renderPortableText([
+      {
+        type: "splitMedia",
+        media: "javascript:alert(1)",
+        side: "left",
+        heading: "Title",
+        body: "",
+        ctaLabel: "",
+        ctaUrl: "",
+      },
+    ])
+    expect(html).not.toContain("javascript:")
+    expect(html).toContain('src="#"')
+  })
+
+  test("sanitizes dangerous CTA url", () => {
+    const html = renderPortableText([
+      {
+        type: "splitMedia",
+        media: "",
+        side: "left",
+        heading: "",
+        body: "",
+        ctaLabel: "Click",
+        ctaUrl: "javascript:alert(1)",
+      },
+    ])
+    expect(html).not.toContain("javascript:")
+    expect(html).toContain('href="#"')
+  })
+
+  test("escapes html in heading, body, and ctaLabel", () => {
+    const html = renderPortableText([
+      {
+        type: "splitMedia",
+        media: "",
+        side: "left",
+        heading: "<script>bad</script>",
+        body: "<b>bold</b>",
+        ctaLabel: "<em>click</em>",
+        ctaUrl: "/ok",
+      },
+    ])
+    expect(html).not.toContain("<script>bad")
+    expect(html).not.toContain("<b>bold")
+    expect(html).not.toContain("<em>click")
+    expect(html).toContain("&lt;script&gt;")
+    expect(html).toContain("&lt;b&gt;")
+    expect(html).toContain("&lt;em&gt;")
+  })
+
+  test("empty block (no media/heading/body/CTA) renders safely with band structure", () => {
+    const html = renderPortableText([
+      {
+        type: "splitMedia",
+        media: "",
+        side: "left",
+        heading: "",
+        body: "",
+        ctaLabel: "",
+        ctaUrl: "",
+      },
+    ])
+    expect(html).toContain("nac-band")
+    expect(html).toContain("nac-split-block")
+    expect(html).toContain("nac-container")
+    expect(html).toContain('data-side="left"')
+    expect(html).not.toContain("<img")
+    expect(html).not.toContain("nac-split-heading")
+    expect(html).not.toContain("nac-split-text")
+    expect(html).not.toContain("nac-cta-btn")
+  })
+
+  test("emits data-media-id attribute when media has an id", () => {
+    const html = renderPortableText([
+      {
+        type: "splitMedia",
+        media: { url: "https://cdn.example.com/img.jpg", id: "m_42" },
+        side: "left",
+        heading: "",
+        body: "",
+        ctaLabel: "",
+        ctaUrl: "",
+      },
+    ])
+    expect(html).toContain('data-media-id="m_42"')
+    expect(html).toContain("https://cdn.example.com/img.jpg")
+  })
+})
+
 describe("testimonial section block", () => {
   test("renders quote, name, role, and avatar", () => {
     const html = renderPortableText([

@@ -494,4 +494,64 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
   box-sizing: border-box;
 }
+
+/* Split media section block: two-column image-and-text layout with optional side reversal. */
+.nac-split-block {
+  padding-block: 4rem;
+}
+
+.nac-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: center;
+}
+
+.nac-split[data-side="right"] {
+  direction: rtl;
+}
+
+.nac-split[data-side="right"] > * {
+  direction: ltr;
+}
+
+.nac-split-media img {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  object-fit: cover;
+  display: block;
+}
+
+.nac-split-heading {
+  margin: 0 0 1rem;
+  font-family: var(--font-display, "Fraunces", Georgia, serif);
+  font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--ink);
+}
+
+.nac-split-text {
+  margin: 0 0 1.5rem;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  max-width: 52ch;
+  color: var(--body);
+}
+
+.nac-split-body .nac-cta-btn {
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 768px) {
+  .nac-split {
+    grid-template-columns: 1fr;
+    direction: ltr;
+  }
+
+  .nac-split[data-side="right"] {
+    direction: ltr;
+  }
+}
 `

@@ -10,6 +10,7 @@ import { ImageBlockView } from "./image-block"
 import { SeoBlockView } from "./seo-block"
 import { StatsBlockView } from "./stats-block"
 import { LogoCloudBlockView } from "./logo-cloud-block"
+import { SplitMediaBlockView } from "./split-media-block"
 import { TestimonialBlockView } from "./testimonial-block"
 
 export const continuumBlocks: DefinedBlock[] = [
@@ -100,6 +101,19 @@ export const continuumBlocks: DefinedBlock[] = [
     editor: LogoCloudBlockView,
   }),
   defineBlock({
+    name: "splitMedia",
+    label: "Split media",
+    schema: {
+      media: { type: "text", default: "" },
+      side: { type: "select", default: "left", options: ["left", "right"] },
+      heading: { type: "text", default: "" },
+      body: { type: "text", default: "" },
+      ctaLabel: { type: "text", default: "" },
+      ctaUrl: { type: "text", default: "" },
+    },
+    editor: SplitMediaBlockView,
+  }),
+  defineBlock({
     name: "testimonial",
     label: "Testimonial",
     schema: {
@@ -143,6 +157,7 @@ export const continuumSlashCommands: SlashCommandItem[] = [
   { title: "SEO & meta", description: "Title, description", group: "fields", command: insert("seo") },
   { title: "Stats", description: "Grid of key metrics or social proof numbers", group: "sections", command: insert("stats") },
   { title: "Logo cloud", description: "Row of partner or customer logos", group: "sections", command: insert("logoCloud") },
+  { title: "Split media", description: "Two-column image and text layout", group: "sections", command: insert("splitMedia") },
   { title: "Testimonial", description: "Pull-quote with name, role, and avatar", group: "sections", command: insert("testimonial") },
   { title: "FAQ", description: "Collapsible question and answer list", group: "sections", command: insert("faq") },
   { title: "Pricing cards", description: "Tier cards with features and CTA buttons", group: "sections", command: insert("pricingCards") },

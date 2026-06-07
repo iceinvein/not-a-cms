@@ -197,6 +197,49 @@ describe("custom block round-trip", () => {
     })
   })
 
+  test("splitMedia block preserves all six attrs", () => {
+    const doc = {
+      type: "doc",
+      content: [
+        {
+          type: "splitMedia",
+          attrs: {
+            media: "https://cdn.example.com/hero.jpg",
+            side: "right",
+            heading: "Build faster",
+            body: "Paragraph text here.",
+            ctaLabel: "Get started",
+            ctaUrl: "/signup",
+          },
+        },
+      ],
+    }
+    const pt = toPortableText(doc as any)
+    expect(pt).toEqual([
+      {
+        type: "splitMedia",
+        media: "https://cdn.example.com/hero.jpg",
+        side: "right",
+        heading: "Build faster",
+        body: "Paragraph text here.",
+        ctaLabel: "Get started",
+        ctaUrl: "/signup",
+      },
+    ])
+    const back = fromPortableText(pt)
+    expect(back.content[0]).toEqual({
+      type: "splitMedia",
+      attrs: {
+        media: "https://cdn.example.com/hero.jpg",
+        side: "right",
+        heading: "Build faster",
+        body: "Paragraph text here.",
+        ctaLabel: "Get started",
+        ctaUrl: "/signup",
+      },
+    })
+  })
+
   test("pricingCards block preserves heading and tiers with nested features and highlighted bool", () => {
     const doc = {
       type: "doc",

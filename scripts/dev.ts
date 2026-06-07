@@ -5,11 +5,23 @@
  * Boots the API server, admin UI, and public site renderer together.
  * Usage: bun scripts/dev.ts [--port=4321] [--admin-port=4322] [--renderer-port=3000]
  */
+export {}
 
 const args = Bun.argv.slice(2)
 const apiPort = args.find(a => a.startsWith("--port="))?.split("=")[1] ?? process.env.PORT ?? "4321"
 const adminPort = args.find(a => a.startsWith("--admin-port="))?.split("=")[1] ?? process.env.ADMIN_PORT ?? "4322"
 const rendererPort = args.find(a => a.startsWith("--renderer-port="))?.split("=")[1] ?? process.env.RENDERER_PORT ?? "3000"
+
+// Track every spawned child so a startup timeout (or signal) can tear them all
+// down instead of orphaning a process that is already holding a port.
+const children: Bun.Subprocess[] = []
+function shutdown(code: number, message?: string) {
+  if (message) console.error(message)
+  for (const child of children) {
+    try { child.kill() } catch {}
+  }
+  process.exit(code)
+}
 
 console.log("  Starting API server...")
 
@@ -24,9 +36,10 @@ const api = Bun.spawn(["bun", "--hot", "packages/server/src/dev.ts"], {
   stdout: "inherit",
   stderr: "inherit",
 })
+children.push(api)
 
 // Wait for API to be ready
-await waitForServer(`http://localhost:${apiPort}/health`, 10_000)
+await waitForServer(`http://127.0.0.1:${apiPort}/health`, 10_000)
 
 console.log("  Starting admin UI...")
 
@@ -37,9 +50,10 @@ const admin = Bun.spawn(["bunx", "astro", "dev", "--port", adminPort], {
   stdout: "ignore",
   stderr: "ignore",
 })
+children.push(admin)
 
 // Wait for admin to be ready
-await waitForServer(`http://localhost:${adminPort}`, 15_000)
+await waitForServer(`http://127.0.0.1:${adminPort}`, 15_000)
 
 console.log("  Starting public site renderer...")
 
@@ -49,8 +63,9 @@ const renderer = Bun.spawn(["bunx", "astro", "dev", "--port", rendererPort], {
   stdout: "ignore",
   stderr: "ignore",
 })
+children.push(renderer)
 
-await waitForServer(`http://localhost:${rendererPort}`, 15_000)
+await waitForServer(`http://127.0.0.1:${rendererPort}`, 15_000)
 
 console.log(`
   not-a-cms dev server ready
@@ -67,17 +82,11 @@ console.log(`
 // Handle shutdown
 process.on("SIGINT", () => {
   console.log("\n  Shutting down...")
-  api.kill()
-  admin.kill()
-  renderer.kill()
-  process.exit(0)
+  shutdown(0)
 })
 
 process.on("SIGTERM", () => {
-  api.kill()
-  admin.kill()
-  renderer.kill()
-  process.exit(0)
+  shutdown(0)
 })
 
 // Keep alive
@@ -94,6 +103,7 @@ async function waitForServer(url: string, timeout: number) {
     } catch {}
     await Bun.sleep(200)
   }
-  console.error(`  Timed out waiting for ${url}`)
-  process.exit(1)
+  // Tear down everything already started so we never leave an orphaned server
+  // holding a port after a failed boot.
+  shutdown(1, `  Timed out waiting for ${url}`)
 }

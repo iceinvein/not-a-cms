@@ -1,6 +1,7 @@
 import type { PTBlock } from "./block-renderer"
 import { renderPortableText } from "./portable-text-html"
 import type { ChannelConfig } from "@not-a-cms/core"
+import type { ContentItem } from "./content-fetcher"
 
 // --- RSS Channel ---
 
@@ -115,8 +116,8 @@ ${itemsXml}
 
 // --- Portable Text to HTML (for RSS descriptions) ---
 
-export function portableTextToHtml(blocks: PTBlock[], opts?: { apiBase?: string; collectionData?: Record<number, unknown[]> }): string {
-  return renderPortableText(blocks, "web", opts as any)
+export function portableTextToHtml(blocks: PTBlock[], opts?: { apiBase?: string; collectionData?: Record<number, ContentItem[]> }): string {
+  return renderPortableText(blocks, "web", opts)
 }
 
 // --- JSON Channel (passthrough, but typed) ---

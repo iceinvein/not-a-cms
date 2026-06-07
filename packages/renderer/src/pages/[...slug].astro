@@ -15,7 +15,7 @@ if (!resolved) {
 }
 
 const post = resolved.document
-const rendered = renderDocumentContent(post)
+const rendered = await renderDocumentContent(post, { apiBase })
 const coverUrl = mediaUrl(apiBase, post.coverImage)
 // Only time-stamped content (blog posts) shows a published date; standalone pages
 // like About and Pricing are evergreen and should not carry an article date (F-018).

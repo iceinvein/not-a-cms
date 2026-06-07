@@ -26,7 +26,7 @@ try {
   error = "Failed to load preview"
 }
 
-const rendered = post ? renderDocumentContent(post) : { html: "", leadsWithHero: false }
+const rendered = post ? await renderDocumentContent(post, { apiBase }) : { html: "", leadsWithHero: false }
 ---
 <DefaultLayout title={post ? `Preview: ${post.title}` : "Preview"}>
   {error ? (

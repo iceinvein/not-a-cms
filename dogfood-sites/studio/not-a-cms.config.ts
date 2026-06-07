@@ -45,6 +45,7 @@ const page = defineCollection({
 })
 
 export default defineConfig({
+  routes: [{ collection: "project", path: "/work/:slug" }],
   site: {
     name: "Atelier",
     nav: {

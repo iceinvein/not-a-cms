@@ -428,7 +428,6 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 14px;
   background: var(--surface);
   text-align: left;
-  transition: transform 0.15s ease;
 }
 
 .nac-tier[data-highlight="true"] {
@@ -612,12 +611,6 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--surface);
   color: inherit;
   text-decoration: none;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.nac-collection-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px color-mix(in srgb, var(--ink) 8%, transparent);
 }
 
 .nac-collection-cover {
@@ -648,5 +641,52 @@ h1, h2, h3, h4, h5, h6 {
   display: block;
   font-size: 0.75rem;
   color: var(--muted);
+}
+
+/* Scroll-reveal: only active when JS opts in AND motion is allowed.
+ * Content is always visible without JS or when reduced-motion is preferred. */
+@media (prefers-reduced-motion: no-preference) {
+  html.js-reveal .reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  html.js-reveal .reveal.is-revealed { opacity: 1; transform: none; }
+}
+
+/* Interaction polish: hover/focus lift on interactive cards and tier/feature panels.
+ * Transforms are wrapped in a reduced-motion guard so they never play for those users.
+ * The transition on border-color/box-shadow is lightweight and plays at full speed. */
+@media (prefers-reduced-motion: no-preference) {
+  .nac-feature,
+  .nac-tier,
+  .nac-collection-card {
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+
+  .nac-feature:hover,
+  .nac-tier:not([data-highlight="true"]):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--ink) 8%, transparent);
+    border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+  }
+
+  .nac-collection-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--ink) 8%, transparent);
+    border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+  }
+}
+
+/* border-color and box-shadow transitions are still useful even with reduced motion
+ * (no movement, just color feedback). */
+@media (prefers-reduced-motion: reduce) {
+  .nac-feature,
+  .nac-tier,
+  .nac-collection-card {
+    transition: box-shadow .15s ease, border-color .15s ease;
+  }
+}
+
+/* Focus-visible ring for collection cards (they are <a> elements). */
+.nac-collection-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 `

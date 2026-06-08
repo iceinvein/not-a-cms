@@ -1,4 +1,5 @@
 import { type DefinedBlock, defineBlock, type SlashCommandItem } from "@not-a-cms/editor"
+import type { ComponentType } from "react"
 import { AuthorBlockView } from "./author-block"
 import { CollectionListBlockView } from "./collection-list-block"
 import { CtaBlockView } from "./cta-block"
@@ -10,155 +11,37 @@ import { ImageBlockView } from "./image-block"
 import { LogoCloudBlockView } from "./logo-cloud-block"
 import { PricingCardsBlockView } from "./pricing-cards-block"
 import { SeoBlockView } from "./seo-block"
+import { blockSpecs } from "./specs"
 import { SplitMediaBlockView } from "./split-media-block"
 import { StatsBlockView } from "./stats-block"
 import { TestimonialBlockView } from "./testimonial-block"
 
-export const continuumBlocks: DefinedBlock[] = [
+const FORM_VIEWS: Record<string, ComponentType<any>> = {
+  hero: HeroBlockView,
+  cta: CtaBlockView,
+  featureGrid: FeatureGridBlockView,
+  image: ImageBlockView,
+  author: AuthorBlockView,
+  gallery: GalleryBlockView,
+  seo: SeoBlockView,
+  stats: StatsBlockView,
+  logoCloud: LogoCloudBlockView,
+  splitMedia: SplitMediaBlockView,
+  testimonial: TestimonialBlockView,
+  faq: FaqBlockView,
+  pricingCards: PricingCardsBlockView,
+  collectionList: CollectionListBlockView,
+}
+
+export const continuumBlocks: DefinedBlock[] = blockSpecs.map((spec) =>
   defineBlock({
-    name: "hero",
-    label: "Hero",
-    schema: {
-      eyebrow: { type: "text", default: "" },
-      headline: { type: "text", default: "" },
-      subheadline: { type: "text", default: "" },
-      align: { type: "select", default: "center", options: ["center", "left"] },
-      backgroundImage: { type: "text", default: "" },
-      overlay: { type: "boolean", default: true },
-    },
-    editor: HeroBlockView,
+    name: spec.name,
+    label: spec.label,
+    group: spec.group,
+    schema: spec.schema,
+    editor: FORM_VIEWS[spec.name],
   }),
-  defineBlock({
-    name: "cta",
-    label: "Call to action",
-    schema: {
-      label: { type: "text", default: "" },
-      url: { type: "text", default: "" },
-      variant: { type: "select", default: "primary", options: ["primary", "secondary", "outline"] },
-    },
-    editor: CtaBlockView,
-  }),
-  defineBlock({
-    name: "featureGrid",
-    label: "Feature grid",
-    schema: {
-      items: { type: "array", default: [] },
-      columns: { type: "number", default: 3 },
-    },
-    editor: FeatureGridBlockView,
-  }),
-  defineBlock({
-    name: "image",
-    label: "Image",
-    schema: {
-      url: { type: "text", default: "" },
-      mediaId: { type: "text", default: "" },
-      alt: { type: "text", default: "" },
-    },
-    editor: ImageBlockView,
-  }),
-  defineBlock({
-    name: "author",
-    label: "Author",
-    schema: {
-      name: { type: "text", default: "" },
-      role: { type: "text", default: "" },
-    },
-    editor: AuthorBlockView,
-  }),
-  defineBlock({
-    name: "gallery",
-    label: "Gallery",
-    schema: {
-      images: { type: "array", default: [] },
-    },
-    editor: GalleryBlockView,
-  }),
-  defineBlock({
-    name: "seo",
-    label: "SEO & meta",
-    schema: {
-      metaTitle: { type: "text", default: "" },
-      metaDescription: { type: "text", default: "" },
-    },
-    editor: SeoBlockView,
-  }),
-  defineBlock({
-    name: "stats",
-    label: "Stats",
-    schema: {
-      items: { type: "array", default: [] },
-      columns: { type: "number", default: 3 },
-    },
-    editor: StatsBlockView,
-  }),
-  defineBlock({
-    name: "logoCloud",
-    label: "Logo cloud",
-    schema: {
-      eyebrow: { type: "text", default: "" },
-      logos: { type: "array", default: [] },
-    },
-    editor: LogoCloudBlockView,
-  }),
-  defineBlock({
-    name: "splitMedia",
-    label: "Split media",
-    schema: {
-      media: { type: "text", default: "" },
-      side: { type: "select", default: "left", options: ["left", "right"] },
-      heading: { type: "text", default: "" },
-      body: { type: "text", default: "" },
-      ctaLabel: { type: "text", default: "" },
-      ctaUrl: { type: "text", default: "" },
-    },
-    editor: SplitMediaBlockView,
-  }),
-  defineBlock({
-    name: "testimonial",
-    label: "Testimonial",
-    schema: {
-      quote: { type: "text", default: "" },
-      name: { type: "text", default: "" },
-      role: { type: "text", default: "" },
-      avatar: { type: "text", default: "" },
-    },
-    editor: TestimonialBlockView,
-  }),
-  defineBlock({
-    name: "faq",
-    label: "FAQ",
-    schema: {
-      heading: { type: "text", default: "" },
-      items: { type: "array", default: [] },
-    },
-    editor: FaqBlockView,
-  }),
-  defineBlock({
-    name: "pricingCards",
-    label: "Pricing cards",
-    schema: {
-      heading: { type: "text", default: "" },
-      tiers: { type: "array", default: [] },
-    },
-    editor: PricingCardsBlockView,
-  }),
-  defineBlock({
-    name: "collectionList",
-    label: "Collection list",
-    schema: {
-      collection: { type: "text", default: "blog_post" },
-      limit: { type: "number", default: 3 },
-      filterTag: { type: "text", default: "" },
-      layout: { type: "select", default: "grid", options: ["grid", "list", "cards"] },
-      showCover: { type: "boolean", default: true },
-      showExcerpt: { type: "boolean", default: true },
-      showDate: { type: "boolean", default: true },
-      heading: { type: "text", default: "" },
-    },
-    editor: CollectionListBlockView,
-  }),
-]
+)
 
 const insert = (name: string) => (editor: any, range: any) =>
   editor.chain().focus().deleteRange(range).insertContent({ type: name }).run()

@@ -2045,3 +2045,47 @@ a.crumb:hover {
   margin: 2px 4px;
   background: var(--border-default);
 }
+
+/* Continuum visual mode. The toggle chrome lives in the dark admin shell (outside
+ * .cn-visual), so it uses the admin theme tokens and mirrors the channel-mirror tabs
+ * (.cn-tab / .cn-tab-on) for a consistent segmented-control treatment. The .cn-visual*
+ * rules below sit inside the brand-scoped container, where --border resolves to the
+ * site's brand value. */
+.cn-mode-toggle {
+  display: inline-flex;
+  gap: 4px;
+}
+.cn-mode-btn {
+  padding: 5px 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.cn-mode-on {
+  border-color: var(--accent-muted);
+  background: var(--accent-subtle);
+  color: var(--accent-hover);
+}
+.cn-sheet-head-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.cn-visual {
+  margin-top: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+.cn-visual-page {
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem;
+}
+.cn-visual-section {
+  margin: 0;
+}

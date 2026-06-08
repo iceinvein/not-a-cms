@@ -2063,6 +2063,13 @@ a.crumb:hover {
   border: 1px solid transparent;
   border-radius: 6px;
   cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+.cn-mode-btn:not(.cn-mode-on):hover {
+  color: var(--text-secondary);
 }
 .cn-mode-on {
   border-color: var(--accent-muted);
@@ -2078,7 +2085,9 @@ a.crumb:hover {
   margin-top: 1rem;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: #fff;
+  /* The canvas IS the site's paper, so it uses the brand paper tint (scoped to
+   * .cn-visual), matching the public site and the channel mirror, not a flat white. */
+  background: var(--paper, #faf8f4);
   overflow: hidden;
 }
 .cn-visual-page {

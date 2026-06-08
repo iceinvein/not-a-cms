@@ -2089,3 +2089,58 @@ a.crumb:hover {
 .cn-visual-section {
   margin: 0;
 }
+
+/* Brand-faithful prose inside the visual canvas. The admin's dark .ProseMirror theme
+ * hardcodes light text and headings for the dark shell; on the white brand canvas those
+ * must yield to the site's own typography. Tailwind Typography is not loaded in the admin
+ * (brandCss only sets its --tw-prose-* variables), so, like the channel mirror's web
+ * preview, the base prose rules are spelled out here using the brand variables that
+ * scope-theme.ts scopes to .cn-visual. */
+.cn-visual .ProseMirror {
+  color: var(--body);
+  font-family: var(--font-body);
+  line-height: 1.7;
+}
+/* These element overrides target only the editable prose, never the read-only section
+ * previews. Sections render inside the ProseMirror tree (each wrapped in
+ * .cn-visual-section) and carry their own brand styling from brandCss, so the
+ * :not(.cn-visual-section *) guard keeps these prose rules from outranking, say, a
+ * section CTA's button color. */
+.cn-visual .ProseMirror h1:not(.cn-visual-section *),
+.cn-visual .ProseMirror h2:not(.cn-visual-section *),
+.cn-visual .ProseMirror h3:not(.cn-visual-section *) {
+  color: var(--ink);
+  font-family: var(--font-display);
+}
+.cn-visual .ProseMirror a:not(.cn-visual-section *) {
+  color: var(--accent);
+}
+.cn-visual .ProseMirror blockquote:not(.cn-visual-section *) {
+  border-left: 3px solid var(--accent);
+  color: var(--ink);
+}
+.cn-visual .ProseMirror code:not(.cn-visual-section *) {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+.cn-visual .ProseMirror pre:not(.cn-visual-section *) {
+  background: #1c1917;
+  color: #fafaf9;
+  border: 0;
+}
+.cn-visual .ProseMirror pre:not(.cn-visual-section *) code {
+  color: inherit;
+  background: none;
+}
+.cn-visual .ProseMirror hr:not(.cn-visual-section *) {
+  border-top: 1px solid var(--border);
+}
+.cn-visual .ProseMirror li:not(.cn-visual-section *)::marker {
+  color: var(--muted);
+}
+/* Read-only section previews render inside the ProseMirror tree, so the admin editor's
+ * anchor styling (underline) would otherwise bleed onto brand buttons and links. Section
+ * link styling comes from brandCss, matching the public site. */
+.cn-visual .cn-visual-section a {
+  text-decoration: none;
+}

@@ -49,7 +49,11 @@ export function MediaPicker({ value, onSelect, onClear, chooseLabel = "Choose im
     <div className="cn-media-pick">
       {value && <img className="cn-media-pick-thumb" src={value} alt="" />}
       <div className="cn-media-pick-actions">
-        <button type="button" className="cn-block-action" onClick={() => setOpen((current) => !current)}>
+        <button
+          type="button"
+          className={`cn-block-action${value ? "" : " cn-block-cta"}`}
+          onClick={() => setOpen((current) => !current)}
+        >
           {value ? "Replace" : chooseLabel}
         </button>
         <label className="cn-block-action cn-media-pick-upload">

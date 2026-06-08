@@ -1,5 +1,6 @@
 import { NodeViewWrapper } from "@tiptap/react"
 import { MediaPicker } from "./media-picker"
+import { Select } from "../../ui/Select"
 
 /**
  * Split media section block: a two-column layout with an image on one side and
@@ -22,14 +23,18 @@ export function SplitMediaBlockView({ node, updateAttributes }: any) {
         onSelect={(item) => updateAttributes({ media: item.url })}
         onClear={() => updateAttributes({ media: "" })}
       />
-      <select
-        className="cn-block-input"
-        value={side}
-        onChange={(event) => updateAttributes({ side: event.target.value })}
-      >
-        <option value="left">Image left</option>
-        <option value="right">Image right</option>
-      </select>
+      <label className="cn-section-control">
+        Media side
+        <Select
+          value={side}
+          onValueChange={(value) => updateAttributes({ side: value })}
+          ariaLabel="Media side"
+          options={[
+            { value: "left", label: "Image left" },
+            { value: "right", label: "Image right" },
+          ]}
+        />
+      </label>
       <input
         className="cn-block-input"
         value={heading}

@@ -1,4 +1,5 @@
 import { NodeViewWrapper } from "@tiptap/react"
+import { Select } from "../../ui/Select"
 
 /**
  * Call-to-action block (F-012): a labelled button linking somewhere, with a style
@@ -25,11 +26,16 @@ export function CtaBlockView({ node, updateAttributes }: any) {
       />
       <label className="cn-section-control">
         Style
-        <select value={variant} onChange={(event) => updateAttributes({ variant: event.target.value })}>
-          <option value="primary">Primary</option>
-          <option value="secondary">Secondary</option>
-          <option value="outline">Outline</option>
-        </select>
+        <Select
+          value={variant}
+          onValueChange={(value) => updateAttributes({ variant: value })}
+          ariaLabel="Button style"
+          options={[
+            { value: "primary", label: "Primary" },
+            { value: "secondary", label: "Secondary" },
+            { value: "outline", label: "Outline" },
+          ]}
+        />
       </label>
       <span className="cn-block-label">cta</span>
     </NodeViewWrapper>

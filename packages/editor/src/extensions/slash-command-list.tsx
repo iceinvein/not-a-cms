@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useState, useEffect } from "react"
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react"
 import type { SlashCommandItem } from "./slash-command"
 
 export type SlashCommandListRef = {
@@ -10,13 +10,31 @@ type Props = {
   command: (item: SlashCommandItem) => void
 }
 
+function groupLabel(group?: string): string {
+  if (!group) return "Blocks"
+  return group.charAt(0).toUpperCase() + group.slice(1)
+}
+
+/** A short glyph for the icon chip: the item's own icon, or its leading letter. */
+function itemGlyph(item: SlashCommandItem): string {
+  if (item.icon) return item.icon
+  const letter = item.title.match(/[a-z0-9]/i)
+  return (letter?.[0] ?? "•").toUpperCase()
+}
+
 export const SlashCommandList = forwardRef<SlashCommandListRef, Props>(
   ({ items, command }, ref) => {
     const [selectedIndex, setSelectedIndex] = useState(0)
+    const itemRefs = useRef<Array<HTMLButtonElement | null>>([])
 
     useEffect(() => {
       setSelectedIndex(0)
     }, [items])
+
+    // Keep the highlighted row visible as arrow keys move past the fold.
+    useEffect(() => {
+      itemRefs.current[selectedIndex]?.scrollIntoView({ block: "nearest" })
+    }, [selectedIndex])
 
     useImperativeHandle(ref, () => ({
       onKeyDown({ event }) {
@@ -29,48 +47,64 @@ export const SlashCommandList = forwardRef<SlashCommandListRef, Props>(
           return true
         }
         if (event.key === "Enter") {
-          if (items[selectedIndex]) {
-            command(items[selectedIndex])
-          }
+          const item = items[selectedIndex]
+          if (item) command(item)
           return true
         }
         return false
       },
     }))
 
-    if (!items.length) return null
+    if (!items.length) {
+      return (
+        <div className="cn-slash">
+          <div className="cn-slash-empty">No matching blocks</div>
+        </div>
+      )
+    }
+
+    // Group by `item.group`, preserving first-appearance order. The button index
+    // `i` stays the flat index into `items`, so keyboard nav and clicks align.
+    const groups: string[] = []
+    for (const item of items) {
+      const key = item.group ?? "__default"
+      if (!groups.includes(key)) groups.push(key)
+    }
 
     return (
-      <div style={{
-        background: "white",
-        border: "1px solid #e2e8f0",
-        borderRadius: "8px",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-        padding: "4px",
-        maxHeight: "320px",
-        overflowY: "auto",
-        width: "280px",
-      }}>
-        {items.map((item, i) => (
-          <button
-            key={item.title}
-            onClick={() => command(item)}
-            style={{
-              display: "block",
-              width: "100%",
-              textAlign: "left",
-              padding: "8px 12px",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-              background: i === selectedIndex ? "#f1f5f9" : "transparent",
-            }}
-          >
-            <div style={{ fontWeight: 500, fontSize: "14px" }}>{item.title}</div>
-            <div style={{ fontSize: "12px", color: "#64748b" }}>{item.description}</div>
-          </button>
+      <div className="cn-slash" role="listbox">
+        {groups.map((key) => (
+          <div key={key}>
+            <div className="cn-slash-group">
+              {groupLabel(key === "__default" ? undefined : key)}
+            </div>
+            {items.map((item, i) =>
+              (item.group ?? "__default") !== key ? null : (
+                <button
+                  key={item.title}
+                  ref={(el) => {
+                    itemRefs.current[i] = el
+                  }}
+                  type="button"
+                  role="option"
+                  aria-selected={i === selectedIndex}
+                  className={`cn-slash-item${i === selectedIndex ? " cn-slash-item-on" : ""}`}
+                  onMouseEnter={() => setSelectedIndex(i)}
+                  onClick={() => command(item)}
+                >
+                  <span className="cn-slash-icon" aria-hidden="true">
+                    {itemGlyph(item)}
+                  </span>
+                  <span className="cn-slash-text">
+                    <span className="cn-slash-title">{item.title}</span>
+                    <span className="cn-slash-desc">{item.description}</span>
+                  </span>
+                </button>
+              ),
+            )}
+          </div>
         ))}
       </div>
     )
-  }
+  },
 )

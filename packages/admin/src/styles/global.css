@@ -3,12 +3,17 @@
 @tailwind utilities;
 
 :root {
+  /* Theme native form controls (datetime picker, number spinners, the OS
+     select option list, scrollbars) to match the dark surface. */
+  color-scheme: dark;
+
   --bg-app: #0a0a0c;
   --bg-sidebar: #111113;
   --bg-surface: #18181b;
   --bg-surface-hover: #27272a;
   --bg-active: rgba(255, 255, 255, 0.08);
   --bg-subtle: rgba(255, 255, 255, 0.05);
+  --bg-input: rgba(10, 10, 12, 0.6);
 
   --border-default: rgba(255, 255, 255, 0.06);
   --border-hover: rgba(255, 255, 255, 0.1);
@@ -535,114 +540,381 @@ a.crumb:hover {
   color: #52525b;
 }
 
-/* Continuum inline field blocks */
+/* ============================================================
+   Continuum blocks (inline + marketing sections)
+   ============================================================ */
+
+/* Block shell: a refined card with a header band so the type
+   label never overlaps content, plus an accent rail on focus. */
 .cn-block {
   position: relative;
   display: grid;
-  gap: 10px;
-  margin: 18px 0;
-  padding: 16px;
-  border: 1px solid var(--border-hover);
-  border-radius: 8px;
+  gap: 12px;
+  margin: 20px 0;
+  padding: 44px 16px 16px;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
   background: var(--bg-surface);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 12px 30px -24px rgba(0, 0, 0, 0.95);
+  transition: border-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease);
 }
 
+.cn-block:focus-within {
+  border-color: var(--border-strong);
+}
+
+/* Hairline accent rail that lights up while the block is active. */
+.cn-block::after {
+  content: "";
+  position: absolute;
+  top: 44px;
+  bottom: 14px;
+  left: 0;
+  width: 2px;
+  border-radius: 0 2px 2px 0;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity var(--motion-fast) var(--motion-ease);
+}
+
+.cn-block:focus-within::after {
+  opacity: 0.7;
+}
+
+/* Full-width header band: accent dot + uppercase type name. */
 .cn-block-label {
   position: absolute;
-  top: 10px;
-  right: 12px;
-  color: var(--text-subtle);
+  inset: 0 0 auto 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--border-default);
+  border-radius: 10px 10px 0 0;
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--text-muted);
   font-family: var(--font-mono);
   font-size: 10px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
+.cn-block-label::before {
+  content: "";
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+
+/* Text inputs / textareas shared across every block. */
 .cn-block-input {
   width: 100%;
   min-width: 0;
   border: 1px solid var(--border-default);
-  border-radius: 6px;
-  background: rgba(10, 10, 12, 0.7);
+  border-radius: 7px;
+  background: var(--bg-input);
   color: var(--text-primary);
   font-family: var(--font-ui);
   font-size: 14px;
-  padding: 9px 10px;
+  letter-spacing: normal;
+  text-transform: none;
+  padding: 9px 11px;
+  transition: border-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease);
 }
 
 .cn-block-input::placeholder {
   color: var(--text-subtle);
 }
 
+.cn-block-input:hover {
+  border-color: var(--border-hover);
+}
+
+.cn-block-input:focus {
+  outline: none;
+  border-color: var(--accent-muted);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+  background: rgba(10, 10, 12, 0.82);
+}
+
 .cn-block-textarea {
   min-height: 84px;
+  line-height: 1.5;
   resize: vertical;
 }
 
 .cn-author-name {
-  padding-right: 74px;
   color: var(--text-primary);
   font-family: var(--font-serif);
-  font-size: 20px;
+  font-size: 22px;
 }
 
 .cn-author-role {
   color: var(--text-secondary);
 }
 
+/* Block buttons mirror the app's two-tier button language exactly:
+   secondary = ghost (like .cn-status-btn), primary CTA = solid accent
+   (like .cn-status-publish). Both use the UI font; without an explicit
+   family they would inherit the editor body's serif. */
 .cn-block-action {
-  justify-self: start;
-  border: 1px solid var(--accent-muted);
-  border-radius: 6px;
-  background: var(--accent-subtle);
-  color: var(--accent-hover);
-  cursor: pointer;
-  font-size: 12px;
-  padding: 7px 10px;
-}
-
-/* Marketing section blocks (hero / cta / feature grid) */
-.cn-section-headline {
-  font-family: var(--font-serif);
-  font-size: 20px;
-}
-
-.cn-section-control {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   justify-self: start;
-  font-size: 12px;
+  border: 1px solid var(--border-hover);
+  border-radius: 7px;
+  background: transparent;
   color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.2;
+  padding: 8px 13px;
+  transition: color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease);
 }
 
-.cn-section-control select {
-  border: 1px solid var(--border-default);
-  border-radius: 6px;
-  background: rgba(10, 10, 12, 0.7);
+.cn-block-action:hover {
   color: var(--text-primary);
-  font-size: 13px;
-  padding: 6px 8px;
+  border-color: var(--border-strong);
+  background: var(--bg-surface-hover);
+}
+
+/* Primary call-to-action (the "+ Add …" / "Choose media" action per block). */
+.cn-block-cta {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.cn-block-cta:hover {
+  border-color: transparent;
+  background: var(--accent-hover);
+  color: var(--accent-text);
+}
+
+/* Marketing section blocks (hero / cta / feature grid / …). */
+.cn-section-headline {
+  font-family: var(--font-serif);
+  font-size: 22px;
 }
 
 .cn-section-controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  align-items: flex-end;
+  gap: 14px 18px;
+}
+
+/* A bare toggle sitting next to a labelled select: match the select's box
+   height so the checkbox centres against it instead of clinging to the bottom. */
+.cn-section-controls > .cn-checkbox-field {
+  min-height: 41px;
+}
+
+/* A labelled control: micro-label stacked above its input / select / toggle.
+   The label text node inherits this mono treatment; controls reset their own
+   font/transform so input values never render uppercase. */
+.cn-section-control {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* A row of toggles (e.g. the collection-list show/hide switches). */
+.cn-toggle-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+}
+
+/* ---- Select (Base UI headless primitive, themed) ---- */
+.cn-select-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 132px;
+  padding: 9px 11px;
+  border: 1px solid var(--border-default);
+  border-radius: 7px;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  letter-spacing: normal;
+  text-transform: none;
+  text-align: left;
+  transition: border-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease);
+}
+
+.cn-select-trigger:hover {
+  border-color: var(--border-hover);
+}
+
+.cn-select-trigger[data-popup-open],
+.cn-select-trigger:focus-visible {
+  outline: none;
+  border-color: var(--accent-muted);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+
+.cn-select-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cn-select-icon {
+  display: flex;
+  flex: none;
+  color: var(--text-muted);
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+.cn-select-trigger[data-popup-open] .cn-select-icon {
+  transform: rotate(180deg);
+}
+
+.cn-select-popup {
+  box-sizing: border-box;
+  min-width: var(--anchor-width);
+  max-height: var(--available-height);
+  padding: 5px;
+  overflow-y: auto;
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  background: rgba(24, 24, 27, 0.96);
+  box-shadow: 0 20px 60px -18px rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(20px) saturate(1.2);
+  outline: none;
+  transition: opacity var(--motion-fast) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+}
+
+.cn-select-popup[data-starting-style],
+.cn-select-popup[data-ending-style] {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.cn-select-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 13px;
+  outline: none;
+  user-select: none;
+}
+
+.cn-select-item[data-highlighted] {
+  background: var(--accent-subtle);
+}
+
+.cn-select-item-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.cn-select-item-indicator {
+  display: flex;
+  flex: none;
+  color: var(--accent-hover);
+}
+
+/* ---- Checkbox (Base UI headless primitive, themed) ---- */
+.cn-checkbox {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  background: var(--bg-input);
+  color: var(--accent-text);
+  cursor: pointer;
+  transition: border-color var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease);
+}
+
+.cn-checkbox:hover {
+  border-color: var(--text-muted);
+}
+
+.cn-checkbox[data-checked] {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.cn-checkbox-indicator {
+  display: flex;
+  color: var(--accent-text);
+}
+
+.cn-checkbox-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.cn-checkbox-label {
+  line-height: 1.3;
 }
 
 .cn-feature-cards {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .cn-feature-card {
+  position: relative;
   display: grid;
-  gap: 8px;
-  padding: 12px;
+  gap: 9px;
+  padding: 14px;
   border: 1px solid var(--border-default);
-  border-radius: 8px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.018);
+  transition: border-color var(--motion-fast) var(--motion-ease);
+}
+
+.cn-feature-card:hover {
+  border-color: var(--border-hover);
 }
 
 .cn-feature-icon-input {
@@ -681,7 +953,6 @@ a.crumb:hover {
   flex-wrap: wrap;
   gap: 8px;
   min-height: 56px;
-  padding-right: 80px;
 }
 
 .cn-gallery-empty {
@@ -703,6 +974,17 @@ a.crumb:hover {
   width: 72px;
   height: 56px;
   cursor: pointer;
+  transition: border-color var(--motion-fast) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+}
+
+.cn-gallery-thumb:hover,
+.cn-gallery-choice:hover {
+  border-color: var(--border-strong);
+}
+
+.cn-gallery-choice:hover {
+  background: var(--bg-surface-hover);
 }
 
 .cn-gallery-thumb img,
@@ -1021,77 +1303,103 @@ a.crumb:hover {
 }
 
 .cn-field-label {
-  font-size: 13px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
   font-weight: 500;
-  color: var(--text-default);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .cn-field-input {
   width: 100%;
-  padding: 8px 10px;
+  padding: 9px 11px;
+  font-family: var(--font-ui);
   font-size: 14px;
-  color: var(--text-default);
-  background: var(--surface-default, #fff);
+  color: var(--text-primary);
+  background: var(--bg-input);
   border: 1px solid var(--border-default);
-  border-radius: 6px;
+  border-radius: 7px;
+  transition: border-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease);
+}
+
+.cn-field-input::placeholder {
+  color: var(--text-subtle);
+}
+
+.cn-field-input:hover {
+  border-color: var(--border-hover);
 }
 
 .cn-field-input:focus {
   outline: none;
-  border-color: var(--accent, #2563eb);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #2563eb) 18%, transparent);
+  border-color: var(--accent-muted);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+  background: rgba(10, 10, 12, 0.82);
 }
 
 .cn-field-textarea {
   resize: vertical;
-  min-height: 60px;
-  font-family: inherit;
-}
-
-.cn-field-checkbox {
-  width: 16px;
-  height: 16px;
+  min-height: 64px;
+  line-height: 1.5;
+  font-family: var(--font-ui);
 }
 
 .cn-field-array {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .cn-field-array-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .cn-field-remove {
   flex: none;
-  width: 28px;
-  height: 28px;
-  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
   line-height: 1;
   color: var(--text-muted);
   background: transparent;
   border: 1px solid var(--border-default);
-  border-radius: 6px;
+  border-radius: 7px;
   cursor: pointer;
+  transition: color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease);
 }
 
 .cn-field-remove:hover {
-  color: var(--text-default);
-  border-color: var(--text-muted);
+  color: var(--status-error);
+  border-color: color-mix(in srgb, var(--status-error) 45%, transparent);
+  background: color-mix(in srgb, var(--status-error) 10%, transparent);
 }
 
 .cn-field-add {
   align-self: flex-start;
-  padding: 4px 10px;
+  padding: 6px 12px;
   font-size: 13px;
-  color: var(--accent, #2563eb);
+  color: var(--accent-hover);
   background: transparent;
-  border: 1px dashed var(--border-default);
-  border-radius: 6px;
+  border: 1px dashed var(--accent-muted);
+  border-radius: 7px;
   cursor: pointer;
+  transition: border-color var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease);
+}
+
+.cn-field-add:hover {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
 }
 
 /* Media field picker (FieldsPanel) */
@@ -1108,6 +1416,7 @@ a.crumb:hover {
   padding: 8px;
   border: 1px solid var(--border-default);
   border-radius: 8px;
+  background: var(--bg-input);
 }
 
 .cn-media-thumb {
@@ -1116,13 +1425,14 @@ a.crumb:hover {
   height: 56px;
   object-fit: cover;
   border-radius: 6px;
-  background: var(--surface-sunken, #f3f3f3);
+  background: var(--bg-subtle);
 }
 
 .cn-media-name {
   flex: 1;
   min-width: 0;
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
   color: var(--text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1137,48 +1447,58 @@ a.crumb:hover {
 
 .cn-media-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .cn-media-btn {
-  padding: 6px 12px;
+  padding: 7px 12px;
   font-size: 13px;
-  color: var(--text-default);
-  background: var(--surface-default, #fff);
-  border: 1px solid var(--border-default);
-  border-radius: 6px;
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hover);
+  border-radius: 7px;
   cursor: pointer;
+  transition: color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease);
 }
 
 .cn-media-btn:hover {
-  border-color: var(--text-muted);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+  background: var(--bg-surface-hover);
 }
 
 .cn-media-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: default;
 }
 
 .cn-media-error {
   margin: 0;
   font-size: 12px;
-  color: var(--danger, #dc2626);
+  color: var(--status-error);
 }
 
 .cn-media-picker {
-  padding: 10px;
-  border: 1px solid var(--border-default);
-  border-radius: 8px;
-  background: var(--surface-default, #fff);
+  padding: 12px;
+  border: 1px solid var(--border-hover);
+  border-radius: 9px;
+  background: var(--bg-surface);
+  box-shadow: 0 16px 40px -22px rgba(0, 0, 0, 0.9);
 }
 
 .cn-media-picker-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
-  font-size: 12px;
-  font-weight: 600;
+  margin-bottom: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--text-muted);
 }
 
@@ -1194,10 +1514,15 @@ a.crumb:hover {
   padding: 0;
   aspect-ratio: 1 / 1;
   border: 2px solid transparent;
-  border-radius: 6px;
-  background: var(--surface-sunken, #f3f3f3);
+  border-radius: 7px;
+  background: var(--bg-subtle);
   cursor: pointer;
   overflow: hidden;
+  transition: border-color var(--motion-fast) var(--motion-ease);
+}
+
+.cn-media-tile:hover {
+  border-color: var(--border-strong);
 }
 
 .cn-media-tile img {
@@ -1207,7 +1532,7 @@ a.crumb:hover {
 }
 
 .cn-media-tile.is-selected {
-  border-color: var(--accent, #2563eb);
+  border-color: var(--accent);
 }
 
 .cn-status {
@@ -1556,4 +1881,168 @@ a.crumb:hover {
   .desk-side {
     grid-template-columns: 1fr;
   }
+}
+
+/* ============================================================
+   Editor chrome: slash command menu + bubble toolbar
+   (rendered by @not-a-cms/editor inside the admin document)
+   ============================================================ */
+
+.cn-slash {
+  width: 100%;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: rgba(24, 24, 27, 0.96);
+  box-shadow: 0 24px 70px -20px rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(20px) saturate(1.2);
+}
+
+.cn-slash-empty {
+  padding: 12px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.cn-slash-group {
+  padding: 10px 10px 4px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cn-slash-group:first-child {
+  padding-top: 4px;
+}
+
+.cn-slash-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+  transition: background-color var(--motion-fast) var(--motion-ease);
+}
+
+.cn-slash-item:hover {
+  background: var(--bg-surface-hover);
+}
+
+.cn-slash-item-on {
+  background: var(--accent-subtle);
+}
+
+.cn-slash-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border-default);
+  border-radius: 7px;
+  background: rgba(10, 10, 12, 0.5);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.cn-slash-item-on .cn-slash-icon {
+  border-color: var(--accent-muted);
+  background: var(--accent-subtle);
+  color: var(--accent-hover);
+}
+
+.cn-slash-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.cn-slash-title {
+  color: var(--text-primary);
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.cn-slash-desc {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 11.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cn-bubble {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  background: rgba(24, 24, 27, 0.96);
+  box-shadow: 0 16px 40px -16px rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(20px) saturate(1.2);
+}
+
+.cn-bubble-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 28px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  transition: background-color var(--motion-fast) var(--motion-ease),
+    color var(--motion-fast) var(--motion-ease);
+}
+
+.cn-bubble-btn:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.cn-bubble-btn-on {
+  background: var(--accent-subtle);
+  color: var(--accent-hover);
+}
+
+.cn-bubble-btn b {
+  font-weight: 700;
+}
+
+.cn-bubble-btn i {
+  font-style: italic;
+  font-family: var(--font-serif);
+}
+
+.cn-bubble-mono {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.cn-bubble-sep {
+  width: 1px;
+  align-self: stretch;
+  margin: 2px 4px;
+  background: var(--border-default);
 }

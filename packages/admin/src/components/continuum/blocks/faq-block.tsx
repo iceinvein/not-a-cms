@@ -59,7 +59,7 @@ export function FaqBlockView({ node, updateAttributes }: any) {
       </div>
       <button
         type="button"
-        className="cn-block-action"
+        className="cn-block-action cn-block-cta"
         onClick={() => update([...items, { question: "", answer: "" }])}
       >
         + Add item

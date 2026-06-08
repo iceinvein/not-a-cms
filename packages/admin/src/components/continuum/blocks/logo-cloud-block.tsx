@@ -62,7 +62,7 @@ export function LogoCloudBlockView({ node, updateAttributes }: any) {
       </div>
       <button
         type="button"
-        className="cn-block-action"
+        className="cn-block-action cn-block-cta"
         onClick={() => updateLogos([...logos, { url: "", mediaId: "", alt: "" }])}
       >
         + Add logo

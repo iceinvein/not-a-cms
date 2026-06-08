@@ -1,5 +1,7 @@
 import { NodeViewWrapper } from "@tiptap/react"
 import { MediaPicker } from "./media-picker"
+import { Select } from "../../ui/Select"
+import { Checkbox } from "../../ui/Checkbox"
 
 /**
  * Hero section block (F-012): an eyebrow, headline, subheadline, alignment, and an
@@ -36,19 +38,21 @@ export function HeroBlockView({ node, updateAttributes }: any) {
       <div className="cn-section-controls">
         <label className="cn-section-control">
           Alignment
-          <select value={align} onChange={(event) => updateAttributes({ align: event.target.value })}>
-            <option value="center">Center</option>
-            <option value="left">Left</option>
-          </select>
-        </label>
-        <label className="cn-section-control">
-          <input
-            type="checkbox"
-            checked={overlay}
-            onChange={(event) => updateAttributes({ overlay: event.target.checked })}
+          <Select
+            value={align}
+            onValueChange={(value) => updateAttributes({ align: value })}
+            ariaLabel="Alignment"
+            options={[
+              { value: "center", label: "Center" },
+              { value: "left", label: "Left" },
+            ]}
           />
-          Darken background
         </label>
+        <Checkbox
+          label="Darken background"
+          checked={overlay}
+          onCheckedChange={(value) => updateAttributes({ overlay: value })}
+        />
       </div>
       <MediaPicker
         value={backgroundImage}

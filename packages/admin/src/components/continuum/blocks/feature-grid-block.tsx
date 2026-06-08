@@ -1,4 +1,5 @@
 import { NodeViewWrapper } from "@tiptap/react"
+import { Select } from "../../ui/Select"
 
 type FeatureCard = { icon: string; title: string; text: string }
 
@@ -24,11 +25,16 @@ export function FeatureGridBlockView({ node, updateAttributes }: any) {
     <NodeViewWrapper className="cn-block cn-section" contentEditable={false}>
       <label className="cn-section-control">
         Columns
-        <select value={String(columns)} onChange={(event) => updateAttributes({ columns: Number(event.target.value) })}>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-        </select>
+        <Select
+          value={String(columns)}
+          onValueChange={(value) => updateAttributes({ columns: Number(value) })}
+          ariaLabel="Columns"
+          options={[
+            { value: "2", label: "2" },
+            { value: "3", label: "3" },
+            { value: "4", label: "4" },
+          ]}
+        />
       </label>
       <div className="cn-feature-cards">
         {items.map((card, index) => (
@@ -61,7 +67,7 @@ export function FeatureGridBlockView({ node, updateAttributes }: any) {
           </div>
         ))}
       </div>
-      <button type="button" className="cn-block-action" onClick={() => update([...items, { icon: "", title: "", text: "" }])}>
+      <button type="button" className="cn-block-action cn-block-cta" onClick={() => update([...items, { icon: "", title: "", text: "" }])}>
         + Add card
       </button>
       <span className="cn-block-label">feature grid</span>

@@ -47,7 +47,7 @@ export function GalleryBlockView({ node, updateAttributes }: any) {
           })
         )}
       </div>
-      <button type="button" className="cn-block-action" onClick={() => setOpen((current) => !current)}>
+      <button type="button" className="cn-block-action cn-block-cta" onClick={() => setOpen((current) => !current)}>
         Add image
       </button>
       {open && (

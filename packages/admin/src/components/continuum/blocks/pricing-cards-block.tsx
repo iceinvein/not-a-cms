@@ -1,4 +1,5 @@
 import { NodeViewWrapper } from "@tiptap/react"
+import { Checkbox } from "../../ui/Checkbox"
 
 type Tier = {
   name: string
@@ -101,16 +102,13 @@ export function PricingCardsBlockView({ node, updateAttributes }: any) {
                 updateTiers(tierList.map((t, i) => (i === index ? { ...t, ctaUrl: event.target.value } : t)))
               }
             />
-            <label className="cn-section-control">
-              <input
-                type="checkbox"
-                checked={tier.highlighted}
-                onChange={(event) =>
-                  updateTiers(tierList.map((t, i) => (i === index ? { ...t, highlighted: event.target.checked } : t)))
-                }
-              />
-              Highlight this tier
-            </label>
+            <Checkbox
+              label="Highlight this tier"
+              checked={tier.highlighted}
+              onCheckedChange={(value) =>
+                updateTiers(tierList.map((t, i) => (i === index ? { ...t, highlighted: value } : t)))
+              }
+            />
             <button
               type="button"
               className="cn-block-action"
@@ -123,7 +121,7 @@ export function PricingCardsBlockView({ node, updateAttributes }: any) {
       </div>
       <button
         type="button"
-        className="cn-block-action"
+        className="cn-block-action cn-block-cta"
         onClick={() =>
           updateTiers([
             ...tierList,

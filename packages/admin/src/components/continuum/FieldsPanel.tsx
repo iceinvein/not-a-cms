@@ -11,6 +11,8 @@ import {
 } from "../../lib/content-fields"
 import { adminApiFetch } from "../../lib/api"
 import { listMediaItems, mediaDisplayUrl, uploadMediaFile, type AdminMediaItem } from "../../lib/media"
+import { Select } from "../ui/Select"
+import { Checkbox } from "../ui/Checkbox"
 
 type Props = {
   fields: Record<string, AdminFieldDef>
@@ -76,12 +78,10 @@ function FieldControl({ id, def, value, apiBase, onChange }: { id: string } & Om
   switch (def.type) {
     case "boolean":
       return (
-        <input
+        <Checkbox
           id={id}
-          type="checkbox"
-          className="cn-field-checkbox"
           checked={Boolean(value)}
-          onChange={(e) => onChange(e.target.checked)}
+          onCheckedChange={(checked) => onChange(checked)}
         />
       )
     case "number":
@@ -106,14 +106,16 @@ function FieldControl({ id, def, value, apiBase, onChange }: { id: string } & Om
       )
     case "select":
       return (
-        <select id={id} className="cn-field-input" value={String(value ?? "")} onChange={(e) => onChange(e.target.value)}>
-          <option value="">—</option>
-          {(def.options ?? []).map((opt) => (
-            <option key={opt} value={opt}>
-              {humanizeFieldName(opt)}
-            </option>
-          ))}
-        </select>
+        <Select
+          id={id}
+          value={String(value ?? "")}
+          onValueChange={(next) => onChange(next)}
+          placeholder="—"
+          options={[
+            { value: "", label: "—" },
+            ...(def.options ?? []).map((opt) => ({ value: opt, label: humanizeFieldName(opt) })),
+          ]}
+        />
       )
     case "array":
       return <ArrayField id={id} def={def} value={value} onChange={onChange} />
@@ -199,14 +201,13 @@ function RelationField({ id, def, value, apiBase, onChange }: { id: string; def:
   }, [target, apiBase])
 
   return (
-    <select id={id} className="cn-field-input" value={mediaId(value)} onChange={(e) => onChange(e.target.value === "" ? null : e.target.value)}>
-      <option value="">—</option>
-      {options.map((opt) => (
-        <option key={opt.id} value={opt.id}>
-          {opt.label}
-        </option>
-      ))}
-    </select>
+    <Select
+      id={id}
+      value={mediaId(value)}
+      onValueChange={(next) => onChange(next === "" ? null : next)}
+      placeholder="—"
+      options={[{ value: "", label: "—" }, ...options.map((opt) => ({ value: opt.id, label: opt.label }))]}
+    />
   )
 }
 

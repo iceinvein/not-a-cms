@@ -1,4 +1,6 @@
 import { NodeViewWrapper } from "@tiptap/react"
+import { Select } from "../../ui/Select"
+import { Checkbox } from "../../ui/Checkbox"
 
 /**
  * Collection list block: shows config for a live collection query.
@@ -57,37 +59,33 @@ export function CollectionListBlockView({ node, updateAttributes }: any) {
       </label>
       <label className="cn-section-control">
         Layout
-        <select value={layout} onChange={(e) => updateAttributes({ layout: e.target.value })}>
-          <option value="grid">Grid</option>
-          <option value="list">List</option>
-          <option value="cards">Cards</option>
-        </select>
+        <Select
+          value={layout}
+          onValueChange={(value) => updateAttributes({ layout: value })}
+          ariaLabel="Layout"
+          options={[
+            { value: "grid", label: "Grid" },
+            { value: "list", label: "List" },
+            { value: "cards", label: "Cards" },
+          ]}
+        />
       </label>
-      <div className="cn-section-control">
-        <label>
-          <input
-            type="checkbox"
-            checked={showCover}
-            onChange={(e) => updateAttributes({ showCover: e.target.checked })}
-          />
-          {" "}Show cover image
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            checked={showExcerpt}
-            onChange={(e) => updateAttributes({ showExcerpt: e.target.checked })}
-          />
-          {" "}Show excerpt
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            checked={showDate}
-            onChange={(e) => updateAttributes({ showDate: e.target.checked })}
-          />
-          {" "}Show date
-        </label>
+      <div className="cn-toggle-row">
+        <Checkbox
+          label="Show cover image"
+          checked={showCover}
+          onCheckedChange={(value) => updateAttributes({ showCover: value })}
+        />
+        <Checkbox
+          label="Show excerpt"
+          checked={showExcerpt}
+          onCheckedChange={(value) => updateAttributes({ showExcerpt: value })}
+        />
+        <Checkbox
+          label="Show date"
+          checked={showDate}
+          onCheckedChange={(value) => updateAttributes({ showDate: value })}
+        />
       </div>
     </NodeViewWrapper>
   )

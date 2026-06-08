@@ -32,4 +32,34 @@ describe("ChannelMirror", () => {
     expect(html).toContain("RENDERED")
     expect(html).not.toContain("Email is an approximation")
   })
+
+  test("isolates every preview in a script-disabled sandboxed iframe", () => {
+    const web = renderToString(<ChannelMirror blocks={blocks} title="Launch week" />)
+    expect(web).toContain("sandbox=")
+    // an empty sandbox grants nothing, so embedded content can never run scripts
+    expect(web).not.toContain("allow-scripts")
+
+    const email = renderToString(
+      <ChannelMirror
+        blocks={blocks}
+        title="Launch week"
+        initialChannel="email"
+        initialEmailHtml="<html><body>RENDERED</body></html>"
+      />,
+    )
+    expect(email).toContain("sandbox=")
+    expect(email).not.toContain("allow-scripts")
+  })
+
+  test("renders the RSS channel in a sandboxed iframe rather than the live admin DOM", () => {
+    const html = renderToString(
+      <ChannelMirror blocks={blocks} title="Launch week" initialChannel="rss" />,
+    )
+    expect(html).toContain('title="RSS preview"')
+    expect(html).toContain("sandbox=")
+    expect(html).not.toContain("allow-scripts")
+    // the rendered body travels inside the iframe's srcDoc, not as live markup
+    expect(html).not.toContain("dangerouslySetInnerHTML")
+    expect(html).toContain("Hello world")
+  })
 })

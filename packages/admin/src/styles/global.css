@@ -1120,49 +1120,8 @@ a.crumb:hover {
   padding: 18px;
 }
 
-.cn-render {
-  border-radius: 8px;
-  background: #fbf7f0;
-  color: #211b17;
-  font-family: var(--font-serif);
-  padding: 26px;
-  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.35);
-}
-
-.cn-render-title {
-  margin: 0 0 8px;
-  color: #171311;
-  font-family: var(--font-serif);
-  font-size: 34px;
-  line-height: 1.05;
-}
-
-.cn-render-byline {
-  margin: 0 0 18px;
-  color: #6f5b4d;
-  font-family: var(--font-ui);
-  font-size: 13px;
-}
-
-.cn-render p {
-  font-size: 17px;
-  line-height: 1.6;
-}
-
-.cn-render [data-callout] {
-  border-left: 3px solid var(--accent);
-  background: rgba(201, 149, 107, 0.12);
-  padding: 10px 12px;
-}
-
-.cn-render [data-author],
-.cn-render [data-gallery] {
-  border: 1px solid rgba(33, 27, 23, 0.12);
-  border-radius: 8px;
-  padding: 12px;
-}
-
 .cn-mirror-email-frame,
+.cn-mirror-rss-frame,
 .cn-mirror-web-frame {
   display: block;
   width: 100%;

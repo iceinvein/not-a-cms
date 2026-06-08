@@ -60,6 +60,38 @@ export function buildWebPreviewDoc(opts: {
 </body></html>`
 }
 
+// Plain serif "reader" styling for the RSS preview (feed readers apply their own
+// typography, so this drops the brand chrome). It is rendered in a sandboxed iframe,
+// so the styles must be self-contained: the iframe cannot reach the admin stylesheet.
+const RSS_PREVIEW_CSS = `
+  body { margin: 0; background: #fbf7f0; color: #211b17; font-family: Georgia, "Times New Roman", serif; }
+  .nac-rss { max-width: 44rem; margin: 0 auto; padding: 26px; }
+  .nac-rss-title { margin: 0 0 8px; color: #171311; font-size: 34px; line-height: 1.05; }
+  .nac-rss-byline { margin: 0 0 18px; color: #6f5b4d; font-family: system-ui, -apple-system, sans-serif; font-size: 13px; }
+  .nac-rss p { font-size: 17px; line-height: 1.6; }
+  .nac-rss a { color: #c9956b; }
+  .nac-rss img { max-width: 100%; border-radius: 8px; }
+  .nac-rss [data-callout] { border-left: 3px solid #c9956b; background: rgba(201, 149, 107, 0.12); padding: 10px 12px; }
+  .nac-rss [data-author], .nac-rss [data-gallery] { border: 1px solid rgba(33, 27, 23, 0.12); border-radius: 8px; padding: 12px; }
+`
+
+/**
+ * Build the self-contained HTML document for the RSS preview iframe. The rendered body
+ * comes from the (escaping, allowlist-based) portable-text renderer; isolating it in a
+ * sandboxed iframe means even a future raw-HTML block could not execute script in the
+ * admin's privileged DOM. Title and byline are escaped here for the same reason.
+ */
+export function buildRssPreviewDoc(opts: { body: string; title: string; byline?: string }): string {
+  const { body, title, byline } = opts
+  const heading = `<h1 class="nac-rss-title">${escapeHtml(title)}</h1>`
+  const bylineHtml = byline ? `<p class="nac-rss-byline">${escapeHtml(byline)}</p>` : ""
+  return `<!doctype html><html><head><meta charset="utf-8" />
+<style>${RSS_PREVIEW_CSS}</style>
+</head><body>
+<article class="nac-rss">${heading}${bylineHtml}${body}</article>
+</body></html>`
+}
+
 export function ChannelMirror({
   apiBase = "",
   blocks,
@@ -96,9 +128,12 @@ export function ChannelMirror({
     }
   }, [apiBase])
 
-  const rssHtml = useMemo(
-    () => (channel === "rss" ? renderPortableText(blocks, "rss") : ""),
-    [blocks, channel],
+  const rssDoc = useMemo(
+    () =>
+      channel === "rss"
+        ? buildRssPreviewDoc({ body: renderPortableText(blocks, "rss"), title, byline })
+        : "",
+    [blocks, channel, title, byline],
   )
   const webDoc = useMemo(() => {
     if (channel !== "web") return ""
@@ -171,22 +206,22 @@ export function ChannelMirror({
       </div>
       <div className="cn-mirror-scroll">
         {channel === "web" ? (
-          <iframe className="cn-mirror-web-frame" title="Web preview" srcDoc={webDoc} />
+          <iframe className="cn-mirror-web-frame" title="Web preview" sandbox="" srcDoc={webDoc} />
         ) : channel === "email" ? (
           emailHtml ? (
-            <iframe className="cn-mirror-email-frame" title="Email preview" srcDoc={emailHtml} />
+            <iframe
+              className="cn-mirror-email-frame"
+              title="Email preview"
+              sandbox=""
+              srcDoc={emailHtml}
+            />
           ) : (
             <div className="cn-mirror-loading">
               {emailLoading && !emailError ? "Rendering..." : "Email preview unavailable"}
             </div>
           )
         ) : (
-          <article className="cn-render" data-channel="rss">
-            <h1 className="cn-render-title">{title}</h1>
-            {byline && <p className="cn-render-byline">{byline}</p>}
-            {/* biome-ignore lint/security/noDangerouslySetInnerHtml: intentional RSS channel preview that renders server-derived HTML for the mirror */}
-            <div dangerouslySetInnerHTML={{ __html: rssHtml }} />
-          </article>
+          <iframe className="cn-mirror-rss-frame" title="RSS preview" sandbox="" srcDoc={rssDoc} />
         )}
       </div>
     </div>

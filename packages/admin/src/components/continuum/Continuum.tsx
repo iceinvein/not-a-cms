@@ -7,6 +7,7 @@ import { ErrorBoundary } from "../ErrorBoundary"
 import { ToastProvider, useToast } from "../Toast"
 import { continuumBlocks, continuumSlashCommands } from "./blocks"
 import { ChannelMirror } from "./ChannelMirror"
+import { VisualCanvas } from "./canvas/VisualCanvas"
 import { FieldsPanel } from "./FieldsPanel"
 import { useDocument, type WorkflowAction } from "./use-document"
 
@@ -68,6 +69,7 @@ function ContinuumInner({
   collaborationUser = defaultCollabUser(),
 }: Props) {
   const { addToast } = useToast()
+  const [editorMode, setEditorMode] = useState<"document" | "visual">("document")
   const { data, updateField, save, saving, loading, error } = useDocument({
     collection,
     fields,
@@ -167,9 +169,33 @@ function ContinuumInner({
               <span>{collectionLabel}</span>
               <span>{saving ? "Saving..." : error ? "Needs attention" : statusLabel}</span>
             </div>
-            <div className="cn-presence" title="Current collaborator">
-              <span style={{ background: collaborationUser.color }} aria-hidden="true" />
-              {collaborationUser.name}
+            <div className="cn-sheet-head-right">
+              {bodyField ? (
+                <div className="cn-mode-toggle" role="tablist" aria-label="Editor mode">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={editorMode === "visual"}
+                    className={editorMode === "visual" ? "cn-mode-btn cn-mode-on" : "cn-mode-btn"}
+                    onClick={() => setEditorMode("visual")}
+                  >
+                    Visual
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={editorMode === "document"}
+                    className={editorMode === "document" ? "cn-mode-btn cn-mode-on" : "cn-mode-btn"}
+                    onClick={() => setEditorMode("document")}
+                  >
+                    Document
+                  </button>
+                </div>
+              ) : null}
+              <div className="cn-presence" title="Current collaborator">
+                <span style={{ background: collaborationUser.color }} aria-hidden="true" />
+                {collaborationUser.name}
+              </div>
             </div>
           </div>
           <textarea
@@ -181,19 +207,31 @@ function ContinuumInner({
             onChange={(event) => updateField(titleField, event.target.value)}
           />
           {bodyField ? (
-            <Suspense fallback={<div className="cn-loading">Loading editor...</div>}>
-              <Editor
+            editorMode === "visual" ? (
+              <VisualCanvas
                 content={portableTextValue(data[bodyField])}
-                blocks={continuumBlocks}
-                slashCommands={continuumSlashCommands}
-                placeholder="Type / to insert, or just start writing..."
+                apiBase={apiBase}
                 collaboration={collaboration ?? undefined}
                 onChange={(blocks) => {
                   setBodyBlocks(blocks)
                   updateField(bodyField, JSON.stringify(blocks))
                 }}
               />
-            </Suspense>
+            ) : (
+              <Suspense fallback={<div className="cn-loading">Loading editor...</div>}>
+                <Editor
+                  content={portableTextValue(data[bodyField])}
+                  blocks={continuumBlocks}
+                  slashCommands={continuumSlashCommands}
+                  placeholder="Type / to insert, or just start writing..."
+                  collaboration={collaboration ?? undefined}
+                  onChange={(blocks) => {
+                    setBodyBlocks(blocks)
+                    updateField(bodyField, JSON.stringify(blocks))
+                  }}
+                />
+              </Suspense>
+            )
           ) : (
             <div className="cn-empty">This collection has no rich text field.</div>
           )}

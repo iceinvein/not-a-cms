@@ -119,6 +119,7 @@ export function FlowCanvas({
     <div className="flex flex-col items-center py-6 min-h-full">
       {/* Trigger block */}
       <button
+        type="button"
         onClick={onSelectTrigger}
         className={`w-80 px-4 py-3 rounded-xl border-2 bg-[#fafafa] text-[#0a0a0c] text-sm font-medium text-center transition-all ${
           selectedStepId === null
@@ -135,6 +136,7 @@ export function FlowCanvas({
         <div className="relative flex flex-col items-center">
           <div className="w-0.5 h-6 bg-[rgba(255,255,255,0.1)]" />
           <button
+            type="button"
             onClick={() => setPickerIndex(pickerIndex === 0 ? null : 0)}
             className="w-7 h-7 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)] text-[#71717a] hover:bg-[rgba(255,255,255,0.08)] hover:text-[#a1a1aa] hover:border-[rgba(255,255,255,0.15)] text-sm flex items-center justify-center transition-colors"
           >
@@ -173,6 +175,7 @@ export function FlowCanvas({
         return (
           <div key={step.id} className="flex flex-col items-center">
             <button
+              type="button"
               onClick={() => onSelectStep(isSelected ? null : step.id)}
               className={blockClasses}
             >
@@ -205,6 +208,7 @@ export function FlowCanvas({
             {!readOnly && (
               <div className="flex items-center gap-2 mt-1">
                 <button
+                  type="button"
                   onClick={() => onRemoveStep(step.id)}
                   className="text-xs text-[#52525b] hover:text-[#ef4444] transition-colors"
                 >
@@ -219,6 +223,7 @@ export function FlowCanvas({
               {!readOnly && (
                 <>
                   <button
+                    type="button"
                     onClick={() => setPickerIndex(pickerIndex === index + 1 ? null : index + 1)}
                     className="w-7 h-7 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)] text-[#71717a] hover:bg-[rgba(255,255,255,0.08)] hover:text-[#a1a1aa] hover:border-[rgba(255,255,255,0.15)] text-sm flex items-center justify-center transition-colors"
                   >

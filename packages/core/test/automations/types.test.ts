@@ -1,11 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import type {
-  ActionStep,
-  ConditionStep,
-  Flow,
-  FlowStep,
-  FlowTrigger,
-} from "../../src/automations/types"
+import type { ActionStep, ConditionStep, FlowStep, FlowTrigger } from "../../src/automations/types"
 
 describe("automation types", () => {
   test("a content trigger with collection compiles", () => {

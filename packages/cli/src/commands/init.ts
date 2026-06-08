@@ -13,7 +13,6 @@ registerCommand({
   description: "Create a new not-a-cms project",
   async run(args) {
     const projectName = args[0] || "my-site"
-    const template = args.find((a) => a.startsWith("--template="))?.split("=")[1] || "blog"
     const projectDir = join(process.cwd(), projectName)
 
     if (existsSync(projectDir)) {

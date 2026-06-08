@@ -41,6 +41,7 @@ export function Editor({
   const initialContentSignature = content ? portableTextSignature(content) : null
   const appliedContentSignature = useRef<string | null>(initialContentSignature)
   const hasAppliedInitialContent = useRef(Boolean(initialContentSignature) && !collaboration)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: deliberately keyed on collaboration's truthiness only; depending on the collaboration object identity would rebuild the extensions array and tear down/recreate the Tiptap editor
   const remoteCursorExtensions = useMemo(
     () =>
       collaboration
@@ -99,6 +100,7 @@ export function Editor({
     hasAppliedInitialContent.current = true
   }, [editor, content])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: keyed on collaboration's truthiness plus the live cursor map; the collaboration object identity is intentionally not a trigger
   useEffect(() => {
     if (!editor || !collaboration) return
     setRemoteCursors(editor, collab.cursors)

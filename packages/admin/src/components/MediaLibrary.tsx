@@ -40,6 +40,7 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
     }
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refresh is recreated each render; the fetch should re-run only when apiBase changes, not every render.
   useEffect(() => {
     refresh()
   }, [apiBase])
@@ -75,6 +76,7 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
     }
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: this seeds the editable form only when the selection changes; depending on each selectedItem field would overwrite in-progress edits on every keystroke.
   useEffect(() => {
     if (!selectedItem) return
     setMetadata({
@@ -132,6 +134,7 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
     <div className="space-y-8">
       <div className="flex items-center gap-4">
         <button
+          type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
           className="inline-flex items-center gap-2 px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4a57c] disabled:opacity-50 transition-colors"

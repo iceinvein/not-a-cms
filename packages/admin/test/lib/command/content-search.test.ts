@@ -26,12 +26,12 @@ describe("searchContent", () => {
     }
     const hits = await searchContent("", collections, "la", fetcher)
     const byId = Object.fromEntries(hits.map((h: ContentHit) => [h.documentId, h]))
-    expect(byId["p1"]).toMatchObject({
+    expect(byId.p1).toMatchObject({
       collection: "blog_post",
       title: "Launch week",
       href: "/content/blog_post/p1",
     })
-    expect(byId["a1"].title).toBe("about")
+    expect(byId.a1.title).toBe("about")
   })
 
   test("a failing collection request is skipped, others still return", async () => {

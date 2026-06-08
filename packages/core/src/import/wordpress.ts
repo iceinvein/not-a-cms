@@ -56,9 +56,9 @@ export function htmlToPortableText(html: string): PTBlock[] {
 
   const blockRegex =
     /<(p|h[1-6]|blockquote|ul|ol|pre|img|hr)[^>]*>([\s\S]*?)<\/\1>|<(img|hr)\s[^>]*\/?>/gi
-  let match
+  let match: RegExpExecArray | null = blockRegex.exec(cleaned)
 
-  while ((match = blockRegex.exec(cleaned)) !== null) {
+  while (match !== null) {
     const tag = (match[1] || match[3] || "").toLowerCase()
     const content = match[2] || ""
 
@@ -67,7 +67,7 @@ export function htmlToPortableText(html: string): PTBlock[] {
     } else if (tag.match(/^h[1-6]$/)) {
       blocks.push({
         type: "heading",
-        level: parseInt(tag[1]),
+        level: parseInt(tag[1], 10),
         children: parseInlineContent(content),
       })
     } else if (tag === "blockquote") {
@@ -90,6 +90,7 @@ export function htmlToPortableText(html: string): PTBlock[] {
     } else if (tag === "hr") {
       blocks.push({ type: "divider" })
     }
+    match = blockRegex.exec(cleaned)
   }
 
   if (blocks.length === 0 && cleaned) {
@@ -104,9 +105,11 @@ function parseInlineContent(
 ): Array<{ type: "text"; value: string; marks?: string[] }> {
   const nodes: Array<{ type: "text"; value: string; marks?: string[] }> = []
   const inlineRegex = /<(strong|b|em|i|code|a)[^>]*>([\s\S]*?)<\/\1>|([^<]+)/gi
-  let match
+  let match: RegExpExecArray | null
 
-  while ((match = inlineRegex.exec(html)) !== null) {
+  while (true) {
+    match = inlineRegex.exec(html)
+    if (match === null) break
     const tag = (match[1] || "").toLowerCase()
     const content = match[2] || match[3] || ""
     const text = content
@@ -141,8 +144,10 @@ function parseInlineContent(
 function parseListItems(html: string): PTBlock[][] {
   const items: PTBlock[][] = []
   const liRegex = /<li[^>]*>([\s\S]*?)<\/li>/gi
-  let match
-  while ((match = liRegex.exec(html)) !== null) {
+  let match: RegExpExecArray | null
+  while (true) {
+    match = liRegex.exec(html)
+    if (match === null) break
     items.push([{ type: "paragraph", children: parseInlineContent(match[1]) }])
   }
   return items
@@ -155,9 +160,11 @@ export function parseWXR(xml: string): WXRResult {
   const authors = parseAuthors(xml)
   const terms = parseTerms(xml)
   const itemRegex = /<item>([\s\S]*?)<\/item>/gi
-  let match
+  let match: RegExpExecArray | null
 
-  while ((match = itemRegex.exec(xml)) !== null) {
+  while (true) {
+    match = itemRegex.exec(xml)
+    if (match === null) break
     const item = match[1]
     const title = extractTag(item, "title") || "Untitled"
     const slug = extractTag(item, "wp:post_name") || ""
@@ -324,8 +331,10 @@ function extractTag(xml: string, tag: string): string | null {
 function parseAuthors(xml: string): WXRAuthor[] {
   const authors: WXRAuthor[] = []
   const authorRegex = /<wp:author>([\s\S]*?)<\/wp:author>/gi
-  let match
-  while ((match = authorRegex.exec(xml)) !== null) {
+  let match: RegExpExecArray | null
+  while (true) {
+    match = authorRegex.exec(xml)
+    if (match === null) break
     const author = match[1]
     const login = extractTag(author, "wp:author_login") || ""
     if (!login) continue
@@ -341,8 +350,10 @@ function parseAuthors(xml: string): WXRAuthor[] {
 function parseTerms(xml: string): WXRTerm[] {
   const terms: WXRTerm[] = []
   const termRegex = /<wp:term>([\s\S]*?)<\/wp:term>/gi
-  let match
-  while ((match = termRegex.exec(xml)) !== null) {
+  let match: RegExpExecArray | null
+  while (true) {
+    match = termRegex.exec(xml)
+    if (match === null) break
     const term = match[1]
     const taxonomy = extractTag(term, "wp:term_taxonomy") || ""
     const slug = extractTag(term, "wp:term_slug") || ""
@@ -361,8 +372,10 @@ function parseTerms(xml: string): WXRTerm[] {
 function parseItemTerms(xml: string): Array<{ taxonomy: string; slug: string; name: string }> {
   const terms: Array<{ taxonomy: string; slug: string; name: string }> = []
   const categoryRegex = /<category([^>]*)>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/category>/gi
-  let match
-  while ((match = categoryRegex.exec(xml)) !== null) {
+  let match: RegExpExecArray | null
+  while (true) {
+    match = categoryRegex.exec(xml)
+    if (match === null) break
     const attrs = match[1] || ""
     const taxonomy = attr(attrs, "domain") || ""
     const slug = attr(attrs, "nicename") || ""

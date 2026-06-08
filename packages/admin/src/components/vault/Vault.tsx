@@ -200,6 +200,7 @@ export function Vault({
     }
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: bootstrap effect; loadTags/loadFolders/refresh are recreated each render and initial* are one-time SSR props, so it must run only when apiBase changes, not every render.
   useEffect(() => {
     getMediaContext(apiBase)
       .then((ctx) => {
@@ -217,11 +218,13 @@ export function Vault({
     void refresh()
   }, [apiBase])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: seeds the editable form only when the selection changes; depending on the full selectedItem object would overwrite in-progress edits whenever the items list mutates.
   useEffect(() => {
     if (!selectedItem) return
     setMetadata(toMetadataState(selectedItem))
   }, [selectedItem?.id])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: usage is fetched per selected id; initialUsage/initialSelected are one-time SSR seeds and depending on the full selectedItem object would refetch on every items mutation.
   useEffect(() => {
     if (!selectedItem) {
       setUsage(null)
@@ -754,14 +757,14 @@ function TagFilterBar({
   const noFilter = activeTags.length === 0 && !showUntagged
 
   return (
-    <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter by tag">
+    <div className="flex flex-wrap items-center gap-2" role="toolbar" aria-label="Filter by tag">
       <button type="button" onClick={onClear} className={chip(noFilter)} aria-pressed={noFilter}>
         All
       </button>
       {activeTags.length >= 2 && (
         <span
           className="inline-flex overflow-hidden rounded-full border border-[rgba(255,255,255,0.12)] text-xs font-medium"
-          role="group"
+          role="toolbar"
           aria-label="Match mode"
         >
           <button
@@ -1099,6 +1102,7 @@ function ClusterSection({
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
           {cluster.items.map((item) => (
+            // biome-ignore lint/a11y/noStaticElementInteractions: drag-and-drop is a pointer-only progressive enhancement layered over the fully accessible button and checkbox inside; the wrapper has no click/keyboard interaction of its own.
             <div
               key={`${cluster.key}-${item.id}`}
               className="group/cell relative"

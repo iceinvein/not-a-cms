@@ -26,6 +26,7 @@ export function FlowList({ apiBase = "" }: Props) {
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState("")
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: mount-only fetch; non-memoized fetchFlows would re-run every render if added to the array.
   useEffect(() => {
     fetchFlows()
   }, [])
@@ -92,6 +93,7 @@ export function FlowList({ apiBase = "" }: Props) {
     <div className="space-y-8">
       <div className="flex justify-end">
         <button
+          type="button"
           onClick={handleCreate}
           disabled={creating}
           className="px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4a57c] disabled:opacity-50 transition-colors"
@@ -106,6 +108,7 @@ export function FlowList({ apiBase = "" }: Props) {
           description={error}
           action={
             <button
+              type="button"
               onClick={fetchFlows}
               className="px-3 py-1.5 text-sm font-medium text-[#fafafa] bg-[rgba(255,255,255,0.08)] rounded-md hover:bg-[rgba(255,255,255,0.12)] transition-colors"
             >
@@ -148,6 +151,7 @@ export function FlowList({ apiBase = "" }: Props) {
                   {new Date(flow.updated_at).toLocaleDateString()}
                 </span>
                 <button
+                  type="button"
                   onClick={() => handleToggle(flow)}
                   className={`text-xs px-2 py-1 rounded-full font-medium transition-colors ${
                     flow.active
@@ -158,6 +162,7 @@ export function FlowList({ apiBase = "" }: Props) {
                   {flow.active ? "Active" : "Inactive"}
                 </button>
                 <button
+                  type="button"
                   onClick={() => handleDelete(flow)}
                   className="text-xs text-[#52525b] hover:text-[#ef4444] transition-colors"
                 >

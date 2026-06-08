@@ -184,6 +184,7 @@ export function ChannelMirror({
           <article className="cn-render" data-channel="rss">
             <h1 className="cn-render-title">{title}</h1>
             {byline && <p className="cn-render-byline">{byline}</p>}
+            {/* biome-ignore lint/security/noDangerouslySetInnerHtml: intentional RSS channel preview that renders server-derived HTML for the mirror */}
             <div dangerouslySetInnerHTML={{ __html: rssHtml }} />
           </article>
         )}

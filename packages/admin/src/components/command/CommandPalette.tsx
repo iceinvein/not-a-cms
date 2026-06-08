@@ -107,7 +107,10 @@ export function CommandPalette({
     if (typeof console !== "undefined") console.info(`[command] ${message}`)
   }, [])
 
-  const runCtx: CommandRunContext = { apiBase, siteBase, context, navigate, notify }
+  const runCtx: CommandRunContext = useMemo(
+    () => ({ apiBase, siteBase, context, navigate, notify }),
+    [apiBase, siteBase, context, navigate, notify],
+  )
   const visibleCommands = useMemo(() => {
     if (scope === "find" || scope === "ask") return []
     return rankCommands(
@@ -162,7 +165,10 @@ export function CommandPalette({
   if (!open) return null
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: click-to-dismiss modal backdrop; keyboard dismiss is handled by Escape on the combobox input
     <div className="cmd-overlay" onClick={close} role="presentation">
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents: panel only stops backdrop-click propagation, it has no keyboard-actionable behaviour of its own */}
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: panel only stops backdrop-click propagation, it has no keyboard-actionable behaviour of its own */}
       <div className="cmd-panel" onClick={(event) => event.stopPropagation()}>
         <div className="cmd-search">
           <Icon name="search" size={20} className="cmd-search-icon" />
@@ -188,6 +194,7 @@ export function CommandPalette({
         <div className="cmd-scopes" role="tablist">
           {SCOPES.map((s) => (
             <button
+              type="button"
               key={s.key}
               role="tab"
               aria-selected={scope === s.key}
@@ -210,13 +217,17 @@ export function CommandPalette({
           </div>
         )}
 
+        {/* biome-ignore lint/a11y/noNoninteractiveElementToInteractiveRole: part of the combobox/listbox ARIA pattern; the combobox input references this via aria-controls/aria-activedescendant */}
         <ul id="cmd-listbox" role="listbox" className="cmd-results">
           {rowCount === 0 && <li className="cmd-empty">No matches</li>}
           {scope !== "find" && scope !== "ask"
             ? visibleCommands.map((cmd, index) => (
+                // biome-ignore lint/a11y/useFocusableInteractive: listbox options are not individually focusable; focus stays on the input and aria-activedescendant tracks the active option
+                // biome-ignore lint/a11y/useKeyWithClickEvents: onClick is a mouse affordance; keyboard users select via the combobox input's onKeyDown handler
                 <li
                   key={cmd.id}
                   id={`cmd-row-${index}`}
+                  // biome-ignore lint/a11y/noNoninteractiveElementToInteractiveRole: listbox option; keyboard activation is handled on the combobox input via arrow keys + Enter
                   role="option"
                   aria-selected={index === active}
                   className={index === active ? "cmd-row cmd-row-on" : "cmd-row"}
@@ -232,9 +243,12 @@ export function CommandPalette({
                 </li>
               ))
             : hits.map((hit, index) => (
+                // biome-ignore lint/a11y/useFocusableInteractive: listbox options are not individually focusable; focus stays on the input and aria-activedescendant tracks the active option
+                // biome-ignore lint/a11y/useKeyWithClickEvents: onClick is a mouse affordance; keyboard users select via the combobox input's onKeyDown handler
                 <li
                   key={`${hit.collection}-${hit.documentId}`}
                   id={`cmd-row-${index}`}
+                  // biome-ignore lint/a11y/noNoninteractiveElementToInteractiveRole: listbox option; keyboard activation is handled on the combobox input via arrow keys + Enter
                   role="option"
                   aria-selected={index === active}
                   className={index === active ? "cmd-row cmd-row-on" : "cmd-row"}

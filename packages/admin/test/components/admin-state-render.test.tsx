@@ -1,5 +1,4 @@
 import { describe, expect, test } from "bun:test"
-import React from "react"
 import { renderToString } from "react-dom/server"
 import { EmptyState, ErrorState, LoadingState } from "../../src/components/AdminState"
 
@@ -12,14 +11,14 @@ describe("AdminState", () => {
       <EmptyState
         title="No media yet"
         description="Upload files to reuse them across content."
-        action={<button>Upload</button>}
+        action={<button type="button">Upload</button>}
       />,
     )
     const error = renderToString(
       <ErrorState
         title="Permission needed"
         description="You do not have access."
-        action={<button>Try again</button>}
+        action={<button type="button">Try again</button>}
       />,
     )
 

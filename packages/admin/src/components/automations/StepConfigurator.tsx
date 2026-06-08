@@ -78,8 +78,11 @@ function TriggerConfig({
   return (
     <div className={sectionClass}>
       <div>
-        <label className={labelClass}>Trigger type</label>
+        <label htmlFor="trigger-type" className={labelClass}>
+          Trigger type
+        </label>
         <select
+          id="trigger-type"
           value={trigger.type}
           onChange={(e) => handleTypeChange(e.target.value as FlowTrigger["type"])}
           className={inputClass}
@@ -94,8 +97,11 @@ function TriggerConfig({
 
       {isContentTrigger(trigger.type) && (
         <div>
-          <label className={labelClass}>Collection (optional)</label>
+          <label htmlFor="trigger-collection" className={labelClass}>
+            Collection (optional)
+          </label>
           <input
+            id="trigger-collection"
             type="text"
             value={collection}
             onChange={(e) =>
@@ -109,8 +115,11 @@ function TriggerConfig({
 
       {trigger.type === "schedule.cron" && (
         <div>
-          <label className={labelClass}>Cron expression</label>
+          <label htmlFor="trigger-cron" className={labelClass}>
+            Cron expression
+          </label>
           <input
+            id="trigger-cron"
             type="text"
             value={cron}
             onChange={(e) => onUpdateTrigger({ type: "schedule.cron", cron: e.target.value })}
@@ -120,6 +129,7 @@ function TriggerConfig({
           <div className="flex flex-wrap gap-1 mt-2">
             {CRON_PRESETS.map((preset) => (
               <button
+                type="button"
                 key={preset.value}
                 onClick={() => onUpdateTrigger({ type: "schedule.cron", cron: preset.value })}
                 className="text-xs px-2 py-1 rounded bg-[rgba(255,255,255,0.05)] text-[#71717a] hover:bg-[rgba(255,255,255,0.08)] transition-colors"
@@ -159,8 +169,11 @@ function ConditionConfig({
   return (
     <div className={sectionClass}>
       <div>
-        <label className={labelClass}>Match mode</label>
+        <label htmlFor="condition-match" className={labelClass}>
+          Match mode
+        </label>
         <select
+          id="condition-match"
           value={step.match}
           onChange={(e) =>
             onUpdateStep(step.id, {
@@ -181,6 +194,7 @@ function ConditionConfig({
         )}
         {step.rules.map((rule, i) => (
           <div
+            // biome-ignore lint/suspicious/noArrayIndexKey: ConditionRule has no stable id and rows are updated/removed by their array index (updateRule/removeRule), so the index is the row's identity here.
             key={i}
             className="bg-[rgba(255,255,255,0.05)] rounded-lg border border-[rgba(255,255,255,0.06)] p-2 flex flex-col gap-2"
           >
@@ -193,6 +207,7 @@ function ConditionConfig({
                 className="flex-1 border border-[rgba(255,255,255,0.1)] rounded px-2 py-1 text-xs bg-[#18181b] text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[rgba(255,255,255,0.2)]"
               />
               <button
+                type="button"
                 onClick={() => removeRule(i)}
                 className="text-[#52525b] hover:text-[#ef4444] text-xs"
               >
@@ -220,6 +235,7 @@ function ConditionConfig({
           </div>
         ))}
         <button
+          type="button"
           onClick={addRule}
           className="text-xs text-[#a1a1aa] hover:text-[#fafafa] self-start mt-1"
         >
@@ -262,8 +278,11 @@ function ActionConfig({
   return (
     <div className={sectionClass}>
       <div>
-        <label className={labelClass}>Label (optional)</label>
+        <label htmlFor="action-label" className={labelClass}>
+          Label (optional)
+        </label>
         <input
+          id="action-label"
           type="text"
           value={step.label ?? ""}
           onChange={(e) => setLabel(e.target.value)}
@@ -275,8 +294,11 @@ function ActionConfig({
       {step.type === "action.webhook" && (
         <>
           <div>
-            <label className={labelClass}>URL</label>
+            <label htmlFor="action-webhook-url" className={labelClass}>
+              URL
+            </label>
             <input
+              id="action-webhook-url"
               type="url"
               value={(cfg.url as string) ?? ""}
               onChange={(e) => setConfig("url", e.target.value)}
@@ -285,8 +307,11 @@ function ActionConfig({
             />
           </div>
           <div>
-            <label className={labelClass}>Method</label>
+            <label htmlFor="action-webhook-method" className={labelClass}>
+              Method
+            </label>
             <select
+              id="action-webhook-method"
               value={(cfg.method as string) ?? "POST"}
               onChange={(e) => setConfig("method", e.target.value)}
               className={inputClass}
@@ -302,8 +327,11 @@ function ActionConfig({
       {step.type === "action.email" && (
         <>
           <div>
-            <label className={labelClass}>To</label>
+            <label htmlFor="action-email-to" className={labelClass}>
+              To
+            </label>
             <input
+              id="action-email-to"
               type="email"
               value={(cfg.to as string) ?? ""}
               onChange={(e) => setConfig("to", e.target.value)}
@@ -312,8 +340,11 @@ function ActionConfig({
             />
           </div>
           <div>
-            <label className={labelClass}>Subject</label>
+            <label htmlFor="action-email-subject" className={labelClass}>
+              Subject
+            </label>
             <input
+              id="action-email-subject"
               type="text"
               value={(cfg.subject as string) ?? ""}
               onChange={(e) => setConfig("subject", e.target.value)}
@@ -327,8 +358,11 @@ function ActionConfig({
       {(step.type === "action.create_content" || step.type === "action.update_content") && (
         <>
           <div>
-            <label className={labelClass}>Collection</label>
+            <label htmlFor="action-content-collection" className={labelClass}>
+              Collection
+            </label>
             <input
+              id="action-content-collection"
               type="text"
               value={(cfg.collection as string) ?? ""}
               onChange={(e) => setConfig("collection", e.target.value)}
@@ -338,8 +372,11 @@ function ActionConfig({
           </div>
           {step.type === "action.update_content" && (
             <div>
-              <label className={labelClass}>Document ID</label>
+              <label htmlFor="action-content-document-id" className={labelClass}>
+                Document ID
+              </label>
               <input
+                id="action-content-document-id"
                 type="text"
                 value={(cfg.documentId as string) ?? (cfg.document_id as string) ?? ""}
                 onChange={(e) => setConfig("documentId", e.target.value)}
@@ -349,15 +386,18 @@ function ActionConfig({
             </div>
           )}
           <div>
-            <label className={labelClass}>Data mapping (JSON)</label>
+            <label htmlFor="action-content-data" className={labelClass}>
+              Data mapping (JSON)
+            </label>
             <textarea
+              id="action-content-data"
               rows={4}
               defaultValue={cfg.data ? JSON.stringify(cfg.data, null, 2) : ""}
               onChange={(e) => handleJsonField("data", e.target.value)}
               placeholder='{"title": "{{payload.title}}"}'
-              className={`${inputClass} font-mono ${jsonErrors["data"] ? "border-red-400" : ""}`}
+              className={`${inputClass} font-mono ${jsonErrors.data ? "border-red-400" : ""}`}
             />
-            {jsonErrors["data"] && <p className="text-xs text-red-500 mt-1">Invalid JSON</p>}
+            {jsonErrors.data && <p className="text-xs text-red-500 mt-1">Invalid JSON</p>}
           </div>
         </>
       )}
@@ -365,8 +405,11 @@ function ActionConfig({
       {step.type === "action.delete_content" && (
         <>
           <div>
-            <label className={labelClass}>Collection</label>
+            <label htmlFor="action-delete-collection" className={labelClass}>
+              Collection
+            </label>
             <input
+              id="action-delete-collection"
               type="text"
               value={(cfg.collection as string) ?? ""}
               onChange={(e) => setConfig("collection", e.target.value)}
@@ -375,8 +418,11 @@ function ActionConfig({
             />
           </div>
           <div>
-            <label className={labelClass}>Document ID</label>
+            <label htmlFor="action-delete-document-id" className={labelClass}>
+              Document ID
+            </label>
             <input
+              id="action-delete-document-id"
               type="text"
               value={(cfg.documentId as string) ?? (cfg.document_id as string) ?? ""}
               onChange={(e) => setConfig("documentId", e.target.value)}
@@ -389,8 +435,11 @@ function ActionConfig({
 
       {step.type === "action.log" && (
         <div>
-          <label className={labelClass}>Message</label>
+          <label htmlFor="action-log-message" className={labelClass}>
+            Message
+          </label>
           <textarea
+            id="action-log-message"
             rows={3}
             value={(cfg.message as string) ?? ""}
             onChange={(e) => setConfig("message", e.target.value)}
@@ -402,15 +451,18 @@ function ActionConfig({
 
       {step.type === "action.transform" && (
         <div>
-          <label className={labelClass}>Mappings (JSON)</label>
+          <label htmlFor="action-transform-mappings" className={labelClass}>
+            Mappings (JSON)
+          </label>
           <textarea
+            id="action-transform-mappings"
             rows={5}
             defaultValue={cfg.mappings ? JSON.stringify(cfg.mappings, null, 2) : ""}
             onChange={(e) => handleJsonField("mappings", e.target.value)}
             placeholder='{"output.field": "{{payload.source}}"}'
-            className={`${inputClass} font-mono ${jsonErrors["mappings"] ? "border-red-400" : ""}`}
+            className={`${inputClass} font-mono ${jsonErrors.mappings ? "border-red-400" : ""}`}
           />
-          {jsonErrors["mappings"] && <p className="text-xs text-red-500 mt-1">Invalid JSON</p>}
+          {jsonErrors.mappings && <p className="text-xs text-red-500 mt-1">Invalid JSON</p>}
         </div>
       )}
 
@@ -452,7 +504,11 @@ export function StepConfigurator({
       {title && (
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold text-[#fafafa]">{title}</h3>
-          <button onClick={onClose} className="text-[#52525b] hover:text-[#a1a1aa] text-sm">
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-[#52525b] hover:text-[#a1a1aa] text-sm"
+          >
             ✕
           </button>
         </div>

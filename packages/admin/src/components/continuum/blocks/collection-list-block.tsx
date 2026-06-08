@@ -57,9 +57,10 @@ export function CollectionListBlockView({ node, updateAttributes }: any) {
           onChange={(e) => updateAttributes({ filterTag: e.target.value })}
         />
       </label>
-      <label className="cn-section-control">
+      <label className="cn-section-control" htmlFor="cn-collection-list-layout">
         Layout
         <Select
+          id="cn-collection-list-layout"
           value={layout}
           onValueChange={(value) => updateAttributes({ layout: value })}
           ariaLabel="Layout"

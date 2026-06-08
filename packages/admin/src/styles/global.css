@@ -61,8 +61,11 @@ body {
   *,
   *::before,
   *::after {
+    /* biome-ignore lint/complexity/noImportantStyles: reduced-motion reset must override every component's animation */
     animation-duration: 0.001ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: reduced-motion reset must override every component's transition */
     transition-duration: 0.001ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: reduced-motion reset must override scroll-behavior set elsewhere */
     scroll-behavior: auto !important;
   }
 }
@@ -231,10 +234,12 @@ a.crumb:hover {
     grid-template-columns: 52px 1fr;
   }
 
+  /* biome-ignore lint/style/noDescendingSpecificity: mobile rule intentionally coexists with the higher-specificity .rail-collapsed .rail-text state above */
   .rail-text {
     display: none;
   }
 
+  /* biome-ignore lint/style/noDescendingSpecificity: mobile rule intentionally coexists with the higher-specificity .rail-collapsed .rail-link state above */
   .rail-link,
   .rail-toggle {
     justify-content: center;
@@ -900,6 +905,7 @@ a.crumb:hover {
   color: var(--accent-text);
 }
 
+/* biome-ignore lint/style/noDescendingSpecificity: base rule sets disjoint properties from the earlier .cn-section-controls > .cn-checkbox-field min-height override; no cascade conflict */
 .cn-checkbox-field {
   display: inline-flex;
   align-items: center;

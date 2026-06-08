@@ -58,6 +58,7 @@ export function Rules({ apiBase = "", initialFlows, initialSelectedId }: Props) 
     }
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: mount-scoped fetch; non-memoized fetchFlows would re-run every render, apiBase scopes the (re)fetch intentionally.
   useEffect(() => {
     if (!initialFlows) fetchFlows()
   }, [apiBase])
@@ -162,6 +163,7 @@ export function Rules({ apiBase = "", initialFlows, initialSelectedId }: Props) 
                   </div>
                   <p className="flex flex-wrap items-center gap-1.5 text-sm leading-7">
                     {tokens.map((token, index) => (
+                      // biome-ignore lint/suspicious/noArrayIndexKey: readable tokens have no id and (kind, text) can repeat in a sentence; index disambiguates a purely presentational, non-reordered list.
                       <span key={`${token.kind}-${index}`} className={tokenClass(token.kind)}>
                         {token.text}
                       </span>

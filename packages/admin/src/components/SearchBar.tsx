@@ -36,6 +36,7 @@ export function SearchBar({ onSearch, placeholder = "Search..." }: Props) {
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
+        aria-hidden="true"
       >
         <path
           strokeLinecap="round"
@@ -53,13 +54,20 @@ export function SearchBar({ onSearch, placeholder = "Search..." }: Props) {
       />
       {value && (
         <button
+          type="button"
           onClick={() => {
             setValue("")
             onSearch("")
           }}
           className="absolute right-3 top-1/2 -translate-y-1/2 text-[#52525b] hover:text-[#a1a1aa]"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"

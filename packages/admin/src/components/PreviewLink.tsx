@@ -78,6 +78,7 @@ export function PreviewLink({
     return (
       <div className="space-y-2">
         <button
+          type="button"
           onClick={() => handleGenerate(false)}
           disabled={loading !== null}
           className="w-full py-2 text-xs font-medium text-[#a1a1aa] border border-[rgba(255,255,255,0.06)] rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
@@ -86,6 +87,7 @@ export function PreviewLink({
         </button>
         <div className="grid grid-cols-2 gap-2">
           <button
+            type="button"
             onClick={() => handleGenerate(true)}
             disabled={loading !== null}
             className="py-1.5 text-xs font-medium text-[#71717a] border border-[rgba(255,255,255,0.06)] rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
@@ -93,6 +95,7 @@ export function PreviewLink({
             {loading === "regenerate" ? "Regenerating..." : "Regenerate"}
           </button>
           <button
+            type="button"
             onClick={handleRevoke}
             disabled={loading !== null}
             className="py-1.5 text-xs font-medium text-[#71717a] border border-[rgba(255,255,255,0.06)] rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
@@ -115,6 +118,7 @@ export function PreviewLink({
           className="flex-1 px-2 py-1.5 text-xs border border-[rgba(255,255,255,0.06)] rounded-lg bg-[rgba(255,255,255,0.05)] text-[#71717a] truncate"
         />
         <button
+          type="button"
           onClick={handleCopy}
           className="px-3 py-1.5 text-xs font-medium border border-[rgba(255,255,255,0.06)] text-[#a1a1aa] rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
         >
@@ -131,6 +135,7 @@ export function PreviewLink({
       </a>
       <div className="grid grid-cols-2 gap-2">
         <button
+          type="button"
           onClick={() => handleGenerate(true)}
           disabled={loading !== null}
           className="py-1.5 text-xs font-medium text-[#a1a1aa] border border-[rgba(255,255,255,0.06)] rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
@@ -138,6 +143,7 @@ export function PreviewLink({
           {loading === "regenerate" ? "Regenerating..." : "Regenerate"}
         </button>
         <button
+          type="button"
           onClick={handleRevoke}
           disabled={loading !== null}
           className="py-1.5 text-xs font-medium text-[#f59e0b] border border-[rgba(245,158,11,0.2)] rounded-lg hover:bg-[rgba(245,158,11,0.06)] transition-colors disabled:opacity-50"

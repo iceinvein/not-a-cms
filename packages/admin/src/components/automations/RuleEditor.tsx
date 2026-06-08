@@ -242,6 +242,7 @@ export function RuleEditor({ flow, apiBase = "", onSaved }: Props) {
                 {outline.rules.map((rule, index) => (
                   <button
                     type="button"
+                    // biome-ignore lint/suspicious/noArrayIndexKey: ConditionRule has no stable id and (field, operator, value) can collide between rules; index disambiguates a purely presentational, non-reordered list.
                     key={`${rule.field}-${index}`}
                     onClick={() => setSelected({ type: "condition", id: condition.id })}
                     className={`${sectionButtonClass(selected?.type === "condition")} w-full`}

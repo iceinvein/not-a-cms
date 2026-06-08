@@ -26,6 +26,7 @@ export function FlowEditor({ flowId, apiBase = "" }: Props) {
   const [localTrigger, setLocalTrigger] = useState<FlowTrigger>({ type: "content.created" })
   const [localActive, setLocalActive] = useState(false)
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refetch is scoped to flowId; non-memoized fetchFlow would re-run every render if added.
   useEffect(() => {
     fetchFlow()
   }, [flowId])
@@ -138,6 +139,7 @@ export function FlowEditor({ flowId, apiBase = "" }: Props) {
 
         <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={handleToggle}
             className={`text-xs px-3 py-1 rounded-full font-medium transition-colors ${
               localActive
@@ -152,6 +154,7 @@ export function FlowEditor({ flowId, apiBase = "" }: Props) {
         {/* Tab switcher */}
         <div className="flex border border-[rgba(255,255,255,0.1)] rounded-lg overflow-hidden">
           <button
+            type="button"
             onClick={() => setTab("editor")}
             className={`px-3 py-1.5 text-sm transition-colors ${
               tab === "editor"
@@ -162,6 +165,7 @@ export function FlowEditor({ flowId, apiBase = "" }: Props) {
             Editor
           </button>
           <button
+            type="button"
             onClick={() => setTab("runs")}
             className={`px-3 py-1.5 text-sm transition-colors ${
               tab === "runs"
@@ -174,6 +178,7 @@ export function FlowEditor({ flowId, apiBase = "" }: Props) {
         </div>
 
         <button
+          type="button"
           onClick={handleSave}
           disabled={saving}
           className="px-4 py-2 bg-[#fafafa] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#e4e4e7] disabled:opacity-50"

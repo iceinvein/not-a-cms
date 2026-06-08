@@ -94,7 +94,8 @@ describe("media handler file responses", () => {
       new Request(`https://cms.example.test/api/media/${stored.id}`, { method: "DELETE" }),
     )
 
-    expect((await res?.json()).deleted).toBe(true)
+    expect(res).not.toBeNull()
+    expect((await (res as Response).json()).deleted).toBe(true)
     expect(deleted).toEqual([[stored.id]])
     expect(storage.get(stored.id)).toBeNull()
   })
@@ -108,7 +109,8 @@ describe("media handler file responses", () => {
       new Request(`https://cms.example.test/api/media/missing`, { method: "DELETE" }),
     )
 
-    expect((await res?.json()).deleted).toBe(false)
+    expect(res).not.toBeNull()
+    expect((await (res as Response).json()).deleted).toBe(false)
     expect(deleted).toEqual([])
   })
 

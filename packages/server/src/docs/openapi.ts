@@ -177,10 +177,6 @@ function fieldSchema(fieldDef: FieldDef): OpenAPISchema {
       }
     case "pageLayout":
       return { type: "object", additionalProperties: true }
-    case "relation":
-    case "media":
-    case "slug":
-    case "text":
     default:
       return { type: "string" }
   }

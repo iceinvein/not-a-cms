@@ -35,6 +35,7 @@ export function GalleryBlockView({ node, updateAttributes }: any) {
             const src = mediaDisplayUrl(image, "")
             return (
               <button
+                // biome-ignore lint/suspicious/noArrayIndexKey: the same media may appear more than once, so src alone is not unique; the index disambiguates duplicates
                 key={`${src}-${index}`}
                 type="button"
                 className="cn-gallery-thumb"

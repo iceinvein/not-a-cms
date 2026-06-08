@@ -123,9 +123,9 @@ describe("local media storage", () => {
   test("setTagColor persists a custom color; tagColors reads it back", () => {
     const storage = createLocalStorage({ provider: "local", path: uploadsDir })
     storage.setTagColor("Hero", "#abcdef")
-    expect(storage.tagColors()["hero"]).toBe("#abcdef")
+    expect(storage.tagColors().hero).toBe("#abcdef")
     const restarted = createLocalStorage({ provider: "local", path: uploadsDir })
-    expect(restarted.tagColors()["hero"]).toBe("#abcdef")
+    expect(restarted.tagColors().hero).toBe("#abcdef")
   })
 
   test("setTagColor rejects invalid hex", () => {
@@ -143,7 +143,7 @@ describe("local media storage", () => {
     expect(changed).toBe(2)
     expect(storage.get(a.id)?.tags).toEqual(["fy2024"])
     expect(storage.get(b.id)?.tags).toEqual(["hero", "fy2024"])
-    expect(storage.tagColors()["fy2024"]).toBe("#abcdef")
+    expect(storage.tagColors().fy2024).toBe("#abcdef")
     expect(storage.tagColors()["2024"]).toBeUndefined()
   })
 
@@ -153,7 +153,7 @@ describe("local media storage", () => {
     storage.setTagColor("junk", "#abcdef")
     expect(storage.removeTag("junk")).toBe(1)
     expect(storage.get(a.id)?.tags).toEqual(["keep"])
-    expect(storage.tagColors()["junk"]).toBeUndefined()
+    expect(storage.tagColors().junk).toBeUndefined()
   })
 
   test("listTags unions names with counts and colors", async () => {
@@ -244,7 +244,7 @@ describe("local media storage", () => {
 
   test("reorderFolder swaps adjacent siblings and no-ops at the ends", () => {
     const storage = createLocalStorage({ provider: "local", path: uploadsDir })
-    const a = storage.createFolder("A", null)
+    storage.createFolder("A", null)
     const b = storage.createFolder("B", null)
     const c = storage.createFolder("C", null)
     const ordered = () =>

@@ -70,6 +70,7 @@ export function ThemeCustomizer({ apiBase = "" }: Props) {
       <div className="flex justify-between items-center">
         <h2 className="text-base font-semibold text-[#fafafa]">Theme Settings</h2>
         <button
+          type="button"
           onClick={handleSave}
           disabled={saving}
           className="px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4a57c] disabled:opacity-50 transition-colors"
@@ -84,9 +85,15 @@ export function ThemeCustomizer({ apiBase = "" }: Props) {
 
       <div className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] p-6 space-y-6">
         <div>
-          <label className="block text-sm font-medium text-[#a1a1aa] mb-1">Primary Color</label>
+          <label
+            htmlFor="theme-primary-color"
+            className="block text-sm font-medium text-[#a1a1aa] mb-1"
+          >
+            Primary Color
+          </label>
           <div className="flex gap-3 items-center">
             <input
+              id="theme-primary-color"
               type="color"
               value={settings["theme.primaryColor"]}
               onChange={(e) => update("theme.primaryColor", e.target.value)}
@@ -102,8 +109,14 @@ export function ThemeCustomizer({ apiBase = "" }: Props) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[#a1a1aa] mb-1">Font Family</label>
+          <label
+            htmlFor="theme-font-family"
+            className="block text-sm font-medium text-[#a1a1aa] mb-1"
+          >
+            Font Family
+          </label>
           <select
+            id="theme-font-family"
             value={settings["theme.fontFamily"]}
             onChange={(e) => update("theme.fontFamily", e.target.value)}
             className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-[#18181b] text-[#fafafa] focus:border-[#c9956b] focus:outline-none focus:ring-0"
@@ -117,8 +130,14 @@ export function ThemeCustomizer({ apiBase = "" }: Props) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[#a1a1aa] mb-1">Header Style</label>
+          <label
+            htmlFor="theme-header-style"
+            className="block text-sm font-medium text-[#a1a1aa] mb-1"
+          >
+            Header Style
+          </label>
           <select
+            id="theme-header-style"
             value={settings["theme.headerStyle"]}
             onChange={(e) => update("theme.headerStyle", e.target.value)}
             className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-[#18181b] text-[#fafafa] focus:border-[#c9956b] focus:outline-none focus:ring-0"
@@ -130,8 +149,14 @@ export function ThemeCustomizer({ apiBase = "" }: Props) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[#a1a1aa] mb-1">Max Content Width</label>
+          <label
+            htmlFor="theme-max-width"
+            className="block text-sm font-medium text-[#a1a1aa] mb-1"
+          >
+            Max Content Width
+          </label>
           <select
+            id="theme-max-width"
             value={settings["theme.maxWidth"]}
             onChange={(e) => update("theme.maxWidth", e.target.value)}
             className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-[#18181b] text-[#fafafa] focus:border-[#c9956b] focus:outline-none focus:ring-0"

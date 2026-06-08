@@ -35,6 +35,7 @@ export function LogoCloudBlockView({ node, updateAttributes }: any) {
       />
       <div className="cn-feature-cards">
         {logos.map((logo, index) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: positional editable rows with no stable id; keying by content would remount the focused input on every keystroke
           <div key={index} className="cn-feature-card">
             <MediaPicker
               value={logo.url}

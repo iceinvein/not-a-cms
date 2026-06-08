@@ -49,6 +49,7 @@ export function PricingCardsBlockView({ node, updateAttributes }: any) {
       />
       <div className="cn-feature-cards">
         {tierList.map((tier, index) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: positional editable rows with no stable id; keying by content would remount the focused input on every keystroke
           <div key={index} className="cn-feature-card">
             <input
               className="cn-block-input"

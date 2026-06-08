@@ -90,6 +90,7 @@ export function Desk({
     setLoading(false)
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fetchDesk is recreated each render and the initial* props are one-time SSR guards; this should refetch only when apiBase changes, not on every render.
   useEffect(() => {
     if (initialHorizon && initialNeedsYou) return
     fetchDesk()
@@ -170,7 +171,8 @@ export function Desk({
           <p className="desk-kicker">The Desk</p>
           <h2>{userName ? `${userName}'s publishing desk` : "Publishing desk"}</h2>
         </div>
-        <div className="desk-summary" aria-label="Scheduled content count">
+        {/* biome-ignore lint/a11y/useSemanticElements: this groups a stat readout (count + unit) under one label, not form controls; a <fieldset> would carry UA-default styling and the wrong semantics. */}
+        <div className="desk-summary" role="group" aria-label="Scheduled content count">
           <span>{scheduledTotal}</span>
           <small>scheduled</small>
         </div>

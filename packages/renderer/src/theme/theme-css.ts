@@ -31,7 +31,8 @@ export function resolveThemeSettings(
   for (const [section, fields] of Object.entries(theme?.settings ?? {})) {
     for (const [key, field] of Object.entries(fields as Record<string, ThemeSettingField>)) {
       if (field?.default === undefined || field.default === null) continue
-      ;(resolved[section] ??= {})[key] = String(field.default)
+      resolved[section] ??= {}
+      resolved[section][key] = String(field.default)
     }
   }
   return resolved

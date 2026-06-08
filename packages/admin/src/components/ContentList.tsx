@@ -58,6 +58,7 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
     }
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refetch is intentionally scoped to these query inputs; fetchItems is recreated each render so listing it would re-run on every render
   useEffect(() => {
     fetchItems()
   }, [collection, searchTerm, offset, sort, order])
@@ -250,6 +251,7 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
         description={error}
         action={
           <button
+            type="button"
             onClick={() => fetchItems()}
             className="px-3 py-1.5 text-sm font-medium text-[#fafafa] bg-[rgba(255,255,255,0.08)] rounded-md hover:bg-[rgba(255,255,255,0.12)] transition-colors"
           >
@@ -406,6 +408,7 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
                       Edit
                     </a>
                     <button
+                      type="button"
                       onClick={() => handleDelete(item.id)}
                       className="text-sm text-[#52525b] hover:text-[#ef4444] transition-colors"
                     >

@@ -167,7 +167,7 @@ async function resolveDevServerConfig() {
 }
 
 function createSampleDevServerConfig() {
-  const port = parseInt(process.env.PORT ?? "4321")
+  const port = parseInt(process.env.PORT ?? "4321", 10)
   const corsOrigins = (process.env.CORS_ORIGINS ?? "http://localhost:4322,http://localhost:3000")
     .split(",")
     .map((origin) => origin.trim())

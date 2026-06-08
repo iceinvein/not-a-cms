@@ -7,7 +7,6 @@ import {
   resolvePayloadPath,
 } from "../../src/automations/engine"
 import { createFlowStore } from "../../src/automations/store"
-import type { ConditionRule, FlowStep } from "../../src/automations/types"
 import { bootstrapTables } from "../../src/db/bootstrap"
 import { createDatabase } from "../../src/db/connection"
 

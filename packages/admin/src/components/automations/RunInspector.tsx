@@ -80,9 +80,9 @@ export function RunInspector({ run }: { run: FlowRunDetail }) {
       )}
 
       <div className="space-y-3">
-        {timeline.steps.map((step, index) => (
+        {timeline.steps.map((step) => (
           <div
-            key={`${step.stepId}-${index}`}
+            key={step.stepId}
             className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#111113] p-3"
           >
             <div className="mb-2 flex items-start justify-between gap-3">

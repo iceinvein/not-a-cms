@@ -1,5 +1,4 @@
 import { describe, expect, test } from "bun:test"
-import React from "react"
 import { renderToString } from "react-dom/server"
 import { ChannelSettings } from "../../src/components/ChannelSettings"
 

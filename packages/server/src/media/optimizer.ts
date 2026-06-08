@@ -58,7 +58,7 @@ export function createImageOptimizer(outputDir: string) {
             withoutEnlargement: true,
           })
 
-          let result
+          let result: Awaited<ReturnType<typeof pipeline.toFile>>
           if (format === "webp") {
             result = await pipeline.webp({ quality: 80 }).toFile(outputPath)
           } else {

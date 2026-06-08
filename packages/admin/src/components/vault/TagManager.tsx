@@ -134,6 +134,7 @@ export function TagManager({
                           <span className="text-xs text-[#71717a]">{tag.count} assets</span>
                           <div
                             className="flex flex-wrap gap-1"
+                            role="toolbar"
                             aria-label={`Color options for ${tag.name}`}
                           >
                             {PALETTE.map((color) => (

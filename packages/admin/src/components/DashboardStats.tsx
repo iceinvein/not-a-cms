@@ -65,6 +65,7 @@ export function DashboardStats({ apiBase = "", initialMetrics }: Props) {
     }
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fetch is intentionally scoped to apiBase; fetchMetrics is recreated each render and initialMetrics is only a mount-time guard, so listing them would re-fetch unnecessarily
   useEffect(() => {
     if (initialMetrics) return
     fetchMetrics()

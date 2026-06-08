@@ -35,6 +35,7 @@ export function Checkbox({ checked, onCheckedChange, id, label, ariaLabel, disab
   if (!label) return box
 
   return (
+    // biome-ignore lint/a11y/noLabelWithoutControl: control is the nested {box} (BaseCheckbox.Root), which Biome cannot see through the component boundary
     <label className="cn-checkbox-field">
       {box}
       <span className="cn-checkbox-label">{label}</span>

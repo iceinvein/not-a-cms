@@ -36,9 +36,10 @@ export function HeroBlockView({ node, updateAttributes }: any) {
         onChange={(event) => updateAttributes({ subheadline: event.target.value })}
       />
       <div className="cn-section-controls">
-        <label className="cn-section-control">
+        <label className="cn-section-control" htmlFor="cn-hero-align">
           Alignment
           <Select
+            id="cn-hero-align"
             value={align}
             onValueChange={(value) => updateAttributes({ align: value })}
             ariaLabel="Alignment"

@@ -16,7 +16,7 @@ export function buildFolderTree(folders: MediaFolder[]): FolderNode[] {
 
   const sort = (list: FolderNode[]) => {
     list.sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.name.localeCompare(b.name))
-    list.forEach((node) => sort(node.children))
+    for (const node of list) sort(node.children)
   }
   sort(roots)
   return roots

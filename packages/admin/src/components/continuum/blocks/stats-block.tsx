@@ -23,9 +23,10 @@ export function StatsBlockView({ node, updateAttributes }: any) {
 
   return (
     <NodeViewWrapper className="cn-block cn-section" contentEditable={false}>
-      <label className="cn-section-control">
+      <label className="cn-section-control" htmlFor="cn-stats-columns">
         Columns
         <Select
+          id="cn-stats-columns"
           value={String(columns)}
           onValueChange={(value) => updateAttributes({ columns: Number(value) })}
           ariaLabel="Columns"
@@ -38,6 +39,7 @@ export function StatsBlockView({ node, updateAttributes }: any) {
       </label>
       <div className="cn-feature-cards">
         {items.map((stat, index) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: positional editable rows with no stable id; keying by content would remount the focused input on every keystroke
           <div key={index} className="cn-feature-card">
             <input
               className="cn-block-input cn-feature-icon-input"

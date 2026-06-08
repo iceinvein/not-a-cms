@@ -23,9 +23,10 @@ export function SplitMediaBlockView({ node, updateAttributes }: any) {
         onSelect={(item) => updateAttributes({ media: item.url })}
         onClear={() => updateAttributes({ media: "" })}
       />
-      <label className="cn-section-control">
+      <label className="cn-section-control" htmlFor="cn-split-media-side">
         Media side
         <Select
+          id="cn-split-media-side"
           value={side}
           onValueChange={(value) => updateAttributes({ side: value })}
           ariaLabel="Media side"

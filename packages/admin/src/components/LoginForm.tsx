@@ -104,6 +104,7 @@ export function LoginForm({ apiBase = "", initialAuthConfig = DEFAULT_AUTH_CONFI
           We sent a magic link to <strong>{email}</strong>
         </p>
         <button
+          type="button"
           onClick={() => {
             setSent(false)
             setEmail("")

@@ -94,6 +94,7 @@ export function VersionHistory({ collection, documentId, apiBase = "", onRestore
       {versions.map((v) => (
         <div key={v.id} className="border border-[rgba(255,255,255,0.06)] rounded-lg">
           <button
+            type="button"
             onClick={() => {
               void toggleExpanded(v.id)
             }}
@@ -136,6 +137,7 @@ export function VersionHistory({ collection, documentId, apiBase = "", onRestore
                 )}
               </div>
               <button
+                type="button"
                 onClick={() => {
                   void restoreVersion(v)
                 }}

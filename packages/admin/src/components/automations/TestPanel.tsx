@@ -100,12 +100,18 @@ export function TestPanel({ flow, apiBase = "", onClose }: Props) {
   }
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: click-to-dismiss backdrop; the equivalent keyboard path is the focusable Close button inside the dialog, and role="presentation" keeps the overlay out of the a11y tree.
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(0,0,0,0.6)] p-4"
       onClick={onClose}
+      role="presentation"
     >
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents: handler only stopPropagation so clicks inside the dialog do not reach the backdrop; it is not an activatable control. */}
       <div
         className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#0a0a0c] p-5"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Test rule"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">

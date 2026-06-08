@@ -134,6 +134,7 @@ function FieldControl({
       return <RelationField id={id} def={def} value={value} apiBase={apiBase} onChange={onChange} />
     case "media":
       return <MediaField id={id} value={value} apiBase={apiBase} onChange={onChange} />
+    // biome-ignore lint/suspicious/noFallthroughSwitchClause: non-multiline text intentionally falls through to reuse the default single-line input
     case "text":
       if (def.multiline) {
         return (
@@ -147,7 +148,6 @@ function FieldControl({
         )
       }
     // falls through to the default single-line input
-    // eslint-disable-next-line no-fallthrough
     default:
       return (
         <input
@@ -177,6 +177,7 @@ function ArrayField({
   return (
     <span className="cn-field-array">
       {items.map((item, index) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: array rows are positional free-text values with no stable id; keying by value would remount the focused input on every keystroke
         <span key={index} className="cn-field-array-row">
           <input
             id={index === 0 ? id : undefined}

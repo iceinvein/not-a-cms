@@ -39,6 +39,7 @@ export function WebhookManager({ apiBase = "" }: Props) {
   const [logsByWebhook, setLogsByWebhook] = useState<Record<string, WebhookDelivery[]>>({})
   const [replayingLogId, setReplayingLogId] = useState("")
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: mount-only fetch; fetchWebhooks is recreated each render so adding it would re-run on every render
   useEffect(() => {
     fetchWebhooks()
   }, [])
@@ -143,6 +144,7 @@ export function WebhookManager({ apiBase = "" }: Props) {
     <div className="space-y-8">
       <div className="flex justify-end">
         <button
+          type="button"
           onClick={() => setShowForm(!showForm)}
           className="px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4a57c] transition-colors"
         >
@@ -156,6 +158,7 @@ export function WebhookManager({ apiBase = "" }: Props) {
           description={error}
           action={
             <button
+              type="button"
               onClick={fetchWebhooks}
               className="px-3 py-1.5 text-sm font-medium text-[#fafafa] bg-[rgba(255,255,255,0.08)] rounded-md hover:bg-[rgba(255,255,255,0.12)] transition-colors"
             >
@@ -168,8 +171,11 @@ export function WebhookManager({ apiBase = "" }: Props) {
       {showForm && (
         <div className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-[#a1a1aa] mb-1">URL</label>
+            <label htmlFor="webhook-url" className="block text-sm font-medium text-[#a1a1aa] mb-1">
+              URL
+            </label>
             <input
+              id="webhook-url"
               type="url"
               value={formUrl}
               onChange={(e) => setFormUrl(e.target.value)}
@@ -178,7 +184,7 @@ export function WebhookManager({ apiBase = "" }: Props) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#a1a1aa] mb-1">Events</label>
+            <span className="block text-sm font-medium text-[#a1a1aa] mb-1">Events</span>
             <div className="space-y-1">
               {allEvents.map((evt) => (
                 <label key={evt} className="flex items-center gap-2 text-sm text-[#a1a1aa]">
@@ -197,10 +203,14 @@ export function WebhookManager({ apiBase = "" }: Props) {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#a1a1aa] mb-1">
+            <label
+              htmlFor="webhook-collection"
+              className="block text-sm font-medium text-[#a1a1aa] mb-1"
+            >
               Collection (optional)
             </label>
             <input
+              id="webhook-collection"
               type="text"
               value={formCollection}
               onChange={(e) => setFormCollection(e.target.value)}
@@ -209,10 +219,14 @@ export function WebhookManager({ apiBase = "" }: Props) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#a1a1aa] mb-1">
+            <label
+              htmlFor="webhook-secret"
+              className="block text-sm font-medium text-[#a1a1aa] mb-1"
+            >
               Secret (optional, for HMAC signing)
             </label>
             <input
+              id="webhook-secret"
               type="text"
               value={formSecret}
               onChange={(e) => setFormSecret(e.target.value)}
@@ -222,6 +236,7 @@ export function WebhookManager({ apiBase = "" }: Props) {
           </div>
           <div className="flex gap-2 pt-2">
             <button
+              type="button"
               onClick={handleCreate}
               disabled={!formUrl}
               className="px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4a57c] disabled:opacity-50 transition-colors"
@@ -229,6 +244,7 @@ export function WebhookManager({ apiBase = "" }: Props) {
               Create
             </button>
             <button
+              type="button"
               onClick={() => setShowForm(false)}
               className="px-4 py-2 border border-[rgba(255,255,255,0.06)] text-[#a1a1aa] rounded-lg text-sm hover:bg-[rgba(255,255,255,0.03)] transition-colors"
             >
@@ -268,12 +284,14 @@ export function WebhookManager({ apiBase = "" }: Props) {
                 </div>
                 <div className="flex items-center gap-3">
                   <button
+                    type="button"
                     onClick={() => handleToggle(hook)}
                     className={`text-xs px-2 py-1 rounded-full ${hook.active ? "bg-[rgba(34,197,94,0.1)] text-[#22c55e]" : "bg-[rgba(255,255,255,0.05)] text-[#71717a]"}`}
                   >
                     {hook.active ? "Active" : "Inactive"}
                   </button>
                   <button
+                    type="button"
                     onClick={() => handleDelete(hook.id)}
                     className="text-xs text-[#52525b] hover:text-[#ef4444] transition-colors"
                   >

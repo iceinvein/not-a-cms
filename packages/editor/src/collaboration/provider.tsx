@@ -267,8 +267,10 @@ export function useCollaboration(config?: CollabConfig | null) {
   const [provider, setProvider] = useState<RawYjsWebSocketProvider | null>(null)
   const [users, setUsers] = useState<CollabPresenceUser[]>([])
   const [cursors, setCursors] = useState<CursorState[]>([])
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the Y.Doc is intentionally recreated only when the document id changes; depending on the whole config object would rebuild the doc on every config identity change and tear down the collaboration session
   const ydoc = useMemo(() => (config ? new Y.Doc() : null), [config?.documentId])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: keyed on the primitive connection fields so the WebSocket provider only reconnects when they actually change; depending on the config/config.user object identity would tear down and recreate the live connection on every render
   useEffect(() => {
     if (!config || !ydoc) {
       setUsers([])

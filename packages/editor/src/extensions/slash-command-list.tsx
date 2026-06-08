@@ -27,6 +27,7 @@ export const SlashCommandList = forwardRef<SlashCommandListRef, Props>(
     const [selectedIndex, setSelectedIndex] = useState(0)
     const itemRefs = useRef<Array<HTMLButtonElement | null>>([])
 
+    // biome-ignore lint/correctness/useExhaustiveDependencies: reset the highlight to the top whenever the filtered item set changes, so items must remain a trigger
     useEffect(() => {
       setSelectedIndex(0)
     }, [items])

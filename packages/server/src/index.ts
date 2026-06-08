@@ -309,7 +309,9 @@ export function createServer(config: ServerConfig): CreatedServer {
   })
 
   const mediaHandler = createMediaHandler(storage, {
-    onAssetsDeleted: (ids) => ids.forEach((id) => mediaReferenceStore.removeAsset(id)),
+    onAssetsDeleted: (ids) => {
+      for (const id of ids) mediaReferenceStore.removeAsset(id)
+    },
     getRole: async (req) => (await getSession(req))?.role ?? null,
   })
   const trpcRouter = appRouter(collections)

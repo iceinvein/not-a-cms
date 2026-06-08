@@ -169,6 +169,7 @@ export function AccessSettings({ apiBase = "" }: Props) {
           </p>
         </div>
         <button
+          type="button"
           onClick={handleSave}
           disabled={saving || loading}
           className="inline-flex items-center gap-2 px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4a57c] disabled:opacity-50 transition-colors"
@@ -187,6 +188,7 @@ export function AccessSettings({ apiBase = "" }: Props) {
             Roles
           </div>
           <button
+            type="button"
             onClick={addRole}
             className="inline-flex items-center gap-2 px-3 py-1.5 border border-[rgba(255,255,255,0.1)] rounded-lg text-xs font-medium text-[#fafafa] hover:bg-[rgba(255,255,255,0.04)] transition-colors"
           >
@@ -207,6 +209,7 @@ export function AccessSettings({ apiBase = "" }: Props) {
           ) : (
             roles.map((role, index) => (
               <div
+                // biome-ignore lint/suspicious/noArrayIndexKey: roles have no stable id and role.key may be empty/duplicate while editing, so the index disambiguates new rows
                 key={`${role.key}-${index}`}
                 className="grid gap-3 px-5 py-4 md:grid-cols-[minmax(120px,180px)_minmax(140px,1fr)_minmax(180px,1.4fr)_auto] md:items-center"
               >
@@ -230,6 +233,7 @@ export function AccessSettings({ apiBase = "" }: Props) {
                   className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c9956b] focus:outline-none"
                 />
                 <button
+                  type="button"
                   onClick={() => removeRole(index)}
                   disabled={role.system}
                   aria-label={`Remove ${role.label || role.key}`}

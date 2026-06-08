@@ -54,6 +54,7 @@ export function RunList({ flowId, apiBase = "", steps }: Props) {
     return (
       <div className="flex flex-col gap-3">
         <button
+          type="button"
           onClick={() => setSelectedRunId(null)}
           className="self-start text-sm text-[#a1a1aa] hover:text-[#fafafa] flex items-center gap-1"
         >
@@ -121,6 +122,7 @@ export function RunList({ flowId, apiBase = "", steps }: Props) {
 
           <div className="flex items-center justify-between px-4 py-3 border-t border-[rgba(255,255,255,0.06)]">
             <button
+              type="button"
               disabled={offset === 0}
               onClick={() => setOffset((o) => Math.max(0, o - PAGE_SIZE))}
               className="text-sm text-[#71717a] hover:text-[#fafafa] disabled:opacity-30 disabled:cursor-not-allowed"
@@ -131,6 +133,7 @@ export function RunList({ flowId, apiBase = "", steps }: Props) {
               Showing {offset + 1}–{offset + runs.length}
             </span>
             <button
+              type="button"
               disabled={!hasMore}
               onClick={() => setOffset((o) => o + PAGE_SIZE)}
               className="text-sm text-[#71717a] hover:text-[#fafafa] disabled:opacity-30 disabled:cursor-not-allowed"

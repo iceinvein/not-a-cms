@@ -66,6 +66,8 @@ export function StepPicker({ onSelect, onCancel }: Props) {
   const actions = STEP_OPTIONS.filter((o) => o.section === "action")
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: popover container; handlers only stopPropagation to keep clicks inside the menu from closing it, they are not user actions.
+    // biome-ignore lint/a11y/useKeyWithClickEvents: stopPropagation guard only, no activatable behavior; the actual options below are real <button>s with keyboard support.
     <div
       className="absolute z-10 mt-1 w-72 bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.08)] shadow-[0_8px_30px_rgba(0,0,0,0.5)]"
       onClick={(e) => e.stopPropagation()}
@@ -76,6 +78,7 @@ export function StepPicker({ onSelect, onCancel }: Props) {
           Add step
         </span>
         <button
+          type="button"
           onClick={onCancel}
           className="text-[#52525b] hover:text-[#a1a1aa] text-sm leading-none"
         >
@@ -89,6 +92,7 @@ export function StepPicker({ onSelect, onCancel }: Props) {
         </p>
         {logic.map((opt) => (
           <button
+            type="button"
             key={opt.type}
             onClick={() => onSelect(opt.type)}
             className="w-full text-left px-3 py-2 rounded-lg border border-transparent hover:border-[rgba(245,158,11,0.25)] hover:bg-[rgba(245,158,11,0.05)] transition-colors"
@@ -103,6 +107,7 @@ export function StepPicker({ onSelect, onCancel }: Props) {
         </p>
         {actions.map((opt) => (
           <button
+            type="button"
             key={opt.type}
             onClick={() => onSelect(opt.type)}
             className="w-full text-left px-3 py-2 rounded-lg border border-transparent hover:border-[rgba(255,255,255,0.12)] hover:bg-[rgba(255,255,255,0.03)] transition-colors"

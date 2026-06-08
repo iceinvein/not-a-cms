@@ -36,7 +36,7 @@ export function createSearchService(db: AppDatabase) {
       .map((t) => `"${t.replace(/"/g, '""')}"*`)
       .join(" ")
 
-    let sqlQuery
+    let sqlQuery: ReturnType<typeof sql>
     if (collection) {
       sqlQuery = sql`SELECT collection, document_id, rank FROM content_fts WHERE content_fts MATCH ${ftsQuery} AND collection = ${collection} ORDER BY rank LIMIT 50`
     } else {

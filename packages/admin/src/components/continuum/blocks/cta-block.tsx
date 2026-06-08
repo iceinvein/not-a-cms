@@ -24,9 +24,10 @@ export function CtaBlockView({ node, updateAttributes }: any) {
         placeholder="URL (e.g. /signup)"
         onChange={(event) => updateAttributes({ url: event.target.value })}
       />
-      <label className="cn-section-control">
+      <label className="cn-section-control" htmlFor="cn-cta-style">
         Style
         <Select
+          id="cn-cta-style"
           value={variant}
           onValueChange={(value) => updateAttributes({ variant: value })}
           ariaLabel="Button style"

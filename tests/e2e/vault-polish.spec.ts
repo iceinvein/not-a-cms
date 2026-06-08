@@ -82,7 +82,7 @@ export async function runVaultPolishSmoke(ctx: E2EContext) {
   })
   const tags = await ctx.apiJson<{ data: TagEntry[] }>("/api/media/tags")
   const hero = tags.data.find((t) => t.name === "hero")
-  if (!hero || hero.description !== "Homepage hero shots" || hero.group !== "Marketing") {
+  if (hero?.description !== "Homepage hero shots" || hero.group !== "Marketing") {
     throw new Error(`hero tag metadata not persisted: ${JSON.stringify(hero)}`)
   }
   if (tags.data.some((t) => t.name === "launch"))

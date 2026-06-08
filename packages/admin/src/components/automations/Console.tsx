@@ -65,16 +65,19 @@ export function Console({
     } catch {}
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: mount-scoped fetch; fetchRuns/initialRuns are non-memoized and would re-run every render, apiBase scopes the (re)fetch intentionally.
   useEffect(() => {
     if (!initialRuns) fetchRuns()
   }, [apiBase])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fires on selection/runs change; reading selectedRun is a guard, adding it (or non-memoized fetchSelected) would re-fire after each fetch and loop.
   useEffect(() => {
     const run = runs.find((item) => item.id === selectedRunId)
     if (!run) return
     if (selectedRun?.id !== run.id || !selectedRun.steps) fetchSelected(run)
   }, [selectedRunId, runs, apiBase])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: subscription scoped to apiBase/flowId; non-memoized fetchSelected would tear down and recreate the EventSource every render.
   useEffect(() => {
     const streamPath = `/api/_flows/runs/stream${flowId ? `?flowId=${encodeURIComponent(flowId)}` : ""}`
     let pollId: ReturnType<typeof setInterval> | null = null

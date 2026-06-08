@@ -143,6 +143,7 @@ function ContinuumInner({
   const titleRef = useRef<HTMLTextAreaElement>(null)
   // Auto-grow the title so long titles wrap instead of clipping at the canvas edge.
   // Declared before the loading guard so hook order stays stable across renders.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: title must re-measure scrollHeight whenever the value changes, even though it is not read directly in the effect body
   useEffect(() => {
     const el = titleRef.current
     if (!el) return
@@ -166,7 +167,7 @@ function ContinuumInner({
               <span>{collectionLabel}</span>
               <span>{saving ? "Saving..." : error ? "Needs attention" : statusLabel}</span>
             </div>
-            <div className="cn-presence" aria-label="Current collaborator">
+            <div className="cn-presence" title="Current collaborator">
               <span style={{ background: collaborationUser.color }} aria-hidden="true" />
               {collaborationUser.name}
             </div>

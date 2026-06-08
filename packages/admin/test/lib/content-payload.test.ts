@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import { buildPayload } from "../../src/lib/content-payload"
 import type { AdminFieldDef } from "../../src/lib/content-fields"
+import { buildPayload } from "../../src/lib/content-payload"
 
 const fields: Record<string, AdminFieldDef> = {
   title: { type: "text" },

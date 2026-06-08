@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import { toPortableText } from "../../src/portable-text/to-portable-text"
 import { fromPortableText } from "../../src/portable-text/from-portable-text"
+import { toPortableText } from "../../src/portable-text/to-portable-text"
 
 describe("custom block round-trip", () => {
   test("callout (inline content) survives to PT and back", () => {
@@ -34,7 +34,10 @@ describe("custom block round-trip", () => {
     const pt = toPortableText(doc as any)
     expect(pt).toEqual([{ type: "author", authorId: "u_42", role: "Founder" }])
     const back = fromPortableText(pt)
-    expect(back.content[0]).toEqual({ type: "author", attrs: { authorId: "u_42", role: "Founder" } })
+    expect(back.content[0]).toEqual({
+      type: "author",
+      attrs: { authorId: "u_42", role: "Founder" },
+    })
   })
 
   test("known blocks are unaffected", () => {
@@ -95,9 +98,7 @@ describe("custom block round-trip", () => {
           type: "logoCloud",
           attrs: {
             eyebrow: "Trusted by",
-            logos: [
-              { url: "https://cdn.example.com/logo.png", mediaId: "m_1", alt: "Acme" },
-            ],
+            logos: [{ url: "https://cdn.example.com/logo.png", mediaId: "m_1", alt: "Acme" }],
           },
         },
       ],

@@ -1,4 +1,4 @@
-import { test, expect, describe, afterAll } from "bun:test"
+import { afterAll, describe, expect, test } from "bun:test"
 import { mkdirSync, rmSync } from "node:fs"
 import { join } from "node:path"
 import { createImageOptimizer } from "../../src/media/optimizer"
@@ -7,7 +7,9 @@ const testDir = "test-optimized-uploads"
 
 describe("createImageOptimizer", () => {
   afterAll(() => {
-    try { rmSync(testDir, { recursive: true }) } catch {}
+    try {
+      rmSync(testDir, { recursive: true })
+    } catch {}
   })
 
   test("processImage() generates WebP variant", async () => {
@@ -17,7 +19,9 @@ describe("createImageOptimizer", () => {
     const { default: sharp } = await import("sharp")
     const inputBuffer = await sharp({
       create: { width: 100, height: 100, channels: 3, background: { r: 255, g: 0, b: 0 } },
-    }).png().toBuffer()
+    })
+      .png()
+      .toBuffer()
 
     const inputPath = join(testDir, "test-input.png")
     await Bun.write(inputPath, inputBuffer)
@@ -36,7 +40,9 @@ describe("createImageOptimizer", () => {
     const { default: sharp } = await import("sharp")
     const inputBuffer = await sharp({
       create: { width: 800, height: 600, channels: 3, background: { r: 0, g: 0, b: 255 } },
-    }).png().toBuffer()
+    })
+      .png()
+      .toBuffer()
 
     const inputPath = join(testDir, "test-dimensions.png")
     await Bun.write(inputPath, inputBuffer)
@@ -52,7 +58,9 @@ describe("createImageOptimizer", () => {
     const { default: sharp } = await import("sharp")
     const inputBuffer = await sharp({
       create: { width: 200, height: 200, channels: 3, background: { r: 0, g: 255, b: 0 } },
-    }).png().toBuffer()
+    })
+      .png()
+      .toBuffer()
 
     const inputPath = join(testDir, "test-blur.png")
     await Bun.write(inputPath, inputBuffer)
@@ -68,7 +76,9 @@ describe("createImageOptimizer", () => {
     const { default: sharp } = await import("sharp")
     const inputBuffer = await sharp({
       create: { width: 2000, height: 1500, channels: 3, background: { r: 128, g: 128, b: 128 } },
-    }).png().toBuffer()
+    })
+      .png()
+      .toBuffer()
 
     const inputPath = join(testDir, "test-large.png")
     await Bun.write(inputPath, inputBuffer)

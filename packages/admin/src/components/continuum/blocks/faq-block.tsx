@@ -36,7 +36,11 @@ export function FaqBlockView({ node, updateAttributes }: any) {
               value={item.question}
               placeholder="Question"
               onChange={(event) =>
-                update(items.map((it, i) => (i === index ? { ...it, question: event.target.value } : it)))
+                update(
+                  items.map((it, i) =>
+                    i === index ? { ...it, question: event.target.value } : it,
+                  ),
+                )
               }
             />
             <textarea
@@ -44,7 +48,9 @@ export function FaqBlockView({ node, updateAttributes }: any) {
               value={item.answer}
               placeholder="Answer"
               onChange={(event) =>
-                update(items.map((it, i) => (i === index ? { ...it, answer: event.target.value } : it)))
+                update(
+                  items.map((it, i) => (i === index ? { ...it, answer: event.target.value } : it)),
+                )
               }
             />
             <button

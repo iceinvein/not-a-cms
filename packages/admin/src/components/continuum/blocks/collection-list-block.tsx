@@ -1,6 +1,6 @@
 import { NodeViewWrapper } from "@tiptap/react"
-import { Select } from "../../ui/Select"
 import { Checkbox } from "../../ui/Checkbox"
+import { Select } from "../../ui/Select"
 
 /**
  * Collection list block: shows config for a live collection query.

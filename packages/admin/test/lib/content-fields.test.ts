@@ -16,15 +16,23 @@ describe("admin content field helpers", () => {
     expect(emptyValueForField({ type: "number", required: false })).toBe(0)
     expect(emptyValueForField({ type: "boolean", required: false })).toBe(false)
     expect(emptyValueForField({ type: "media", required: false })).toBeNull()
-    expect(emptyValueForField({ type: "array", required: false, items: { type: "text", required: false } })).toEqual([])
-    expect(emptyValueForField({
-      type: "group",
-      required: false,
-      fields: {
-        metaTitle: { type: "text", required: false },
-        featured: { type: "boolean", required: false },
-      },
-    })).toEqual({ metaTitle: "", featured: false })
+    expect(
+      emptyValueForField({
+        type: "array",
+        required: false,
+        items: { type: "text", required: false },
+      }),
+    ).toEqual([])
+    expect(
+      emptyValueForField({
+        type: "group",
+        required: false,
+        fields: {
+          metaTitle: { type: "text", required: false },
+          featured: { type: "boolean", required: false },
+        },
+      }),
+    ).toEqual({ metaTitle: "", featured: false })
   })
 
   test("keeps array fields as arrays and edits by index", () => {
@@ -36,8 +44,15 @@ describe("admin content field helpers", () => {
   })
 
   test("prepares API values without stringifying structured fields", () => {
-    expect(prepareValueForField(["one"], { type: "array", items: { type: "text" } })).toEqual(["one"])
-    expect(prepareValueForField({ metaTitle: "SEO" }, { type: "group", fields: { metaTitle: { type: "text" } } })).toEqual({ metaTitle: "SEO" })
+    expect(prepareValueForField(["one"], { type: "array", items: { type: "text" } })).toEqual([
+      "one",
+    ])
+    expect(
+      prepareValueForField(
+        { metaTitle: "SEO" },
+        { type: "group", fields: { metaTitle: { type: "text" } } },
+      ),
+    ).toEqual({ metaTitle: "SEO" })
     expect(prepareValueForField("media-1", { type: "media" })).toBe("media-1")
     expect(prepareValueForField("author-1", { type: "relation" })).toBe("author-1")
   })

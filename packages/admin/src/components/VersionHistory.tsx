@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { adminApiFetch } from "../lib/api"
 
 type Version = {
@@ -33,7 +33,7 @@ export function VersionHistory({ collection, documentId, apiBase = "", onRestore
     if (!documentId) return
     setLoading(true)
     adminApiFetch(apiBase, `/api/${collection}/${documentId}/versions`)
-      .then((res) => res.ok ? res.json() : { data: [] })
+      .then((res) => (res.ok ? res.json() : { data: [] }))
       .then((res) => setVersions(res.data || []))
       .catch(() => setVersions([]))
       .finally(() => setLoading(false))
@@ -41,7 +41,10 @@ export function VersionHistory({ collection, documentId, apiBase = "", onRestore
 
   const formatDate = (dateStr: string) =>
     new Date(dateStr).toLocaleString("en-US", {
-      month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
     })
 
   const toggleExpanded = async (versionId: string) => {
@@ -49,7 +52,10 @@ export function VersionHistory({ collection, documentId, apiBase = "", onRestore
     setExpanded(next)
     if (!next || changes[versionId]) return
 
-    const res = await adminApiFetch(apiBase, `/api/${collection}/${documentId}/versions/${versionId}/compare`)
+    const res = await adminApiFetch(
+      apiBase,
+      `/api/${collection}/${documentId}/versions/${versionId}/compare`,
+    )
     if (!res.ok) return
     const body = await res.json()
     setChanges((current) => ({ ...current, [versionId]: body.changes ?? [] }))
@@ -60,9 +66,13 @@ export function VersionHistory({ collection, documentId, apiBase = "", onRestore
 
     setRestoring(version.id)
     try {
-      const res = await adminApiFetch(apiBase, `/api/${collection}/${documentId}/versions/${version.id}/restore`, {
-        method: "POST",
-      })
+      const res = await adminApiFetch(
+        apiBase,
+        `/api/${collection}/${documentId}/versions/${version.id}/restore`,
+        {
+          method: "POST",
+        },
+      )
       if (!res.ok) throw new Error("Failed to restore version")
       const restored = await res.json()
       onRestore(restored)
@@ -84,14 +94,20 @@ export function VersionHistory({ collection, documentId, apiBase = "", onRestore
       {versions.map((v) => (
         <div key={v.id} className="border border-[rgba(255,255,255,0.06)] rounded-lg">
           <button
-            onClick={() => { void toggleExpanded(v.id) }}
+            onClick={() => {
+              void toggleExpanded(v.id)
+            }}
             className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
           >
             <div>
               <span className="text-xs font-medium text-[#a1a1aa]">v{v.version_number}</span>
-              <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${
-                v.action === "publish" ? "bg-[rgba(34,197,94,0.1)] text-[#22c55e]" : "bg-[rgba(255,255,255,0.05)] text-[#71717a]"
-              }`}>
+              <span
+                className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${
+                  v.action === "publish"
+                    ? "bg-[rgba(34,197,94,0.1)] text-[#22c55e]"
+                    : "bg-[rgba(255,255,255,0.05)] text-[#71717a]"
+                }`}
+              >
                 {v.action}
               </span>
             </div>
@@ -101,17 +117,28 @@ export function VersionHistory({ collection, documentId, apiBase = "", onRestore
             <div className="px-3 pb-2 border-t border-[rgba(255,255,255,0.06)] space-y-2">
               <div className="pt-2 space-y-1">
                 {(changes[v.id] ?? []).length === 0 ? (
-                  <p className="text-xs text-[#52525b]">No field changes from the current version.</p>
-                ) : changes[v.id].map((change) => (
-                  <div key={change.field} className="rounded-md bg-[rgba(255,255,255,0.03)] px-2 py-1">
-                    <p className="text-xs font-medium text-[#a1a1aa]">{change.field}</p>
-                    <p className="text-[11px] text-[#71717a] line-through">{formatValue(change.before)}</p>
-                    <p className="text-[11px] text-[#c9956b]">{formatValue(change.after)}</p>
-                  </div>
-                ))}
+                  <p className="text-xs text-[#52525b]">
+                    No field changes from the current version.
+                  </p>
+                ) : (
+                  changes[v.id].map((change) => (
+                    <div
+                      key={change.field}
+                      className="rounded-md bg-[rgba(255,255,255,0.03)] px-2 py-1"
+                    >
+                      <p className="text-xs font-medium text-[#a1a1aa]">{change.field}</p>
+                      <p className="text-[11px] text-[#71717a] line-through">
+                        {formatValue(change.before)}
+                      </p>
+                      <p className="text-[11px] text-[#c9956b]">{formatValue(change.after)}</p>
+                    </div>
+                  ))
+                )}
               </div>
               <button
-                onClick={() => { void restoreVersion(v) }}
+                onClick={() => {
+                  void restoreVersion(v)
+                }}
                 disabled={restoring === v.id}
                 className="mt-2 w-full py-1.5 text-xs font-medium text-[#a1a1aa] border border-[rgba(255,255,255,0.06)] rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
               >

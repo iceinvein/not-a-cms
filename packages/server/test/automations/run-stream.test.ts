@@ -1,7 +1,13 @@
-import { describe, expect, test, afterEach } from "bun:test"
-import { createDatabase, bootstrapTables, createFlowStore, createFlowEngine, createRunEventBus } from "@not-a-cms/core"
-import { createAutomationHandler } from "../../src/automations/handler"
+import { afterEach, describe, expect, test } from "bun:test"
 import { unlinkSync } from "node:fs"
+import {
+  bootstrapTables,
+  createDatabase,
+  createFlowEngine,
+  createFlowStore,
+  createRunEventBus,
+} from "@not-a-cms/core"
+import { createAutomationHandler } from "../../src/automations/handler"
 
 const testDbPath = "test-server-run-stream.db"
 
@@ -16,12 +22,22 @@ function setup() {
 }
 
 afterEach(() => {
-  try { unlinkSync(testDbPath) } catch {}
-  try { unlinkSync(testDbPath + "-wal") } catch {}
-  try { unlinkSync(testDbPath + "-shm") } catch {}
+  try {
+    unlinkSync(testDbPath)
+  } catch {}
+  try {
+    unlinkSync(testDbPath + "-wal")
+  } catch {}
+  try {
+    unlinkSync(testDbPath + "-shm")
+  } catch {}
 })
 
-async function readFrames(reader: ReadableStreamDefaultReader<Uint8Array>, want: number, timeoutMs = 2000): Promise<string> {
+async function readFrames(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  want: number,
+  timeoutMs = 2000,
+): Promise<string> {
   const decoder = new TextDecoder()
   let buf = ""
   const deadline = Date.now() + timeoutMs
@@ -55,7 +71,8 @@ describe("GET /api/_flows/runs/stream", () => {
   test("streams started/step/completed frames for a triggered run", async () => {
     const { store, engine, handler } = setup()
     const flow = store.createFlow({
-      name: "Stream", trigger: { type: "content.created" },
+      name: "Stream",
+      trigger: { type: "content.created" },
       steps: [{ id: "a1", type: "action.log", config: { message: "hi" }, next: null }],
     })
     const res = await handler(new Request("http://localhost/api/_flows/runs/stream"))
@@ -74,9 +91,19 @@ describe("GET /api/_flows/runs/stream", () => {
 
   test("?flowId filters to the matching flow only", async () => {
     const { store, engine, handler } = setup()
-    const flowA = store.createFlow({ name: "A", trigger: { type: "content.created" }, steps: [{ id: "a1", type: "action.log", config: { message: "a" }, next: null }] })
-    const flowB = store.createFlow({ name: "B", trigger: { type: "content.created" }, steps: [{ id: "b1", type: "action.log", config: { message: "b" }, next: null }] })
-    const res = await handler(new Request(`http://localhost/api/_flows/runs/stream?flowId=${flowB.id}`))
+    const flowA = store.createFlow({
+      name: "A",
+      trigger: { type: "content.created" },
+      steps: [{ id: "a1", type: "action.log", config: { message: "a" }, next: null }],
+    })
+    const flowB = store.createFlow({
+      name: "B",
+      trigger: { type: "content.created" },
+      steps: [{ id: "b1", type: "action.log", config: { message: "b" }, next: null }],
+    })
+    const res = await handler(
+      new Request(`http://localhost/api/_flows/runs/stream?flowId=${flowB.id}`),
+    )
     const reader = res!.body!.getReader()
     const framesPromise = readFrames(reader, 3)
     await new Promise((r) => setTimeout(r, 0))

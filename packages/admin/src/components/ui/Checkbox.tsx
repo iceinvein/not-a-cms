@@ -1,6 +1,6 @@
-import type { ReactNode } from "react"
 import { Checkbox as BaseCheckbox } from "@base-ui/react/checkbox"
 import { Check } from "lucide-react"
+import type { ReactNode } from "react"
 
 type Props = {
   checked: boolean

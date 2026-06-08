@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test"
-import { defineCollection, field } from "@not-a-cms/core"
 import { existsSync, rmSync, unlinkSync } from "node:fs"
+import { defineCollection, field } from "@not-a-cms/core"
 import { createServer } from "../../src/index"
 
 const testDbPath = "test-media-usage-routes.db"
@@ -45,7 +45,11 @@ describe("media usage routes", () => {
     const cookie = await signInAndGetCookie("vault-seed@example.test")
     const fd = new FormData()
     fd.append("file", new Blob(["pixels"], { type: "image/png" }), "cover.png")
-    const up = await fetch(`${baseUrl}/api/media/upload`, { method: "POST", headers: { cookie }, body: fd })
+    const up = await fetch(`${baseUrl}/api/media/upload`, {
+      method: "POST",
+      headers: { cookie },
+      body: fd,
+    })
     assetId = (await up.json()).id
 
     await server.collections.get("article")!.service.create({
@@ -56,9 +60,15 @@ describe("media usage routes", () => {
 
   afterAll(() => {
     server.server.stop()
-    try { unlinkSync(testDbPath) } catch {}
-    try { unlinkSync(`${testDbPath}-wal`) } catch {}
-    try { unlinkSync(`${testDbPath}-shm`) } catch {}
+    try {
+      unlinkSync(testDbPath)
+    } catch {}
+    try {
+      unlinkSync(`${testDbPath}-wal`)
+    } catch {}
+    try {
+      unlinkSync(`${testDbPath}-shm`)
+    } catch {}
     if (existsSync(uploadsDir)) rmSync(uploadsDir, { recursive: true })
   })
 
@@ -111,10 +121,17 @@ describe("media usage routes", () => {
     try {
       const base = `http://localhost:${second.server.port}`
       latestMagicLink = null
-      const signIn = await fetch(`${base}/api/auth/sign-in/magic-link`, { method: "POST", headers: { "Content-Type": "application/json", origin: base }, body: JSON.stringify({ email: "rebuild@example.test" }) })
+      const signIn = await fetch(`${base}/api/auth/sign-in/magic-link`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", origin: base },
+        body: JSON.stringify({ email: "rebuild@example.test" }),
+      })
       expect(signIn.status).toBe(200)
       const verifyUrl = new URL(latestMagicLink!)
-      const verify = await fetch(`${base}${verifyUrl.pathname}${verifyUrl.search}`, { redirect: "manual", headers: { origin: base } })
+      const verify = await fetch(`${base}${verifyUrl.pathname}${verifyUrl.search}`, {
+        redirect: "manual",
+        headers: { origin: base },
+      })
       const cookie = verify.headers.get("set-cookie")!
       // wait for the boot-time rebuild to finish before querying
       await second.rebuildIndex

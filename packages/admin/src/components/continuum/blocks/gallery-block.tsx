@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react"
 import { NodeViewWrapper } from "@tiptap/react"
-import { listMediaItems, mediaDisplayUrl, type AdminMediaItem } from "../../../lib/media"
+import { useEffect, useState } from "react"
+import { type AdminMediaItem, listMediaItems, mediaDisplayUrl } from "../../../lib/media"
 
 function imageValues(value: unknown): unknown[] {
   return Array.isArray(value) ? value : []
@@ -38,7 +38,9 @@ export function GalleryBlockView({ node, updateAttributes }: any) {
                 key={`${src}-${index}`}
                 type="button"
                 className="cn-gallery-thumb"
-                onClick={() => updateAttributes({ images: images.filter((_, itemIndex) => itemIndex !== index) })}
+                onClick={() =>
+                  updateAttributes({ images: images.filter((_, itemIndex) => itemIndex !== index) })
+                }
                 title="Remove image"
               >
                 {src ? <img src={src} alt="" /> : <span>Image</span>}
@@ -47,7 +49,11 @@ export function GalleryBlockView({ node, updateAttributes }: any) {
           })
         )}
       </div>
-      <button type="button" className="cn-block-action cn-block-cta" onClick={() => setOpen((current) => !current)}>
+      <button
+        type="button"
+        className="cn-block-action cn-block-cta"
+        onClick={() => setOpen((current) => !current)}
+      >
         Add image
       </button>
       {open && (
@@ -67,7 +73,11 @@ export function GalleryBlockView({ node, updateAttributes }: any) {
                   setOpen(false)
                 }}
               >
-                {item.mimetype.startsWith("image/") ? <img src={item.url} alt="" /> : <span>File</span>}
+                {item.mimetype.startsWith("image/") ? (
+                  <img src={item.url} alt="" />
+                ) : (
+                  <span>File</span>
+                )}
                 <span>{item.filename}</span>
               </button>
             ))

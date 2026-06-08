@@ -5,7 +5,8 @@ import { renderDocumentContent } from "../runtime/document-renderer"
 
 const apiBase = import.meta.env.PUBLIC_API_BASE || "http://localhost:4321"
 
-let apiSite: { routes?: Array<{ collection: string; path: string; slug?: string }> | null } | null = null
+let apiSite: { routes?: Array<{ collection: string; path: string; slug?: string }> | null } | null =
+  null
 try {
   const siteRes = await fetch(`${apiBase}/api/_site`)
   if (siteRes.ok) apiSite = await siteRes.json()
@@ -15,7 +16,13 @@ try {
 const routes = mergeRoutes(apiSite?.routes)
 const fetcher = createContentFetcher({ apiBase, routes })
 
-let posts: Array<{ title?: string; slug?: string; excerpt?: string; created_at?: string; status?: string }> = []
+let posts: Array<{
+  title?: string
+  slug?: string
+  excerpt?: string
+  created_at?: string
+  status?: string
+}> = []
 let homepage: any = null
 let homepageRendered = { html: "", leadsWithHero: false }
 try {

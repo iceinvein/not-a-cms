@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
+import { extractMediaReferences } from "../../src/content/media-references"
 import { defineCollection } from "../../src/schema/collection"
 import { field } from "../../src/schema/field"
-import { extractMediaReferences } from "../../src/content/media-references"
 
 const post = defineCollection({
   name: "post",
@@ -27,7 +27,13 @@ describe("extractMediaReferences", () => {
     const body = [
       { type: "image", id: "img2", url: "/x" },
       { type: "image", mediaId: "img3", src: "/y" },
-      { type: "gallery", images: [{ id: "img4", url: "/a" }, { id: "img5", url: "/b" }] },
+      {
+        type: "gallery",
+        images: [
+          { id: "img4", url: "/a" },
+          { id: "img5", url: "/b" },
+        ],
+      },
       { type: "paragraph", children: [{ text: "no media" }] },
     ]
     const refs = extractMediaReferences(post, { id: "p1", title: "Launch", body })

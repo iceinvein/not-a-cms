@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react"
 import { Clock3, FileText, Image, PenLine } from "lucide-react"
-import { EmptyState, ErrorState, LoadingState } from "./AdminState"
+import { useEffect, useMemo, useState } from "react"
 import { adminApiFetch, messageForAdminResponse } from "../lib/api"
+import { EmptyState, ErrorState, LoadingState } from "./AdminState"
 
 export type DashboardCollectionMetric = {
   name: string
@@ -51,9 +51,12 @@ export function DashboardStats({ apiBase = "", initialMetrics }: Props) {
     try {
       const res = await adminApiFetch(apiBase, "/api/_metrics")
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error && res.status !== 401 && res.status !== 403
-        ? data.error
-        : messageForAdminResponse(res, "Failed to load dashboard metrics"))
+      if (!res.ok)
+        throw new Error(
+          data.error && res.status !== 401 && res.status !== 403
+            ? data.error
+            : messageForAdminResponse(res, "Failed to load dashboard metrics"),
+        )
       setMetrics(data)
     } catch (err: any) {
       setError(err.message || "Failed to load dashboard metrics")
@@ -75,10 +78,16 @@ export function DashboardStats({ apiBase = "", initialMetrics }: Props) {
   if (loading) {
     return (
       <div className="space-y-5">
-        <LoadingState title="Loading dashboard metrics" description="Collecting content, media, and activity totals." />
+        <LoadingState
+          title="Loading dashboard metrics"
+          description="Collecting content, media, and activity totals."
+        />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-32 rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b] p-5 animate-pulse" />
+            <div
+              key={i}
+              className="h-32 rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b] p-5 animate-pulse"
+            />
           ))}
         </div>
       </div>
@@ -88,16 +97,31 @@ export function DashboardStats({ apiBase = "", initialMetrics }: Props) {
   if (error) {
     return (
       <ErrorState
-        title={error === "Sign in to continue." || error.startsWith("You do not have permission") ? "Permission needed" : "Dashboard metrics unavailable"}
+        title={
+          error === "Sign in to continue." || error.startsWith("You do not have permission")
+            ? "Permission needed"
+            : "Dashboard metrics unavailable"
+        }
         description={error}
-        action={<button type="button" onClick={fetchMetrics} className="rounded-md bg-[rgba(255,255,255,0.08)] px-3 py-1.5 text-sm font-medium text-[#fafafa] hover:bg-[rgba(255,255,255,0.12)]">Try again</button>}
+        action={
+          <button
+            type="button"
+            onClick={fetchMetrics}
+            className="rounded-md bg-[rgba(255,255,255,0.08)] px-3 py-1.5 text-sm font-medium text-[#fafafa] hover:bg-[rgba(255,255,255,0.12)]"
+          >
+            Try again
+          </button>
+        }
       />
     )
   }
 
   if (!metrics || metrics.collections.length === 0) {
     return (
-      <EmptyState title="No collections yet" description="Dashboard metrics will appear after collections are registered." />
+      <EmptyState
+        title="No collections yet"
+        description="Dashboard metrics will appear after collections are registered."
+      />
     )
   }
 
@@ -105,8 +129,12 @@ export function DashboardStats({ apiBase = "", initialMetrics }: Props) {
     <div className="space-y-8">
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-medium uppercase tracking-wider text-[#71717a]">Content Health</h2>
-          <p className="text-sm text-[#71717a]">{metrics.totals?.content ?? totalContent(metrics.collections)} total content items</p>
+          <h2 className="text-sm font-medium uppercase tracking-wider text-[#71717a]">
+            Content Health
+          </h2>
+          <p className="text-sm text-[#71717a]">
+            {metrics.totals?.content ?? totalContent(metrics.collections)} total content items
+          </p>
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {metrics.collections.map((collection) => (
@@ -148,7 +176,9 @@ export function DashboardStats({ apiBase = "", initialMetrics }: Props) {
                   className="flex items-center justify-between gap-3 py-3 text-sm"
                 >
                   <span className="text-[#a1a1aa]">{collection.label}</span>
-                  <span className="rounded-full bg-[rgba(201,149,107,0.12)] px-2 py-0.5 text-xs text-[#c9956b]">{collection.inReview}</span>
+                  <span className="rounded-full bg-[rgba(201,149,107,0.12)] px-2 py-0.5 text-xs text-[#c9956b]">
+                    {collection.inReview}
+                  </span>
                 </a>
               ))}
             </div>
@@ -161,7 +191,9 @@ export function DashboardStats({ apiBase = "", initialMetrics }: Props) {
             <h3 className="text-sm font-medium text-[#fafafa]">Media</h3>
           </div>
           <p className="text-2xl font-semibold text-[#fafafa]">{metrics.media.total} assets</p>
-          <a href="/media" className="mt-3 inline-flex text-sm text-[#c9956b] hover:text-[#d4a57c]">Open library</a>
+          <a href="/media" className="mt-3 inline-flex text-sm text-[#c9956b] hover:text-[#d4a57c]">
+            Open library
+          </a>
         </div>
       </section>
 
@@ -177,7 +209,9 @@ export function DashboardStats({ apiBase = "", initialMetrics }: Props) {
             {metrics.recentAudit.map((event) => (
               <div key={event.id} className="py-3">
                 <p className="text-sm text-[#a1a1aa]">{event.summary || event.action}</p>
-                <p className="mt-1 text-xs text-[#52525b]">{event.collection || "system"} · {formatDate(event.createdAt)}</p>
+                <p className="mt-1 text-xs text-[#52525b]">
+                  {event.collection || "system"} · {formatDate(event.createdAt)}
+                </p>
               </div>
             ))}
           </div>

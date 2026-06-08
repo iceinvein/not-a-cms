@@ -19,10 +19,7 @@ function collectionLabel(name: string, collections: CrumbCollection[]): string {
   return match?.labels?.plural ?? match?.label ?? name
 }
 
-export function breadcrumbFromPath(
-  pathname: string,
-  collections: CrumbCollection[] = [],
-): Crumb[] {
+export function breadcrumbFromPath(pathname: string, collections: CrumbCollection[] = []): Crumb[] {
   const path = pathname.replace(/\/+$/, "") || "/"
 
   if (path in STATIC_LABELS) {

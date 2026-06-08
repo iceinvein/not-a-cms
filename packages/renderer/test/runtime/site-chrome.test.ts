@@ -3,7 +3,10 @@ import { resolveSiteChrome } from "../../src/runtime/site-chrome"
 
 describe("resolveSiteChrome", () => {
   test("returns API values when all fields are present", () => {
-    const nav = { links: [{ label: "Home", href: "/" }], cta: { label: "Sign up", href: "/signup" } }
+    const nav = {
+      links: [{ label: "Home", href: "/" }],
+      cta: { label: "Sign up", href: "/signup" },
+    }
     const footer = {
       tagline: "Tagline text.",
       columns: [{ heading: "Product", links: [{ label: "Pricing", href: "/pricing" }] }],

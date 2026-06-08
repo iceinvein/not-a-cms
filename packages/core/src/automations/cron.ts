@@ -1,5 +1,5 @@
-import type { FlowStore } from "./store"
 import type { FlowEngine } from "./engine"
+import type { FlowStore } from "./store"
 
 function matchField(pattern: string, value: number): boolean {
   if (pattern === "*") return true
@@ -8,7 +8,7 @@ function matchField(pattern: string, value: number): boolean {
     return value % divisor === 0
   }
   if (pattern.includes(",")) {
-    return pattern.split(",").some(p => matchField(p.trim(), value))
+    return pattern.split(",").some((p) => matchField(p.trim(), value))
   }
   if (pattern.includes("-")) {
     const [min, max] = pattern.split("-").map(Number)
@@ -37,7 +37,9 @@ export function createAutomationCron(store: FlowStore, engine: FlowEngine) {
     let triggered = 0
     for (const flow of cronFlows) {
       if (flow.trigger.type === "schedule.cron" && matchesCron(flow.trigger.cron, now)) {
-        engine.executeFlow(flow, { event: "schedule.cron", timestamp: now.toISOString() }).catch(() => {})
+        engine
+          .executeFlow(flow, { event: "schedule.cron", timestamp: now.toISOString() })
+          .catch(() => {})
         triggered++
       }
     }

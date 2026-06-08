@@ -1,5 +1,5 @@
-import type { ReactNode } from "react"
 import { AlertCircle, CircleDashed, Inbox } from "lucide-react"
+import type { ReactNode } from "react"
 
 type StateProps = {
   title: string
@@ -29,7 +29,9 @@ export function LoadingState({ title, description, compact = false }: StateProps
 
 export function EmptyState({ title, description, action, compact = false }: StateProps) {
   return (
-    <div className={`${tone.neutral} rounded-lg border ${compact ? "px-4 py-5" : "p-8"} text-center`}>
+    <div
+      className={`${tone.neutral} rounded-lg border ${compact ? "px-4 py-5" : "p-8"} text-center`}
+    >
       <Inbox className="mx-auto mb-3 h-5 w-5 text-[#71717a]" />
       <p className="text-sm font-medium text-[#fafafa]">{title}</p>
       {description && <p className="mx-auto mt-1 max-w-md text-sm text-[#71717a]">{description}</p>}

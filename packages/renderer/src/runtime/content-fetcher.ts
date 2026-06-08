@@ -57,12 +57,15 @@ export function createContentFetcher(config: FetchConfig) {
   const routes = config.routes ?? DEFAULT_ROUTES
 
   return {
-    async list(collection: string, opts?: {
-      limit?: number
-      offset?: number
-      where?: Record<string, unknown>
-      search?: string
-    }): Promise<ContentItem[]> {
+    async list(
+      collection: string,
+      opts?: {
+        limit?: number
+        offset?: number
+        where?: Record<string, unknown>
+        search?: string
+      },
+    ): Promise<ContentItem[]> {
       const params = new URLSearchParams()
       if (opts?.limit) params.set("limit", String(opts.limit))
       if (opts?.offset) params.set("offset", String(opts.offset))
@@ -155,7 +158,8 @@ export function mediaUrl(apiBase: string, value: unknown): string | null {
 
   if (typeof value === "object") {
     const record = value as { id?: unknown; url?: unknown; src?: unknown }
-    const url = typeof record.url === "string" ? record.url : typeof record.src === "string" ? record.src : ""
+    const url =
+      typeof record.url === "string" ? record.url : typeof record.src === "string" ? record.src : ""
     if (url.trim()) return mediaUrl(apiBase, url)
     if (record.id != null) return mediaUrl(apiBase, String(record.id))
   }
@@ -232,4 +236,4 @@ function splitPath(pathname: string): string[] {
 }
 
 export type ContentFetcher = ReturnType<typeof createContentFetcher>
-export type { ContentItem, FetchConfig, RouteConfig, RouteMatch, ResolvedRoute }
+export type { ContentItem, FetchConfig, ResolvedRoute, RouteConfig, RouteMatch }

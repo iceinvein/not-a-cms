@@ -1,8 +1,8 @@
+import { Database } from "bun:sqlite"
 import { afterEach, describe, expect, test } from "bun:test"
 import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { Database } from "bun:sqlite"
 import { createWordPressDryRunSummary, importWordPressFile } from "../src/commands/import"
 
 const tempDirs: string[] = []
@@ -40,13 +40,19 @@ describe("import command helpers", () => {
     expect(result.imported).toBe(3)
 
     const db = new Database(project.dbPath)
-    const posts = db.query("SELECT title, slug, status FROM blog_post").all() as Array<Record<string, string>>
+    const posts = db.query("SELECT title, slug, status FROM blog_post").all() as Array<
+      Record<string, string>
+    >
     const pages = db.query("SELECT title, slug FROM page").all() as Array<Record<string, string>>
-    const media = db.query("SELECT title, url, mime_type FROM media").all() as Array<Record<string, string>>
+    const media = db.query("SELECT title, url, mime_type FROM media").all() as Array<
+      Record<string, string>
+    >
 
     expect(posts).toEqual([{ title: "Hello", slug: "hello", status: "published" }])
     expect(pages).toEqual([{ title: "About", slug: "about" }])
-    expect(media).toEqual([{ title: "Hero", url: "https://example.com/hero.jpg", mime_type: "image/jpeg" }])
+    expect(media).toEqual([
+      { title: "Hero", url: "https://example.com/hero.jpg", mime_type: "image/jpeg" },
+    ])
   })
 })
 

@@ -1,4 +1,4 @@
-import { prepareValueForField, type AdminFieldDef } from "./content-fields"
+import { type AdminFieldDef, prepareValueForField } from "./content-fields"
 
 export function buildPayload(
   data: Record<string, unknown>,

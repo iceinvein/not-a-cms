@@ -1,6 +1,6 @@
+import type { Editor, Range } from "@tiptap/core"
 import { Extension } from "@tiptap/core"
 import Suggestion from "@tiptap/suggestion"
-import type { Editor, Range } from "@tiptap/core"
 import { renderSlashSuggestion } from "./slash-render"
 
 export type SlashCommandItem = {
@@ -37,53 +37,49 @@ export const DEFAULT_COMMANDS: SlashCommandItem[] = [
     title: "Bullet List",
     description: "Create an unordered list",
     group: "lists",
-    command: (editor, range) =>
-      editor.chain().focus().deleteRange(range).toggleBulletList().run(),
+    command: (editor, range) => editor.chain().focus().deleteRange(range).toggleBulletList().run(),
   },
   {
     title: "Ordered List",
     description: "Create a numbered list",
     group: "lists",
-    command: (editor, range) =>
-      editor.chain().focus().deleteRange(range).toggleOrderedList().run(),
+    command: (editor, range) => editor.chain().focus().deleteRange(range).toggleOrderedList().run(),
   },
   {
     title: "Blockquote",
     description: "Add a quote block",
     group: "blocks",
-    command: (editor, range) =>
-      editor.chain().focus().deleteRange(range).setBlockquote().run(),
+    command: (editor, range) => editor.chain().focus().deleteRange(range).setBlockquote().run(),
   },
   {
     title: "Callout",
     description: "Highlight a note or warning",
     group: "blocks",
-    command: (editor, range) =>
-      editor.chain().focus().deleteRange(range).setNode("callout").run(),
+    command: (editor, range) => editor.chain().focus().deleteRange(range).setNode("callout").run(),
   },
   {
     title: "Code Block",
     description: "Insert a code block",
     group: "blocks",
-    command: (editor, range) =>
-      editor.chain().focus().deleteRange(range).setCodeBlock().run(),
+    command: (editor, range) => editor.chain().focus().deleteRange(range).setCodeBlock().run(),
   },
   {
     title: "Divider",
     description: "Insert a horizontal line",
     group: "blocks",
-    command: (editor, range) =>
-      editor.chain().focus().deleteRange(range).setHorizontalRule().run(),
+    command: (editor, range) => editor.chain().focus().deleteRange(range).setHorizontalRule().run(),
   },
 ]
 
-export function filterCommands(query: string, commands: SlashCommandItem[] = DEFAULT_COMMANDS): SlashCommandItem[] {
+export function filterCommands(
+  query: string,
+  commands: SlashCommandItem[] = DEFAULT_COMMANDS,
+): SlashCommandItem[] {
   if (!query) return commands
   const lower = query.toLowerCase()
   return commands.filter(
     (item) =>
-      item.title.toLowerCase().includes(lower) ||
-      item.description.toLowerCase().includes(lower)
+      item.title.toLowerCase().includes(lower) || item.description.toLowerCase().includes(lower),
   )
 }
 

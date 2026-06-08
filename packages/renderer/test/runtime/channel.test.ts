@@ -1,23 +1,25 @@
-import { test, expect, describe } from "bun:test"
+import { describe, expect, test } from "bun:test"
 import {
   buildChannelItemLink,
-  renderRSSFeed,
-  resolveChannelConfig,
   portableTextToHtml,
   renderJSONChannel,
+  renderRSSFeed,
+  resolveChannelConfig,
 } from "../../src/runtime/channel"
 
 describe("renderRSSFeed", () => {
   test("generates valid RSS XML", () => {
     const xml = renderRSSFeed(
       { title: "My Blog", description: "A test blog", siteUrl: "https://example.com" },
-      [{
-        title: "First Post",
-        link: "https://example.com/first",
-        description: "Hello world",
-        pubDate: new Date("2026-01-01").toUTCString(),
-        guid: "https://example.com/first",
-      }],
+      [
+        {
+          title: "First Post",
+          link: "https://example.com/first",
+          description: "Hello world",
+          pubDate: new Date("2026-01-01").toUTCString(),
+          guid: "https://example.com/first",
+        },
+      ],
     )
     expect(xml).toContain('<?xml version="1.0"')
     expect(xml).toContain("<rss")
@@ -74,39 +76,47 @@ describe("renderRSSFeed", () => {
   })
 
   test("builds item links from channel route templates", () => {
-    expect(buildChannelItemLink("https://example.com", "/blog/:slug", { slug: "first-post", id: "1" })).toBe(
-      "https://example.com/blog/first-post",
+    expect(
+      buildChannelItemLink("https://example.com", "/blog/:slug", { slug: "first-post", id: "1" }),
+    ).toBe("https://example.com/blog/first-post")
+    expect(buildChannelItemLink("https://example.com/", "news/:id", { id: "abc" })).toBe(
+      "https://example.com/news/abc",
     )
-    expect(buildChannelItemLink("https://example.com/", "news/:id", { id: "abc" })).toBe("https://example.com/news/abc")
   })
 })
 
 describe("portableTextToHtml", () => {
   test("converts paragraph", () => {
-    const html = portableTextToHtml([{
-      type: "paragraph",
-      children: [{ type: "text", value: "Hello" }],
-    }])
+    const html = portableTextToHtml([
+      {
+        type: "paragraph",
+        children: [{ type: "text", value: "Hello" }],
+      },
+    ])
     expect(html).toBe("<p>Hello</p>")
   })
 
   test("converts heading", () => {
-    const html = portableTextToHtml([{
-      type: "heading",
-      level: 2,
-      children: [{ type: "text", value: "Title" }],
-    }])
+    const html = portableTextToHtml([
+      {
+        type: "heading",
+        level: 2,
+        children: [{ type: "text", value: "Title" }],
+      },
+    ])
     expect(html).toBe("<h2>Title</h2>")
   })
 
   test("converts bullet list", () => {
-    const html = portableTextToHtml([{
-      type: "bulletList",
-      items: [
-        [{ type: "paragraph", children: [{ type: "text", value: "First" }] }],
-        [{ type: "paragraph", children: [{ type: "text", value: "Second" }] }],
-      ],
-    }])
+    const html = portableTextToHtml([
+      {
+        type: "bulletList",
+        items: [
+          [{ type: "paragraph", children: [{ type: "text", value: "First" }] }],
+          [{ type: "paragraph", children: [{ type: "text", value: "Second" }] }],
+        ],
+      },
+    ])
     expect(html).toContain("<ul>")
     expect(html).toContain("<li><p>First</p></li>")
   })

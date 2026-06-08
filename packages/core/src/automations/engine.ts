@@ -1,6 +1,16 @@
-import type { FlowStore, RecordStepInput } from "./store"
-import type { Flow, FlowRun, FlowRunStatus, FlowStep, ConditionStep, ActionStep, ConditionRule, DryRunStep, DryRunResult } from "./types"
 import type { RunEvent } from "./events"
+import type { FlowStore, RecordStepInput } from "./store"
+import type {
+  ActionStep,
+  ConditionRule,
+  ConditionStep,
+  DryRunResult,
+  DryRunStep,
+  Flow,
+  FlowRun,
+  FlowRunStatus,
+  FlowStep,
+} from "./types"
 
 export function resolvePayloadPath(payload: Record<string, unknown>, path: string): unknown {
   const cleanPath = path.startsWith("payload.") ? path.slice("payload.".length) : path
@@ -23,29 +33,40 @@ export function interpolate(template: string, payload: Record<string, unknown>):
 export function evaluateCondition(rule: ConditionRule, payload: Record<string, unknown>): boolean {
   const actual = resolvePayloadPath(payload, rule.field)
   switch (rule.operator) {
-    case "eq": return actual === rule.value
-    case "neq": return actual !== rule.value
-    case "contains": return typeof actual === "string" && actual.includes(String(rule.value))
-    case "not_contains": return typeof actual === "string" && !actual.includes(String(rule.value))
-    case "gt": return typeof actual === "number" && actual > Number(rule.value)
-    case "lt": return typeof actual === "number" && actual < Number(rule.value)
+    case "eq":
+      return actual === rule.value
+    case "neq":
+      return actual !== rule.value
+    case "contains":
+      return typeof actual === "string" && actual.includes(String(rule.value))
+    case "not_contains":
+      return typeof actual === "string" && !actual.includes(String(rule.value))
+    case "gt":
+      return typeof actual === "number" && actual > Number(rule.value)
+    case "lt":
+      return typeof actual === "number" && actual < Number(rule.value)
     case "matches": {
       if (typeof actual !== "string") return false
-      try { return new RegExp(String(rule.value)).test(actual) } catch { return false }
+      try {
+        return new RegExp(String(rule.value)).test(actual)
+      } catch {
+        return false
+      }
     }
-    default: return false
+    default:
+      return false
   }
 }
 
 function resolveStepById(steps: FlowStep[], stepId: string): FlowStep | undefined {
-  return steps.find(s => s.id === stepId)
+  return steps.find((s) => s.id === stepId)
 }
 
 function evaluateConditionStep(step: ConditionStep, payload: Record<string, unknown>): boolean {
   if (step.match === "any") {
-    return step.rules.some(rule => evaluateCondition(rule, payload))
+    return step.rules.some((rule) => evaluateCondition(rule, payload))
   }
-  return step.rules.every(rule => evaluateCondition(rule, payload))
+  return step.rules.every((rule) => evaluateCondition(rule, payload))
 }
 
 function resolveDataTemplate(
@@ -55,7 +76,7 @@ function resolveDataTemplate(
   const data: Record<string, unknown> = {}
   if (dataTemplate) {
     for (const [k, v] of Object.entries(dataTemplate)) {
-      data[k] = v.includes("{{") ? interpolate(v, payload) : resolvePayloadPath(payload, v) ?? v
+      data[k] = v.includes("{{") ? interpolate(v, payload) : (resolvePayloadPath(payload, v) ?? v)
     }
   }
   return data
@@ -83,9 +104,12 @@ function buildEmailParams(
   const to = interpolate(String(config.to ?? ""), payload)
   const subject = interpolate(String(config.subject ?? ""), payload)
   const html = config.html !== undefined ? interpolate(String(config.html), payload) : undefined
-  const text = config.text !== undefined
-    ? interpolate(String(config.text), payload)
-    : config.body !== undefined ? interpolate(String(config.body), payload) : undefined
+  const text =
+    config.text !== undefined
+      ? interpolate(String(config.text), payload)
+      : config.body !== undefined
+        ? interpolate(String(config.body), payload)
+        : undefined
   return { to, subject, html, text }
 }
 
@@ -93,7 +117,11 @@ export type FlowEngineOptions = {
   webhookRetryDelays?: number[]
   content?: {
     create(collection: string, data: Record<string, unknown>): Promise<Record<string, unknown>>
-    update(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>>
+    update(
+      collection: string,
+      id: string,
+      data: Record<string, unknown>,
+    ): Promise<Record<string, unknown>>
     delete(collection: string, id: string): Promise<boolean>
   }
   sendEmail?: (msg: { to: string; subject: string; html?: string; text?: string }) => Promise<void>
@@ -105,7 +133,10 @@ export type FlowEngineOptions = {
 export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = {}) {
   const webhookRetryDelays = options.webhookRetryDelays ?? [1000, 5000, 15000]
 
-  async function executeActionStep(step: ActionStep, payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async function executeActionStep(
+    step: ActionStep,
+    payload: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
     switch (step.type) {
       case "action.log": {
         const message = interpolate(String(step.config.message ?? ""), payload)
@@ -133,17 +164,32 @@ export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = 
         let lastError: Error | null = null
         for (let attempt = 0; attempt <= retryDelays.length; attempt++) {
           try {
-            const res = await fetch(url, { method, headers, body, signal: AbortSignal.timeout(10000) })
+            const res = await fetch(url, {
+              method,
+              headers,
+              body,
+              signal: AbortSignal.timeout(10000),
+            })
             const responseBody = await res.text().catch(() => "")
             if (!res.ok) {
               lastError = new Error(`Webhook failed: ${res.status} ${responseBody}`)
-              if (attempt < retryDelays.length) { await new Promise(r => setTimeout(r, retryDelays[attempt])); continue }
+              if (attempt < retryDelays.length) {
+                await new Promise((r) => setTimeout(r, retryDelays[attempt]))
+                continue
+              }
               throw lastError
             }
-            try { return JSON.parse(responseBody) } catch { return { response: responseBody, status: res.status } }
+            try {
+              return JSON.parse(responseBody)
+            } catch {
+              return { response: responseBody, status: res.status }
+            }
           } catch (err: any) {
             lastError = err
-            if (attempt < retryDelays.length) { await new Promise(r => setTimeout(r, retryDelays[attempt])); continue }
+            if (attempt < retryDelays.length) {
+              await new Promise((r) => setTimeout(r, retryDelays[attempt]))
+              continue
+            }
             throw lastError
           }
         }
@@ -157,22 +203,34 @@ export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = 
       }
       case "action.create_content": {
         const collection = String(step.config.collection ?? "")
-        const data = resolveDataTemplate(step.config.data as Record<string, string> | undefined, payload)
+        const data = resolveDataTemplate(
+          step.config.data as Record<string, string> | undefined,
+          payload,
+        )
         if (!options.content) throw new Error("No content adapter configured")
         const saved = await options.content.create(collection, data)
         return { action: "create_content", collection, documentId: saved.id, data: saved }
       }
       case "action.update_content": {
         const collection = String(step.config.collection ?? "")
-        const documentId = interpolate(String(step.config.documentId ?? step.config.document_id ?? ""), payload)
-        const data = resolveDataTemplate(step.config.data as Record<string, string> | undefined, payload)
+        const documentId = interpolate(
+          String(step.config.documentId ?? step.config.document_id ?? ""),
+          payload,
+        )
+        const data = resolveDataTemplate(
+          step.config.data as Record<string, string> | undefined,
+          payload,
+        )
         if (!options.content) throw new Error("No content adapter configured")
         const saved = await options.content.update(collection, documentId, data)
         return { action: "update_content", collection, documentId, data: saved }
       }
       case "action.delete_content": {
         const collection = String(step.config.collection ?? "")
-        const documentId = interpolate(String(step.config.documentId ?? step.config.document_id ?? ""), payload)
+        const documentId = interpolate(
+          String(step.config.documentId ?? step.config.document_id ?? ""),
+          payload,
+        )
         if (!options.content) throw new Error("No content adapter configured")
         const deleted = await options.content.delete(collection, documentId)
         return { action: "delete_content", collection, documentId, deleted }
@@ -218,9 +276,17 @@ export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = 
     }
   }
 
-  type SimResult = { payload: Record<string, unknown>; output: unknown; simulated: boolean; summary?: string }
+  type SimResult = {
+    payload: Record<string, unknown>
+    output: unknown
+    simulated: boolean
+    summary?: string
+  }
 
-  async function simulateActionStep(step: ActionStep, payload: Record<string, unknown>): Promise<SimResult> {
+  async function simulateActionStep(
+    step: ActionStep,
+    payload: Record<string, unknown>,
+  ): Promise<SimResult> {
     switch (step.type) {
       case "action.log":
       case "action.transform": {
@@ -232,32 +298,69 @@ export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = 
         const { method, url, headers } = buildWebhookRequest(step.config, payload)
         const request = { method, url, headers, body: payload }
         // Response is unknowable in a dry-run: thread the input payload unchanged.
-        return { payload, output: { simulated: true, request }, simulated: true, summary: `would ${method} ${url}` }
+        return {
+          payload,
+          output: { simulated: true, request },
+          simulated: true,
+          summary: `would ${method} ${url}`,
+        }
       }
       case "action.email": {
         const { to, subject, html, text } = buildEmailParams(step.config, payload)
         const output = { simulated: true, to, subject, html, text }
-        return { payload: { sent: true, to, subject }, output, simulated: true, summary: `would email ${to}: ${subject}` }
+        return {
+          payload: { sent: true, to, subject },
+          output,
+          simulated: true,
+          summary: `would email ${to}: ${subject}`,
+        }
       }
       case "action.create_content": {
         const collection = String(step.config.collection ?? "")
-        const data = resolveDataTemplate(step.config.data as Record<string, string> | undefined, payload)
+        const data = resolveDataTemplate(
+          step.config.data as Record<string, string> | undefined,
+          payload,
+        )
         // documentId is unknown until a real insert runs; use a sentinel so downstream steps do not break.
         const output = { action: "create_content", collection, documentId: "(simulated)", data }
-        return { payload: output, output, simulated: true, summary: `would create in \`${collection}\`` }
+        return {
+          payload: output,
+          output,
+          simulated: true,
+          summary: `would create in \`${collection}\``,
+        }
       }
       case "action.update_content": {
         const collection = String(step.config.collection ?? "")
-        const documentId = interpolate(String(step.config.documentId ?? step.config.document_id ?? ""), payload)
-        const data = resolveDataTemplate(step.config.data as Record<string, string> | undefined, payload)
+        const documentId = interpolate(
+          String(step.config.documentId ?? step.config.document_id ?? ""),
+          payload,
+        )
+        const data = resolveDataTemplate(
+          step.config.data as Record<string, string> | undefined,
+          payload,
+        )
         const output = { action: "update_content", collection, documentId, data }
-        return { payload: output, output, simulated: true, summary: `would update \`${documentId}\` in \`${collection}\`` }
+        return {
+          payload: output,
+          output,
+          simulated: true,
+          summary: `would update \`${documentId}\` in \`${collection}\``,
+        }
       }
       case "action.delete_content": {
         const collection = String(step.config.collection ?? "")
-        const documentId = interpolate(String(step.config.documentId ?? step.config.document_id ?? ""), payload)
+        const documentId = interpolate(
+          String(step.config.documentId ?? step.config.document_id ?? ""),
+          payload,
+        )
         const output = { action: "delete_content", collection, documentId, deleted: true }
-        return { payload: output, output, simulated: true, summary: `would delete \`${documentId}\` from \`${collection}\`` }
+        return {
+          payload: output,
+          output,
+          simulated: true,
+          summary: `would delete \`${documentId}\` from \`${collection}\``,
+        }
       }
       default:
         // Unknown action type: pass the payload through unchanged.
@@ -293,11 +396,18 @@ export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = 
           const result = evaluateConditionStep(step, currentPayload)
           const branchTaken = result ? "true" : "false"
           recorder.recordStep({
-            run_id: runId, step_id: step.id, status: "completed",
-            input: stepInput, output: stepInput, branch_taken: branchTaken,
-            started_at: startedAt, finished_at: new Date().toISOString(),
+            run_id: runId,
+            step_id: step.id,
+            status: "completed",
+            input: stepInput,
+            output: stepInput,
+            branch_taken: branchTaken,
+            started_at: startedAt,
+            finished_at: new Date().toISOString(),
           })
-          const nextId: string | null | undefined = result ? step.branches.true : step.branches.false
+          const nextId: string | null | undefined = result
+            ? step.branches.true
+            : step.branches.false
           currentStep = nextId ? resolveStepById(flow.steps, nextId) : undefined
         } else {
           try {
@@ -305,18 +415,27 @@ export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = 
               ? await simulateActionStep(step, currentPayload)
               : await liveRun(step, currentPayload)
             recorder.recordStep({
-              run_id: runId, step_id: step.id, status: "completed",
-              input: stepInput, output: JSON.stringify(sim.output),
-              started_at: startedAt, finished_at: new Date().toISOString(),
-              simulated: sim.simulated, summary: sim.summary,
+              run_id: runId,
+              step_id: step.id,
+              status: "completed",
+              input: stepInput,
+              output: JSON.stringify(sim.output),
+              started_at: startedAt,
+              finished_at: new Date().toISOString(),
+              simulated: sim.simulated,
+              summary: sim.summary,
             })
             currentPayload = sim.payload
             currentStep = step.next ? resolveStepById(flow.steps, step.next) : undefined
           } catch (err: any) {
             recorder.recordStep({
-              run_id: runId, step_id: step.id, status: "failed",
-              input: stepInput, error: err.message,
-              started_at: startedAt, finished_at: new Date().toISOString(),
+              run_id: runId,
+              step_id: step.id,
+              status: "failed",
+              input: stepInput,
+              error: err.message,
+              started_at: startedAt,
+              finished_at: new Date().toISOString(),
             })
             recorder.completeRun(runId, "failed", err.message)
             return runId
@@ -341,8 +460,11 @@ export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = 
       createRun: (flowId, triggerEvent, payloadJson) => {
         const id = `dry-${crypto.randomUUID()}`
         run = {
-          id, flow_id: flowId, trigger_event: triggerEvent,
-          trigger_payload: payloadJson, status: "running",
+          id,
+          flow_id: flowId,
+          trigger_event: triggerEvent,
+          trigger_payload: payloadJson,
+          status: "running",
           started_at: new Date().toISOString(),
         }
         return id
@@ -380,7 +502,10 @@ export function createFlowEngine(store: FlowStore, options: FlowEngineOptions = 
     }
   }
 
-  async function dryRun(flow: Flow, triggerPayload: Record<string, unknown>): Promise<DryRunResult> {
+  async function dryRun(
+    flow: Flow,
+    triggerPayload: Record<string, unknown>,
+  ): Promise<DryRunResult> {
     const { recorder, result } = createMemoryRecorder()
     await walk(flow, triggerPayload, { recorder, simulate: true })
     return result()

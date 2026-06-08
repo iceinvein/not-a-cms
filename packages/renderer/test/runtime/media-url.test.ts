@@ -9,7 +9,9 @@ describe("mediaUrl (F-015)", () => {
   })
 
   test("prefixes a root-relative media path with the API base", () => {
-    expect(mediaUrl(API, "/api/media/abc-123/file")).toBe("http://localhost:4321/api/media/abc-123/file")
+    expect(mediaUrl(API, "/api/media/abc-123/file")).toBe(
+      "http://localhost:4321/api/media/abc-123/file",
+    )
   })
 
   test("passes an absolute URL through unchanged", () => {
@@ -27,7 +29,9 @@ describe("mediaUrl (F-015)", () => {
   })
 
   test("tolerates a trailing slash on the API base", () => {
-    expect(mediaUrl("http://localhost:4321/", "abc-123")).toBe("http://localhost:4321/api/media/abc-123/file")
+    expect(mediaUrl("http://localhost:4321/", "abc-123")).toBe(
+      "http://localhost:4321/api/media/abc-123/file",
+    )
   })
 
   test("returns null for empty or missing values", () => {

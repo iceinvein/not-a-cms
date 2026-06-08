@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test"
 import {
+  type CollectionSettingsInput,
   listCollectionSettings,
   saveCollectionSettings,
-  type CollectionSettingsInput,
 } from "../../src/lib/collections"
 
 describe("admin collection settings API client", () => {
@@ -12,12 +12,14 @@ describe("admin collection settings API client", () => {
     globalThis.fetch = (async (url: string, init?: RequestInit) => {
       calls.push({ url, init })
       return Response.json({
-        data: [{
-          name: "blog_post",
-          labels: { singular: "Blog Post", plural: "Blog Posts" },
-          fields: { title: { type: "text" } },
-          settings: { previewPath: "/blog/:slug" },
-        }],
+        data: [
+          {
+            name: "blog_post",
+            labels: { singular: "Blog Post", plural: "Blog Posts" },
+            fields: { title: { type: "text" } },
+            settings: { previewPath: "/blog/:slug" },
+          },
+        ],
         roles: [{ key: "admin", label: "Admin" }],
       })
     }) as typeof fetch

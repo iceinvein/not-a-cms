@@ -12,9 +12,7 @@ type Tab = "rule" | "console"
 
 function tabClass(active: boolean): string {
   return `px-3 py-1.5 text-sm transition-colors ${
-    active
-      ? "bg-[#fafafa] text-[#0a0a0c]"
-      : "text-[#71717a] hover:bg-[rgba(255,255,255,0.05)]"
+    active ? "bg-[#fafafa] text-[#0a0a0c]" : "text-[#71717a] hover:bg-[rgba(255,255,255,0.05)]"
   }`
 }
 
@@ -27,7 +25,11 @@ export function AutomationWorkspace({ apiBase = "", flowId, initialRunId }: Prop
         <button type="button" onClick={() => setTab("rule")} className={tabClass(tab === "rule")}>
           Rule
         </button>
-        <button type="button" onClick={() => setTab("console")} className={tabClass(tab === "console")}>
+        <button
+          type="button"
+          onClick={() => setTab("console")}
+          className={tabClass(tab === "console")}
+        >
           Console
         </button>
       </div>

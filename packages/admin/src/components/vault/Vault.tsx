@@ -1,17 +1,19 @@
-import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react"
 import { FileText, ImageIcon, RefreshCw, Tags, Trash2, Upload, Video, X } from "lucide-react"
-import { EmptyState, ErrorState, LoadingState } from "../AdminState"
+import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react"
 import { adminApiFetch } from "../../lib/api"
 import {
+  type AdminMediaItem,
   bulkDeleteMediaItems,
   bulkUpdateMediaTags,
   createMediaFolder,
-  deleteMediaItem,
   deleteMediaFolder,
+  deleteMediaItem,
   getMediaContext,
   listMediaFolders,
-  listMediaTags,
   listMediaItems,
+  listMediaTags,
+  type MediaFolder,
+  type MediaTag,
   moveMediaAssets,
   normalizeTagInput,
   reorderMediaFolder,
@@ -19,18 +21,27 @@ import {
   setMediaFolderColor,
   setMediaFolderIcon,
   setMediaFolderRoles,
-  type AdminMediaItem,
-  type MediaFolder,
-  type MediaTag,
   updateMediaItem,
   uploadMediaFile,
 } from "../../lib/media"
-import { clusterAssets, type Cluster } from "../../lib/media/cluster"
-import { buildFolderTree, filterByFolder, folderDescendantIds, folderPath } from "../../lib/media/folders"
-import { allTags, filterByTags, filterUntagged, tagColor, tagPreviewCounts } from "../../lib/media/tags"
+import { type Cluster, clusterAssets } from "../../lib/media/cluster"
+import {
+  buildFolderTree,
+  filterByFolder,
+  folderDescendantIds,
+  folderPath,
+} from "../../lib/media/folders"
 import { rangeBetween } from "../../lib/media/selection"
+import {
+  allTags,
+  filterByTags,
+  filterUntagged,
+  tagColor,
+  tagPreviewCounts,
+} from "../../lib/media/tags"
+import { EmptyState, ErrorState, LoadingState } from "../AdminState"
+import { type ActiveFolder, FOLDER_ICON_KEYS, FOLDER_ICONS, FolderTree } from "./FolderTree"
 import { TagManager } from "./TagManager"
-import { FolderTree, FOLDER_ICONS, FOLDER_ICON_KEYS, type ActiveFolder } from "./FolderTree"
 
 type UsageReference = {
   collection: string
@@ -90,7 +101,9 @@ export function Vault({
   const [replacing, setReplacing] = useState(false)
   const [usageLoading, setUsageLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [selectedId, setSelectedId] = useState<string | null>(initialSelected?.id ?? initialItems[0]?.id ?? null)
+  const [selectedId, setSelectedId] = useState<string | null>(
+    initialSelected?.id ?? initialItems[0]?.id ?? null,
+  )
   const [activeTags, setActiveTags] = useState<string[]>([])
   const [filterMode, setFilterMode] = useState<"and" | "or">("and")
   const [anchorId, setAnchorId] = useState<string | null>(null)
@@ -108,7 +121,9 @@ export function Vault({
     allTags(initialItems).map(({ tag, count }) => ({ name: tag, count, color: tagColor(tag, {}) })),
   )
   const [managingTags, setManagingTags] = useState(false)
-  const [metadata, setMetadata] = useState<MetadataState>(() => toMetadataState(initialSelected ?? initialItems[0] ?? null))
+  const [metadata, setMetadata] = useState<MetadataState>(() =>
+    toMetadataState(initialSelected ?? initialItems[0] ?? null),
+  )
   const fileInputRef = useRef<HTMLInputElement>(null)
   const replaceInputRef = useRef<HTMLInputElement>(null)
 
@@ -121,14 +136,23 @@ export function Vault({
     }
     return filterByFolder(items, activeFolder)
   }, [items, activeFolder, recursive, folders])
-  const tags = useMemo(() => tagPreviewCounts(folderScoped, activeTags, filterMode), [folderScoped, activeTags, filterMode])
+  const tags = useMemo(
+    () => tagPreviewCounts(folderScoped, activeTags, filterMode),
+    [folderScoped, activeTags, filterMode],
+  )
   const untaggedTotal = useMemo(() => filterUntagged(folderScoped).length, [folderScoped])
   const visible = useMemo(
-    () => (showUntagged ? filterUntagged(folderScoped) : filterByTags(folderScoped, activeTags, filterMode)),
+    () =>
+      showUntagged
+        ? filterUntagged(folderScoped)
+        : filterByTags(folderScoped, activeTags, filterMode),
     [folderScoped, activeTags, showUntagged, filterMode],
   )
   const clusters = useMemo(() => clusterAssets(visible, counts), [visible, counts])
-  const orderedIds = useMemo(() => clusters.flatMap((cluster) => cluster.items.map((item) => item.id)), [clusters])
+  const orderedIds = useMemo(
+    () => clusters.flatMap((cluster) => cluster.items.map((item) => item.id)),
+    [clusters],
+  )
 
   const applyTagList = (list: MediaTag[]) => {
     setTagList(list)
@@ -166,7 +190,9 @@ export function Vault({
         setMetadata(toMetadataState(mediaItems.find((item) => item.id === nextId) ?? null))
         return nextId
       })
-      setActiveTags((current) => current.filter((tag) => mediaItems.some((item) => (item.tags ?? []).includes(tag))))
+      setActiveTags((current) =>
+        current.filter((tag) => mediaItems.some((item) => (item.tags ?? []).includes(tag))),
+      )
     } catch (err: any) {
       setError(err.message || "Failed to load media")
     } finally {
@@ -261,7 +287,9 @@ export function Vault({
       })
       const nextItems = items.map((item) => (item.id === updated.id ? updated : item))
       setItems(nextItems)
-      setActiveTags((current) => current.filter((tag) => nextItems.some((item) => (item.tags ?? []).includes(tag))))
+      setActiveTags((current) =>
+        current.filter((tag) => nextItems.some((item) => (item.tags ?? []).includes(tag))),
+      )
       await loadTags()
     } catch (err: any) {
       setError(err.message || "Failed to update media")
@@ -277,7 +305,7 @@ export function Vault({
     setError(null)
     try {
       const updated = await replaceMediaFile(apiBase, selectedItem.id, file)
-      setItems((current) => current.map((item) => item.id === updated.id ? updated : item))
+      setItems((current) => current.map((item) => (item.id === updated.id ? updated : item)))
     } catch (err: any) {
       setError(err.message || "Failed to replace media file")
     } finally {
@@ -288,7 +316,10 @@ export function Vault({
 
   const handleDelete = async () => {
     if (!selectedItem) return
-    if ((usage?.count ?? counts[selectedItem.id] ?? 0) > 0 && !confirm("This asset is used in content. Delete it anyway?")) {
+    if (
+      (usage?.count ?? counts[selectedItem.id] ?? 0) > 0 &&
+      !confirm("This asset is used in content. Delete it anyway?")
+    ) {
       return
     }
     setError(null)
@@ -305,7 +336,9 @@ export function Vault({
 
   const toggleTag = (tag: string) => {
     setShowUntagged(false)
-    setActiveTags((current) => (current.includes(tag) ? current.filter((t) => t !== tag) : [...current, tag]))
+    setActiveTags((current) =>
+      current.includes(tag) ? current.filter((t) => t !== tag) : [...current, tag],
+    )
   }
 
   const clearFilter = () => {
@@ -325,7 +358,9 @@ export function Vault({
       return
     }
     setAnchorId(id)
-    setCheckedIds((current) => (current.includes(id) ? current.filter((checkedId) => checkedId !== id) : [...current, id]))
+    setCheckedIds((current) =>
+      current.includes(id) ? current.filter((checkedId) => checkedId !== id) : [...current, id],
+    )
   }
 
   const runBulk = async (op: "add" | "remove") => {
@@ -339,7 +374,9 @@ export function Vault({
       setItems(nextItems)
       const nextSelected = nextItems.find((item) => item.id === selectedId)
       if (nextSelected) setMetadata(toMetadataState(nextSelected))
-      setActiveTags((current) => current.filter((tagName) => nextItems.some((item) => (item.tags ?? []).includes(tagName))))
+      setActiveTags((current) =>
+        current.filter((tagName) => nextItems.some((item) => (item.tags ?? []).includes(tagName))),
+      )
       setBulkTag("")
       await loadTags()
     } catch (err: any) {
@@ -367,7 +404,9 @@ export function Vault({
       }
       setCounts(await fetchUsageCounts(apiBase))
       setActiveTags((current) =>
-        current.filter((tag) => items.some((item) => !deleted.has(item.id) && (item.tags ?? []).includes(tag))),
+        current.filter((tag) =>
+          items.some((item) => !deleted.has(item.id) && (item.tags ?? []).includes(tag)),
+        ),
       )
     } catch (err: any) {
       setError(err.message || "Failed to delete selected assets")
@@ -485,7 +524,9 @@ export function Vault({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-serif text-3xl text-[#fafafa]">The Vault</h1>
-          <p className="text-sm text-[#71717a]">{items.length} assets clustered by type and usage.</p>
+          <p className="text-sm text-[#71717a]">
+            {items.length} assets clustered by type and usage.
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -517,21 +558,52 @@ export function Vault({
         </div>
       </div>
 
-      <input ref={fileInputRef} type="file" multiple accept="image/*,video/*,application/pdf" onChange={handleUpload} className="hidden" />
-      <input ref={replaceInputRef} type="file" accept="image/*,video/*,application/pdf" onChange={handleReplace} className="hidden" />
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        accept="image/*,video/*,application/pdf"
+        onChange={handleUpload}
+        className="hidden"
+      />
+      <input
+        ref={replaceInputRef}
+        type="file"
+        accept="image/*,video/*,application/pdf"
+        onChange={handleReplace}
+        className="hidden"
+      />
 
       {error && <ErrorState compact title="Vault action failed" description={error} />}
 
       {loading ? (
-        <LoadingState compact title="Loading the vault" description="Fetching uploaded assets and usage counts." />
+        <LoadingState
+          compact
+          title="Loading the vault"
+          description="Fetching uploaded assets and usage counts."
+        />
       ) : (
         <div className="grid gap-5 xl:grid-cols-[210px_minmax(0,1fr)_360px]">
           <aside className="hidden xl:block">
-            <FolderTree tree={folderTree} active={activeFolder} onSelect={setActiveFolder} onCreate={handleCreateFolder} onDropAssets={handleDropAssets} onReorder={handleReorderFolder} />
+            <FolderTree
+              tree={folderTree}
+              active={activeFolder}
+              onSelect={setActiveFolder}
+              onCreate={handleCreateFolder}
+              onDropAssets={handleDropAssets}
+              onReorder={handleReorderFolder}
+            />
           </aside>
           <div className="space-y-6">
             <div className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b] p-3 xl:hidden">
-              <FolderTree tree={folderTree} active={activeFolder} onSelect={setActiveFolder} onCreate={handleCreateFolder} onDropAssets={handleDropAssets} onReorder={handleReorderFolder} />
+              <FolderTree
+                tree={folderTree}
+                active={activeFolder}
+                onSelect={setActiveFolder}
+                onCreate={handleCreateFolder}
+                onDropAssets={handleDropAssets}
+                onReorder={handleReorderFolder}
+              />
             </div>
             <Breadcrumb
               folders={folders}
@@ -541,24 +613,26 @@ export function Vault({
               recursive={recursive}
               onToggleRecursive={() => setRecursive((value) => !value)}
             />
-            {activeFolder !== "all" && activeFolder !== null && (() => {
-              const folder = folders.find((entry) => entry.id === activeFolder)
-              return folder ? (
-                <FolderStylePanel
-                  folder={folder}
-                  onSetColor={handleSetFolderColor}
-                  onSetIcon={handleSetFolderIcon}
-                  viewerRole={viewerRole}
-                  availableRoles={availableRoles}
-                  onSetRoles={handleSetFolderRoles}
-                />
-              ) : null
-            })()}
+            {activeFolder !== "all" &&
+              activeFolder !== null &&
+              (() => {
+                const folder = folders.find((entry) => entry.id === activeFolder)
+                return folder ? (
+                  <FolderStylePanel
+                    folder={folder}
+                    onSetColor={handleSetFolderColor}
+                    onSetIcon={handleSetFolderIcon}
+                    viewerRole={viewerRole}
+                    availableRoles={availableRoles}
+                    onSetRoles={handleSetFolderRoles}
+                  />
+                ) : null
+              })()}
             {items.length === 0 ? (
               <EmptyState
                 title="No media files yet"
                 description="Upload images, videos, or documents to reuse them across your content."
-                action={(
+                action={
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
@@ -567,7 +641,7 @@ export function Vault({
                     <Upload className="h-4 w-4" />
                     Upload
                   </button>
-                )}
+                }
               />
             ) : (
               <>
@@ -607,7 +681,9 @@ export function Vault({
                     checkedIds={checkedIds}
                     onSelect={setSelectedId}
                     onToggleChecked={toggleChecked}
-                    onDragStartItem={(id) => { draggingId.current = id }}
+                    onDragStartItem={(id) => {
+                      draggingId.current = id
+                    }}
                   />
                 ))}
               </>
@@ -637,7 +713,9 @@ export function Vault({
           apiBase={apiBase}
           tags={tagList}
           onClose={() => setManagingTags(false)}
-          onChanged={() => { void refresh() }}
+          onChanged={() => {
+            void refresh()
+          }}
         />
       )}
     </div>
@@ -681,7 +759,11 @@ function TagFilterBar({
         All
       </button>
       {activeTags.length >= 2 && (
-        <span className="inline-flex overflow-hidden rounded-full border border-[rgba(255,255,255,0.12)] text-xs font-medium" role="group" aria-label="Match mode">
+        <span
+          className="inline-flex overflow-hidden rounded-full border border-[rgba(255,255,255,0.12)] text-xs font-medium"
+          role="group"
+          aria-label="Match mode"
+        >
           <button
             type="button"
             onClick={() => onSetMode("and")}
@@ -703,7 +785,12 @@ function TagFilterBar({
         </span>
       )}
       {untaggedCount > 0 && (
-        <button type="button" onClick={onToggleUntagged} className={chip(showUntagged)} aria-pressed={showUntagged}>
+        <button
+          type="button"
+          onClick={onToggleUntagged}
+          className={chip(showUntagged)}
+          aria-pressed={showUntagged}
+        >
           Untagged
           <span className="text-[#71717a]">{untaggedCount}</span>
         </button>
@@ -718,7 +805,10 @@ function TagFilterBar({
             className={`${chip(active)}${count === 0 && !active ? " opacity-40" : ""}`}
             aria-pressed={active}
           >
-            <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: tagColor(tag, colors) }} />
+            <span
+              className="inline-block h-2 w-2 rounded-full"
+              style={{ backgroundColor: tagColor(tag, colors) }}
+            />
             #{tag}
             <span className="text-[#71717a]">{count}</span>
           </button>
@@ -746,8 +836,13 @@ function Breadcrumb({
   const trail = active === "all" || active === null ? [] : folderPath(folders, active)
 
   return (
-    <nav className="flex flex-wrap items-center gap-1 text-sm text-[#71717a]" aria-label="Breadcrumb">
-      <button type="button" onClick={() => onSelect("all")} className="hover:text-[#fafafa]">All</button>
+    <nav
+      className="flex flex-wrap items-center gap-1 text-sm text-[#71717a]"
+      aria-label="Breadcrumb"
+    >
+      <button type="button" onClick={() => onSelect("all")} className="hover:text-[#fafafa]">
+        All
+      </button>
       {active === null && (
         <>
           <span>/</span>
@@ -768,7 +863,11 @@ function Breadcrumb({
       ))}
       {active !== "all" && active !== null && (
         <>
-          <button type="button" onClick={() => onDelete(active)} className="ml-2 text-xs text-[#f87171] hover:text-[#fca5a5]">
+          <button
+            type="button"
+            onClick={() => onDelete(active)}
+            className="ml-2 text-xs text-[#f87171] hover:text-[#fca5a5]"
+          >
             Delete folder
           </button>
           <button
@@ -802,7 +901,9 @@ function FolderStylePanel({
 }) {
   const restricted = folder.roles ?? []
   const toggleRole = (key: string) => {
-    const next = restricted.includes(key) ? restricted.filter((entry) => entry !== key) : [...restricted, key]
+    const next = restricted.includes(key)
+      ? restricted.filter((entry) => entry !== key)
+      : [...restricted, key]
     onSetRoles(folder.id, next.length > 0 ? next : null)
   }
   return (
@@ -819,7 +920,13 @@ function FolderStylePanel({
             style={{ backgroundColor: color }}
           />
         ))}
-        <button type="button" onClick={() => onSetColor(folder.id, null)} className="text-xs text-[#71717a] hover:text-[#fafafa]">Reset</button>
+        <button
+          type="button"
+          onClick={() => onSetColor(folder.id, null)}
+          className="text-xs text-[#71717a] hover:text-[#fafafa]"
+        >
+          Reset
+        </button>
       </div>
       <div className="flex items-center gap-1.5">
         <span className="text-xs text-[#71717a]">Icon</span>
@@ -841,25 +948,38 @@ function FolderStylePanel({
       {viewerRole === "admin" && availableRoles.length > 0 && (
         <div className="flex items-center gap-2">
           <span className="text-xs text-[#71717a]">Permissions</span>
-          {availableRoles.filter((role) => role.key !== "admin").map((role) => (
-            <label key={role.key} className="flex items-center gap-1 text-xs text-[#d4d4d8]">
-              <input
-                type="checkbox"
-                className="h-3.5 w-3.5 accent-[#c9956b]"
-                checked={restricted.includes(role.key)}
-                onChange={() => toggleRole(role.key)}
-              />
-              {role.label}
-            </label>
-          ))}
-          <span className="text-[11px] text-[#52525b]">{restricted.length === 0 ? "All roles" : "Restricted"}</span>
+          {availableRoles
+            .filter((role) => role.key !== "admin")
+            .map((role) => (
+              <label key={role.key} className="flex items-center gap-1 text-xs text-[#d4d4d8]">
+                <input
+                  type="checkbox"
+                  className="h-3.5 w-3.5 accent-[#c9956b]"
+                  checked={restricted.includes(role.key)}
+                  onChange={() => toggleRole(role.key)}
+                />
+                {role.label}
+              </label>
+            ))}
+          <span className="text-[11px] text-[#52525b]">
+            {restricted.length === 0 ? "All roles" : "Restricted"}
+          </span>
         </div>
       )}
     </div>
   )
 }
 
-const FOLDER_SWATCHES = ["#c9956b", "#6b9bc9", "#8bbf7a", "#c97a8b", "#b08bc9", "#c9b06b", "#6bc9b0", "#9b9b6b"]
+const FOLDER_SWATCHES = [
+  "#c9956b",
+  "#6b9bc9",
+  "#8bbf7a",
+  "#c97a8b",
+  "#b08bc9",
+  "#c9b06b",
+  "#6bc9b0",
+  "#9b9b6b",
+]
 
 function BulkActionBar({
   count,
@@ -891,10 +1011,18 @@ function BulkActionBar({
         placeholder="Tag..."
         className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-1.5 text-sm text-[#fafafa] outline-none placeholder:text-[#52525b] focus:border-[#c9956b]"
       />
-      <button type="button" onClick={onAdd} className="rounded-lg bg-[#c9956b] px-3 py-1.5 text-sm font-medium text-[#0a0a0c] hover:bg-[#d4a57c]">
+      <button
+        type="button"
+        onClick={onAdd}
+        className="rounded-lg bg-[#c9956b] px-3 py-1.5 text-sm font-medium text-[#0a0a0c] hover:bg-[#d4a57c]"
+      >
         Add
       </button>
-      <button type="button" onClick={onRemove} className="rounded-lg border border-[rgba(255,255,255,0.1)] px-3 py-1.5 text-sm font-medium text-[#fafafa] hover:bg-[rgba(255,255,255,0.04)]">
+      <button
+        type="button"
+        onClick={onRemove}
+        className="rounded-lg border border-[rgba(255,255,255,0.1)] px-3 py-1.5 text-sm font-medium text-[#fafafa] hover:bg-[rgba(255,255,255,0.04)]"
+      >
         Remove
       </button>
       <select
@@ -907,9 +1035,15 @@ function BulkActionBar({
         className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#18181b] px-2 py-1.5 text-sm text-[#fafafa] outline-none focus:border-[#c9956b]"
         aria-label="Move selected to folder"
       >
-        <option value="__placeholder" disabled>Move to...</option>
+        <option value="__placeholder" disabled>
+          Move to...
+        </option>
         <option value="__unsorted">Unsorted</option>
-        {folders.map((folder) => <option key={folder.id} value={folder.id}>{folder.name}</option>)}
+        {folders.map((folder) => (
+          <option key={folder.id} value={folder.id}>
+            {folder.name}
+          </option>
+        ))}
       </select>
       <button
         type="button"
@@ -919,7 +1053,11 @@ function BulkActionBar({
         <Trash2 className="h-4 w-4" />
         Delete
       </button>
-      <button type="button" onClick={onClear} className="text-sm text-[#71717a] hover:text-[#fafafa]">
+      <button
+        type="button"
+        onClick={onClear}
+        className="text-sm text-[#71717a] hover:text-[#fafafa]"
+      >
         Clear
       </button>
     </div>
@@ -948,12 +1086,16 @@ function ClusterSection({
       <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.06)] pb-2">
         <div className="flex items-center gap-2">
           {clusterIcon(cluster.key)}
-          <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-[#d4d4d8]">{cluster.label}</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-[#d4d4d8]">
+            {cluster.label}
+          </h2>
         </div>
         <span className="text-xs text-[#71717a]">{cluster.items.length} assets</span>
       </div>
       {cluster.items.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-[rgba(255,255,255,0.08)] px-4 py-6 text-sm text-[#71717a]">No assets in this cluster.</p>
+        <p className="rounded-lg border border-dashed border-[rgba(255,255,255,0.08)] px-4 py-6 text-sm text-[#71717a]">
+          No assets in this cluster.
+        </p>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
           {cluster.items.map((item) => (
@@ -984,10 +1126,18 @@ function ClusterSection({
               >
                 <div className="relative aspect-square bg-[rgba(255,255,255,0.03)]">
                   {item.mimetype.startsWith("image/") ? (
-                    <img src={item.url} alt={item.alt || item.filename} className="h-full w-full object-cover" />
+                    <img
+                      src={item.url}
+                      alt={item.alt || item.filename}
+                      className="h-full w-full object-cover"
+                    />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-[#71717a]">
-                      {item.mimetype.startsWith("video/") ? <Video className="h-9 w-9" /> : <FileText className="h-9 w-9" />}
+                      {item.mimetype.startsWith("video/") ? (
+                        <Video className="h-9 w-9" />
+                      ) : (
+                        <FileText className="h-9 w-9" />
+                      )}
                     </div>
                   )}
                   <span className="absolute right-2 top-2 rounded-full bg-[#0a0a0c]/85 px-2 py-1 text-[11px] font-medium text-[#fafafa]">
@@ -995,7 +1145,9 @@ function ClusterSection({
                   </span>
                 </div>
                 <div className="p-3">
-                  <p className="truncate text-xs font-medium text-[#fafafa]">{item.title || item.filename}</p>
+                  <p className="truncate text-xs font-medium text-[#fafafa]">
+                    {item.title || item.filename}
+                  </p>
                   <p className="text-xs text-[#71717a]">{formatSize(item.size)}</p>
                 </div>
               </button>
@@ -1039,7 +1191,11 @@ function DetailPanel({
   if (!item) {
     return (
       <aside className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b] p-4">
-        <EmptyState compact title="Select an asset" description="Inspect usage, edit metadata, replace, or delete an asset." />
+        <EmptyState
+          compact
+          title="Select an asset"
+          description="Inspect usage, edit metadata, replace, or delete an asset."
+        />
       </aside>
     )
   }
@@ -1049,10 +1205,18 @@ function DetailPanel({
       <div className="space-y-5">
         <div className="overflow-hidden rounded-lg border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)]">
           {item.mimetype.startsWith("image/") ? (
-            <img src={item.url} alt={item.alt || item.filename} className="max-h-72 w-full object-contain" />
+            <img
+              src={item.url}
+              alt={item.alt || item.filename}
+              className="max-h-72 w-full object-contain"
+            />
           ) : (
             <div className="flex aspect-video items-center justify-center text-[#71717a]">
-              {item.mimetype.startsWith("video/") ? <Video className="h-12 w-12" /> : <FileText className="h-12 w-12" />}
+              {item.mimetype.startsWith("video/") ? (
+                <Video className="h-12 w-12" />
+              ) : (
+                <FileText className="h-12 w-12" />
+              )}
             </div>
           )}
         </div>
@@ -1060,7 +1224,12 @@ function DetailPanel({
         <div>
           <p className="truncate text-sm font-medium text-[#fafafa]">{item.filename}</p>
           <p className="text-xs text-[#71717a]">
-            {[formatSize(item.size), item.width && item.height ? `${item.width}x${item.height}` : null].filter(Boolean).join(" / ")}
+            {[
+              formatSize(item.size),
+              item.width && item.height ? `${item.width}x${item.height}` : null,
+            ]
+              .filter(Boolean)
+              .join(" / ")}
           </p>
         </div>
 
@@ -1077,7 +1246,9 @@ function DetailPanel({
                     className="block rounded-lg border border-[rgba(255,255,255,0.06)] px-3 py-2 text-sm text-[#d4d4d8] hover:border-[rgba(201,149,107,0.35)] hover:bg-[rgba(255,255,255,0.03)]"
                   >
                     <span className="block truncate text-[#fafafa]">{reference.label}</span>
-                    <span className="text-xs text-[#71717a]">{reference.collection} / {reference.field}</span>
+                    <span className="text-xs text-[#71717a]">
+                      {reference.collection} / {reference.field}
+                    </span>
                   </a>
                 </li>
               ))}
@@ -1093,12 +1264,18 @@ function DetailPanel({
           Folder
           <select
             value={item.folderId ?? "__unsorted"}
-            onChange={(event) => onMove(item.id, event.target.value === "__unsorted" ? null : event.target.value)}
+            onChange={(event) =>
+              onMove(item.id, event.target.value === "__unsorted" ? null : event.target.value)
+            }
             className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#18181b] px-3 py-2 text-sm normal-case tracking-normal text-[#fafafa] outline-none focus:border-[#c9956b]"
             aria-label="Move asset to folder"
           >
             <option value="__unsorted">Unsorted</option>
-            {folders.map((folder) => <option key={folder.id} value={folder.id}>{folder.name}</option>)}
+            {folders.map((folder) => (
+              <option key={folder.id} value={folder.id}>
+                {folder.name}
+              </option>
+            ))}
           </select>
         </label>
 
@@ -1156,7 +1333,10 @@ function TagsField({
   }
 
   const removeTag = (tag: string) => {
-    setMetadata((current) => ({ ...current, tags: current.tags.filter((existing) => existing !== tag) }))
+    setMetadata((current) => ({
+      ...current,
+      tags: current.tags.filter((existing) => existing !== tag),
+    }))
   }
 
   return (
@@ -1168,7 +1348,10 @@ function TagsField({
             key={tag}
             className="inline-flex items-center gap-1 rounded-full border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] px-2.5 py-1 text-xs text-[#d4d4d8]"
           >
-            <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: tagColor(tag, tagColors) }} />
+            <span
+              className="inline-block h-2 w-2 rounded-full"
+              style={{ backgroundColor: tagColor(tag, tagColors) }}
+            />
             #{tag}
             <button
               type="button"
@@ -1211,7 +1394,9 @@ function MetadataFields({
         Title
         <input
           value={metadata.title}
-          onChange={(event) => setMetadata((current) => ({ ...current, title: event.target.value }))}
+          onChange={(event) =>
+            setMetadata((current) => ({ ...current, title: event.target.value }))
+          }
           className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm normal-case tracking-normal text-[#fafafa] outline-none placeholder:text-[#52525b] focus:border-[#c9956b]"
         />
       </label>
@@ -1227,7 +1412,9 @@ function MetadataFields({
         Caption
         <textarea
           value={metadata.caption}
-          onChange={(event) => setMetadata((current) => ({ ...current, caption: event.target.value }))}
+          onChange={(event) =>
+            setMetadata((current) => ({ ...current, caption: event.target.value }))
+          }
           rows={3}
           className="resize-none rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm normal-case tracking-normal text-[#fafafa] outline-none placeholder:text-[#52525b] focus:border-[#c9956b]"
         />
@@ -1241,7 +1428,9 @@ function MetadataFields({
             max="1"
             step="0.01"
             value={metadata.focalX}
-            onChange={(event) => setMetadata((current) => ({ ...current, focalX: event.target.value }))}
+            onChange={(event) =>
+              setMetadata((current) => ({ ...current, focalX: event.target.value }))
+            }
             className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm normal-case tracking-normal text-[#fafafa] outline-none focus:border-[#c9956b]"
           />
         </label>
@@ -1253,7 +1442,9 @@ function MetadataFields({
             max="1"
             step="0.01"
             value={metadata.focalY}
-            onChange={(event) => setMetadata((current) => ({ ...current, focalY: event.target.value }))}
+            onChange={(event) =>
+              setMetadata((current) => ({ ...current, focalY: event.target.value }))
+            }
             className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm normal-case tracking-normal text-[#fafafa] outline-none focus:border-[#c9956b]"
           />
         </label>
@@ -1272,14 +1463,14 @@ function clusterIcon(key: Cluster["key"]) {
 async function fetchUsageCounts(apiBase: string): Promise<Record<string, number>> {
   const res = await adminApiFetch(apiBase, "/api/media/usage")
   if (!res.ok) throw new Error("Failed to load media usage counts")
-  const body = await res.json() as { counts?: Record<string, number> }
+  const body = (await res.json()) as { counts?: Record<string, number> }
   return body.counts ?? {}
 }
 
 async function fetchUsage(apiBase: string, id: string): Promise<Usage> {
   const res = await adminApiFetch(apiBase, `/api/media/${encodeURIComponent(id)}/usage`)
   if (!res.ok) throw new Error("Failed to load media usage")
-  return await res.json() as Usage
+  return (await res.json()) as Usage
 }
 
 function formatSize(bytes: number) {

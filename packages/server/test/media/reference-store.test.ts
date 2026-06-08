@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import { unlinkSync } from "node:fs"
-import { createDatabase, bootstrapTables, defineCollection, field } from "@not-a-cms/core"
+import { bootstrapTables, createDatabase, defineCollection, field } from "@not-a-cms/core"
 import { createMediaReferenceStore } from "../../src/media/reference-store"
 
 const testDbPath = "test-media-ref-store.db"
@@ -11,7 +11,11 @@ const post = defineCollection({
 })
 
 afterEach(() => {
-  for (const suffix of ["", "-wal", "-shm"]) { try { unlinkSync(testDbPath + suffix) } catch {} }
+  for (const suffix of ["", "-wal", "-shm"]) {
+    try {
+      unlinkSync(testDbPath + suffix)
+    } catch {}
+  }
 })
 
 function setup() {
@@ -24,7 +28,9 @@ describe("createMediaReferenceStore", () => {
   test("replaceForDocument replaces (does not append) and counts/references read back", () => {
     const { store } = setup()
     store.replaceForDocument("post", "p1", [{ assetId: "img1", field: "cover", label: "Launch" }])
-    store.replaceForDocument("post", "p1", [{ assetId: "img2", field: "cover", label: "Launch v2" }])
+    store.replaceForDocument("post", "p1", [
+      { assetId: "img2", field: "cover", label: "Launch v2" },
+    ])
     expect(store.counts()).toEqual({ img2: 1 })
     expect(store.references("img2")).toEqual([
       { collection: "post", documentId: "p1", field: "cover", label: "Launch v2" },
@@ -69,7 +75,13 @@ describe("createMediaReferenceStore", () => {
     const { store } = setup()
     store.replaceForDocument("post", "stale", [{ assetId: "old", field: "cover", label: "stale" }])
     const collections = new Map([
-      ["post", { def: post, service: { findMany: async () => [{ id: "p1", title: "Launch", cover: "img1" }] } }],
+      [
+        "post",
+        {
+          def: post,
+          service: { findMany: async () => [{ id: "p1", title: "Launch", cover: "img1" }] },
+        },
+      ],
     ])
     await store.rebuild(collections as any)
     expect(store.counts()).toEqual({ img1: 1 })
@@ -104,10 +116,18 @@ describe("createMediaReferenceStore", () => {
     bootstrapTables(db, [])
     const store = createMediaReferenceStore(db, { assetExists: (id) => id === "img1" })
     const collections = new Map([
-      ["post", { def: post, service: { findMany: async () => [
-        { id: "p1", title: "Has live asset", cover: "img1" },
-        { id: "p2", title: "Has dead asset", cover: "gone" },
-      ] } }],
+      [
+        "post",
+        {
+          def: post,
+          service: {
+            findMany: async () => [
+              { id: "p1", title: "Has live asset", cover: "img1" },
+              { id: "p2", title: "Has dead asset", cover: "gone" },
+            ],
+          },
+        },
+      ],
     ])
     await store.rebuild(collections as any)
     expect(store.counts()).toEqual({ img1: 1 })

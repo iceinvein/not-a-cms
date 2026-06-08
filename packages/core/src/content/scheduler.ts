@@ -1,5 +1,5 @@
-import type { createContentService } from "./service"
 import type { CollectionDef } from "../types"
+import type { createContentService } from "./service"
 
 type CollectionEntry = {
   def: CollectionDef

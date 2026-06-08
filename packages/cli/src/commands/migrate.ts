@@ -1,7 +1,7 @@
-import { registerCommand } from "../router"
 import { existsSync } from "node:fs"
 import { join } from "node:path"
 import { createDatabase, createMigrator, loadConfig } from "@not-a-cms/core"
+import { registerCommand } from "../router"
 import { formatMigrationStatus } from "./generate"
 
 registerCommand({

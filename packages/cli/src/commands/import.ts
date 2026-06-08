@@ -1,4 +1,3 @@
-import { registerCommand } from "../router"
 import { existsSync, readFileSync } from "node:fs"
 import {
   bootstrapTables,
@@ -9,6 +8,7 @@ import {
   loadConfig,
   parseWXR,
 } from "@not-a-cms/core"
+import { registerCommand } from "../router"
 
 type ImportWordPressOptions = {
   cwd: string
@@ -33,7 +33,13 @@ export async function importWordPressFile(options: ImportWordPressOptions): Prom
   const xml = readFileSync(options.filePath, "utf-8")
   const parsed = parseWXR(xml)
   const plan = createWordPressImportPlan(parsed, config.collections)
-  const found = parsed.posts.length + parsed.pages.length + parsed.media.length + parsed.authors.length + parsed.tags.length + parsed.categories.length
+  const found =
+    parsed.posts.length +
+    parsed.pages.length +
+    parsed.media.length +
+    parsed.authors.length +
+    parsed.tags.length +
+    parsed.categories.length
 
   if (options.dryRun) {
     return {
@@ -48,10 +54,12 @@ export async function importWordPressFile(options: ImportWordPressOptions): Prom
   const db = createDatabase({ url: config.database?.url ?? "data.db" })
   bootstrapTables(db, config.collections)
 
-  const services = new Map(config.collections.map((collection) => [
-    collection.name,
-    createContentService(db, collection, generateTable(collection)),
-  ]))
+  const services = new Map(
+    config.collections.map((collection) => [
+      collection.name,
+      createContentService(db, collection, generateTable(collection)),
+    ]),
+  )
 
   let imported = 0
   for (const entry of plan.entries) {

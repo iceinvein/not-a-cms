@@ -1,20 +1,20 @@
-import { useEffect, useState } from "react"
 import { Copy, History, Plus, Save, Send, Shield, Trash2, UserPlus, Users } from "lucide-react"
-import { EmptyState, ErrorState, LoadingState } from "./AdminState"
+import { useEffect, useState } from "react"
 import {
+  type AuditEvent,
   createInvite,
   listAuditEvents,
   listInvites,
-  listTeamMembers,
   listRoles,
-  revokeInvite,
-  saveRoles,
-  updateTeamMemberRole,
-  type AuditEvent,
+  listTeamMembers,
   type PendingInvite,
   type RoleDefinition,
+  revokeInvite,
+  saveRoles,
   type TeamMember,
+  updateTeamMemberRole,
 } from "../lib/access"
+import { EmptyState, ErrorState, LoadingState } from "./AdminState"
 
 type Props = {
   apiBase?: string
@@ -67,7 +67,9 @@ export function AccessSettings({ apiBase = "" }: Props) {
   }, [apiBase])
 
   const updateRole = (index: number, patch: Partial<RoleDefinition>) => {
-    setRoles((current) => current.map((role, roleIndex) => roleIndex === index ? { ...role, ...patch } : role))
+    setRoles((current) =>
+      current.map((role, roleIndex) => (roleIndex === index ? { ...role, ...patch } : role)),
+    )
     setSaved(false)
   }
 
@@ -99,14 +101,18 @@ export function AccessSettings({ apiBase = "" }: Props) {
   const changeMemberRole = async (member: TeamMember, role: string) => {
     setError("")
     const previous = teamMembers
-    setTeamMembers((current) => current.map((entry) => entry.userId === member.userId ? { ...entry, role } : entry))
+    setTeamMembers((current) =>
+      current.map((entry) => (entry.userId === member.userId ? { ...entry, role } : entry)),
+    )
     try {
       const updated = await updateTeamMemberRole(apiBase, member.userId, {
         email: member.email,
         role,
         active: member.active,
       })
-      setTeamMembers((current) => current.map((entry) => entry.userId === updated.userId ? updated : entry))
+      setTeamMembers((current) =>
+        current.map((entry) => (entry.userId === updated.userId ? updated : entry)),
+      )
     } catch {
       setTeamMembers(previous)
       setError("Could not update team member role.")
@@ -119,8 +125,14 @@ export function AccessSettings({ apiBase = "" }: Props) {
     setInviteToken("")
     setInviting(true)
     try {
-      const created = await createInvite(apiBase, { email: inviteEmail, role: inviteRole || roles[0]?.key || "" })
-      setInvites((current) => [created.invite, ...current.filter((invite) => invite.id !== created.invite.id)])
+      const created = await createInvite(apiBase, {
+        email: inviteEmail,
+        role: inviteRole || roles[0]?.key || "",
+      })
+      setInvites((current) => [
+        created.invite,
+        ...current.filter((invite) => invite.id !== created.invite.id),
+      ])
       setInviteEmail("")
       setInviteRole(created.invite.role)
       setInviteToken(created.token)
@@ -152,17 +164,21 @@ export function AccessSettings({ apiBase = "" }: Props) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-base font-semibold text-[#fafafa]">Access Control</h2>
-          <p className="text-sm text-[#71717a]">Manage role labels used by schema field permissions.</p>
+          <p className="text-sm text-[#71717a]">
+            Manage role labels used by schema field permissions.
+          </p>
         </div>
-        <button onClick={handleSave} disabled={saving || loading} className="inline-flex items-center gap-2 px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4a57c] disabled:opacity-50 transition-colors">
+        <button
+          onClick={handleSave}
+          disabled={saving || loading}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4a57c] disabled:opacity-50 transition-colors"
+        >
           <Save className="h-4 w-4" />
           {saving ? "Saving..." : saved ? "Saved" : "Save Roles"}
         </button>
       </div>
 
-      {error && (
-        <ErrorState compact title="Access settings unavailable" description={error} />
-      )}
+      {error && <ErrorState compact title="Access settings unavailable" description={error} />}
 
       <section className="bg-[#18181b] rounded-lg border border-[rgba(255,255,255,0.06)]">
         <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.06)] px-5 py-4">
@@ -170,7 +186,10 @@ export function AccessSettings({ apiBase = "" }: Props) {
             <Shield className="h-4 w-4 text-[#c9956b]" />
             Roles
           </div>
-          <button onClick={addRole} className="inline-flex items-center gap-2 px-3 py-1.5 border border-[rgba(255,255,255,0.1)] rounded-lg text-xs font-medium text-[#fafafa] hover:bg-[rgba(255,255,255,0.04)] transition-colors">
+          <button
+            onClick={addRole}
+            className="inline-flex items-center gap-2 px-3 py-1.5 border border-[rgba(255,255,255,0.1)] rounded-lg text-xs font-medium text-[#fafafa] hover:bg-[rgba(255,255,255,0.04)] transition-colors"
+          >
             <Plus className="h-3.5 w-3.5" />
             Add Role
           </button>
@@ -178,38 +197,49 @@ export function AccessSettings({ apiBase = "" }: Props) {
 
         <div className="divide-y divide-[rgba(255,255,255,0.06)]">
           {loading ? (
-            <div className="p-5"><LoadingState compact title="Loading roles" description="Fetching role definitions." /></div>
-          ) : roles.map((role, index) => (
-            <div key={`${role.key}-${index}`} className="grid gap-3 px-5 py-4 md:grid-cols-[minmax(120px,180px)_minmax(140px,1fr)_minmax(180px,1.4fr)_auto] md:items-center">
-              <input
-                value={role.key}
-                disabled={role.system}
-                onChange={(event) => updateRole(index, { key: event.target.value })}
-                placeholder="role_key"
-                className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] disabled:text-[#71717a] focus:border-[#c9956b] focus:outline-none"
+            <div className="p-5">
+              <LoadingState
+                compact
+                title="Loading roles"
+                description="Fetching role definitions."
               />
-              <input
-                value={role.label}
-                onChange={(event) => updateRole(index, { label: event.target.value })}
-                placeholder="Label"
-                className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c9956b] focus:outline-none"
-              />
-              <input
-                value={role.description ?? ""}
-                onChange={(event) => updateRole(index, { description: event.target.value })}
-                placeholder="Description"
-                className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c9956b] focus:outline-none"
-              />
-              <button
-                onClick={() => removeRole(index)}
-                disabled={role.system}
-                aria-label={`Remove ${role.label || role.key}`}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[rgba(255,255,255,0.1)] text-[#a1a1aa] hover:text-[#ef4444] disabled:opacity-30 disabled:hover:text-[#a1a1aa]"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
             </div>
-          ))}
+          ) : (
+            roles.map((role, index) => (
+              <div
+                key={`${role.key}-${index}`}
+                className="grid gap-3 px-5 py-4 md:grid-cols-[minmax(120px,180px)_minmax(140px,1fr)_minmax(180px,1.4fr)_auto] md:items-center"
+              >
+                <input
+                  value={role.key}
+                  disabled={role.system}
+                  onChange={(event) => updateRole(index, { key: event.target.value })}
+                  placeholder="role_key"
+                  className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] disabled:text-[#71717a] focus:border-[#c9956b] focus:outline-none"
+                />
+                <input
+                  value={role.label}
+                  onChange={(event) => updateRole(index, { label: event.target.value })}
+                  placeholder="Label"
+                  className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c9956b] focus:outline-none"
+                />
+                <input
+                  value={role.description ?? ""}
+                  onChange={(event) => updateRole(index, { description: event.target.value })}
+                  placeholder="Description"
+                  className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c9956b] focus:outline-none"
+                />
+                <button
+                  onClick={() => removeRole(index)}
+                  disabled={role.system}
+                  aria-label={`Remove ${role.label || role.key}`}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[rgba(255,255,255,0.1)] text-[#a1a1aa] hover:text-[#ef4444] disabled:opacity-30 disabled:hover:text-[#a1a1aa]"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            ))
+          )}
         </div>
       </section>
 
@@ -219,7 +249,10 @@ export function AccessSettings({ apiBase = "" }: Props) {
           Invites
         </div>
         <div className="space-y-4 p-5">
-          <form onSubmit={handleInvite} className="grid gap-3 md:grid-cols-[minmax(180px,1fr)_minmax(140px,220px)_auto] md:items-end">
+          <form
+            onSubmit={handleInvite}
+            className="grid gap-3 md:grid-cols-[minmax(180px,1fr)_minmax(140px,220px)_auto] md:items-end"
+          >
             <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#71717a]">
               Email
               <input
@@ -239,7 +272,9 @@ export function AccessSettings({ apiBase = "" }: Props) {
                 className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-[#18181b] text-[#fafafa] disabled:opacity-50 focus:border-[#c9956b] focus:outline-none"
               >
                 {roles.map((role) => (
-                  <option key={role.key} value={role.key}>{role.label}</option>
+                  <option key={role.key} value={role.key}>
+                    {role.label}
+                  </option>
                 ))}
               </select>
             </label>
@@ -272,28 +307,47 @@ export function AccessSettings({ apiBase = "" }: Props) {
 
           <div className="divide-y divide-[rgba(255,255,255,0.06)] rounded-lg border border-[rgba(255,255,255,0.06)]">
             {loading ? (
-              <div className="p-4"><LoadingState compact title="Loading invites" description="Fetching pending team invites." /></div>
-            ) : invites.length === 0 ? (
-              <div className="p-4"><EmptyState compact title="No pending invites" description="New team invites will appear here until accepted or revoked." /></div>
-            ) : invites.map((invite) => (
-              <div key={invite.id} className="grid gap-3 px-4 py-3 md:grid-cols-[1fr_minmax(120px,180px)_minmax(140px,180px)_auto] md:items-center">
-                <div>
-                  <p className="text-sm font-medium text-[#fafafa]">{invite.email}</p>
-                  <p className="text-xs text-[#71717a]">Created {formatDate(invite.createdAt)}</p>
-                </div>
-                <p className="text-sm text-[#d4d4d8]">{roleLabel(roles, invite.role)}</p>
-                <time className="text-xs text-[#71717a]">Expires {formatDate(invite.expiresAt)}</time>
-                <button
-                  type="button"
-                  onClick={() => revokePendingInvite(invite)}
-                  disabled={revokingInvite === invite.id}
-                  aria-label={`Revoke invite for ${invite.email}`}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[rgba(255,255,255,0.1)] text-[#a1a1aa] hover:text-[#ef4444] disabled:opacity-40"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+              <div className="p-4">
+                <LoadingState
+                  compact
+                  title="Loading invites"
+                  description="Fetching pending team invites."
+                />
               </div>
-            ))}
+            ) : invites.length === 0 ? (
+              <div className="p-4">
+                <EmptyState
+                  compact
+                  title="No pending invites"
+                  description="New team invites will appear here until accepted or revoked."
+                />
+              </div>
+            ) : (
+              invites.map((invite) => (
+                <div
+                  key={invite.id}
+                  className="grid gap-3 px-4 py-3 md:grid-cols-[1fr_minmax(120px,180px)_minmax(140px,180px)_auto] md:items-center"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-[#fafafa]">{invite.email}</p>
+                    <p className="text-xs text-[#71717a]">Created {formatDate(invite.createdAt)}</p>
+                  </div>
+                  <p className="text-sm text-[#d4d4d8]">{roleLabel(roles, invite.role)}</p>
+                  <time className="text-xs text-[#71717a]">
+                    Expires {formatDate(invite.expiresAt)}
+                  </time>
+                  <button
+                    type="button"
+                    onClick={() => revokePendingInvite(invite)}
+                    disabled={revokingInvite === invite.id}
+                    aria-label={`Revoke invite for ${invite.email}`}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[rgba(255,255,255,0.1)] text-[#a1a1aa] hover:text-[#ef4444] disabled:opacity-40"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -305,26 +359,49 @@ export function AccessSettings({ apiBase = "" }: Props) {
         </div>
         <div className="divide-y divide-[rgba(255,255,255,0.06)]">
           {loading ? (
-            <div className="p-5"><LoadingState compact title="Loading team members" description="Fetching assigned user roles." /></div>
-          ) : teamMembers.length === 0 ? (
-            <div className="p-5"><EmptyState compact title="No assigned team members yet" description="Users will appear here after they sign in or are invited." /></div>
-          ) : teamMembers.map((member) => (
-            <div key={member.userId} className="grid gap-3 px-5 py-4 md:grid-cols-[1fr_minmax(140px,220px)] md:items-center">
-              <div>
-                <p className="text-sm font-medium text-[#fafafa]">{member.email || member.userId}</p>
-                <p className="text-xs text-[#71717a]">{member.active ? "Active" : "Inactive"} / {member.userId}</p>
-              </div>
-              <select
-                value={member.role}
-                onChange={(event) => changeMemberRole(member, event.target.value)}
-                className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-[#18181b] text-[#fafafa] focus:border-[#c9956b] focus:outline-none"
-              >
-                {roles.map((role) => (
-                  <option key={role.key} value={role.key}>{role.label}</option>
-                ))}
-              </select>
+            <div className="p-5">
+              <LoadingState
+                compact
+                title="Loading team members"
+                description="Fetching assigned user roles."
+              />
             </div>
-          ))}
+          ) : teamMembers.length === 0 ? (
+            <div className="p-5">
+              <EmptyState
+                compact
+                title="No assigned team members yet"
+                description="Users will appear here after they sign in or are invited."
+              />
+            </div>
+          ) : (
+            teamMembers.map((member) => (
+              <div
+                key={member.userId}
+                className="grid gap-3 px-5 py-4 md:grid-cols-[1fr_minmax(140px,220px)] md:items-center"
+              >
+                <div>
+                  <p className="text-sm font-medium text-[#fafafa]">
+                    {member.email || member.userId}
+                  </p>
+                  <p className="text-xs text-[#71717a]">
+                    {member.active ? "Active" : "Inactive"} / {member.userId}
+                  </p>
+                </div>
+                <select
+                  value={member.role}
+                  onChange={(event) => changeMemberRole(member, event.target.value)}
+                  className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-[#18181b] text-[#fafafa] focus:border-[#c9956b] focus:outline-none"
+                >
+                  {roles.map((role) => (
+                    <option key={role.key} value={role.key}>
+                      {role.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ))
+          )}
         </div>
       </section>
 
@@ -335,20 +412,41 @@ export function AccessSettings({ apiBase = "" }: Props) {
         </div>
         <div className="divide-y divide-[rgba(255,255,255,0.06)]">
           {loading ? (
-            <div className="p-5"><LoadingState compact title="Loading audit trail" description="Fetching recent changes." /></div>
-          ) : auditEvents.length === 0 ? (
-            <div className="p-5"><EmptyState compact title="No audit events yet" description="Content and access changes will be listed here." /></div>
-          ) : auditEvents.map((event) => (
-            <div key={event.id} className="grid gap-1 px-5 py-4 sm:grid-cols-[1fr_auto] sm:items-center">
-              <div>
-                <p className="text-sm font-medium text-[#fafafa]">{event.summary || event.action}</p>
-                <p className="text-xs text-[#71717a]">
-                  {[event.collection, event.documentId, event.actorRole].filter(Boolean).join(" / ")}
-                </p>
-              </div>
-              <time className="text-xs text-[#71717a]">{formatDate(event.createdAt)}</time>
+            <div className="p-5">
+              <LoadingState
+                compact
+                title="Loading audit trail"
+                description="Fetching recent changes."
+              />
             </div>
-          ))}
+          ) : auditEvents.length === 0 ? (
+            <div className="p-5">
+              <EmptyState
+                compact
+                title="No audit events yet"
+                description="Content and access changes will be listed here."
+              />
+            </div>
+          ) : (
+            auditEvents.map((event) => (
+              <div
+                key={event.id}
+                className="grid gap-1 px-5 py-4 sm:grid-cols-[1fr_auto] sm:items-center"
+              >
+                <div>
+                  <p className="text-sm font-medium text-[#fafafa]">
+                    {event.summary || event.action}
+                  </p>
+                  <p className="text-xs text-[#71717a]">
+                    {[event.collection, event.documentId, event.actorRole]
+                      .filter(Boolean)
+                      .join(" / ")}
+                  </p>
+                </div>
+                <time className="text-xs text-[#71717a]">{formatDate(event.createdAt)}</time>
+              </div>
+            ))
+          )}
         </div>
       </section>
     </div>

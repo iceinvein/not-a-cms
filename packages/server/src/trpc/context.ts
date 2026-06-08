@@ -1,5 +1,5 @@
-import { initTRPC, TRPCError } from "@trpc/server"
 import type { AppDatabase } from "@not-a-cms/core"
+import { initTRPC, TRPCError } from "@trpc/server"
 
 export type AppContext = {
   db: AppDatabase

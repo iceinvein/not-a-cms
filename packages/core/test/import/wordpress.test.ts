@@ -1,6 +1,6 @@
-import { test, expect, describe } from "bun:test"
-import { createWordPressImportPlan, parseWXR, htmlToPortableText } from "../../src/import/wordpress"
+import { describe, expect, test } from "bun:test"
 import { defineCollection, field } from "../../src"
+import { createWordPressImportPlan, htmlToPortableText, parseWXR } from "../../src/import/wordpress"
 
 describe("WordPress import", () => {
   test("htmlToPortableText converts paragraph", () => {
@@ -182,7 +182,14 @@ describe("WordPress import", () => {
 
     const plan = createWordPressImportPlan(parsed, collections)
 
-    expect(plan.entries.map((entry) => entry.collection)).toEqual(["blog_post", "page", "media", "author", "tag", "category"])
+    expect(plan.entries.map((entry) => entry.collection)).toEqual([
+      "blog_post",
+      "page",
+      "media",
+      "author",
+      "tag",
+      "category",
+    ])
     expect(plan.entries[0].data).toMatchObject({
       title: "Hello",
       slug: "hello",

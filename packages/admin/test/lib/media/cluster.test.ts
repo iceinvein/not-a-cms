@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { clusterAssets, type Cluster } from "../../../src/lib/media/cluster"
+import { type Cluster, clusterAssets } from "../../../src/lib/media/cluster"
 
 const items = [
   { id: "a", filename: "hero.jpg", mimetype: "image/jpeg", size: 1, uploadedAt: "", url: "" },

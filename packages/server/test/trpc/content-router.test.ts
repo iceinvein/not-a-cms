@@ -1,16 +1,16 @@
-import { test, expect, describe, beforeEach, afterEach } from "bun:test"
-import { appRouter } from "../../src/trpc/router"
-import { createCallerFactory } from "../../src/trpc/context"
-import { createNotACMSTRPCClient, resolveTRPCUrl } from "../../src/trpc/client"
+import { afterEach, beforeEach, describe, expect, test } from "bun:test"
+import { unlinkSync } from "node:fs"
 import {
+  createContentService,
   createDatabase,
-  generateTable,
   defineCollection,
   field,
-  createContentService,
+  generateTable,
 } from "@not-a-cms/core"
 import { sql } from "drizzle-orm"
-import { unlinkSync } from "node:fs"
+import { createNotACMSTRPCClient, resolveTRPCUrl } from "../../src/trpc/client"
+import { createCallerFactory } from "../../src/trpc/context"
+import { appRouter } from "../../src/trpc/router"
 
 const testDbPath = "test-trpc.db"
 
@@ -99,8 +99,18 @@ describe("content tRPC router", () => {
     const lockedPageTable = generateTable(lockedPage)
     const collections = new Map([
       ["page", { def: page, table: pageTable, service: createContentService(db, page, pageTable) }],
-      ["author", { def: author, table: authorTable, service: createContentService(db, author, authorTable) }],
-      ["locked_page", { def: lockedPage, table: lockedPageTable, service: createContentService(db, lockedPage, lockedPageTable) }],
+      [
+        "author",
+        { def: author, table: authorTable, service: createContentService(db, author, authorTable) },
+      ],
+      [
+        "locked_page",
+        {
+          def: lockedPage,
+          table: lockedPageTable,
+          service: createContentService(db, lockedPage, lockedPageTable),
+        },
+      ],
     ])
 
     const trpcRouter = appRouter(collections)
@@ -112,9 +122,15 @@ describe("content tRPC router", () => {
   })
 
   afterEach(() => {
-    try { unlinkSync(testDbPath) } catch {}
-    try { unlinkSync(testDbPath + "-wal") } catch {}
-    try { unlinkSync(testDbPath + "-shm") } catch {}
+    try {
+      unlinkSync(testDbPath)
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-wal")
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-shm")
+    } catch {}
   })
 
   test("content.create creates a document", async () => {
@@ -151,26 +167,34 @@ describe("content tRPC router", () => {
       data: { title: "Locked", slug: "locked" },
     })
 
-    await expect(anonymousCaller.content.findById({
-      collection: "locked_page",
-      id: created.id,
-    })).rejects.toThrow("Forbidden")
+    await expect(
+      anonymousCaller.content.findById({
+        collection: "locked_page",
+        id: created.id,
+      }),
+    ).rejects.toThrow("Forbidden")
 
-    await expect(editorCaller.content.create({
-      collection: "locked_page",
-      data: { title: "Editor Locked", slug: "editor-locked" },
-    })).rejects.toThrow("Forbidden")
+    await expect(
+      editorCaller.content.create({
+        collection: "locked_page",
+        data: { title: "Editor Locked", slug: "editor-locked" },
+      }),
+    ).rejects.toThrow("Forbidden")
 
-    await expect(editorCaller.content.update({
-      collection: "locked_page",
-      id: created.id,
-      data: { title: "Editor Updated" },
-    })).rejects.toThrow("Forbidden")
+    await expect(
+      editorCaller.content.update({
+        collection: "locked_page",
+        id: created.id,
+        data: { title: "Editor Updated" },
+      }),
+    ).rejects.toThrow("Forbidden")
 
-    await expect(editorCaller.content.remove({
-      collection: "locked_page",
-      id: created.id,
-    })).rejects.toThrow("Forbidden")
+    await expect(
+      editorCaller.content.remove({
+        collection: "locked_page",
+        id: created.id,
+      }),
+    ).rejects.toThrow("Forbidden")
   })
 
   test("default collection access lets viewers read but not mutate content", async () => {
@@ -182,16 +206,20 @@ describe("content tRPC router", () => {
     const viewerRead = await viewerCaller.content.findById({ collection: "page", id: created.id })
     expect(viewerRead.title).toBe("Default ACL")
 
-    await expect(viewerCaller.content.create({
-      collection: "page",
-      data: { title: "Viewer Create", slug: "viewer-create" },
-    })).rejects.toThrow("Forbidden")
+    await expect(
+      viewerCaller.content.create({
+        collection: "page",
+        data: { title: "Viewer Create", slug: "viewer-create" },
+      }),
+    ).rejects.toThrow("Forbidden")
 
-    await expect(viewerCaller.content.update({
-      collection: "page",
-      id: created.id,
-      data: { title: "Viewer Update" },
-    })).rejects.toThrow("Forbidden")
+    await expect(
+      viewerCaller.content.update({
+        collection: "page",
+        id: created.id,
+        data: { title: "Viewer Update" },
+      }),
+    ).rejects.toThrow("Forbidden")
   })
 
   test("content.findById retrieves a document", async () => {
@@ -245,7 +273,12 @@ describe("content tRPC router", () => {
     })
     const createdPage = await caller.content.create({
       collection: "page",
-      data: { title: "Populated Page", slug: "populated-page", status: "published", author: createdAuthor.id },
+      data: {
+        title: "Populated Page",
+        slug: "populated-page",
+        status: "published",
+        author: createdAuthor.id,
+      },
     })
 
     const found = await anonymousCaller.content.findById({
@@ -267,7 +300,12 @@ describe("content tRPC router", () => {
   test("content.findById filters unreadable fields for anonymous callers", async () => {
     const created = await caller.content.create({
       collection: "page",
-      data: { title: "Private Page", slug: "private-page", status: "published", secret: "admin-only" },
+      data: {
+        title: "Private Page",
+        slug: "private-page",
+        status: "published",
+        secret: "admin-only",
+      },
     })
 
     const anonymousFound = await anonymousCaller.content.findById({
@@ -326,9 +364,18 @@ describe("content tRPC router", () => {
   })
 
   test("content.findMany supports sorting, operators, and metadata", async () => {
-    await caller.content.create({ collection: "page", data: { title: "Alpha", slug: "alpha", status: "draft", views: 1 } })
-    await caller.content.create({ collection: "page", data: { title: "Beta", slug: "beta", status: "published", views: 10 } })
-    await caller.content.create({ collection: "page", data: { title: "Gamma", slug: "gamma", status: "published", views: 5 } })
+    await caller.content.create({
+      collection: "page",
+      data: { title: "Alpha", slug: "alpha", status: "draft", views: 1 },
+    })
+    await caller.content.create({
+      collection: "page",
+      data: { title: "Beta", slug: "beta", status: "published", views: 10 },
+    })
+    await caller.content.create({
+      collection: "page",
+      data: { title: "Gamma", slug: "gamma", status: "published", views: 5 },
+    })
 
     const result = await caller.content.findMany({
       collection: "page",
@@ -347,7 +394,9 @@ describe("content tRPC router", () => {
   })
 
   test("content.findMany rejects unknown query fields", async () => {
-    await expect(caller.content.findMany({ collection: "page", sort: "unknown" })).rejects.toThrow("Unknown field")
+    await expect(caller.content.findMany({ collection: "page", sort: "unknown" })).rejects.toThrow(
+      "Unknown field",
+    )
   })
 
   test("content.update modifies a document", async () => {
@@ -404,15 +453,15 @@ describe("content tRPC router", () => {
   })
 
   test("content.create throws for unknown collection", async () => {
-    expect(
-      caller.content.create({ collection: "unknown", data: { title: "X" } }),
-    ).rejects.toThrow()
+    expect(caller.content.create({ collection: "unknown", data: { title: "X" } })).rejects.toThrow()
   })
 
   test("client helpers build typed tRPC clients from API base URLs", () => {
     expect(resolveTRPCUrl("http://localhost:4321")).toBe("http://localhost:4321/trpc")
     expect(resolveTRPCUrl("http://localhost:4321/")).toBe("http://localhost:4321/trpc")
-    expect(resolveTRPCUrl("http://localhost:4321/custom/trpc")).toBe("http://localhost:4321/custom/trpc")
+    expect(resolveTRPCUrl("http://localhost:4321/custom/trpc")).toBe(
+      "http://localhost:4321/custom/trpc",
+    )
 
     const client = createNotACMSTRPCClient({
       apiBase: "http://localhost:4321",

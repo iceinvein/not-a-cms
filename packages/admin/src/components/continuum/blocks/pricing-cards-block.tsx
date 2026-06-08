@@ -55,7 +55,9 @@ export function PricingCardsBlockView({ node, updateAttributes }: any) {
               value={tier.name}
               placeholder="Tier name (e.g. Pro)"
               onChange={(event) =>
-                updateTiers(tierList.map((t, i) => (i === index ? { ...t, name: event.target.value } : t)))
+                updateTiers(
+                  tierList.map((t, i) => (i === index ? { ...t, name: event.target.value } : t)),
+                )
               }
             />
             <input
@@ -63,7 +65,9 @@ export function PricingCardsBlockView({ node, updateAttributes }: any) {
               value={tier.price}
               placeholder="Price (e.g. $29)"
               onChange={(event) =>
-                updateTiers(tierList.map((t, i) => (i === index ? { ...t, price: event.target.value } : t)))
+                updateTiers(
+                  tierList.map((t, i) => (i === index ? { ...t, price: event.target.value } : t)),
+                )
               }
             />
             <input
@@ -71,7 +75,9 @@ export function PricingCardsBlockView({ node, updateAttributes }: any) {
               value={tier.period}
               placeholder="Period (e.g. /month)"
               onChange={(event) =>
-                updateTiers(tierList.map((t, i) => (i === index ? { ...t, period: event.target.value } : t)))
+                updateTiers(
+                  tierList.map((t, i) => (i === index ? { ...t, period: event.target.value } : t)),
+                )
               }
             />
             <textarea
@@ -91,7 +97,11 @@ export function PricingCardsBlockView({ node, updateAttributes }: any) {
               value={tier.ctaLabel}
               placeholder="CTA label (e.g. Get started)"
               onChange={(event) =>
-                updateTiers(tierList.map((t, i) => (i === index ? { ...t, ctaLabel: event.target.value } : t)))
+                updateTiers(
+                  tierList.map((t, i) =>
+                    i === index ? { ...t, ctaLabel: event.target.value } : t,
+                  ),
+                )
               }
             />
             <input
@@ -99,14 +109,18 @@ export function PricingCardsBlockView({ node, updateAttributes }: any) {
               value={tier.ctaUrl}
               placeholder="CTA URL"
               onChange={(event) =>
-                updateTiers(tierList.map((t, i) => (i === index ? { ...t, ctaUrl: event.target.value } : t)))
+                updateTiers(
+                  tierList.map((t, i) => (i === index ? { ...t, ctaUrl: event.target.value } : t)),
+                )
               }
             />
             <Checkbox
               label="Highlight this tier"
               checked={tier.highlighted}
               onCheckedChange={(value) =>
-                updateTiers(tierList.map((t, i) => (i === index ? { ...t, highlighted: value } : t)))
+                updateTiers(
+                  tierList.map((t, i) => (i === index ? { ...t, highlighted: value } : t)),
+                )
               }
             />
             <button
@@ -125,7 +139,15 @@ export function PricingCardsBlockView({ node, updateAttributes }: any) {
         onClick={() =>
           updateTiers([
             ...tierList,
-            { name: "", price: "", period: "", features: [], ctaLabel: "", ctaUrl: "", highlighted: false },
+            {
+              name: "",
+              price: "",
+              period: "",
+              features: [],
+              ctaLabel: "",
+              ctaUrl: "",
+              highlighted: false,
+            },
           ])
         }
       >

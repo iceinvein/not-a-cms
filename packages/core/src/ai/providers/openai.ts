@@ -27,12 +27,12 @@ export function createOpenAIAskProvider(options: OpenAIAskProviderOptions): AskP
     const res = await fetcher(`${baseUrl}${path}`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${options.apiKey}`,
+        Authorization: `Bearer ${options.apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
     })
-    const json = await res.json() as T & { error?: { message?: string } }
+    const json = (await res.json()) as T & { error?: { message?: string } }
     if (!res.ok) throw new Error(json.error?.message ?? `OpenAI request failed: ${res.status}`)
     return json
   }
@@ -53,7 +53,8 @@ export function createOpenAIAskProvider(options: OpenAIAskProviderOptions): AskP
             messages: [
               {
                 role: "system",
-                content: "Answer using only the supplied CMS contexts. If the answer is not present, say you do not know.",
+                content:
+                  "Answer using only the supplied CMS contexts. If the answer is not present, say you do not know.",
               },
               {
                 role: "user",
@@ -68,10 +69,12 @@ export function createOpenAIAskProvider(options: OpenAIAskProviderOptions): AskP
 }
 
 function formatAskPrompt(question: string, contexts: AskContext[]): string {
-  const contextText = contexts.map((ctx, index) => [
-    `Context ${index + 1}: ${ctx.title}`,
-    ctx.href ? `URL: ${ctx.href}` : "",
-    ctx.text,
-  ].filter(Boolean).join("\n")).join("\n\n")
+  const contextText = contexts
+    .map((ctx, index) =>
+      [`Context ${index + 1}: ${ctx.title}`, ctx.href ? `URL: ${ctx.href}` : "", ctx.text]
+        .filter(Boolean)
+        .join("\n"),
+    )
+    .join("\n\n")
   return `Question: ${question}\n\n${contextText}`
 }

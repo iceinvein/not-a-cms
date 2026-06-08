@@ -1,7 +1,7 @@
-import { test, expect, describe, beforeEach, afterEach } from "bun:test"
+import { afterEach, beforeEach, describe, expect, test } from "bun:test"
 import { unlinkSync } from "node:fs"
-import { createDatabase } from "../../src/db/connection"
 import { bootstrapTables } from "../../src/db/bootstrap"
+import { createDatabase } from "../../src/db/connection"
 import { createSettingsService } from "../../src/settings/service"
 
 const testDbPath = "test-settings.db"
@@ -16,9 +16,15 @@ describe("createSettingsService", () => {
   })
 
   afterEach(() => {
-    try { unlinkSync(testDbPath) } catch {}
-    try { unlinkSync(testDbPath + "-wal") } catch {}
-    try { unlinkSync(testDbPath + "-shm") } catch {}
+    try {
+      unlinkSync(testDbPath)
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-wal")
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-shm")
+    } catch {}
   })
 
   test("get() returns null for non-existent key", () => {

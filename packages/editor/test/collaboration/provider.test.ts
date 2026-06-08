@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import * as Y from "yjs"
-import { RawYjsWebSocketProvider, collabUrl } from "../../src/collaboration/provider"
+import { collabUrl, RawYjsWebSocketProvider } from "../../src/collaboration/provider"
 
 describe("RawYjsWebSocketProvider", () => {
   test("builds a raw collaboration websocket URL with encoded document id", () => {
@@ -152,22 +152,26 @@ describe("RawYjsWebSocketProvider", () => {
       status: "online",
     })
 
-    provider.handleMessage(JSON.stringify({
-      type: "presence",
-      clientId: "remote-client",
-      user: { name: "Remote Editor", color: "#38bdf8" },
-      status: "online",
-    }))
+    provider.handleMessage(
+      JSON.stringify({
+        type: "presence",
+        clientId: "remote-client",
+        user: { name: "Remote Editor", color: "#38bdf8" },
+        status: "online",
+      }),
+    )
 
     expect(provider.presenceUsers.map((entry) => entry.user.name)).toEqual(["Remote Editor"])
     expect(presenceSnapshots.at(-1)).toEqual(["Remote Editor"])
 
-    provider.handleMessage(JSON.stringify({
-      type: "presence",
-      clientId: "remote-client",
-      user: { name: "Remote Editor", color: "#38bdf8" },
-      status: "offline",
-    }))
+    provider.handleMessage(
+      JSON.stringify({
+        type: "presence",
+        clientId: "remote-client",
+        user: { name: "Remote Editor", color: "#38bdf8" },
+        status: "offline",
+      }),
+    )
 
     expect(provider.presenceUsers).toEqual([])
     provider.destroy()

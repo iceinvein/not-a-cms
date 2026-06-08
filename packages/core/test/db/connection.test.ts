@@ -1,15 +1,21 @@
-import { test, expect, describe, afterEach } from "bun:test"
-import { createDatabase } from "../../src/db/connection"
-import { sql } from "drizzle-orm"
+import { afterEach, describe, expect, test } from "bun:test"
 import { unlinkSync } from "node:fs"
+import { sql } from "drizzle-orm"
+import { createDatabase } from "../../src/db/connection"
 
 const testDbPath = "test-connection.db"
 
 describe("createDatabase", () => {
   afterEach(() => {
-    try { unlinkSync(testDbPath) } catch {}
-    try { unlinkSync(testDbPath + "-wal") } catch {}
-    try { unlinkSync(testDbPath + "-shm") } catch {}
+    try {
+      unlinkSync(testDbPath)
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-wal")
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-shm")
+    } catch {}
   })
 
   test("creates a working database connection", () => {

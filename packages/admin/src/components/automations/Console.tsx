@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react"
-import type { FlowRun, FlowRunDetail, FlowRunStep } from "./flow-types"
-import { RunInspector, statusDot, formatMs } from "./RunInspector"
 import { adminApiFetch, joinAdminApiUrl, messageForAdminResponse } from "../../lib/api"
-import { upsertRun, applyRunStep, applyRunCompleted } from "../../lib/automations/run-stream"
+import { applyRunCompleted, applyRunStep, upsertRun } from "../../lib/automations/run-stream"
 import { EmptyState, ErrorState, LoadingState } from "../AdminState"
+import type { FlowRun, FlowRunDetail, FlowRunStep } from "./flow-types"
+import { formatMs, RunInspector, statusDot } from "./RunInspector"
 
 type Props = {
   apiBase?: string
@@ -15,17 +15,29 @@ type Props = {
 
 function runDuration(run: FlowRun): string {
   if (!run.finished_at) return "running"
-  return formatMs(Math.max(0, new Date(run.finished_at).getTime() - new Date(run.started_at).getTime()))
+  return formatMs(
+    Math.max(0, new Date(run.finished_at).getTime() - new Date(run.started_at).getTime()),
+  )
 }
 
-export function Console({ apiBase = "", flowId, initialRuns, initialSelected, initialSelectedRunId }: Props) {
+export function Console({
+  apiBase = "",
+  flowId,
+  initialRuns,
+  initialSelected,
+  initialSelectedRunId,
+}: Props) {
   const [runs, setRuns] = useState<FlowRun[]>(initialRuns ?? [])
-  const [selectedRunId, setSelectedRunId] = useState<string | null>(initialSelected?.id ?? initialSelectedRunId ?? initialRuns?.[0]?.id ?? null)
+  const [selectedRunId, setSelectedRunId] = useState<string | null>(
+    initialSelected?.id ?? initialSelectedRunId ?? initialRuns?.[0]?.id ?? null,
+  )
   const [selectedRun, setSelectedRun] = useState<FlowRunDetail | null>(initialSelected ?? null)
   const [loading, setLoading] = useState(!initialRuns)
   const [error, setError] = useState("")
   const selectedRunRef = useRef<FlowRunDetail | null>(initialSelected ?? null)
-  useEffect(() => { selectedRunRef.current = selectedRun }, [selectedRun])
+  useEffect(() => {
+    selectedRunRef.current = selectedRun
+  }, [selectedRun])
 
   const fetchRuns = async () => {
     setError("")
@@ -80,7 +92,9 @@ export function Console({ apiBase = "", flowId, initialRuns, initialSelected, in
     } catch {
       // EventSource unavailable (or constructor threw): degrade to polling.
       startPolling()
-      return () => { if (pollId) clearInterval(pollId) }
+      return () => {
+        if (pollId) clearInterval(pollId)
+      }
     }
 
     const parseData = (event: Event): any | null => {
@@ -124,19 +138,29 @@ export function Console({ apiBase = "", flowId, initialRuns, initialSelected, in
     }
   }, [apiBase, flowId])
 
-  if (loading) return <LoadingState title="Loading console" description="Fetching recent automation runs." />
+  if (loading)
+    return <LoadingState title="Loading console" description="Fetching recent automation runs." />
 
   return (
     <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
       <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#18181b]">
         <div className="border-b border-[rgba(255,255,255,0.06)] p-4">
           <p className="text-sm font-medium text-[#fafafa]">Run feed</p>
-          <p className="text-xs text-[#71717a]">{flowId ? `Flow ${flowId}` : "Recent runs across flows"}</p>
+          <p className="text-xs text-[#71717a]">
+            {flowId ? `Flow ${flowId}` : "Recent runs across flows"}
+          </p>
         </div>
-        {error && <div className="p-4"><ErrorState compact title="Console unavailable" description={error} /></div>}
+        {error && (
+          <div className="p-4">
+            <ErrorState compact title="Console unavailable" description={error} />
+          </div>
+        )}
         {runs.length === 0 ? (
           <div className="p-4">
-            <EmptyState title="No runs yet" description="Runs will appear here after a rule is triggered." />
+            <EmptyState
+              title="No runs yet"
+              description="Runs will appear here after a rule is triggered."
+            />
           </div>
         ) : (
           <div className="divide-y divide-[rgba(255,255,255,0.06)]">
@@ -146,7 +170,9 @@ export function Console({ apiBase = "", flowId, initialRuns, initialSelected, in
                 type="button"
                 onClick={() => setSelectedRunId(run.id)}
                 className={`block w-full p-4 text-left transition-colors ${
-                  run.id === selectedRunId ? "bg-[rgba(255,255,255,0.05)]" : "hover:bg-[rgba(255,255,255,0.03)]"
+                  run.id === selectedRunId
+                    ? "bg-[rgba(255,255,255,0.05)]"
+                    : "hover:bg-[rgba(255,255,255,0.03)]"
                 }`}
               >
                 <div className="mb-1 flex items-center justify-between gap-3">
@@ -167,7 +193,10 @@ export function Console({ apiBase = "", flowId, initialRuns, initialSelected, in
       {selectedRun ? (
         <RunInspector run={selectedRun} />
       ) : (
-        <EmptyState title="Select a run" description="Choose a run to inspect timing, inputs, outputs, and errors." />
+        <EmptyState
+          title="Select a run"
+          description="Choose a run to inspect timing, inputs, outputs, and errors."
+        />
       )}
     </div>
   )

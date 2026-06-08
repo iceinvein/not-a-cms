@@ -1,13 +1,24 @@
 import { describe, expect, test } from "bun:test"
-import { upsertRun, applyRunStep, applyRunCompleted } from "../../../src/lib/automations/run-stream"
-import type { FlowRun, FlowRunStep, FlowRunDetail } from "../../../src/components/automations/flow-types"
+import type {
+  FlowRun,
+  FlowRunDetail,
+  FlowRunStep,
+} from "../../../src/components/automations/flow-types"
+import { applyRunCompleted, applyRunStep, upsertRun } from "../../../src/lib/automations/run-stream"
 
 const run = (id: string, status: FlowRun["status"] = "running", finished_at?: string): FlowRun => ({
-  id, flow_id: "f1", trigger_event: "content.created", status,
-  started_at: "2026-06-05T00:00:00.000Z", finished_at,
+  id,
+  flow_id: "f1",
+  trigger_event: "content.created",
+  status,
+  started_at: "2026-06-05T00:00:00.000Z",
+  finished_at,
 })
 const step = (stepId: string, status: FlowRunStep["status"] = "completed"): FlowRunStep => ({
-  id: `row-${stepId}`, run_id: "r1", step_id: stepId, status,
+  id: `row-${stepId}`,
+  run_id: "r1",
+  step_id: stepId,
+  status,
   started_at: "2026-06-05T00:00:00.100Z",
 })
 

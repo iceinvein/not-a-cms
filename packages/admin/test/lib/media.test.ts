@@ -3,28 +3,28 @@ import {
   bulkDeleteMediaItems,
   bulkUpdateMediaTags,
   createMediaFolder,
-  deleteMediaItem,
   deleteMediaFolder,
+  deleteMediaItem,
   deleteMediaTag,
   getMediaContext,
-  listMediaItems,
   listMediaFolders,
+  listMediaItems,
   listMediaTags,
   mediaDisplayUrl,
   mergeMediaTag,
   moveMediaAssets,
   moveMediaFolder,
   normalizeTagInput,
-  renameMediaTag,
-  setMediaTagDescription,
-  setMediaTagGroup,
   renameMediaFolder,
+  renameMediaTag,
   reorderMediaFolder,
   replaceMediaFile,
   setMediaFolderColor,
   setMediaFolderIcon,
   setMediaFolderRoles,
   setMediaTagColor,
+  setMediaTagDescription,
+  setMediaTagGroup,
   updateMediaItem,
   uploadMediaFile,
 } from "../../src/lib/media"
@@ -69,14 +69,17 @@ describe("admin media API client", () => {
 
     globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
       calls.push({ url: String(url), init })
-      return Response.json({
-        id: "asset-1",
-        filename: "hero.jpg",
-        mimetype: "image/jpeg",
-        size: 5,
-        path: "/tmp/hero.jpg",
-        uploadedAt: "2026-05-31T00:00:00.000Z",
-      }, { status: 201 })
+      return Response.json(
+        {
+          id: "asset-1",
+          filename: "hero.jpg",
+          mimetype: "image/jpeg",
+          size: 5,
+          path: "/tmp/hero.jpg",
+          uploadedAt: "2026-05-31T00:00:00.000Z",
+        },
+        { status: 201 },
+      )
     }) as typeof fetch
 
     const item = await uploadMediaFile("https://cms.example.test", file)
@@ -188,10 +191,24 @@ describe("admin media API client", () => {
     const calls: Array<{ url: string; init?: RequestInit }> = []
     globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
       calls.push({ url: String(url), init })
-      return Response.json({ data: [{ id: "a", filename: "a.jpg", mimetype: "image/jpeg", size: 1, uploadedAt: "", tags: ["campaign"] }] })
+      return Response.json({
+        data: [
+          {
+            id: "a",
+            filename: "a.jpg",
+            mimetype: "image/jpeg",
+            size: 1,
+            uploadedAt: "",
+            tags: ["campaign"],
+          },
+        ],
+      })
     }) as typeof fetch
 
-    const items = await bulkUpdateMediaTags("https://cms.example.test", { ids: ["a"], add: ["campaign"] })
+    const items = await bulkUpdateMediaTags("https://cms.example.test", {
+      ids: ["a"],
+      add: ["campaign"],
+    })
 
     expect(calls[0]?.url).toBe("https://cms.example.test/api/media/tags")
     expect(calls[0]?.init?.method).toBe("POST")
@@ -234,9 +251,21 @@ describe("admin media API client", () => {
     const calls: Array<{ url: string; init?: RequestInit }> = []
     globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
       calls.push({ url: String(url), init })
-      if (String(url).endsWith("/api/media/folders")) return Response.json({ data: [{ id: "f1", name: "Brand", parentId: null }] })
+      if (String(url).endsWith("/api/media/folders"))
+        return Response.json({ data: [{ id: "f1", name: "Brand", parentId: null }] })
       if (String(url).endsWith("/api/media/move")) {
-        return Response.json({ data: [{ id: "a", filename: "a.jpg", mimetype: "image/jpeg", size: 1, uploadedAt: "", folderId: "f1" }] })
+        return Response.json({
+          data: [
+            {
+              id: "a",
+              filename: "a.jpg",
+              mimetype: "image/jpeg",
+              size: 1,
+              uploadedAt: "",
+              folderId: "f1",
+            },
+          ],
+        })
       }
       if (init?.method === "DELETE") return Response.json({ reassigned: 1, reparented: 0 })
       return Response.json({ id: "f1", name: "Brand", parentId: null })
@@ -284,7 +313,8 @@ describe("admin media API client", () => {
     const calls: Array<{ url: string; init?: RequestInit }> = []
     globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
       calls.push({ url: String(url), init })
-      if (String(url).endsWith("/api/media/context")) return Response.json({ role: "admin", roles: [{ key: "editor", label: "Editor" }] })
+      if (String(url).endsWith("/api/media/context"))
+        return Response.json({ role: "admin", roles: [{ key: "editor", label: "Editor" }] })
       return Response.json({ id: "f1", name: "F", parentId: null, position: 0, roles: ["editor"] })
     }) as typeof fetch
 
@@ -343,7 +373,11 @@ describe("admin media API client", () => {
   })
 
   test("uses existing URL values without rewriting them", () => {
-    expect(mediaDisplayUrl("https://cdn.example.test/hero.jpg", "https://cms.example.test")).toBe("https://cdn.example.test/hero.jpg")
-    expect(mediaDisplayUrl({ url: "/uploads/hero.jpg" }, "https://cms.example.test")).toBe("https://cms.example.test/uploads/hero.jpg")
+    expect(mediaDisplayUrl("https://cdn.example.test/hero.jpg", "https://cms.example.test")).toBe(
+      "https://cdn.example.test/hero.jpg",
+    )
+    expect(mediaDisplayUrl({ url: "/uploads/hero.jpg" }, "https://cms.example.test")).toBe(
+      "https://cms.example.test/uploads/hero.jpg",
+    )
   })
 })

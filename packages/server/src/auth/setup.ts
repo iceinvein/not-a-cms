@@ -1,7 +1,7 @@
+import type { AppDatabase } from "@not-a-cms/core"
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { magicLink } from "better-auth/plugins"
-import type { AppDatabase } from "@not-a-cms/core"
 import { authSchema } from "./schema"
 
 type MagicLinkSender = (params: { email: string; url: string; token: string }) => Promise<void>
@@ -31,8 +31,10 @@ export type AuthConfig = {
 
 export function getAuthCapabilities(config: AuthConfig): AuthCapabilities {
   const oauthProviders: OAuthProviderKey[] = []
-  if (config.oauth?.github?.clientId && config.oauth.github.clientSecret) oauthProviders.push("github")
-  if (config.oauth?.google?.clientId && config.oauth.google.clientSecret) oauthProviders.push("google")
+  if (config.oauth?.github?.clientId && config.oauth.github.clientSecret)
+    oauthProviders.push("github")
+  if (config.oauth?.google?.clientId && config.oauth.google.clientSecret)
+    oauthProviders.push("google")
 
   return {
     magicLink: true,

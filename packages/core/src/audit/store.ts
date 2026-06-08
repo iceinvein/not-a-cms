@@ -89,15 +89,23 @@ export function createAuditLogStore(db: AppDatabase) {
 
   function queryRows(options: AuditListOptions, limit: number, offset: number): AuditRow[] {
     if (options.collection && options.documentId) {
-      return db.all(sql`SELECT * FROM _audit_log WHERE collection = ${options.collection} AND document_id = ${options.documentId} ORDER BY created_at DESC, rowid DESC LIMIT ${limit} OFFSET ${offset}`) as AuditRow[]
+      return db.all(
+        sql`SELECT * FROM _audit_log WHERE collection = ${options.collection} AND document_id = ${options.documentId} ORDER BY created_at DESC, rowid DESC LIMIT ${limit} OFFSET ${offset}`,
+      ) as AuditRow[]
     }
     if (options.collection) {
-      return db.all(sql`SELECT * FROM _audit_log WHERE collection = ${options.collection} ORDER BY created_at DESC, rowid DESC LIMIT ${limit} OFFSET ${offset}`) as AuditRow[]
+      return db.all(
+        sql`SELECT * FROM _audit_log WHERE collection = ${options.collection} ORDER BY created_at DESC, rowid DESC LIMIT ${limit} OFFSET ${offset}`,
+      ) as AuditRow[]
     }
     if (options.documentId) {
-      return db.all(sql`SELECT * FROM _audit_log WHERE document_id = ${options.documentId} ORDER BY created_at DESC, rowid DESC LIMIT ${limit} OFFSET ${offset}`) as AuditRow[]
+      return db.all(
+        sql`SELECT * FROM _audit_log WHERE document_id = ${options.documentId} ORDER BY created_at DESC, rowid DESC LIMIT ${limit} OFFSET ${offset}`,
+      ) as AuditRow[]
     }
-    return db.all(sql`SELECT * FROM _audit_log ORDER BY created_at DESC, rowid DESC LIMIT ${limit} OFFSET ${offset}`) as AuditRow[]
+    return db.all(
+      sql`SELECT * FROM _audit_log ORDER BY created_at DESC, rowid DESC LIMIT ${limit} OFFSET ${offset}`,
+    ) as AuditRow[]
   }
 
   return { record, list }

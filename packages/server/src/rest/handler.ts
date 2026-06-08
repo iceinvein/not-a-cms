@@ -1,7 +1,27 @@
-import { QueryError, ValidationError, WorkflowError, canAccessCollection, compareVersionData, extractTextFromPortableText, filterWritableFields, isWorkflowAction, populateDocuments, projectDocumentFields } from "@not-a-cms/core"
-import type { AskProvider, AuditEventInput, CollectionDef, EmbeddingStore, VersioningService, WebhookStore, WebhookService, SettingsService } from "@not-a-cms/core"
-import type { createContentService } from "@not-a-cms/core"
-import { portableTextToEmail, type EmailOptions } from "@not-a-cms/renderer"
+import type {
+  AskProvider,
+  AuditEventInput,
+  CollectionDef,
+  createContentService,
+  EmbeddingStore,
+  SettingsService,
+  VersioningService,
+  WebhookService,
+  WebhookStore,
+} from "@not-a-cms/core"
+import {
+  canAccessCollection,
+  compareVersionData,
+  extractTextFromPortableText,
+  filterWritableFields,
+  isWorkflowAction,
+  populateDocuments,
+  projectDocumentFields,
+  QueryError,
+  ValidationError,
+  WorkflowError,
+} from "@not-a-cms/core"
+import { type EmailOptions, portableTextToEmail } from "@not-a-cms/renderer"
 import { runAsk } from "../ask/handler"
 
 export type CollectionEntry = {
@@ -43,7 +63,9 @@ function json(data: unknown, status = 200) {
 export function createRestHandler(
   collections: Map<string, CollectionEntry>,
   versioning?: VersioningService,
-  search?: { query: (term: string, collection?: string) => Array<{ collection: string; document_id: string }> },
+  search?: {
+    query: (term: string, collection?: string) => Array<{ collection: string; document_id: string }>
+  },
   webhookStore?: WebhookStore,
   settingsService?: SettingsService,
   options: RestHandlerOptions = {},
@@ -79,7 +101,11 @@ export function createRestHandler(
     return role ? { userId: "unknown", role } : null
   }
 
-  async function requireCollectionAccess(req: Request, entry: CollectionEntry, action: "read" | "create" | "update" | "delete"): Promise<Response | null> {
+  async function requireCollectionAccess(
+    req: Request,
+    entry: CollectionEntry,
+    action: "read" | "create" | "update" | "delete",
+  ): Promise<Response | null> {
     const role = await getRole(req)
     return canAccessCollection(entry.def, role, action) ? null : json({ error: "Forbidden" }, 403)
   }
@@ -137,10 +163,17 @@ export function createRestHandler(
         }
         return json({ error: "Method not allowed" }, 405)
       } else {
-        if (segments.length === 5 && segments[2] === "logs" && segments[4] === "replay" && method === "POST") {
-          if (!options.webhookService) return json({ error: "Webhook replay is not configured" }, 500)
+        if (
+          segments.length === 5 &&
+          segments[2] === "logs" &&
+          segments[4] === "replay" &&
+          method === "POST"
+        ) {
+          if (!options.webhookService)
+            return json({ error: "Webhook replay is not configured" }, 500)
           const log = webhookStore.getDeliveryLog(segments[3])
-          if (!log || log.webhook_id !== id) return json({ error: "Webhook delivery not found" }, 404)
+          if (!log || log.webhook_id !== id)
+            return json({ error: "Webhook delivery not found" }, 404)
           const replay = await options.webhookService.replayDelivery(log.id)
           return json({ ...replay, replayedFrom: log.id })
         }
@@ -247,7 +280,10 @@ export function createRestHandler(
         footerText: stringValue(optionOverrides.footerText),
         subjectPrefix: stringValue(optionOverrides.subjectPrefix),
       }
-      const html = portableTextToEmail(blocks as Parameters<typeof portableTextToEmail>[0], emailOptions)
+      const html = portableTextToEmail(
+        blocks as Parameters<typeof portableTextToEmail>[0],
+        emailOptions,
+      )
       return json({ html })
     }
 
@@ -259,16 +295,15 @@ export function createRestHandler(
     const service = entry.service
 
     try {
-      const project = (doc: Record<string, unknown>, role: string) => projectDocumentFields(doc, entry.def.fields, role)
-      const populateForRequest = async (
-        docs: Record<string, unknown>[],
-        role: string,
-      ) => populateDocuments(docs, entry.def, {
-        populate: parsePopulate(url),
-        role,
-        collections,
-        media: options.media,
-      })
+      const project = (doc: Record<string, unknown>, role: string) =>
+        projectDocumentFields(doc, entry.def.fields, role)
+      const populateForRequest = async (docs: Record<string, unknown>[], role: string) =>
+        populateDocuments(docs, entry.def, {
+          populate: parsePopulate(url),
+          role,
+          collections,
+          media: options.media,
+        })
 
       // Bulk actions: /api/:collection/_bulk
       if (segments.length === 2 && id === "_bulk") {
@@ -285,9 +320,10 @@ export function createRestHandler(
         if (body.action === "update") {
           const forbidden = await requireCollectionAccess(req, entry, "update")
           if (forbidden) return forbidden
-          const data = body.data && typeof body.data === "object" && !Array.isArray(body.data)
-            ? filterWritableFields(body.data, entry.def.fields, role)
-            : {}
+          const data =
+            body.data && typeof body.data === "object" && !Array.isArray(body.data)
+              ? filterWritableFields(body.data, entry.def.fields, role)
+              : {}
           if ("status" in data) delete data.status
           const result = await service.bulkUpdate(ids, data)
           await recordAudit(req, {
@@ -341,9 +377,14 @@ export function createRestHandler(
         if (body.action === "export") {
           const forbidden = await requireCollectionAccess(req, entry, "read")
           if (forbidden) return forbidden
-          const docs = (await Promise.all(ids.map((bulkId) => service.findById(bulkId)))).filter(Boolean) as Record<string, unknown>[]
+          const docs = (await Promise.all(ids.map((bulkId) => service.findById(bulkId)))).filter(
+            Boolean,
+          ) as Record<string, unknown>[]
           const populated = await populateForRequest(docs, role)
-          return json({ data: populated.map((doc) => project(doc, role)), notFound: ids.filter((bulkId) => !docs.some((doc) => doc.id === bulkId)) })
+          return json({
+            data: populated.map((doc) => project(doc, role)),
+            notFound: ids.filter((bulkId) => !docs.some((doc) => doc.id === bulkId)),
+          })
         }
 
         return json({ error: "Unsupported bulk action" }, 400)
@@ -362,7 +403,12 @@ export function createRestHandler(
           if (publishedOnlyFor(await isAuthed(req), entry) && docs[0].status !== "published") {
             return json({ error: "Not found" }, 404)
           }
-          const [doc] = await populateDocuments(docs, entry.def, { populate, role, collections, media: options.media })
+          const [doc] = await populateDocuments(docs, entry.def, {
+            populate,
+            role,
+            collections,
+            media: options.media,
+          })
           return json(project(doc, role))
         }
         return json({ error: "Method not allowed" }, 405)
@@ -475,10 +521,12 @@ export function createRestHandler(
         if (forbidden) return forbidden
 
         if (method !== "POST") return json({ error: "Method not allowed" }, 405)
-        if (!entry.def.fields.status) return json({ error: "Collection does not support workflow status" }, 400)
+        if (!entry.def.fields.status)
+          return json({ error: "Collection does not support workflow status" }, 400)
 
         const publishField = getPublishField(entry.def)
-        if (!publishField) return json({ error: "Collection does not support scheduled publishing" }, 400)
+        if (!publishField)
+          return json({ error: "Collection does not support scheduled publishing" }, 400)
 
         const role = await getRole(req)
         const before = await service.findById(id)
@@ -488,7 +536,11 @@ export function createRestHandler(
         const publishedAt = normalizeIsoDate(body.publishedAt ?? body.published_at)
         if (!publishedAt) return json({ error: "publishedAt must be a valid ISO timestamp" }, 400)
 
-        const updated = await service.update(id, { [publishField]: publishedAt, status: "scheduled" }, { allowStatusChange: true })
+        const updated = await service.update(
+          id,
+          { [publishField]: publishedAt, status: "scheduled" },
+          { allowStatusChange: true },
+        )
         await recordAudit(req, {
           action: "content.scheduled",
           collection: collectionName,
@@ -510,29 +562,44 @@ export function createRestHandler(
           const searchTerm = url.searchParams.get("search")
           if (searchTerm && search) {
             const hits = search.query(searchTerm, collectionName)
-            const docs = (await Promise.all(
-              hits.map((hit) => service.findById(hit.document_id)),
-            )).filter(Boolean) as Record<string, unknown>[]
+            const docs = (
+              await Promise.all(hits.map((hit) => service.findById(hit.document_id)))
+            ).filter(Boolean) as Record<string, unknown>[]
             const visible = publicOnly ? docs.filter((doc) => doc.status === "published") : docs
             const populated = await populateForRequest(visible, role)
             return json({ data: populated.map((doc) => project(doc, role)) })
           }
 
-          const limit = url.searchParams.has("limit") ? Number(url.searchParams.get("limit")) : undefined
-          const offset = url.searchParams.has("offset") ? Number(url.searchParams.get("offset")) : undefined
+          const limit = url.searchParams.has("limit")
+            ? Number(url.searchParams.get("limit"))
+            : undefined
+          const offset = url.searchParams.has("offset")
+            ? Number(url.searchParams.get("offset"))
+            : undefined
           const sort = url.searchParams.get("sort") ?? undefined
           const orderParam = url.searchParams.get("order")
           const order: "asc" | "desc" = orderParam === "desc" ? "desc" : "asc"
           const where = parseWhere(url)
           if (publicOnly) where.status = "published"
 
-          const query = { limit, offset, sort, order, where: Object.keys(where).length > 0 ? where : undefined }
+          const query = {
+            limit,
+            offset,
+            sort,
+            order,
+            where: Object.keys(where).length > 0 ? where : undefined,
+          }
           const [data, total] = await Promise.all([
             service.findMany(query),
             service.count({ where: query.where }),
           ])
           const populated = await populateForRequest(data, role)
-          return json({ data: populated.map((doc) => project(doc, role)), total, limit: limit ?? null, offset: offset ?? 0 })
+          return json({
+            data: populated.map((doc) => project(doc, role)),
+            total,
+            limit: limit ?? null,
+            offset: offset ?? 0,
+          })
         }
 
         if (method === "POST") {
@@ -639,14 +706,23 @@ export function createRestHandler(
 function validateWebhookInput(input: unknown, partial = false): string | null {
   if (!isRecord(input)) return "Webhook payload must be an object"
   if (!partial || input.url !== undefined) {
-    if (typeof input.url !== "string" || !isHttpUrl(input.url)) return "Webhook url must be an http(s) URL"
+    if (typeof input.url !== "string" || !isHttpUrl(input.url))
+      return "Webhook url must be an http(s) URL"
   }
   if (!partial || input.events !== undefined) {
-    if (!Array.isArray(input.events) || input.events.length === 0 || input.events.some((event) => typeof event !== "string" || !event.trim())) {
+    if (
+      !Array.isArray(input.events) ||
+      input.events.length === 0 ||
+      input.events.some((event) => typeof event !== "string" || !event.trim())
+    ) {
       return "Webhook events must be a non-empty array of event names"
     }
   }
-  if (input.collection !== undefined && input.collection !== null && typeof input.collection !== "string") {
+  if (
+    input.collection !== undefined &&
+    input.collection !== null &&
+    typeof input.collection !== "string"
+  ) {
     return "Webhook collection must be a string"
   }
   if (input.secret !== undefined && input.secret !== null && typeof input.secret !== "string") {
@@ -689,9 +765,10 @@ function parseWhere(url: URL): Record<string, unknown> {
     const operatorMatch = key.match(/^where\[(.+)\]\[(.+)\]$/)
     if (operatorMatch) {
       const [, field, operator] = operatorMatch
-      const current = typeof where[field] === "object" && where[field] !== null && !Array.isArray(where[field])
-        ? where[field] as Record<string, unknown>
-        : {}
+      const current =
+        typeof where[field] === "object" && where[field] !== null && !Array.isArray(where[field])
+          ? (where[field] as Record<string, unknown>)
+          : {}
       current[operator] = val
       where[field] = current
       continue
@@ -725,7 +802,13 @@ function normalizeIsoDate(value: unknown): string | null {
 
 function normalizeIdList(value: unknown): string[] {
   if (!Array.isArray(value)) return []
-  return Array.from(new Set(value.filter((id): id is string => typeof id === "string" && id.trim() !== "").map((id) => id.trim())))
+  return Array.from(
+    new Set(
+      value
+        .filter((id): id is string => typeof id === "string" && id.trim() !== "")
+        .map((id) => id.trim()),
+    ),
+  )
 }
 
 function docTitle(doc: Record<string, unknown>): string {

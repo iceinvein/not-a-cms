@@ -1,7 +1,7 @@
-import { test, expect, describe, beforeAll, afterAll } from "bun:test"
-import { createServer } from "../../src/index"
-import { defineCollection, field } from "@not-a-cms/core"
+import { afterAll, beforeAll, describe, expect, test } from "bun:test"
 import { unlinkSync } from "node:fs"
+import { defineCollection, field } from "@not-a-cms/core"
+import { createServer } from "../../src/index"
 
 const testDbPath = "test-schema-api.db"
 
@@ -41,7 +41,11 @@ describe("schema API", () => {
     server = createServer({
       port: 0,
       database: { url: testDbPath },
-      auth: { secret: "a".repeat(32), baseURL: "http://localhost", magicLink: { sendMagicLink: async () => {} } },
+      auth: {
+        secret: "a".repeat(32),
+        baseURL: "http://localhost",
+        magicLink: { sendMagicLink: async () => {} },
+      },
       collections: [blogPost, page, lockedPage],
     })
     baseUrl = `http://localhost:${server.server.port}`
@@ -49,9 +53,15 @@ describe("schema API", () => {
 
   afterAll(() => {
     server.server.stop()
-    try { unlinkSync(testDbPath) } catch {}
-    try { unlinkSync(testDbPath + "-wal") } catch {}
-    try { unlinkSync(testDbPath + "-shm") } catch {}
+    try {
+      unlinkSync(testDbPath)
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-wal")
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-shm")
+    } catch {}
   })
 
   test("GET /api/_schema returns all collections", async () => {
@@ -94,6 +104,8 @@ describe("schema API", () => {
   test("hides collections the session role cannot read", async () => {
     const res = await fetch(`${baseUrl}/api/_schema`)
     const data = await res.json()
-    expect(data.collections.map((collection: { name: string }) => collection.name)).not.toContain("locked_page")
+    expect(data.collections.map((collection: { name: string }) => collection.name)).not.toContain(
+      "locked_page",
+    )
   })
 })

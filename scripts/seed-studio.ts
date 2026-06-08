@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
 export {}
+
 /**
  * Seed script for the Atelier studio site.
  *
@@ -35,7 +36,7 @@ async function signIn(): Promise<string> {
   if (!linkRes.ok) {
     throw new Error(`Magic-link fetch failed: ${linkRes.status} ${await linkRes.text()}`)
   }
-  const { url: magicUrl } = await linkRes.json() as { url: string }
+  const { url: magicUrl } = (await linkRes.json()) as { url: string }
   if (!magicUrl) throw new Error("No magic link URL returned")
 
   // Follow the magic link (manual redirect so we can capture the Set-Cookie header)
@@ -55,7 +56,11 @@ async function signIn(): Promise<string> {
 // API helpers
 // ---------------------------------------------------------------------------
 
-async function apiPost(cookie: string, path: string, body: unknown): Promise<Record<string, unknown>> {
+async function apiPost(
+  cookie: string,
+  path: string,
+  body: unknown,
+): Promise<Record<string, unknown>> {
   const res = await fetch(`${API}${path}`, {
     method: "POST",
     headers: {
@@ -67,7 +72,11 @@ async function apiPost(cookie: string, path: string, body: unknown): Promise<Rec
   })
   const text = await res.text()
   let data: unknown
-  try { data = JSON.parse(text) } catch { data = text }
+  try {
+    data = JSON.parse(text)
+  } catch {
+    data = text
+  }
   if (!res.ok) {
     throw new Error(`POST ${path} failed (${res.status}): ${text}`)
   }
@@ -91,7 +100,7 @@ async function createAndPublish(
     headers: { Cookie: cookie },
   })
   if (checkRes.ok) {
-    const existing = await checkRes.json() as { data: unknown[] }
+    const existing = (await checkRes.json()) as { data: unknown[] }
     if (existing.data && existing.data.length > 0) {
       console.log(`    [SKIP] ${collection}/${slug} already exists`)
       return null
@@ -125,7 +134,8 @@ const projects = [
   {
     title: "Morrow Brand Identity",
     slug: "morrow-brand-identity",
-    summary: "A full brand identity system for a Stockholm-based architecture firm, built around geometric clarity and editorial restraint.",
+    summary:
+      "A full brand identity system for a Stockholm-based architecture firm, built around geometric clarity and editorial restraint.",
     year: "2025",
     role: "Brand, Print, Digital",
     body: [
@@ -145,7 +155,8 @@ const projects = [
   {
     title: "Fieldwork Digital Platform",
     slug: "fieldwork-digital-platform",
-    summary: "Product design and front-end development for a research-data platform used by environmental scientists across three continents.",
+    summary:
+      "Product design and front-end development for a research-data platform used by environmental scientists across three continents.",
     year: "2024",
     role: "UX, Product Design, Development",
     body: [
@@ -165,7 +176,8 @@ const projects = [
   {
     title: "Vela Editorial System",
     slug: "vela-editorial-system",
-    summary: "A modular editorial design system for a pan-European culture magazine, spanning print, web, and social channels.",
+    summary:
+      "A modular editorial design system for a pan-European culture magazine, spanning print, web, and social channels.",
     year: "2025",
     role: "Editorial Design, Type Direction",
     body: [
@@ -185,7 +197,8 @@ const projects = [
   {
     title: "Sable Packaging System",
     slug: "sable-packaging-system",
-    summary: "Structural and graphic design for a zero-waste skincare range, from carton architecture to retail presentation.",
+    summary:
+      "Structural and graphic design for a zero-waste skincare range, from carton architecture to retail presentation.",
     year: "2024",
     role: "Packaging Design, Art Direction",
     body: [
@@ -227,7 +240,8 @@ const posts = [
   {
     title: "Typography at the Edge",
     slug: "typography-at-the-edge",
-    excerpt: "Type decisions are architecture decisions. They determine how information is held, how it breathes, and whether it is trusted.",
+    excerpt:
+      "Type decisions are architecture decisions. They determine how information is held, how it breathes, and whether it is trusted.",
     tags: ["typography", "craft"],
     body: [
       heading(2, "Type as Structure"),

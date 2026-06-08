@@ -1,9 +1,5 @@
 import { defineTheme } from "./define-theme"
-import {
-  cssVariablesFromSettings,
-  mergeResolvedSettings,
-  resolveThemeSettings,
-} from "./theme-css"
+import { cssVariablesFromSettings, mergeResolvedSettings, resolveThemeSettings } from "./theme-css"
 
 /**
  * The default public theme. Ships a real design layer (warm-neutral palette, a single
@@ -27,8 +23,16 @@ export const defaultTheme = defineTheme({
       accentInk: { type: "color", default: "#ffffff", label: "Accent foreground" },
     },
     fonts: {
-      display: { type: "text", default: '"Fraunces", Georgia, "Times New Roman", serif', label: "Display font" },
-      body: { type: "text", default: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', label: "Body font" },
+      display: {
+        type: "text",
+        default: '"Fraunces", Georgia, "Times New Roman", serif',
+        label: "Display font",
+      },
+      body: {
+        type: "text",
+        default: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        label: "Body font",
+      },
       import: {
         type: "text",
         default:

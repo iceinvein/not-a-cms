@@ -1,12 +1,12 @@
-import { test, expect, describe, beforeEach, afterEach } from "bun:test"
+import { afterEach, beforeEach, describe, expect, test } from "bun:test"
 import { unlinkSync } from "node:fs"
-import { createDatabase } from "../../src/db/connection"
+import { createScheduler } from "../../src/content/scheduler"
+import { createContentService } from "../../src/content/service"
 import { bootstrapTables } from "../../src/db/bootstrap"
+import { createDatabase } from "../../src/db/connection"
+import { generateTable } from "../../src/db/generate-table"
 import { defineCollection } from "../../src/schema/collection"
 import { field } from "../../src/schema/field"
-import { generateTable } from "../../src/db/generate-table"
-import { createContentService } from "../../src/content/service"
-import { createScheduler } from "../../src/content/scheduler"
 
 const testDbPath = "test-scheduler.db"
 
@@ -15,7 +15,9 @@ const blogPost = defineCollection({
   labels: { singular: "Blog Post", plural: "Blog Posts" },
   fields: {
     title: field.text({ required: true }),
-    status: field.select(["draft", "in_review", "published", "archived", "scheduled"], { default: "draft" }),
+    status: field.select(["draft", "in_review", "published", "archived", "scheduled"], {
+      default: "draft",
+    }),
     publishedAt: field.datetime(),
   },
 })
@@ -32,9 +34,15 @@ describe("createScheduler", () => {
   })
 
   afterEach(() => {
-    try { unlinkSync(testDbPath) } catch {}
-    try { unlinkSync(testDbPath + "-wal") } catch {}
-    try { unlinkSync(testDbPath + "-shm") } catch {}
+    try {
+      unlinkSync(testDbPath)
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-wal")
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-shm")
+    } catch {}
   })
 
   test("promoteScheduled() publishes posts with past publishedAt", async () => {

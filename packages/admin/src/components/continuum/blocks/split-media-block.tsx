@@ -1,6 +1,6 @@
 import { NodeViewWrapper } from "@tiptap/react"
-import { MediaPicker } from "./media-picker"
 import { Select } from "../../ui/Select"
+import { MediaPicker } from "./media-picker"
 
 /**
  * Split media section block: a two-column layout with an image on one side and

@@ -54,7 +54,8 @@ export function htmlToPortableText(html: string): PTBlock[] {
   const blocks: PTBlock[] = []
   const cleaned = html.trim()
 
-  const blockRegex = /<(p|h[1-6]|blockquote|ul|ol|pre|img|hr)[^>]*>([\s\S]*?)<\/\1>|<(img|hr)\s[^>]*\/?>/gi
+  const blockRegex =
+    /<(p|h[1-6]|blockquote|ul|ol|pre|img|hr)[^>]*>([\s\S]*?)<\/\1>|<(img|hr)\s[^>]*\/?>/gi
   let match
 
   while ((match = blockRegex.exec(cleaned)) !== null) {
@@ -64,7 +65,11 @@ export function htmlToPortableText(html: string): PTBlock[] {
     if (tag === "p") {
       blocks.push({ type: "paragraph", children: parseInlineContent(content) })
     } else if (tag.match(/^h[1-6]$/)) {
-      blocks.push({ type: "heading", level: parseInt(tag[1]), children: parseInlineContent(content) })
+      blocks.push({
+        type: "heading",
+        level: parseInt(tag[1]),
+        children: parseInlineContent(content),
+      })
     } else if (tag === "blockquote") {
       blocks.push({ type: "blockquote", children: htmlToPortableText(content) })
     } else if (tag === "ul") {
@@ -94,7 +99,9 @@ export function htmlToPortableText(html: string): PTBlock[] {
   return blocks
 }
 
-function parseInlineContent(html: string): Array<{ type: "text"; value: string; marks?: string[] }> {
+function parseInlineContent(
+  html: string,
+): Array<{ type: "text"; value: string; marks?: string[] }> {
   const nodes: Array<{ type: "text"; value: string; marks?: string[] }> = []
   const inlineRegex = /<(strong|b|em|i|code|a)[^>]*>([\s\S]*?)<\/\1>|([^<]+)/gi
   let match
@@ -118,7 +125,11 @@ function parseInlineContent(html: string): Array<{ type: "text"; value: string; 
       nodes.push({ type: "text", value: text, marks: ["code"] })
     } else if (tag === "a") {
       const hrefMatch = match[0].match(/href="([^"]*)"/)
-      nodes.push({ type: "text", value: text, marks: [{ type: "link", href: hrefMatch?.[1] || "" } as any] })
+      nodes.push({
+        type: "text",
+        value: text,
+        marks: [{ type: "link", href: hrefMatch?.[1] || "" } as any],
+      })
     } else {
       nodes.push({ type: "text", value: text })
     }
@@ -156,7 +167,8 @@ export function parseWXR(xml: string): WXRResult {
     const author = extractTag(item, "dc:creator") || undefined
     const itemTerms = parseItemTerms(item)
 
-    const status = wpStatus === "publish" ? "published" : wpStatus === "draft" ? "draft" : "archived"
+    const status =
+      wpStatus === "publish" ? "published" : wpStatus === "draft" ? "draft" : "archived"
     const body = htmlToPortableText(content)
 
     if (type === "attachment") {
@@ -301,7 +313,10 @@ export function createWordPressImportPlan(parsed: WXRResult, collections: Collec
 }
 
 function extractTag(xml: string, tag: string): string | null {
-  const regex = new RegExp(`<${tag}[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/${tag}>`, "i")
+  const regex = new RegExp(
+    `<${tag}[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/${tag}>`,
+    "i",
+  )
   const match = xml.match(regex)
   return match ? match[1].trim() : null
 }
@@ -370,10 +385,15 @@ function extractCDATA(xml: string, tag: string): string | null {
 }
 
 function findCollection(collections: CollectionDef[], names: string[]): CollectionDef | undefined {
-  return names.map((name) => collections.find((collection) => collection.name === name)).find(Boolean)
+  return names
+    .map((name) => collections.find((collection) => collection.name === name))
+    .find(Boolean)
 }
 
-function filterDataForCollection(collection: CollectionDef, data: Record<string, unknown>): Record<string, unknown> {
+function filterDataForCollection(
+  collection: CollectionDef,
+  data: Record<string, unknown>,
+): Record<string, unknown> {
   const filtered: Record<string, unknown> = {}
   for (const [key, value] of Object.entries(data)) {
     if (value === undefined) continue

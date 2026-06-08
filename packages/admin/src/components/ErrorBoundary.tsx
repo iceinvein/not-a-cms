@@ -29,14 +29,14 @@ export class ErrorBoundary extends Component<Props, State> {
         <ErrorState
           title="This section could not render"
           description={this.state.error?.message || "Refresh the section and try again."}
-          action={(
+          action={
             <button
               onClick={() => this.setState({ hasError: false, error: null })}
               className="px-4 py-2 text-sm font-medium bg-transparent border border-[rgba(255,255,255,0.06)] rounded-lg text-[#a1a1aa] hover:bg-[rgba(255,255,255,0.03)] transition-colors"
             >
               Try again
             </button>
-          )}
+          }
         />
       )
     }

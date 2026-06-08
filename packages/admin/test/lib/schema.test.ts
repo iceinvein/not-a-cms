@@ -32,7 +32,11 @@ describe("admin schema API client", () => {
 
     globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
       calls.push({ url: String(url), init })
-      return Response.json({ name: "blog/posts", labels: { singular: "Post", plural: "Posts" }, fields: {} })
+      return Response.json({
+        name: "blog/posts",
+        labels: { singular: "Post", plural: "Posts" },
+        fields: {},
+      })
     }) as typeof fetch
 
     await fetchCollection("blog/posts", { cookie: "session=abc" })
@@ -63,7 +67,11 @@ describe("admin schema API client", () => {
   })
 
   test("builds the admin tRPC endpoint URL without replacing REST helpers", () => {
-    expect(adminTrpcUrl("https://cms.example.test/base/")).toBe("https://cms.example.test/base/trpc")
-    expect(adminTrpcUrl("https://cms.example.test/base/trpc")).toBe("https://cms.example.test/base/trpc")
+    expect(adminTrpcUrl("https://cms.example.test/base/")).toBe(
+      "https://cms.example.test/base/trpc",
+    )
+    expect(adminTrpcUrl("https://cms.example.test/base/trpc")).toBe(
+      "https://cms.example.test/base/trpc",
+    )
   })
 })

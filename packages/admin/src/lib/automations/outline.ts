@@ -1,4 +1,9 @@
-import type { ActionStep, ConditionRule, ConditionStep, Flow } from "../../components/automations/flow-types"
+import type {
+  ActionStep,
+  ConditionRule,
+  ConditionStep,
+  Flow,
+} from "../../components/automations/flow-types"
 
 export type RuleOutline = {
   when: {

@@ -34,7 +34,8 @@ function walk(node: unknown, out: Set<string>): void {
   if (block.type === "gallery" && Array.isArray(block.images)) {
     for (const image of block.images) {
       if (image && typeof image === "object") {
-        const id = (image as Record<string, unknown>).id ?? (image as Record<string, unknown>).mediaId
+        const id =
+          (image as Record<string, unknown>).id ?? (image as Record<string, unknown>).mediaId
         if (id) out.add(String(id))
       }
     }
@@ -46,7 +47,10 @@ function walk(node: unknown, out: Set<string>): void {
   }
 }
 
-export function extractMediaReferences(collection: CollectionDef, doc: Record<string, unknown>): MediaReference[] {
+export function extractMediaReferences(
+  collection: CollectionDef,
+  doc: Record<string, unknown>,
+): MediaReference[] {
   const refs: MediaReference[] = []
   const lbl = label(doc)
 

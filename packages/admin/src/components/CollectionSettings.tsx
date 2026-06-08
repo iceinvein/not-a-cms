@@ -1,14 +1,14 @@
-import { useEffect, useMemo, useState } from "react"
 import { Save } from "lucide-react"
-import { ErrorState, LoadingState } from "./AdminState"
+import { useEffect, useMemo, useState } from "react"
 import type { RoleDefinition } from "../lib/access"
 import {
-  listCollectionSettings,
-  saveCollectionSettings,
   type CollectionAccessSettings,
   type CollectionSettingsEntry,
   type CollectionSettingsInput,
+  listCollectionSettings,
+  saveCollectionSettings,
 } from "../lib/collections"
+import { ErrorState, LoadingState } from "./AdminState"
 
 type Props = {
   apiBase?: string
@@ -17,13 +17,18 @@ type Props = {
 }
 
 const ACTIONS: Array<keyof CollectionAccessSettings> = ["read", "create", "update", "delete"]
-const inputClass = "w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c9956b] focus:outline-none"
+const inputClass =
+  "w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c9956b] focus:outline-none"
 
 function labelAction(action: keyof CollectionAccessSettings) {
   return action.charAt(0).toUpperCase() + action.slice(1)
 }
 
-export function CollectionSettings({ apiBase = "", initialCollections = [], initialRoles = [] }: Props) {
+export function CollectionSettings({
+  apiBase = "",
+  initialCollections = [],
+  initialRoles = [],
+}: Props) {
   const [collections, setCollections] = useState<CollectionSettingsEntry[]>(initialCollections)
   const [roles, setRoles] = useState<RoleDefinition[]>(initialRoles)
   const [activeName, setActiveName] = useState(initialCollections[0]?.name ?? "")
@@ -61,10 +66,12 @@ export function CollectionSettings({ apiBase = "", initialCollections = [], init
   const updateActiveSettings = (patch: CollectionSettingsInput) => {
     if (!active) return
     setSaved(false)
-    setCollections((current) => current.map((entry) => {
-      if (entry.name !== active.name) return entry
-      return { ...entry, settings: { ...entry.settings, ...patch } }
-    }))
+    setCollections((current) =>
+      current.map((entry) => {
+        if (entry.name !== active.name) return entry
+        return { ...entry, settings: { ...entry.settings, ...patch } }
+      }),
+    )
   }
 
   const updateAccess = (action: keyof CollectionAccessSettings, role: string, checked: boolean) => {
@@ -94,7 +101,9 @@ export function CollectionSettings({ apiBase = "", initialCollections = [], init
     setError("")
     try {
       const savedEntry = await saveCollectionSettings(apiBase, active.name, active.settings)
-      setCollections((current) => current.map((entry) => entry.name === savedEntry.name ? savedEntry : entry))
+      setCollections((current) =>
+        current.map((entry) => (entry.name === savedEntry.name ? savedEntry : entry)),
+      )
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
     } catch {
@@ -111,7 +120,9 @@ export function CollectionSettings({ apiBase = "", initialCollections = [], init
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-base font-semibold text-[#fafafa]">Collection Settings</h2>
-          <p className="text-sm text-[#71717a]">Configure labels, access, preview paths, search, and editor layout.</p>
+          <p className="text-sm text-[#71717a]">
+            Configure labels, access, preview paths, search, and editor layout.
+          </p>
         </div>
         <button
           type="button"
@@ -124,24 +135,30 @@ export function CollectionSettings({ apiBase = "", initialCollections = [], init
         </button>
       </div>
 
-      {error && (
-        <ErrorState compact title="Collection settings unavailable" description={error} />
-      )}
+      {error && <ErrorState compact title="Collection settings unavailable" description={error} />}
 
       <div className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b]">
         <div className="flex gap-1 overflow-x-auto border-b border-[rgba(255,255,255,0.06)] px-4 pt-4">
           {loading ? (
-            <div className="pb-4"><LoadingState compact title="Loading collections" description="Fetching editable collection settings." /></div>
-          ) : collections.map((collection) => (
-            <button
-              key={collection.name}
-              type="button"
-              onClick={() => setActiveName(collection.name)}
-              className={`rounded-t-lg px-4 py-2 text-sm font-medium transition-colors ${collection.name === active?.name ? "bg-[#0a0a0c] text-[#fafafa]" : "text-[#71717a] hover:text-[#a1a1aa]"}`}
-            >
-              {collection.labels.plural}
-            </button>
-          ))}
+            <div className="pb-4">
+              <LoadingState
+                compact
+                title="Loading collections"
+                description="Fetching editable collection settings."
+              />
+            </div>
+          ) : (
+            collections.map((collection) => (
+              <button
+                key={collection.name}
+                type="button"
+                onClick={() => setActiveName(collection.name)}
+                className={`rounded-t-lg px-4 py-2 text-sm font-medium transition-colors ${collection.name === active?.name ? "bg-[#0a0a0c] text-[#fafafa]" : "text-[#71717a] hover:text-[#a1a1aa]"}`}
+              >
+                {collection.labels.plural}
+              </button>
+            ))
+          )}
         </div>
 
         {active && (
@@ -152,9 +169,11 @@ export function CollectionSettings({ apiBase = "", initialCollections = [], init
                   <span className="text-xs font-medium text-[#71717a]">Singular label</span>
                   <input
                     value={active.settings.labels?.singular ?? active.labels.singular}
-                    onChange={(event) => updateActiveSettings({
-                      labels: { ...active.settings.labels, singular: event.target.value },
-                    })}
+                    onChange={(event) =>
+                      updateActiveSettings({
+                        labels: { ...active.settings.labels, singular: event.target.value },
+                      })
+                    }
                     className={inputClass}
                   />
                 </label>
@@ -162,9 +181,11 @@ export function CollectionSettings({ apiBase = "", initialCollections = [], init
                   <span className="text-xs font-medium text-[#71717a]">Plural label</span>
                   <input
                     value={active.settings.labels?.plural ?? active.labels.plural}
-                    onChange={(event) => updateActiveSettings({
-                      labels: { ...active.settings.labels, plural: event.target.value },
-                    })}
+                    onChange={(event) =>
+                      updateActiveSettings({
+                        labels: { ...active.settings.labels, plural: event.target.value },
+                      })
+                    }
                     className={inputClass}
                   />
                 </label>
@@ -197,15 +218,25 @@ export function CollectionSettings({ apiBase = "", initialCollections = [], init
                 <h3 className="text-sm font-medium text-[#fafafa]">Access roles</h3>
                 <div className="overflow-hidden rounded-lg border border-[rgba(255,255,255,0.06)]">
                   {ACTIONS.map((action) => (
-                    <div key={action} className="grid gap-3 border-b border-[rgba(255,255,255,0.06)] px-4 py-3 last:border-b-0 md:grid-cols-[90px_1fr]">
-                      <span className="text-sm font-medium text-[#a1a1aa]">{labelAction(action)}</span>
+                    <div
+                      key={action}
+                      className="grid gap-3 border-b border-[rgba(255,255,255,0.06)] px-4 py-3 last:border-b-0 md:grid-cols-[90px_1fr]"
+                    >
+                      <span className="text-sm font-medium text-[#a1a1aa]">
+                        {labelAction(action)}
+                      </span>
                       <div className="flex flex-wrap gap-3">
                         {roles.map((role) => (
-                          <label key={`${action}-${role.key}`} className="inline-flex items-center gap-2 text-sm text-[#a1a1aa]">
+                          <label
+                            key={`${action}-${role.key}`}
+                            className="inline-flex items-center gap-2 text-sm text-[#a1a1aa]"
+                          >
                             <input
                               type="checkbox"
                               checked={(active.settings.access?.[action] ?? []).includes(role.key)}
-                              onChange={(event) => updateAccess(action, role.key, event.target.checked)}
+                              onChange={(event) =>
+                                updateAccess(action, role.key, event.target.checked)
+                              }
                             />
                             {role.label}
                           </label>
@@ -220,7 +251,10 @@ export function CollectionSettings({ apiBase = "", initialCollections = [], init
                 <h3 className="text-sm font-medium text-[#fafafa]">Search fields</h3>
                 <div className="flex flex-wrap gap-3">
                   {fieldEntries.map(([name, def]) => (
-                    <label key={name} className="inline-flex items-center gap-2 text-sm text-[#a1a1aa]">
+                    <label
+                      key={name}
+                      className="inline-flex items-center gap-2 text-sm text-[#a1a1aa]"
+                    >
                       <input
                         type="checkbox"
                         checked={(active.settings.searchFields ?? []).includes(name)}

@@ -20,7 +20,11 @@ function title(doc: Record<string, unknown>): string {
   return String(doc.title || doc.name || doc.slug || doc.id)
 }
 
-export async function buildExpiring(collections: Map<string, Entry>, now: Date, windowDays = 7): Promise<ExpiringItem[]> {
+export async function buildExpiring(
+  collections: Map<string, Entry>,
+  now: Date,
+  windowDays = 7,
+): Promise<ExpiringItem[]> {
   const nowMs = now.getTime()
   const endMs = nowMs + windowDays * 24 * 60 * 60 * 1000
   const items: ExpiringItem[] = []
@@ -35,7 +39,12 @@ export async function buildExpiring(collections: Map<string, Entry>, now: Date, 
       if (!raw) continue
       const t = new Date(raw).getTime()
       if (Number.isNaN(t) || t <= nowMs || t > endMs) continue
-      items.push({ collection: name, documentId: String(doc.id), title: title(doc), unpublishAt: raw })
+      items.push({
+        collection: name,
+        documentId: String(doc.id),
+        title: title(doc),
+        unpublishAt: raw,
+      })
     }
   }
 

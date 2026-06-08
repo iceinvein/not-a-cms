@@ -1,12 +1,12 @@
-import { test, expect, describe, beforeEach, afterEach } from "bun:test"
+import { afterEach, beforeEach, describe, expect, test } from "bun:test"
 import { unlinkSync } from "node:fs"
-import { createDatabase } from "../../src/db/connection"
-import { bootstrapTables } from "../../src/db/bootstrap"
-import { defineCollection } from "../../src/schema/collection"
-import { field } from "../../src/schema/field"
-import { generateTable } from "../../src/db/generate-table"
 import { createContentService } from "../../src/content/service"
 import { compareVersionData, createVersioningService } from "../../src/content/versioning"
+import { bootstrapTables } from "../../src/db/bootstrap"
+import { createDatabase } from "../../src/db/connection"
+import { generateTable } from "../../src/db/generate-table"
+import { defineCollection } from "../../src/schema/collection"
+import { field } from "../../src/schema/field"
 
 const testDbPath = "test-versioning.db"
 
@@ -35,9 +35,15 @@ describe("createVersioningService", () => {
   })
 
   afterEach(() => {
-    try { unlinkSync(testDbPath) } catch {}
-    try { unlinkSync(testDbPath + "-wal") } catch {}
-    try { unlinkSync(testDbPath + "-shm") } catch {}
+    try {
+      unlinkSync(testDbPath)
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-wal")
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-shm")
+    } catch {}
   })
 
   test("createVersion() snapshots a document", async () => {
@@ -53,7 +59,12 @@ describe("createVersioningService", () => {
   test("createVersion() increments version_number", async () => {
     const doc = await service.create({ title: "Hello", status: "draft" })
     versioning.createVersion("blog_post", doc.id as string, doc, "save")
-    const v2 = versioning.createVersion("blog_post", doc.id as string, { ...doc, title: "Updated" }, "save")
+    const v2 = versioning.createVersion(
+      "blog_post",
+      doc.id as string,
+      { ...doc, title: "Updated" },
+      "save",
+    )
     expect(v2.version_number).toBe(2)
   })
 
@@ -84,7 +95,7 @@ describe("createVersioningService", () => {
   })
 
   test("version data is a full snapshot of the document", async () => {
-    const doc = await service.create({ title: "Hello", body: '[]', status: "draft" })
+    const doc = await service.create({ title: "Hello", body: "[]", status: "draft" })
     versioning.createVersion("blog_post", doc.id as string, doc, "save")
 
     await service.update(doc.id as string, { title: "Changed" })

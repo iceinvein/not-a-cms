@@ -1,5 +1,5 @@
-import { test, expect, describe } from "bun:test"
-import { commands, registerCommand, type Command } from "../src/router"
+import { describe, expect, test } from "bun:test"
+import { type Command, commands, registerCommand } from "../src/router"
 
 describe("CLI router", () => {
   test("registerCommand adds a command to the registry", () => {

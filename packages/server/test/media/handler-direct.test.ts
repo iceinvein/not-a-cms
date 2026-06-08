@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import { existsSync, rmSync } from "node:fs"
 import { createMediaHandler } from "../../src/media/handler"
-import { createLocalStorage } from "../../src/media/storage"
 import { createImageOptimizer } from "../../src/media/optimizer"
+import { createLocalStorage } from "../../src/media/storage"
 
 const uploadsDir = "./test-media-handler-direct"
 
@@ -40,15 +40,22 @@ describe("media handler file responses", () => {
     const { default: sharp } = await import("sharp")
     const inputBuffer = await sharp({
       create: { width: 1200, height: 800, channels: 3, background: { r: 40, g: 120, b: 200 } },
-    }).png().toBuffer()
-    const storage = createLocalStorage({ provider: "local", path: uploadsDir }, createImageOptimizer(uploadsDir))
+    })
+      .png()
+      .toBuffer()
+    const storage = createLocalStorage(
+      { provider: "local", path: uploadsDir },
+      createImageOptimizer(uploadsDir),
+    )
     const stored = await storage.store(new File([inputBuffer], "hero.png", { type: "image/png" }))
     const handler = createMediaHandler(storage)
 
     const listRes = await handler(new Request("https://cms.example.test/api/media"))
     const listBody = await listRes?.json()
     const variant = listBody.data[0].variants.find((item: any) => item.format === "webp")
-    const transformed = await handler(new Request(`https://cms.example.test/api/media/${stored.id}/file?w=320&format=webp`))
+    const transformed = await handler(
+      new Request(`https://cms.example.test/api/media/${stored.id}/file?w=320&format=webp`),
+    )
 
     expect(variant.path).toBe(`/api/media/${stored.id}/file?w=${variant.width}&format=webp`)
     expect(variant.path).not.toContain(uploadsDir)
@@ -62,9 +69,15 @@ describe("media handler file responses", () => {
     const stored = await storage.store(new File(["hello"], "hello.txt", { type: "text/plain" }))
     const handler = createMediaHandler(storage)
 
-    const hugeWidth = await handler(new Request(`https://cms.example.test/api/media/${stored.id}/file?w=99999&format=webp`))
-    const unknownFormat = await handler(new Request(`https://cms.example.test/api/media/${stored.id}/file?w=320&format=svg`))
-    const missingFormat = await handler(new Request(`https://cms.example.test/api/media/${stored.id}/file?w=320`))
+    const hugeWidth = await handler(
+      new Request(`https://cms.example.test/api/media/${stored.id}/file?w=99999&format=webp`),
+    )
+    const unknownFormat = await handler(
+      new Request(`https://cms.example.test/api/media/${stored.id}/file?w=320&format=svg`),
+    )
+    const missingFormat = await handler(
+      new Request(`https://cms.example.test/api/media/${stored.id}/file?w=320`),
+    )
 
     expect(hugeWidth?.status).toBe(400)
     expect(unknownFormat?.status).toBe(400)
@@ -77,7 +90,9 @@ describe("media handler file responses", () => {
     const deleted: string[][] = []
     const handler = createMediaHandler(storage, { onAssetsDeleted: (ids) => deleted.push(ids) })
 
-    const res = await handler(new Request(`https://cms.example.test/api/media/${stored.id}`, { method: "DELETE" }))
+    const res = await handler(
+      new Request(`https://cms.example.test/api/media/${stored.id}`, { method: "DELETE" }),
+    )
 
     expect((await res?.json()).deleted).toBe(true)
     expect(deleted).toEqual([[stored.id]])
@@ -89,7 +104,9 @@ describe("media handler file responses", () => {
     const deleted: string[][] = []
     const handler = createMediaHandler(storage, { onAssetsDeleted: (ids) => deleted.push(ids) })
 
-    const res = await handler(new Request(`https://cms.example.test/api/media/missing`, { method: "DELETE" }))
+    const res = await handler(
+      new Request(`https://cms.example.test/api/media/missing`, { method: "DELETE" }),
+    )
 
     expect((await res?.json()).deleted).toBe(false)
     expect(deleted).toEqual([])
@@ -102,11 +119,13 @@ describe("media handler file responses", () => {
     const deleted: string[][] = []
     const handler = createMediaHandler(storage, { onAssetsDeleted: (ids) => deleted.push(ids) })
 
-    const res = await handler(new Request("https://cms.example.test/api/media/delete", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids: [a.id, "missing", b.id] }),
-    }))
+    const res = await handler(
+      new Request("https://cms.example.test/api/media/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [a.id, "missing", b.id] }),
+      }),
+    )
 
     const body = await res?.json()
     expect(body.deleted.sort()).toEqual([a.id, b.id].sort())
@@ -117,11 +136,13 @@ describe("media handler file responses", () => {
   test("POST /api/media/delete rejects a non-array ids body", async () => {
     const storage = createLocalStorage({ provider: "local", path: uploadsDir })
     const handler = createMediaHandler(storage)
-    const res = await handler(new Request("https://cms.example.test/api/media/delete", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids: "nope" }),
-    }))
+    const res = await handler(
+      new Request("https://cms.example.test/api/media/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: "nope" }),
+      }),
+    )
     expect(res?.status).toBe(400)
   })
 
@@ -157,20 +178,32 @@ describe("media handler file responses", () => {
     storage.setFolderRoles(restricted.id, ["editor"])
 
     const asViewer = createMediaHandler(storage, { getRole: () => "viewer" })
-    const move = await asViewer(new Request("https://x/api/media/move", {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids: [open.id], folderId: restricted.id }),
-    }))
+    const move = await asViewer(
+      new Request("https://x/api/media/move", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [open.id], folderId: restricted.id }),
+      }),
+    )
     expect(move!.status).toBe(403)
 
-    const setRoles = await asViewer(new Request(`https://x/api/media/folders/${restricted.id}`, {
-      method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ roles: ["viewer"] }),
-    }))
+    const setRoles = await asViewer(
+      new Request(`https://x/api/media/folders/${restricted.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ roles: ["viewer"] }),
+      }),
+    )
     expect(setRoles!.status).toBe(403)
 
     const asAdmin = createMediaHandler(storage, { getRole: () => "admin" })
-    const ok = await asAdmin(new Request(`https://x/api/media/folders/${restricted.id}`, {
-      method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ roles: ["author"] }),
-    }))
+    const ok = await asAdmin(
+      new Request(`https://x/api/media/folders/${restricted.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ roles: ["author"] }),
+      }),
+    )
     expect(ok!.status).toBe(200)
     expect((await ok!.json()).roles).toEqual(["author"])
   })

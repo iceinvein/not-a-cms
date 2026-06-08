@@ -1,7 +1,7 @@
-import { registerCommand } from "../router"
 import { writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { createContentService, createDatabase, generateTable, loadConfig } from "@not-a-cms/core"
+import { registerCommand } from "../router"
 
 type ExportContentOptions = {
   cwd: string

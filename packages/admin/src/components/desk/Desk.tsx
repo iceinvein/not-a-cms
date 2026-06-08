@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from "react"
 import type { Horizon, HorizonItem } from "@not-a-cms/core"
+import { useEffect, useMemo, useState } from "react"
+import { adminApiFetch, messageForAdminResponse } from "../../lib/api"
+import { type LiveRow, type PresenceRoomView, toLiveRows } from "../../lib/desk/live"
+import { type ExpiringItem, type NeedsYouItem, toNeedsYouItems } from "../../lib/desk/needs-you"
 import { EmptyState, ErrorState, LoadingState } from "../AdminState"
 import { Icon, type IconName } from "../ui/Icon"
-import { adminApiFetch, messageForAdminResponse } from "../../lib/api"
-import { toLiveRows, type LiveRow, type PresenceRoomView } from "../../lib/desk/live"
-import { toNeedsYouItems, type ExpiringItem, type NeedsYouItem } from "../../lib/desk/needs-you"
 
 type Metrics = {
   collections: Array<{ name: string; label: string; inReview: number }>
@@ -36,7 +36,14 @@ const LANES: Array<{ key: keyof Horizon; label: string; empty: string }> = [
   { key: "later", label: "Later", empty: "No future releases." },
 ]
 
-export function Desk({ apiBase = "", userName, initialHorizon, initialNeedsYou, initialExpiring, initialLive }: Props) {
+export function Desk({
+  apiBase = "",
+  userName,
+  initialHorizon,
+  initialNeedsYou,
+  initialExpiring,
+  initialLive,
+}: Props) {
   const [horizon, setHorizon] = useState<Horizon | null>(initialHorizon ?? null)
   const [needsYou, setNeedsYou] = useState<NeedsYouItem[] | null>(initialNeedsYou ?? null)
   const [live, setLive] = useState<LiveRow[]>(initialLive ?? [])
@@ -53,25 +60,32 @@ export function Desk({ apiBase = "", userName, initialHorizon, initialNeedsYou, 
     const [horizonResult, metricsResult, runsResult, expiringResult] = await Promise.all([
       initialHorizon ? ok<Horizon | null>(null) : tryJson<Horizon>(apiBase, "/api/_horizon"),
       initialNeedsYou ? ok<Metrics | null>(null) : tryJson<Metrics>(apiBase, "/api/_metrics"),
-      initialNeedsYou ? ok<{ data: FlowRun[] } | null>(null) : tryJson<{ data: FlowRun[] }>(apiBase, "/api/_flows/runs?status=failed"),
-      initialNeedsYou || initialExpiring ? ok<{ items: ExpiringItem[] } | null>(null) : tryJson<{ items: ExpiringItem[] }>(apiBase, "/api/_expiring"),
+      initialNeedsYou
+        ? ok<{ data: FlowRun[] } | null>(null)
+        : tryJson<{ data: FlowRun[] }>(apiBase, "/api/_flows/runs?status=failed"),
+      initialNeedsYou || initialExpiring
+        ? ok<{ items: ExpiringItem[] } | null>(null)
+        : tryJson<{ items: ExpiringItem[] }>(apiBase, "/api/_expiring"),
     ])
 
     if (!initialHorizon && horizonResult.ok) setHorizon(horizonResult.data ?? EMPTY_HORIZON)
     else if (!initialHorizon && !horizonResult.ok) setHorizon(EMPTY_HORIZON)
 
     if (!initialNeedsYou) {
-      const metrics = metricsResult.ok ? metricsResult.data ?? { collections: [] } : { collections: [] }
-      const runs = runsResult.ok ? runsResult.data?.data ?? [] : [] // admin-only; tolerate 403
-      const expiring = expiringResult.ok ? expiringResult.data?.items ?? [] : (initialExpiring ?? [])
+      const metrics = metricsResult.ok
+        ? (metricsResult.data ?? { collections: [] })
+        : { collections: [] }
+      const runs = runsResult.ok ? (runsResult.data?.data ?? []) : [] // admin-only; tolerate 403
+      const expiring = expiringResult.ok
+        ? (expiringResult.data?.items ?? [])
+        : (initialExpiring ?? [])
       setNeedsYou(toNeedsYouItems(metrics, runs, expiring))
     }
 
     // Treat the Desk as unavailable only when the core read endpoints both fail
     // (e.g. the session is not authenticated at all), not when one widget 403s.
     const coreUnavailable =
-      !initialHorizon && !horizonResult.ok &&
-      !initialNeedsYou && !metricsResult.ok
+      !initialHorizon && !horizonResult.ok && !initialNeedsYou && !metricsResult.ok
     setError(coreUnavailable ? "Sign in to view The Desk." : "")
     setLoading(false)
   }
@@ -89,7 +103,10 @@ export function Desk({ apiBase = "", userName, initialHorizon, initialNeedsYou, 
       if (typeof document !== "undefined" && document.hidden) return
       try {
         const res = await adminApiFetch(apiBase, "/api/_presence")
-        const body = await readJson<{ rooms: PresenceRoomView[] }>(res, "Failed to load live presence")
+        const body = await readJson<{ rooms: PresenceRoomView[] }>(
+          res,
+          "Failed to load live presence",
+        )
         if (!cancelled) setLive(toLiveRows(body.rooms ?? []))
       } catch {
         if (!cancelled) setLive([])
@@ -114,7 +131,10 @@ export function Desk({ apiBase = "", userName, initialHorizon, initialNeedsYou, 
   if (loading) {
     return (
       <div className="desk-stack">
-        <LoadingState title="Loading The Desk" description="Collecting scheduled content and items that need attention." />
+        <LoadingState
+          title="Loading The Desk"
+          description="Collecting scheduled content and items that need attention."
+        />
         <div className="desk-skeleton" />
       </div>
     )
@@ -125,13 +145,22 @@ export function Desk({ apiBase = "", userName, initialHorizon, initialNeedsYou, 
       <ErrorState
         title="The Desk is unavailable"
         description={error}
-        action={<button type="button" onClick={fetchDesk} className="desk-button">Try again</button>}
+        action={
+          <button type="button" onClick={fetchDesk} className="desk-button">
+            Try again
+          </button>
+        }
       />
     )
   }
 
   if (!horizon && !needsYou) {
-    return <EmptyState title="Nothing to show yet" description="The Desk will fill in as content and automations are created." />
+    return (
+      <EmptyState
+        title="Nothing to show yet"
+        description="The Desk will fill in as content and automations are created."
+      />
+    )
   }
 
   return (
@@ -180,7 +209,11 @@ function HorizonBand({ horizon }: { horizon: Horizon }) {
             ) : (
               <div className="desk-card-list">
                 {horizon[lane.key].map((item) => (
-                  <HorizonCard key={`${item.collection}:${item.documentId}`} item={item} urgency={lane.key} />
+                  <HorizonCard
+                    key={`${item.collection}:${item.documentId}`}
+                    item={item}
+                    urgency={lane.key}
+                  />
                 ))}
               </div>
             )}
@@ -227,7 +260,8 @@ function NeedsYou({ items }: { items: NeedsYouItem[] }) {
 }
 
 function NeedRow({ item }: { item: NeedsYouItem }) {
-  const icon: IconName = item.kind === "expiring" ? "calendar" : item.severity === "error" ? "alert" : "check"
+  const icon: IconName =
+    item.kind === "expiring" ? "calendar" : item.severity === "error" ? "alert" : "check"
   return (
     <a className={`desk-need-row desk-need-${item.severity}`} href={item.href}>
       <Icon name={icon} size={16} className="desk-need-icon" />
@@ -304,9 +338,11 @@ async function tryJson<T>(apiBase: string, path: string): Promise<Result<T>> {
 async function readJson<T>(res: Response, fallback: string): Promise<T> {
   const data = await res.json()
   if (!res.ok) {
-    throw new Error(data.error && res.status !== 401 && res.status !== 403
-      ? data.error
-      : messageForAdminResponse(res, fallback))
+    throw new Error(
+      data.error && res.status !== 401 && res.status !== 403
+        ? data.error
+        : messageForAdminResponse(res, fallback),
+    )
   }
   return data
 }

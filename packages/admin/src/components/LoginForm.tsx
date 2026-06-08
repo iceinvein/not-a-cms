@@ -34,11 +34,12 @@ export function LoginForm({ apiBase = "", initialAuthConfig = DEFAULT_AUTH_CONFI
         return res.json()
       })
       .then((config) => {
-        if (!cancelled) setAuthConfig({
-          magicLink: config.magicLink ?? true,
-          oauthProviders: Array.isArray(config.oauthProviders) ? config.oauthProviders : [],
-          passkey: Boolean(config.passkey),
-        })
+        if (!cancelled)
+          setAuthConfig({
+            magicLink: config.magicLink ?? true,
+            oauthProviders: Array.isArray(config.oauthProviders) ? config.oauthProviders : [],
+            passkey: Boolean(config.passkey),
+          })
       })
       .catch(() => {
         if (!cancelled) setAuthConfig(initialAuthConfig)
@@ -103,7 +104,10 @@ export function LoginForm({ apiBase = "", initialAuthConfig = DEFAULT_AUTH_CONFI
           We sent a magic link to <strong>{email}</strong>
         </p>
         <button
-          onClick={() => { setSent(false); setEmail("") }}
+          onClick={() => {
+            setSent(false)
+            setEmail("")
+          }}
           className="text-sm text-[#71717a] hover:text-[#a1a1aa] mt-4"
         >
           Use a different email
@@ -124,7 +128,9 @@ export function LoginForm({ apiBase = "", initialAuthConfig = DEFAULT_AUTH_CONFI
               disabled={Boolean(oauthLoading)}
               className="w-full py-2 px-4 border border-[rgba(255,255,255,0.1)] rounded-md text-sm font-medium text-[#fafafa] hover:bg-[rgba(255,255,255,0.04)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {oauthLoading === provider ? "Opening..." : `Continue with ${providerLabel(provider)}`}
+              {oauthLoading === provider
+                ? "Opening..."
+                : `Continue with ${providerLabel(provider)}`}
             </button>
           ))}
           {authConfig.magicLink && (
@@ -153,9 +159,7 @@ export function LoginForm({ apiBase = "", initialAuthConfig = DEFAULT_AUTH_CONFI
               className="w-full px-3 py-2 bg-transparent border border-[rgba(255,255,255,0.1)] rounded-lg text-sm text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:ring-0 focus:border-[rgba(255,255,255,0.2)]"
             />
           </div>
-          {error && (
-            <p className="text-sm text-[#ef4444] mb-4">{error}</p>
-          )}
+          {error && <p className="text-sm text-[#ef4444] mb-4">{error}</p>}
           <button
             type="submit"
             disabled={loading}
@@ -166,14 +170,15 @@ export function LoginForm({ apiBase = "", initialAuthConfig = DEFAULT_AUTH_CONFI
         </form>
       )}
 
-      {!authConfig.magicLink && error && (
-        <p className="text-sm text-[#ef4444]">{error}</p>
-      )}
+      {!authConfig.magicLink && error && <p className="text-sm text-[#ef4444]">{error}</p>}
     </div>
   )
 }
 
-export function createMagicLinkPayload(email: string, origin: string): { email: string; callbackURL: string } {
+export function createMagicLinkPayload(
+  email: string,
+  origin: string,
+): { email: string; callbackURL: string } {
   return {
     email,
     callbackURL: `${origin.replace(/\/+$/, "")}/`,

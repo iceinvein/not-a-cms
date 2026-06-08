@@ -31,12 +31,18 @@ describe("createRoleService", () => {
       { key: "legal", label: "Legal", description: "Reviews regulated content" },
     ])
 
-    expect(createRoleService(settings).listRoles().map((role) => role.key)).toContain("legal")
+    expect(
+      createRoleService(settings)
+        .listRoles()
+        .map((role) => role.key),
+    ).toContain("legal")
   })
 
   test("rejects invalid role keys", () => {
     const service = createRoleService(createMemorySettings())
 
-    expect(() => service.saveRoles([{ key: "Bad Role", label: "Bad" }])).toThrow("Role keys must use")
+    expect(() => service.saveRoles([{ key: "Bad Role", label: "Bad" }])).toThrow(
+      "Role keys must use",
+    )
   })
 })

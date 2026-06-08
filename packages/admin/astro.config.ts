@@ -1,7 +1,7 @@
-import { defineConfig } from "astro/config"
+import node from "@astrojs/node"
 import react from "@astrojs/react"
 import tailwind from "@astrojs/tailwind"
-import node from "@astrojs/node"
+import { defineConfig } from "astro/config"
 
 export default defineConfig({
   integrations: [react(), tailwind()],
@@ -18,7 +18,7 @@ export default defineConfig({
           target: "http://localhost:4321",
           changeOrigin: true,
           configure: (proxy: any) => {
-            proxy.on("error", () => {})  // Suppress ECONNREFUSED noise
+            proxy.on("error", () => {}) // Suppress ECONNREFUSED noise
           },
         },
         "/trpc": {
@@ -49,7 +49,11 @@ export default defineConfig({
       rollupOptions: {
         output: {
           manualChunks(id) {
-            if (id.includes("react-dom") || id.includes("/react/") || id.includes("react/jsx-runtime")) {
+            if (
+              id.includes("react-dom") ||
+              id.includes("/react/") ||
+              id.includes("react/jsx-runtime")
+            ) {
               return "vendor-react"
             }
             if (id.includes("prosemirror-") || id.includes("@tiptap/pm")) {

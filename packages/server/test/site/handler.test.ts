@@ -1,6 +1,6 @@
-import { test, expect, describe, beforeAll, afterAll } from "bun:test"
-import { createServer } from "../../src/index"
+import { afterAll, beforeAll, describe, expect, test } from "bun:test"
 import { unlinkSync } from "node:fs"
+import { createServer } from "../../src/index"
 
 const testDbPath = "test-site-api.db"
 
@@ -48,7 +48,11 @@ describe("GET /api/_site", () => {
     server = createServer({
       port: 0,
       database: { url: testDbPath },
-      auth: { secret: "a".repeat(32), baseURL: "http://localhost", magicLink: { sendMagicLink: async () => {} } },
+      auth: {
+        secret: "a".repeat(32),
+        baseURL: "http://localhost",
+        magicLink: { sendMagicLink: async () => {} },
+      },
       collections: [],
       site: siteConfig,
       theme: themeConfig,
@@ -59,7 +63,11 @@ describe("GET /api/_site", () => {
     serverEmpty = createServer({
       port: 0,
       database: { url: testDbPath + ".empty" },
-      auth: { secret: "a".repeat(32), baseURL: "http://localhost", magicLink: { sendMagicLink: async () => {} } },
+      auth: {
+        secret: "a".repeat(32),
+        baseURL: "http://localhost",
+        magicLink: { sendMagicLink: async () => {} },
+      },
       collections: [],
     })
     baseUrlEmpty = `http://localhost:${serverEmpty.server.port}`
@@ -69,9 +77,15 @@ describe("GET /api/_site", () => {
     server.server.stop()
     serverEmpty.server.stop()
     for (const p of [testDbPath, testDbPath + ".empty"]) {
-      try { unlinkSync(p) } catch {}
-      try { unlinkSync(p + "-wal") } catch {}
-      try { unlinkSync(p + "-shm") } catch {}
+      try {
+        unlinkSync(p)
+      } catch {}
+      try {
+        unlinkSync(p + "-wal")
+      } catch {}
+      try {
+        unlinkSync(p + "-shm")
+      } catch {}
     }
   })
 

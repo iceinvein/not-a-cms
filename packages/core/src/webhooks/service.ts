@@ -22,9 +22,17 @@ export async function createWebhookHeaders(
   if (!secret) return headers
 
   const encoder = new TextEncoder()
-  const key = await crypto.subtle.importKey("raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"])
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  )
   const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(`${timestamp}.${body}`))
-  const value = `sha256=${Array.from(new Uint8Array(signature)).map((b) => b.toString(16).padStart(2, "0")).join("")}`
+  const value = `sha256=${Array.from(new Uint8Array(signature))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")}`
   headers["X-Not-A-CMS-Signature"] = value
   headers["X-Webhook-Signature"] = value
   return headers
@@ -44,10 +52,19 @@ export function createWebhookService(store: WebhookStore, options: WebhookServic
     })
   }
 
-  async function dispatch(event: WebhookEvent, collection: string, payload: Record<string, unknown>): Promise<void> {
+  async function dispatch(
+    event: WebhookEvent,
+    collection: string,
+    payload: Record<string, unknown>,
+  ): Promise<void> {
     const hooks = getMatchingWebhooks(event, collection)
     for (const hook of hooks) {
-      const body = JSON.stringify({ event, collection, data: payload, timestamp: new Date().toISOString() })
+      const body = JSON.stringify({
+        event,
+        collection,
+        data: payload,
+        timestamp: new Date().toISOString(),
+      })
       await deliver(hook, event, body, await createWebhookHeaders(body, hook.secret))
     }
   }
@@ -55,10 +72,16 @@ export function createWebhookService(store: WebhookStore, options: WebhookServic
   async function replayDelivery(deliveryId: string): Promise<WebhookDelivery> {
     const delivery = store.getDeliveryLog(deliveryId)
     if (!delivery) throw new Error("Webhook delivery not found")
-    if (delivery.status >= 200 && delivery.status < 300) throw new Error("Only failed deliveries can be replayed")
+    if (delivery.status >= 200 && delivery.status < 300)
+      throw new Error("Only failed deliveries can be replayed")
     const hook = store.getById(delivery.webhook_id)
     if (!hook) throw new Error("Webhook not found")
-    return deliver(hook, delivery.event, delivery.request_body, await createWebhookHeaders(delivery.request_body, hook.secret))
+    return deliver(
+      hook,
+      delivery.event,
+      delivery.request_body,
+      await createWebhookHeaders(delivery.request_body, hook.secret),
+    )
   }
 
   async function deliver(
@@ -70,7 +93,12 @@ export function createWebhookService(store: WebhookStore, options: WebhookServic
     let lastLog: WebhookDelivery | null = null
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
-        const res = await fetchImpl(hook.url, { method: "POST", headers, body, signal: AbortSignal.timeout(timeoutMs) })
+        const res = await fetchImpl(hook.url, {
+          method: "POST",
+          headers,
+          body,
+          signal: AbortSignal.timeout(timeoutMs),
+        })
         lastLog = store.logDelivery({
           webhook_id: hook.id,
           event,
@@ -93,7 +121,17 @@ export function createWebhookService(store: WebhookStore, options: WebhookServic
       }
       await sleep(retryDelays[attempt - 1] ?? 0)
     }
-    return lastLog ?? store.logDelivery({ webhook_id: hook.id, event, status: 0, request_body: body, response_body: "Delivery did not run", attempts: 0 })
+    return (
+      lastLog ??
+      store.logDelivery({
+        webhook_id: hook.id,
+        event,
+        status: 0,
+        request_body: body,
+        response_body: "Delivery did not run",
+        attempts: 0,
+      })
+    )
   }
 
   return { getMatchingWebhooks, dispatch, replayDelivery }

@@ -1,8 +1,15 @@
 import { useMemo, useState } from "react"
-import type { ActionStep, ActionType, ConditionStep, Flow, FlowStep, FlowTrigger } from "./flow-types"
-import { flowToOutline } from "../../lib/automations/outline"
 import { adminApiFetch, messageForAdminResponse } from "../../lib/api"
+import { flowToOutline } from "../../lib/automations/outline"
 import { ErrorState } from "../AdminState"
+import type {
+  ActionStep,
+  ActionType,
+  ConditionStep,
+  Flow,
+  FlowStep,
+  FlowTrigger,
+} from "./flow-types"
 import { StepConfigurator } from "./StepConfigurator"
 import { TestPanel } from "./TestPanel"
 
@@ -51,7 +58,8 @@ function actionLabel(action: ActionStep): string {
 }
 
 function normalizeActionConfig(action: ActionStep): ActionStep {
-  if (action.type !== "action.update_content" && action.type !== "action.delete_content") return action
+  if (action.type !== "action.update_content" && action.type !== "action.delete_content")
+    return action
   const { document_id, ...rest } = action.config as Record<string, unknown>
   return {
     ...action,
@@ -102,7 +110,8 @@ export function RuleEditor({ flow, apiBase = "", onSaved }: Props) {
   const [testing, setTesting] = useState(false)
   const [error, setError] = useState("")
   const outline = useMemo(() => flowToOutline(draft), [draft])
-  const condition = draft.steps.find((step): step is ConditionStep => step.type === "condition") ?? null
+  const condition =
+    draft.steps.find((step): step is ConditionStep => step.type === "condition") ?? null
   const actions = draft.steps.filter((step): step is ActionStep => step.type.startsWith("action."))
 
   const updateTrigger = (trigger: FlowTrigger) => {
@@ -112,7 +121,9 @@ export function RuleEditor({ flow, apiBase = "", onSaved }: Props) {
   const updateStep = (id: string, updates: Partial<FlowStep>) => {
     setDraft((current) => ({
       ...current,
-      steps: current.steps.map((step) => (step.id === id ? ({ ...step, ...updates } as FlowStep) : step)),
+      steps: current.steps.map((step) =>
+        step.id === id ? ({ ...step, ...updates } as FlowStep) : step,
+      ),
     }))
   }
 
@@ -164,7 +175,7 @@ export function RuleEditor({ flow, apiBase = "", onSaved }: Props) {
 
   const selectedStep =
     selected && "id" in selected
-      ? draft.steps.find((step) => step.id === selected.id) ?? null
+      ? (draft.steps.find((step) => step.id === selected.id) ?? null)
       : null
 
   return (
@@ -197,7 +208,11 @@ export function RuleEditor({ flow, apiBase = "", onSaved }: Props) {
         {error && <ErrorState compact title="Rule save failed" description={error} />}
 
         <div className="space-y-3">
-          <button type="button" onClick={() => setSelected({ type: "trigger" })} className={`${sectionButtonClass(selected?.type === "trigger")} w-full`}>
+          <button
+            type="button"
+            onClick={() => setSelected({ type: "trigger" })}
+            className={`${sectionButtonClass(selected?.type === "trigger")} w-full`}
+          >
             <div className="flex items-center gap-3">
               <span className="w-12 text-xs font-semibold text-[#71717a]">WHEN</span>
               <span className="text-sm text-[#fafafa]">{outline.when.label}</span>
@@ -209,10 +224,16 @@ export function RuleEditor({ flow, apiBase = "", onSaved }: Props) {
               <div className="flex items-center gap-3">
                 <span className="w-12 text-xs font-semibold text-[#71717a]">IF</span>
                 <span className="text-sm text-[#fafafa]">
-                  {condition ? `${outline.match === "any" ? "Any" : "All"} rules match` : "No condition"}
+                  {condition
+                    ? `${outline.match === "any" ? "Any" : "All"} rules match`
+                    : "No condition"}
                 </span>
               </div>
-              <button type="button" onClick={addCondition} className="text-xs font-medium text-[#c9956b] hover:text-[#d4a57c]">
+              <button
+                type="button"
+                onClick={addCondition}
+                className="text-xs font-medium text-[#c9956b] hover:text-[#d4a57c]"
+              >
                 {condition ? "Edit" : "Add condition"}
               </button>
             </div>
@@ -225,7 +246,9 @@ export function RuleEditor({ flow, apiBase = "", onSaved }: Props) {
                     onClick={() => setSelected({ type: "condition", id: condition.id })}
                     className={`${sectionButtonClass(selected?.type === "condition")} w-full`}
                   >
-                    <span className="text-xs text-[#a1a1aa]">{rule.field || "field"} {rule.operator} {String(rule.value)}</span>
+                    <span className="text-xs text-[#a1a1aa]">
+                      {rule.field || "field"} {rule.operator} {String(rule.value)}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -236,7 +259,11 @@ export function RuleEditor({ flow, apiBase = "", onSaved }: Props) {
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <span className="w-12 text-xs font-semibold text-[#71717a]">DO</span>
-                <span className="text-sm text-[#fafafa]">{actions.length ? `${actions.length} action${actions.length === 1 ? "" : "s"}` : "No actions"}</span>
+                <span className="text-sm text-[#fafafa]">
+                  {actions.length
+                    ? `${actions.length} action${actions.length === 1 ? "" : "s"}`
+                    : "No actions"}
+                </span>
               </div>
               <select
                 value=""
@@ -247,7 +274,9 @@ export function RuleEditor({ flow, apiBase = "", onSaved }: Props) {
               >
                 <option value="">Add action</option>
                 {ACTION_TYPES.map((action) => (
-                  <option key={action.type} value={action.type}>{action.label}</option>
+                  <option key={action.type} value={action.type}>
+                    {action.label}
+                  </option>
                 ))}
               </select>
             </div>
@@ -264,7 +293,11 @@ export function RuleEditor({ flow, apiBase = "", onSaved }: Props) {
                       <span className="truncate">{actionLabel(action)}</span>
                     </span>
                   </button>
-                  <button type="button" onClick={() => removeStep(action.id)} className="text-xs text-[#52525b] hover:text-[#ef4444]">
+                  <button
+                    type="button"
+                    onClick={() => removeStep(action.id)}
+                    className="text-xs text-[#52525b] hover:text-[#ef4444]"
+                  >
                     Remove
                   </button>
                 </div>

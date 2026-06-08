@@ -1,11 +1,24 @@
+import {
+  type AppDatabase,
+  type CollectionDef,
+  extractMediaReferences,
+  type MediaReference,
+} from "@not-a-cms/core"
 import { sql } from "drizzle-orm"
-import { extractMediaReferences, type MediaReference, type CollectionDef, type AppDatabase } from "@not-a-cms/core"
 
-export type UsageReference = { collection: string; documentId: string; label: string; field: string }
+export type UsageReference = {
+  collection: string
+  documentId: string
+  label: string
+  field: string
+}
 
 // service.findMany() must return DESERIALIZED documents (media fields keyed by
 // logical name, e.g. doc.cover), since extractMediaReferences reads logical names.
-type RebuildEntry = { def: CollectionDef; service: { findMany: () => Promise<Record<string, unknown>[]> } }
+type RebuildEntry = {
+  def: CollectionDef
+  service: { findMany: () => Promise<Record<string, unknown>[]> }
+}
 
 export type MediaReferenceStoreOptions = {
   // When provided, references to assets that no longer exist are filtered out at
@@ -13,14 +26,25 @@ export type MediaReferenceStoreOptions = {
   assetExists?: (assetId: string) => boolean
 }
 
-export function createMediaReferenceStore(db: AppDatabase, options: MediaReferenceStoreOptions = {}) {
-  function replaceForDocument(collection: string, documentId: string, refs: MediaReference[]): void {
-    const live = options.assetExists ? refs.filter((ref) => options.assetExists!(ref.assetId)) : refs
+export function createMediaReferenceStore(
+  db: AppDatabase,
+  options: MediaReferenceStoreOptions = {},
+) {
+  function replaceForDocument(
+    collection: string,
+    documentId: string,
+    refs: MediaReference[],
+  ): void {
+    const live = options.assetExists
+      ? refs.filter((ref) => options.assetExists!(ref.assetId))
+      : refs
     // Atomic replace: the delete and the re-inserts run in one transaction so a
     // failed insert (or a crash mid-write) rolls back to the prior index rather
     // than leaving the document partially indexed until the next boot rebuild.
     db.transaction((tx) => {
-      tx.run(sql`DELETE FROM media_references WHERE collection = ${collection} AND document_id = ${documentId}`)
+      tx.run(
+        sql`DELETE FROM media_references WHERE collection = ${collection} AND document_id = ${documentId}`,
+      )
       for (const ref of live) {
         tx.run(sql`INSERT INTO media_references (asset_id, collection, document_id, field, label)
           VALUES (${ref.assetId}, ${collection}, ${documentId}, ${ref.field}, ${ref.label})`)
@@ -29,7 +53,9 @@ export function createMediaReferenceStore(db: AppDatabase, options: MediaReferen
   }
 
   function removeDocument(collection: string, documentId: string): void {
-    db.run(sql`DELETE FROM media_references WHERE collection = ${collection} AND document_id = ${documentId}`)
+    db.run(
+      sql`DELETE FROM media_references WHERE collection = ${collection} AND document_id = ${documentId}`,
+    )
   }
 
   function removeAsset(assetId: string): void {
@@ -37,7 +63,8 @@ export function createMediaReferenceStore(db: AppDatabase, options: MediaReferen
   }
 
   function counts(): Record<string, number> {
-    const rows = db.all(sql`SELECT asset_id AS assetId, COUNT(DISTINCT collection || ':' || document_id) AS n
+    const rows =
+      db.all(sql`SELECT asset_id AS assetId, COUNT(DISTINCT collection || ':' || document_id) AS n
       FROM media_references GROUP BY asset_id`) as { assetId: string; n: number }[]
     const out: Record<string, number> = {}
     for (const row of rows) out[String(row.assetId)] = Number(row.n)
@@ -47,7 +74,12 @@ export function createMediaReferenceStore(db: AppDatabase, options: MediaReferen
   function references(assetId: string): UsageReference[] {
     const rows = db.all(sql`SELECT collection, document_id, field, label
       FROM media_references WHERE asset_id = ${assetId}
-      ORDER BY collection, document_id, field`) as { collection: string; document_id: string; field: string; label: string }[]
+      ORDER BY collection, document_id, field`) as {
+      collection: string
+      document_id: string
+      field: string
+      label: string
+    }[]
     return rows.map((row) => ({
       collection: row.collection,
       documentId: String(row.document_id),
@@ -83,7 +115,16 @@ export function createMediaReferenceStore(db: AppDatabase, options: MediaReferen
     }
   }
 
-  return { replaceForDocument, removeDocument, removeAsset, counts, references, usage, clear, rebuild }
+  return {
+    replaceForDocument,
+    removeDocument,
+    removeAsset,
+    counts,
+    references,
+    usage,
+    clear,
+    rebuild,
+  }
 }
 
 export type MediaReferenceStore = ReturnType<typeof createMediaReferenceStore>

@@ -62,7 +62,10 @@ export async function listRoles(apiBase: string): Promise<RoleDefinition[]> {
   return body.data ?? []
 }
 
-export async function saveRoles(apiBase: string, roles: RoleDefinition[]): Promise<RoleDefinition[]> {
+export async function saveRoles(
+  apiBase: string,
+  roles: RoleDefinition[],
+): Promise<RoleDefinition[]> {
   const res = await adminApiFetch(apiBase, "/api/_roles", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -73,7 +76,10 @@ export async function saveRoles(apiBase: string, roles: RoleDefinition[]): Promi
   return body.data ?? roles
 }
 
-export async function listAuditEvents(apiBase: string, query: AuditQuery = {}): Promise<AuditEvent[]> {
+export async function listAuditEvents(
+  apiBase: string,
+  query: AuditQuery = {},
+): Promise<AuditEvent[]> {
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(query)) {
     if (value !== undefined) params.set(key, String(value))

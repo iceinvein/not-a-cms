@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react"
-import type { FlowStep, FlowRunDetail, FlowRunStep } from "./flow-types"
-import { FlowCanvas } from "./FlowCanvas"
-import { ErrorState, LoadingState } from "../AdminState"
+import { useEffect, useState } from "react"
 import { adminApiFetch } from "../../lib/api"
+import { ErrorState, LoadingState } from "../AdminState"
+import { FlowCanvas } from "./FlowCanvas"
+import type { FlowRunDetail, FlowRunStep, FlowStep } from "./flow-types"
 
 type Props = {
   flowId: string
@@ -41,7 +41,8 @@ function tryParseJson(raw?: string): unknown {
 }
 
 function JsonViewer({ value }: { value: unknown }) {
-  if (value === undefined || value === null) return <span className="text-[#52525b] text-xs">—</span>
+  if (value === undefined || value === null)
+    return <span className="text-[#52525b] text-xs">—</span>
   return (
     <pre className="text-xs bg-[#0a0a0c] border border-[rgba(255,255,255,0.06)] rounded-lg p-2 overflow-auto max-h-48 whitespace-pre-wrap break-all text-[#a1a1aa]">
       {typeof value === "string" ? value : JSON.stringify(value, null, 2)}
@@ -57,11 +58,7 @@ function StepDetailPanel({ runStep, steps }: { runStep: FlowRunStep; steps: Flow
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="text-xs text-[#71717a] font-mono">{runStep.step_id}</p>
-          {stepDef && (
-            <p className="text-sm font-medium text-[#fafafa] mt-0.5">
-              {stepDef.type}
-            </p>
-          )}
+          {stepDef && <p className="text-sm font-medium text-[#fafafa] mt-0.5">{stepDef.type}</p>}
         </div>
         <span className={statusBadge(runStep.status)}>{runStep.status}</span>
       </div>
@@ -77,7 +74,9 @@ function StepDetailPanel({ runStep, steps }: { runStep: FlowRunStep; steps: Flow
 
       <div>
         <p className="text-xs font-medium text-[#71717a] mb-1">Duration</p>
-        <p className="text-sm text-[#fafafa]">{stepDurationMs(runStep.started_at, runStep.finished_at)}</p>
+        <p className="text-sm text-[#fafafa]">
+          {stepDurationMs(runStep.started_at, runStep.finished_at)}
+        </p>
       </div>
 
       <div>
@@ -119,11 +118,21 @@ export function RunDetail({ flowId, runId, apiBase = "", steps, onRetry }: Props
   }, [flowId, runId, apiBase])
 
   if (loading) {
-    return <LoadingState title="Loading run details" description="Fetching step inputs, outputs, and timing." />
+    return (
+      <LoadingState
+        title="Loading run details"
+        description="Fetching step inputs, outputs, and timing."
+      />
+    )
   }
 
   if (!run) {
-    return <ErrorState title="Run not found" description="The run may have been removed or is no longer available." />
+    return (
+      <ErrorState
+        title="Run not found"
+        description="The run may have been removed or is no longer available."
+      />
+    )
   }
 
   const runStepsForCanvas = (run.steps ?? []).map((rs) => ({
@@ -138,7 +147,9 @@ export function RunDetail({ flowId, runId, apiBase = "", steps, onRetry }: Props
     setRetrying(true)
     setRetryError("")
     try {
-      const res = await adminApiFetch(apiBase, `/api/_flows/${flowId}/runs/${runId}/retry`, { method: "POST" })
+      const res = await adminApiFetch(apiBase, `/api/_flows/${flowId}/runs/${runId}/retry`, {
+        method: "POST",
+      })
       if (!res.ok) throw new Error("Could not retry run.")
       const body = await res.json()
       if (typeof body.runId === "string") onRetry?.(body.runId)
@@ -165,7 +176,9 @@ export function RunDetail({ flowId, runId, apiBase = "", steps, onRetry }: Props
         </div>
         <div>
           <p className="text-xs text-[#71717a]">Duration</p>
-          <p className="text-sm text-[#fafafa]">{formatDuration(run.started_at, run.finished_at)}</p>
+          <p className="text-sm text-[#fafafa]">
+            {formatDuration(run.started_at, run.finished_at)}
+          </p>
         </div>
         <div>
           <p className="text-xs text-[#71717a] mb-0.5">Status</p>
@@ -191,9 +204,7 @@ export function RunDetail({ flowId, runId, apiBase = "", steps, onRetry }: Props
         </div>
       )}
 
-      {retryError && (
-        <ErrorState compact title="Retry failed" description={retryError} />
-      )}
+      {retryError && <ErrorState compact title="Retry failed" description={retryError} />}
 
       {/* Main: canvas + detail panel */}
       <div className="flex gap-4 items-start">

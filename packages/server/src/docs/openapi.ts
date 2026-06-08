@@ -170,7 +170,9 @@ function fieldSchema(fieldDef: FieldDef): OpenAPISchema {
     case "group":
       return {
         type: "object",
-        properties: Object.fromEntries(Object.entries(fieldDef.fields).map(([name, def]) => [name, fieldSchema(def)])),
+        properties: Object.fromEntries(
+          Object.entries(fieldDef.fields).map(([name, def]) => [name, fieldSchema(def)]),
+        ),
         additionalProperties: false,
       }
     case "pageLayout":
@@ -185,7 +187,10 @@ function fieldSchema(fieldDef: FieldDef): OpenAPISchema {
 }
 
 function collectionToSchemaName(name: string): string {
-  return name.split("_").map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join("")
+  return name
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join("")
 }
 
 function requiresReadAuth(collection: CollectionDef): boolean {

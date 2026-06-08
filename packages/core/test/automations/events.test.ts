@@ -1,11 +1,14 @@
-import { test, expect, describe } from "bun:test"
+import { describe, expect, test } from "bun:test"
 import { createRunEventBus, type RunEvent } from "../../src/automations/events"
 
 const sample: RunEvent = {
   type: "run.completed",
   run: {
-    id: "r1", flow_id: "f1", trigger_event: "content.created",
-    status: "completed", started_at: "2026-06-05T00:00:00.000Z",
+    id: "r1",
+    flow_id: "f1",
+    trigger_event: "content.created",
+    status: "completed",
+    started_at: "2026-06-05T00:00:00.000Z",
     finished_at: "2026-06-05T00:00:01.000Z",
   },
 }
@@ -34,7 +37,9 @@ describe("createRunEventBus", () => {
   test("a throwing subscriber cannot starve the others", () => {
     const bus = createRunEventBus()
     const seen: RunEvent[] = []
-    bus.subscribe(() => { throw new Error("boom") })
+    bus.subscribe(() => {
+      throw new Error("boom")
+    })
     bus.subscribe((e) => seen.push(e))
     expect(() => bus.publish(sample)).not.toThrow()
     expect(seen).toHaveLength(1)

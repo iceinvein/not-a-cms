@@ -1,15 +1,15 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react"
-import { Icon } from "../ui/Icon"
-import { parseDocContext } from "../../lib/command/doc-context"
+import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { askContent } from "../../lib/command/ask-search"
 import {
   buildDoCommands,
   buildJumpCommands,
-  rankCommands,
   type CommandRunContext,
   type CommandScope,
+  rankCommands,
 } from "../../lib/command/commands"
-import { searchContent, type ContentHit } from "../../lib/command/content-search"
-import { askContent } from "../../lib/command/ask-search"
+import { type ContentHit, searchContent } from "../../lib/command/content-search"
+import { parseDocContext } from "../../lib/command/doc-context"
+import { Icon } from "../ui/Icon"
 
 type CollectionLike = {
   name: string
@@ -33,7 +33,13 @@ const SCOPES: { key: CommandScope; label: string }[] = [
   { key: "ask", label: "Ask" },
 ]
 
-export function CommandPalette({ apiBase, siteBase, collections, pathname, defaultOpen = false }: Props) {
+export function CommandPalette({
+  apiBase,
+  siteBase,
+  collections,
+  pathname,
+  defaultOpen = false,
+}: Props) {
   const [open, setOpen] = useState(defaultOpen)
   const [query, setQuery] = useState("")
   const [scope, setScope] = useState<CommandScope>("jump")
@@ -104,7 +110,10 @@ export function CommandPalette({ apiBase, siteBase, collections, pathname, defau
   const runCtx: CommandRunContext = { apiBase, siteBase, context, navigate, notify }
   const visibleCommands = useMemo(() => {
     if (scope === "find" || scope === "ask") return []
-    return rankCommands(query, commands.filter((c) => c.scope === scope))
+    return rankCommands(
+      query,
+      commands.filter((c) => c.scope === scope),
+    )
   }, [commands, scope, query])
 
   const rows = scope === "find" || scope === "ask" ? hits : visibleCommands
@@ -242,9 +251,15 @@ export function CommandPalette({ apiBase, siteBase, collections, pathname, defau
         </ul>
 
         <div className="cmd-foot">
-          <span><kbd>up/down</kbd> navigate</span>
-          <span><kbd>enter</kbd> open</span>
-          <span><kbd>tab</kbd> scope</span>
+          <span>
+            <kbd>up/down</kbd> navigate
+          </span>
+          <span>
+            <kbd>enter</kbd> open
+          </span>
+          <span>
+            <kbd>tab</kbd> scope
+          </span>
           <span className="cmd-brand">COMMAND DECK</span>
         </div>
       </div>

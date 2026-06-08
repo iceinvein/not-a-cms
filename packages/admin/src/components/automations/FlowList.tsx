@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react"
-import type { Flow, FlowTrigger } from "./flow-types"
-import { EmptyState, ErrorState, LoadingState } from "../AdminState"
+import { useEffect, useState } from "react"
 import { adminApiFetch, messageForAdminResponse } from "../../lib/api"
+import { EmptyState, ErrorState, LoadingState } from "../AdminState"
+import type { Flow, FlowTrigger } from "./flow-types"
 
 type Props = {
   apiBase?: string
@@ -85,7 +85,8 @@ export function FlowList({ apiBase = "" }: Props) {
     fetchFlows()
   }
 
-  if (loading) return <LoadingState title="Loading automations" description="Fetching flow definitions." />
+  if (loading)
+    return <LoadingState title="Loading automations" description="Fetching flow definitions." />
 
   return (
     <div className="space-y-8">
@@ -100,7 +101,18 @@ export function FlowList({ apiBase = "" }: Props) {
       </div>
 
       {error && (
-        <ErrorState title="Automation action failed" description={error} action={<button onClick={fetchFlows} className="px-3 py-1.5 text-sm font-medium text-[#fafafa] bg-[rgba(255,255,255,0.08)] rounded-md hover:bg-[rgba(255,255,255,0.12)] transition-colors">Try again</button>} />
+        <ErrorState
+          title="Automation action failed"
+          description={error}
+          action={
+            <button
+              onClick={fetchFlows}
+              className="px-3 py-1.5 text-sm font-medium text-[#fafafa] bg-[rgba(255,255,255,0.08)] rounded-md hover:bg-[rgba(255,255,255,0.12)] transition-colors"
+            >
+              Try again
+            </button>
+          }
+        />
       )}
 
       {flows.length === 0 ? (
@@ -132,7 +144,9 @@ export function FlowList({ apiBase = "" }: Props) {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-xs text-[#52525b]">{new Date(flow.updated_at).toLocaleDateString()}</span>
+                <span className="text-xs text-[#52525b]">
+                  {new Date(flow.updated_at).toLocaleDateString()}
+                </span>
                 <button
                   onClick={() => handleToggle(flow)}
                   className={`text-xs px-2 py-1 rounded-full font-medium transition-colors ${

@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test"
+import { describe, expect, test } from "bun:test"
 import { runHook } from "../../src/content/hooks"
 import type { CollectionHooks, HookContext } from "../../src/types"
 
@@ -15,7 +15,9 @@ describe("runHook", () => {
 
   test("returns original doc if hook returns void", async () => {
     const hooks: CollectionHooks = {
-      beforeSave: (_doc) => { /* void */ },
+      beforeSave: (_doc) => {
+        /* void */
+      },
     }
     const result = await runHook("beforeSave", hooks, { title: "Hello" }, ctx)
     expect(result).toEqual({ title: "Hello" })

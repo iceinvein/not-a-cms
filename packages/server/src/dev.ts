@@ -5,9 +5,10 @@
  * This boots a working not-a-cms server with sample collections
  * for local development and testing.
  */
-import { createServer } from "./index"
+
 import { ConfigLoadError, defineCollection, field, loadConfig } from "@not-a-cms/core"
 import { createServerConfigFromCMSConfig, resolveConfigLoadOptions } from "./config"
+import { createServer } from "./index"
 import type { StorageConfig } from "./media/storage"
 
 // --- Sample collections for development ---
@@ -22,7 +23,9 @@ const blogPost = defineCollection({
     body: field.richText(),
     author: field.relation("author"),
     coverImage: field.media({ accept: ["image/*"] }),
-    status: field.select(["draft", "in_review", "published", "archived", "scheduled"], { default: "draft" }),
+    status: field.select(["draft", "in_review", "published", "archived", "scheduled"], {
+      default: "draft",
+    }),
     publishedAt: field.datetime(),
     tags: field.array(field.text()),
   },
@@ -47,7 +50,9 @@ const page = defineCollection({
     // The previous field.pageLayout() had no editor in the admin, so pages could not
     // be authored; richText is both editable (Continuum) and renderable.
     body: field.richText(),
-    status: field.select(["draft", "in_review", "published", "archived", "scheduled"], { default: "draft" }),
+    status: field.select(["draft", "in_review", "published", "archived", "scheduled"], {
+      default: "draft",
+    }),
     publishedAt: field.datetime(),
   },
 })
@@ -73,7 +78,12 @@ const sampleComponents = [
     icon: "type",
     props: {
       content: { type: "text" as const, label: "Content" },
-      alignment: { type: "select" as const, options: ["left", "center", "right"], default: "left", label: "Alignment" },
+      alignment: {
+        type: "select" as const,
+        options: ["left", "center", "right"],
+        default: "left",
+        label: "Alignment",
+      },
     },
   },
   {
@@ -95,7 +105,12 @@ const sampleComponents = [
     props: {
       label: { type: "text" as const, default: "Get Started", label: "Button Label" },
       url: { type: "text" as const, label: "URL" },
-      variant: { type: "select" as const, options: ["primary", "secondary", "outline"], default: "primary", label: "Style" },
+      variant: {
+        type: "select" as const,
+        options: ["primary", "secondary", "outline"],
+        default: "primary",
+        label: "Style",
+      },
     },
   },
 ]
@@ -159,10 +174,20 @@ function createSampleDevServerConfig() {
     .filter(Boolean)
   const oauth = {
     ...(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
-      ? { github: { clientId: process.env.GITHUB_CLIENT_ID, clientSecret: process.env.GITHUB_CLIENT_SECRET } }
+      ? {
+          github: {
+            clientId: process.env.GITHUB_CLIENT_ID,
+            clientSecret: process.env.GITHUB_CLIENT_SECRET,
+          },
+        }
       : {}),
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
-      ? { google: { clientId: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET } }
+      ? {
+          google: {
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          },
+        }
       : {}),
   }
 
@@ -170,7 +195,8 @@ function createSampleDevServerConfig() {
     port,
     database: { url: process.env.DATABASE_URL ?? "dev.db" },
     auth: {
-      secret: process.env.BETTER_AUTH_SECRET ?? "dev-secret-do-not-use-in-production-" + "x".repeat(12),
+      secret:
+        process.env.BETTER_AUTH_SECRET ?? "dev-secret-do-not-use-in-production-" + "x".repeat(12),
       baseURL: process.env.BASE_URL ?? `http://localhost:${port}`,
       trustedOrigins: corsOrigins,
       magicLink: {
@@ -185,7 +211,17 @@ function createSampleDevServerConfig() {
       ...(Object.keys(oauth).length > 0 ? { oauth } : {}),
     },
     email: {
-      send: async ({ to, subject, html, text }: { to: string; subject: string; html?: string; text?: string }) => {
+      send: async ({
+        to,
+        subject,
+        html,
+        text,
+      }: {
+        to: string
+        subject: string
+        html?: string
+        text?: string
+      }) => {
         console.log(`\n  Email to ${to}:`)
         console.log(`    Subject: ${subject}`)
         if (text) console.log(`    Text: ${text}`)

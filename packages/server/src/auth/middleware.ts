@@ -2,7 +2,11 @@ export async function getSessionFromRequest(
   auth: any, // Better Auth instance
   req: Request,
   options: {
-    getRoleForUser?: (user: { id: string; email?: string | null; role?: string }) => string | null | Promise<string | null>
+    getRoleForUser?: (user: {
+      id: string
+      email?: string | null
+      role?: string
+    }) => string | null | Promise<string | null>
   } = {},
 ): Promise<{ userId: string; email?: string | null; role: string } | null> {
   try {

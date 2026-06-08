@@ -7,7 +7,11 @@ function logoItems(value: unknown): LogoItem[] {
   if (!Array.isArray(value)) return []
   return value.map((item) => {
     const logo = (item ?? {}) as Partial<LogoItem>
-    return { url: String(logo.url ?? ""), mediaId: String(logo.mediaId ?? ""), alt: String(logo.alt ?? "") }
+    return {
+      url: String(logo.url ?? ""),
+      mediaId: String(logo.mediaId ?? ""),
+      alt: String(logo.alt ?? ""),
+    }
   })
 }
 
@@ -36,10 +40,16 @@ export function LogoCloudBlockView({ node, updateAttributes }: any) {
               value={logo.url}
               chooseLabel="Choose logo"
               onSelect={(item) =>
-                updateLogos(logos.map((l, i) => (i === index ? { url: item.url, mediaId: item.id, alt: l.alt } : l)))
+                updateLogos(
+                  logos.map((l, i) =>
+                    i === index ? { url: item.url, mediaId: item.id, alt: l.alt } : l,
+                  ),
+                )
               }
               onClear={() =>
-                updateLogos(logos.map((l, i) => (i === index ? { url: "", mediaId: "", alt: l.alt } : l)))
+                updateLogos(
+                  logos.map((l, i) => (i === index ? { url: "", mediaId: "", alt: l.alt } : l)),
+                )
               }
             />
             <input
@@ -47,7 +57,9 @@ export function LogoCloudBlockView({ node, updateAttributes }: any) {
               value={logo.alt}
               placeholder="Alt text (company name)"
               onChange={(event) =>
-                updateLogos(logos.map((l, i) => (i === index ? { ...l, alt: event.target.value } : l)))
+                updateLogos(
+                  logos.map((l, i) => (i === index ? { ...l, alt: event.target.value } : l)),
+                )
               }
             />
             <button

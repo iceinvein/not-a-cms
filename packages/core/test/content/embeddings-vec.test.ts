@@ -1,5 +1,5 @@
-import { describe, expect, test } from "bun:test"
 import { Database } from "bun:sqlite"
+import { describe, expect, test } from "bun:test"
 import * as sqliteVec from "sqlite-vec"
 import { createEmbeddingStore } from "../../src/content/embeddings"
 
@@ -61,7 +61,9 @@ describe("embedding store vec0 write path", () => {
     store.upsert("post", "a", new Float32Array([1, 0, 0, 0]), "m2")
     // table now declares float[4]; only the dim-4 row is present
     expect(vecCount(db)).toBe(1)
-    const ddl = (db.query("SELECT sql FROM sqlite_master WHERE name = 'content_embeddings_vec'").get() as any).sql
+    const ddl = (
+      db.query("SELECT sql FROM sqlite_master WHERE name = 'content_embeddings_vec'").get() as any
+    ).sql
     expect(ddl).toContain("float[4]")
   })
 
@@ -108,8 +110,22 @@ describe("embedding store vec0 write path", () => {
       vector BLOB NOT NULL, model TEXT NOT NULL, updated_at TEXT NOT NULL,
       PRIMARY KEY(collection, document_id))`)
     const blob = (v: number[]) => new Uint8Array(new Float32Array(v).buffer)
-    db.run("INSERT INTO content_embeddings VALUES (?,?,?,?,?,?)", ["post", "a", 3, blob([1, 0, 0]), "m", "2026-01-01"])
-    db.run("INSERT INTO content_embeddings VALUES (?,?,?,?,?,?)", ["post", "b", 3, blob([0, 1, 0]), "m", "2026-01-01"])
+    db.run("INSERT INTO content_embeddings VALUES (?,?,?,?,?,?)", [
+      "post",
+      "a",
+      3,
+      blob([1, 0, 0]),
+      "m",
+      "2026-01-01",
+    ])
+    db.run("INSERT INTO content_embeddings VALUES (?,?,?,?,?,?)", [
+      "post",
+      "b",
+      3,
+      blob([0, 1, 0]),
+      "m",
+      "2026-01-01",
+    ])
 
     const store = createEmbeddingStore(db as any, { vectorSearch: true })
     // before rebuild there is no vec0 table; search falls back to JS (still correct)
@@ -124,7 +140,9 @@ describe("embedding store vec0 write path", () => {
     const { store, db } = makeStore()
     store.rebuild()
     // no rows -> no vec0 table created
-    const exists = db.query("SELECT name FROM sqlite_master WHERE name = 'content_embeddings_vec'").get()
+    const exists = db
+      .query("SELECT name FROM sqlite_master WHERE name = 'content_embeddings_vec'")
+      .get()
     expect(exists).toBeNull()
   })
 })

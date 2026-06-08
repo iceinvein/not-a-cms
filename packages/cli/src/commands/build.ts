@@ -1,5 +1,5 @@
-import { registerCommand } from "../router"
 import { loadConfig, resolveConfigPath } from "@not-a-cms/core"
+import { registerCommand } from "../router"
 
 registerCommand({
   name: "build",

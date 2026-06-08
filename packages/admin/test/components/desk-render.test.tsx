@@ -1,5 +1,5 @@
-import React from "react"
 import { describe, expect, test } from "bun:test"
+import React from "react"
 import { renderToString } from "react-dom/server"
 import { Desk } from "../../src/components/desk/Desk"
 
@@ -10,12 +10,28 @@ describe("Desk", () => {
         apiBase=""
         userName="Dik"
         initialHorizon={{
-          now: [{ collection: "post", documentId: "1", title: "Launch", publishedAt: "x", status: "scheduled" }],
+          now: [
+            {
+              collection: "post",
+              documentId: "1",
+              title: "Launch",
+              publishedAt: "x",
+              status: "scheduled",
+            },
+          ],
           today: [],
           week: [],
           later: [],
         }}
-        initialNeedsYou={[{ kind: "review", title: "Review 2 Posts", href: "/x", action: "review", severity: "info" }]}
+        initialNeedsYou={[
+          {
+            kind: "review",
+            title: "Review 2 Posts",
+            href: "/x",
+            action: "review",
+            severity: "info",
+          },
+        ]}
       />,
     )
     expect(html).toContain("Launch")

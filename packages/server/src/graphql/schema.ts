@@ -1,7 +1,6 @@
-import SchemaBuilder from "@pothos/core"
+import type { CollectionDef, createContentService, FieldDef } from "@not-a-cms/core"
 import { canAccessCollection, canReadField, projectDocumentFields } from "@not-a-cms/core"
-import type { CollectionDef, FieldDef } from "@not-a-cms/core"
-import type { createContentService } from "@not-a-cms/core"
+import SchemaBuilder from "@pothos/core"
 import { GraphQLError, GraphQLScalarType, Kind, type ValueNode } from "graphql"
 
 type CollectionEntry = {
@@ -26,7 +25,10 @@ function snakeToCamel(str: string): string {
 }
 
 function collectionToTypeName(name: string): string {
-  return name.split("_").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join("")
+  return name
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join("")
 }
 
 export function buildGraphQLSchema(collections: Map<string, CollectionEntry>) {
@@ -59,8 +61,14 @@ export function buildGraphQLSchema(collections: Map<string, CollectionEntry>) {
       fields: (t) => {
         const gqlFields: Record<string, any> = {
           id: t.string({ resolve: (obj) => String(obj.id ?? "") }),
-          createdAt: t.string({ nullable: true, resolve: (obj) => obj.created_at as string | null }),
-          updatedAt: t.string({ nullable: true, resolve: (obj) => obj.updated_at as string | null }),
+          createdAt: t.string({
+            nullable: true,
+            resolve: (obj) => obj.created_at as string | null,
+          }),
+          updatedAt: t.string({
+            nullable: true,
+            resolve: (obj) => obj.updated_at as string | null,
+          }),
         }
 
         for (const [fieldName, fieldDef] of Object.entries(def.fields)) {
@@ -70,12 +78,16 @@ export function buildGraphQLSchema(collections: Map<string, CollectionEntry>) {
           if (fieldDef.type === "number") {
             gqlFields[camelName] = t.int({
               nullable,
-              resolve: (obj, _args, ctx) => canReadField(fieldDef, ctx.role) ? obj[fieldName] as number | null : null,
+              resolve: (obj, _args, ctx) =>
+                canReadField(fieldDef, ctx.role) ? (obj[fieldName] as number | null) : null,
             })
           } else if (fieldDef.type === "boolean") {
             gqlFields[camelName] = t.boolean({
               nullable,
-              resolve: (obj, _args, ctx) => canReadField(fieldDef, ctx.role) && obj[fieldName] != null ? Boolean(obj[fieldName]) : null,
+              resolve: (obj, _args, ctx) =>
+                canReadField(fieldDef, ctx.role) && obj[fieldName] != null
+                  ? Boolean(obj[fieldName])
+                  : null,
             })
           } else if (isJsonField(fieldDef)) {
             gqlFields[camelName] = t.field({
@@ -111,7 +123,9 @@ export function buildGraphQLSchema(collections: Map<string, CollectionEntry>) {
                   const id = idFromValue(obj[fieldName])
                   if (!id) return null
                   const related = await targetEntry.service.findById(id)
-                  return related ? projectDocumentFields(related, targetEntry.def.fields, ctx.role) : null
+                  return related
+                    ? projectDocumentFields(related, targetEntry.def.fields, ctx.role)
+                    : null
                 },
               })
             }
@@ -222,7 +236,11 @@ export function buildGraphQLSchema(collections: Map<string, CollectionEntry>) {
 
 function idFromValue(value: unknown): string | null {
   if (!value) return null
-  if (typeof value === "object" && "id" in value && typeof (value as { id?: unknown }).id === "string") {
+  if (
+    typeof value === "object" &&
+    "id" in value &&
+    typeof (value as { id?: unknown }).id === "string"
+  ) {
     return (value as { id: string }).id
   }
   return String(value)
@@ -275,7 +293,12 @@ function parseWhereArgument(where: string | null | undefined): Record<string, un
 }
 
 function isJsonField(fieldDef: FieldDef): boolean {
-  return fieldDef.type === "richText" || fieldDef.type === "array" || fieldDef.type === "group" || fieldDef.type === "pageLayout"
+  return (
+    fieldDef.type === "richText" ||
+    fieldDef.type === "array" ||
+    fieldDef.type === "group" ||
+    fieldDef.type === "pageLayout"
+  )
 }
 
 function projectStructuredValue(value: unknown, fieldDef: FieldDef, role: string): unknown {

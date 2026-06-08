@@ -1,6 +1,6 @@
-import { drizzle } from "drizzle-orm/bun-sqlite"
 import { Database } from "bun:sqlite"
 import { existsSync } from "node:fs"
+import { drizzle } from "drizzle-orm/bun-sqlite"
 import * as sqliteVec from "sqlite-vec"
 
 export type DatabaseConfig = {
@@ -57,7 +57,7 @@ export function createDatabase(config: DatabaseConfig) {
   // drizzle's get() uses stmt.values() which returns arrays; override to return objects
   const originalAll = db.all.bind(db)
   type GetQuery = Parameters<typeof db.get>[0]
-  ;(db as any).get = function <T>(query: GetQuery): T | undefined {
+  ;(db as any).get = <T>(query: GetQuery): T | undefined => {
     const results = originalAll(query) as T[]
     return results[0]
   }

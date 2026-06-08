@@ -1,8 +1,8 @@
-import { test, expect, describe, beforeAll, afterAll } from "bun:test"
-import { createServer } from "../../src/index"
-import { defineCollection, field } from "@not-a-cms/core"
+import { afterAll, beforeAll, describe, expect, test } from "bun:test"
 import { unlinkSync } from "node:fs"
+import { defineCollection, field } from "@not-a-cms/core"
 import * as Y from "yjs"
+import { createServer } from "../../src/index"
 
 const testDbPath = "test-collab.db"
 const page = defineCollection({ name: "page", fields: { title: field.text() } })
@@ -15,7 +15,11 @@ describe("collab WebSocket", () => {
     server = createServer({
       port: 0,
       database: { url: testDbPath },
-      auth: { secret: "a".repeat(32), baseURL: "http://localhost", magicLink: { sendMagicLink: async () => {} } },
+      auth: {
+        secret: "a".repeat(32),
+        baseURL: "http://localhost",
+        magicLink: { sendMagicLink: async () => {} },
+      },
       collections: [page],
       collaboration: { requireAuth: false },
     })
@@ -24,9 +28,15 @@ describe("collab WebSocket", () => {
 
   afterAll(() => {
     server.server.stop()
-    try { unlinkSync(testDbPath) } catch {}
-    try { unlinkSync(testDbPath + "-wal") } catch {}
-    try { unlinkSync(testDbPath + "-shm") } catch {}
+    try {
+      unlinkSync(testDbPath)
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-wal")
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-shm")
+    } catch {}
   })
 
   test("WebSocket connects to /collab", async () => {
@@ -42,7 +52,9 @@ describe("collab WebSocket", () => {
 
   test("WebSocket stays open after sending data", async () => {
     const ws = new WebSocket(`${wsUrl}/collab?doc=test-doc-2`)
-    await new Promise<void>((resolve) => { ws.onopen = () => resolve() })
+    await new Promise<void>((resolve) => {
+      ws.onopen = () => resolve()
+    })
     ws.send(new Uint8Array([1, 2, 3, 4]))
     await Bun.sleep(100)
     expect(ws.readyState).toBe(WebSocket.OPEN)
@@ -57,8 +69,12 @@ describe("collab WebSocket", () => {
     wsB.binaryType = "arraybuffer"
 
     await Promise.all([
-      new Promise<void>((resolve) => { wsA.onopen = () => resolve() }),
-      new Promise<void>((resolve) => { wsB.onopen = () => resolve() }),
+      new Promise<void>((resolve) => {
+        wsA.onopen = () => resolve()
+      }),
+      new Promise<void>((resolve) => {
+        wsB.onopen = () => resolve()
+      }),
     ])
 
     const target = new Y.Doc()
@@ -88,8 +104,12 @@ describe("collab WebSocket", () => {
     const wsB = new WebSocket(`${wsUrl}/collab?doc=${encodeURIComponent(docName)}`)
 
     await Promise.all([
-      new Promise<void>((resolve) => { wsA.onopen = () => resolve() }),
-      new Promise<void>((resolve) => { wsB.onopen = () => resolve() }),
+      new Promise<void>((resolve) => {
+        wsA.onopen = () => resolve()
+      }),
+      new Promise<void>((resolve) => {
+        wsB.onopen = () => resolve()
+      }),
     ])
 
     const received = new Promise<string>((resolve) => {
@@ -98,12 +118,14 @@ describe("collab WebSocket", () => {
       }
     })
 
-    wsA.send(JSON.stringify({
-      type: "presence",
-      clientId: "client-a",
-      user: { name: "Editor A", color: "#c9956b" },
-      status: "online",
-    }))
+    wsA.send(
+      JSON.stringify({
+        type: "presence",
+        clientId: "client-a",
+        user: { name: "Editor A", color: "#c9956b" },
+        status: "online",
+      }),
+    )
 
     expect(JSON.parse(await received)).toEqual({
       type: "presence",
@@ -125,7 +147,11 @@ describe("collab WebSocket auth", () => {
     server = createServer({
       port: 0,
       database: { url: authDbPath },
-      auth: { secret: "a".repeat(32), baseURL: "http://localhost", magicLink: { sendMagicLink: async () => {} } },
+      auth: {
+        secret: "a".repeat(32),
+        baseURL: "http://localhost",
+        magicLink: { sendMagicLink: async () => {} },
+      },
       collections: [page],
     })
     wsUrl = `ws://localhost:${server.server.port}`
@@ -133,9 +159,15 @@ describe("collab WebSocket auth", () => {
 
   afterAll(() => {
     server.server.stop()
-    try { unlinkSync(authDbPath) } catch {}
-    try { unlinkSync(authDbPath + "-wal") } catch {}
-    try { unlinkSync(authDbPath + "-shm") } catch {}
+    try {
+      unlinkSync(authDbPath)
+    } catch {}
+    try {
+      unlinkSync(authDbPath + "-wal")
+    } catch {}
+    try {
+      unlinkSync(authDbPath + "-shm")
+    } catch {}
   })
 
   test("rejects anonymous websocket upgrades by default", async () => {

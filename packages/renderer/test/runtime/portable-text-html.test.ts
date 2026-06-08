@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
-import { renderPortableText } from "../../src/runtime/portable-text-html"
 import { portableTextToHtml } from "../../src/runtime/channel"
 import type { RouteConfig } from "../../src/runtime/content-fetcher"
+import { renderPortableText } from "../../src/runtime/portable-text-html"
 
 const blocks = [
   { type: "heading", level: 2, children: [{ type: "text", value: "Hi" }] },
@@ -35,7 +35,10 @@ describe("renderPortableText", () => {
   })
 
   test("gallery renders images and carries data-media-id when present", () => {
-    const html = renderPortableText([{ type: "gallery", images: [{ id: "m1", url: "/api/media/m1/file" }] }], "web")
+    const html = renderPortableText(
+      [{ type: "gallery", images: [{ id: "m1", url: "/api/media/m1/file" }] }],
+      "web",
+    )
     expect(html).toContain("/api/media/m1/file")
     expect(html).toContain('data-media-id="m1"')
   })
@@ -46,7 +49,12 @@ describe("renderPortableText", () => {
 })
 
 describe("collectionList route resolution", () => {
-  const projectEntry = { id: "p1", title: "Branding Work", slug: "branding-work", status: "published" }
+  const projectEntry = {
+    id: "p1",
+    title: "Branding Work",
+    slug: "branding-work",
+    status: "published",
+  }
 
   test("links to # when no route is configured for the collection", () => {
     const block = { type: "collectionList", collection: "project", layout: "grid" }
@@ -62,7 +70,10 @@ describe("collectionList route resolution", () => {
       { collection: "page", path: "/:slug" },
     ]
     const block = { type: "collectionList", collection: "project", layout: "grid" }
-    const html = renderPortableText([block], "web", { collectionData: { 0: [projectEntry] }, routes })
+    const html = renderPortableText([block], "web", {
+      collectionData: { 0: [projectEntry] },
+      routes,
+    })
     expect(html).toContain('href="/work/branding-work"')
     expect(html).not.toContain('href="#"')
   })

@@ -35,9 +35,9 @@
   --status-error: #ef4444;
 
   /* type system */
-  --font-ui: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
-  --font-serif: 'Newsreader Variable', 'Newsreader', Georgia, serif;
-  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace;
+  --font-ui: "Inter Variable", "Inter", system-ui, -apple-system, sans-serif;
+  --font-serif: "Newsreader Variable", "Newsreader", Georgia, serif;
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
 
   /* motion */
   --motion-fast: 120ms;
@@ -58,17 +58,29 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.001ms !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
 }
 
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
 
 *:focus-visible {
   outline: 1px solid var(--accent);
@@ -105,7 +117,8 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: border-color var(--motion-fast) var(--motion-ease),
+  transition:
+    border-color var(--motion-fast) var(--motion-ease),
     background-color var(--motion-fast) var(--motion-ease);
 }
 .cmd-trigger:hover {
@@ -558,7 +571,8 @@ a.crumb:hover {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.03),
     0 12px 30px -24px rgba(0, 0, 0, 0.95);
-  transition: border-color var(--motion-fast) var(--motion-ease),
+  transition:
+    border-color var(--motion-fast) var(--motion-ease),
     box-shadow var(--motion-fast) var(--motion-ease);
 }
 
@@ -626,7 +640,8 @@ a.crumb:hover {
   letter-spacing: normal;
   text-transform: none;
   padding: 9px 11px;
-  transition: border-color var(--motion-fast) var(--motion-ease),
+  transition:
+    border-color var(--motion-fast) var(--motion-ease),
     box-shadow var(--motion-fast) var(--motion-ease),
     background-color var(--motion-fast) var(--motion-ease);
 }
@@ -680,7 +695,8 @@ a.crumb:hover {
   font-size: 13px;
   line-height: 1.2;
   padding: 8px 13px;
-  transition: color var(--motion-fast) var(--motion-ease),
+  transition:
+    color var(--motion-fast) var(--motion-ease),
     border-color var(--motion-fast) var(--motion-ease),
     background-color var(--motion-fast) var(--motion-ease);
 }
@@ -765,7 +781,8 @@ a.crumb:hover {
   letter-spacing: normal;
   text-transform: none;
   text-align: left;
-  transition: border-color var(--motion-fast) var(--motion-ease),
+  transition:
+    border-color var(--motion-fast) var(--motion-ease),
     box-shadow var(--motion-fast) var(--motion-ease);
 }
 
@@ -811,7 +828,8 @@ a.crumb:hover {
   box-shadow: 0 20px 60px -18px rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(20px) saturate(1.2);
   outline: none;
-  transition: opacity var(--motion-fast) var(--motion-ease),
+  transition:
+    opacity var(--motion-fast) var(--motion-ease),
     transform var(--motion-fast) var(--motion-ease);
 }
 
@@ -863,7 +881,8 @@ a.crumb:hover {
   background: var(--bg-input);
   color: var(--accent-text);
   cursor: pointer;
-  transition: border-color var(--motion-fast) var(--motion-ease),
+  transition:
+    border-color var(--motion-fast) var(--motion-ease),
     background-color var(--motion-fast) var(--motion-ease);
 }
 
@@ -974,7 +993,8 @@ a.crumb:hover {
   width: 72px;
   height: 56px;
   cursor: pointer;
-  transition: border-color var(--motion-fast) var(--motion-ease),
+  transition:
+    border-color var(--motion-fast) var(--motion-ease),
     transform var(--motion-fast) var(--motion-ease);
 }
 
@@ -1170,8 +1190,8 @@ a.crumb:hover {
   min-height: calc(100vh - 48px);
   margin: -8px -32px -32px;
   padding-bottom: 58px;
-  background: radial-gradient(circle at 25% 0, rgba(201, 149, 107, 0.08), transparent 34%),
-    var(--bg-app);
+  background:
+    radial-gradient(circle at 25% 0, rgba(201, 149, 107, 0.08), transparent 34%), var(--bg-app);
 }
 
 .cn-canvas {
@@ -1320,7 +1340,8 @@ a.crumb:hover {
   background: var(--bg-input);
   border: 1px solid var(--border-default);
   border-radius: 7px;
-  transition: border-color var(--motion-fast) var(--motion-ease),
+  transition:
+    border-color var(--motion-fast) var(--motion-ease),
     box-shadow var(--motion-fast) var(--motion-ease),
     background-color var(--motion-fast) var(--motion-ease);
 }
@@ -1373,7 +1394,8 @@ a.crumb:hover {
   border: 1px solid var(--border-default);
   border-radius: 7px;
   cursor: pointer;
-  transition: color var(--motion-fast) var(--motion-ease),
+  transition:
+    color var(--motion-fast) var(--motion-ease),
     border-color var(--motion-fast) var(--motion-ease),
     background-color var(--motion-fast) var(--motion-ease);
 }
@@ -1393,7 +1415,8 @@ a.crumb:hover {
   border: 1px dashed var(--accent-muted);
   border-radius: 7px;
   cursor: pointer;
-  transition: border-color var(--motion-fast) var(--motion-ease),
+  transition:
+    border-color var(--motion-fast) var(--motion-ease),
     background-color var(--motion-fast) var(--motion-ease);
 }
 
@@ -1459,7 +1482,8 @@ a.crumb:hover {
   border: 1px solid var(--border-hover);
   border-radius: 7px;
   cursor: pointer;
-  transition: color var(--motion-fast) var(--motion-ease),
+  transition:
+    color var(--motion-fast) var(--motion-ease),
     border-color var(--motion-fast) var(--motion-ease),
     background-color var(--motion-fast) var(--motion-ease);
 }
@@ -1749,7 +1773,8 @@ a.crumb:hover {
   gap: 10px;
   min-width: 0;
   text-decoration: none;
-  transition: background-color var(--motion-fast) var(--motion-ease),
+  transition:
+    background-color var(--motion-fast) var(--motion-ease),
     border-color var(--motion-fast) var(--motion-ease);
 }
 
@@ -1771,10 +1796,18 @@ a.crumb:hover {
   width: 8px;
 }
 
-.desk-status-now { background: var(--status-error); }
-.desk-status-today { background: var(--status-warning); }
-.desk-status-week { background: var(--presence-1); }
-.desk-status-later { background: var(--text-subtle); }
+.desk-status-now {
+  background: var(--status-error);
+}
+.desk-status-today {
+  background: var(--status-warning);
+}
+.desk-status-week {
+  background: var(--presence-1);
+}
+.desk-status-later {
+  background: var(--text-subtle);
+}
 
 .desk-card-copy,
 .desk-need-copy {
@@ -2011,7 +2044,8 @@ a.crumb:hover {
   cursor: pointer;
   font-family: var(--font-ui);
   font-size: 13px;
-  transition: background-color var(--motion-fast) var(--motion-ease),
+  transition:
+    background-color var(--motion-fast) var(--motion-ease),
     color var(--motion-fast) var(--motion-ease);
 }
 

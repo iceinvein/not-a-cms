@@ -1,13 +1,16 @@
+import { sql } from "drizzle-orm"
 import type { CollectionDef } from "../types"
 import type { AppDatabase } from "./connection"
-import { sql } from "drizzle-orm"
 
 function camelToSnake(str: string): string {
   return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)
 }
 
 export function generateCreateTableSQL(collection: CollectionDef): string {
-  const columns = getCollectionColumns(collection).map((column) => `${column.name} ${column.sqlType}${column.primaryKey ? " PRIMARY KEY" : ""}${column.required ? " NOT NULL" : ""}`)
+  const columns = getCollectionColumns(collection).map(
+    (column) =>
+      `${column.name} ${column.sqlType}${column.primaryKey ? " PRIMARY KEY" : ""}${column.required ? " NOT NULL" : ""}`,
+  )
 
   return `CREATE TABLE IF NOT EXISTS ${collection.name} (\n  ${columns.join(",\n  ")}\n);`
 }
@@ -25,7 +28,10 @@ type ColumnDef = {
   required?: boolean
 }
 
-export function generateMigrationSQL(collections: CollectionDef[], options: MigrationGenerationOptions = {}): string {
+export function generateMigrationSQL(
+  collections: CollectionDef[],
+  options: MigrationGenerationOptions = {},
+): string {
   const parts: string[] = []
 
   for (const col of collections) {
@@ -43,14 +49,18 @@ export function generateMigrationSQL(collections: CollectionDef[], options: Migr
     const desiredColumns = getCollectionColumns(col)
     for (const column of desiredColumns) {
       if (existingColumns.has(column.name)) continue
-      parts.push(`ALTER TABLE ${col.name} ADD COLUMN ${column.name} ${column.sqlType}${column.required ? " NOT NULL" : ""};`)
+      parts.push(
+        `ALTER TABLE ${col.name} ADD COLUMN ${column.name} ${column.sqlType}${column.required ? " NOT NULL" : ""};`,
+      )
     }
 
     for (const existingColumn of existingColumns) {
       if (desiredColumns.some((column) => column.name === existingColumn)) continue
       const message = `Destructive change detected for ${col.name}.${existingColumn}: column exists in database but not in collection schema`
       if (!options.allowDestructive) {
-        throw new Error(`${message}. Re-run with --allow-destructive to acknowledge and write a manual migration.`)
+        throw new Error(
+          `${message}. Re-run with --allow-destructive to acknowledge and write a manual migration.`,
+        )
       }
       parts.push(`-- ${message}. SQLite destructive migrations must be written manually.`)
     }
@@ -109,7 +119,9 @@ function appendSystemMigrationSQL(parts: string[], db?: AppDatabase) {
   }
 
   if (!db || !indexExists(db, "idx_versions_lookup")) {
-    parts.push(`CREATE INDEX IF NOT EXISTS idx_versions_lookup ON _versions(collection, document_id, version_number DESC);`)
+    parts.push(
+      `CREATE INDEX IF NOT EXISTS idx_versions_lookup ON _versions(collection, document_id, version_number DESC);`,
+    )
   }
 
   if (!db || !tableExists(db, "content_fts")) {
@@ -148,17 +160,23 @@ function appendSystemMigrationSQL(parts: string[], db?: AppDatabase) {
     parts.push(`CREATE INDEX IF NOT EXISTS media_references_asset ON media_references (asset_id);`)
   }
   if (!db || !indexExists(db, "media_references_doc")) {
-    parts.push(`CREATE INDEX IF NOT EXISTS media_references_doc ON media_references (collection, document_id);`)
+    parts.push(
+      `CREATE INDEX IF NOT EXISTS media_references_doc ON media_references (collection, document_id);`,
+    )
   }
   if (!db || !indexExists(db, "media_references_unique")) {
-    parts.push(`CREATE UNIQUE INDEX IF NOT EXISTS media_references_unique ON media_references (collection, document_id, field, asset_id);`)
+    parts.push(
+      `CREATE UNIQUE INDEX IF NOT EXISTS media_references_unique ON media_references (collection, document_id, field, asset_id);`,
+    )
   }
 }
 
 function getExistingTableColumns(db: AppDatabase, tableName: string): Set<string> | null {
   if (!tableExists(db, tableName)) return null
 
-  const rows = db.all<{ name: string }>(sql`${sql.raw(`PRAGMA table_info(${quoteIdentifier(tableName)})`)}`) as Array<{ name: string }>
+  const rows = db.all<{ name: string }>(
+    sql`${sql.raw(`PRAGMA table_info(${quoteIdentifier(tableName)})`)}`,
+  ) as Array<{ name: string }>
   return new Set(rows.map((row) => row.name))
 }
 

@@ -31,7 +31,10 @@ export function createSearchService(db: AppDatabase) {
     const trimmed = searchTerm.trim()
     if (!trimmed) return []
 
-    const ftsQuery = trimmed.split(/\s+/).map(t => `"${t.replace(/"/g, '""')}"*`).join(" ")
+    const ftsQuery = trimmed
+      .split(/\s+/)
+      .map((t) => `"${t.replace(/"/g, '""')}"*`)
+      .join(" ")
 
     let sqlQuery
     if (collection) {
@@ -65,14 +68,18 @@ export function extractTextFromPortableText(blocks: unknown): string {
   const parts: string[] = []
   function walk(node: any) {
     if (!node) return
-    if (typeof node === "string") { parts.push(node); return }
+    if (typeof node === "string") {
+      parts.push(node)
+      return
+    }
     if (node.value && typeof node.value === "string") parts.push(node.value)
     if (node.text && typeof node.text === "string") parts.push(node.text)
     if (Array.isArray(node.children)) node.children.forEach(walk)
-    if (Array.isArray(node.items)) node.items.forEach((item: any) => {
-      if (Array.isArray(item)) item.forEach(walk)
-      else walk(item)
-    })
+    if (Array.isArray(node.items))
+      node.items.forEach((item: any) => {
+        if (Array.isArray(item)) item.forEach(walk)
+        else walk(item)
+      })
   }
   for (const block of blocks as any[]) walk(block)
   return parts.join(" ")

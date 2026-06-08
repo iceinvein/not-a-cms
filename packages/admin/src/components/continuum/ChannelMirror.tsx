@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react"
-import { renderPortableText } from "@not-a-cms/renderer/web"
 import { brandCss, resolveActiveThemeCss } from "@not-a-cms/renderer/theme"
+import { renderPortableText } from "@not-a-cms/renderer/web"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { adminApiFetch } from "../../lib/api"
 
 type Channel = "web" | "email" | "rss"
@@ -96,7 +96,10 @@ export function ChannelMirror({
     }
   }, [apiBase])
 
-  const rssHtml = useMemo(() => (channel === "rss" ? renderPortableText(blocks, "rss") : ""), [blocks, channel])
+  const rssHtml = useMemo(
+    () => (channel === "rss" ? renderPortableText(blocks, "rss") : ""),
+    [blocks, channel],
+  )
   const webDoc = useMemo(() => {
     if (channel !== "web") return ""
     return buildWebPreviewDoc({
@@ -132,7 +135,7 @@ export function ChannelMirror({
           setEmailError(true)
           return
         }
-        const body = await res.json() as { html?: string }
+        const body = (await res.json()) as { html?: string }
         if (typeof body.html === "string") setEmailHtml(body.html)
       } catch (err) {
         if (!(err instanceof DOMException && err.name === "AbortError")) setEmailError(true)
@@ -173,7 +176,9 @@ export function ChannelMirror({
           emailHtml ? (
             <iframe className="cn-mirror-email-frame" title="Email preview" srcDoc={emailHtml} />
           ) : (
-            <div className="cn-mirror-loading">{emailLoading && !emailError ? "Rendering..." : "Email preview unavailable"}</div>
+            <div className="cn-mirror-loading">
+              {emailLoading && !emailError ? "Rendering..." : "Email preview unavailable"}
+            </div>
           )
         ) : (
           <article className="cn-render" data-channel="rss">

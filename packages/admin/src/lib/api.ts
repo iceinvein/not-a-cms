@@ -23,11 +23,18 @@ export function adminTrpcUrl(apiBase = getAdminApiBase()): string {
   return normalizedBase.endsWith("/trpc") ? normalizedBase : `${normalizedBase}/trpc`
 }
 
-export function adminApiFetch(apiBase: string, path: string, init: RequestInit = {}): Promise<Response> {
+export function adminApiFetch(
+  apiBase: string,
+  path: string,
+  init: RequestInit = {},
+): Promise<Response> {
   return fetch(joinAdminApiUrl(apiBase, path), { ...init, credentials: "include" })
 }
 
-export function messageForAdminResponse(response: Response, fallback = "The server returned an error."): string {
+export function messageForAdminResponse(
+  response: Response,
+  fallback = "The server returned an error.",
+): string {
   if (response.status === 401) return "Sign in to continue."
   if (response.status === 403) return "You do not have permission to perform this action."
   return fallback

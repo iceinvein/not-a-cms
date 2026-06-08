@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core"
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 import type { CollectionDef, FieldDef } from "../types"
 
 function camelToSnake(str: string): string {
@@ -7,7 +7,9 @@ function camelToSnake(str: string): string {
 
 export function generateTable(collection: CollectionDef) {
   const columns: Record<string, ReturnType<typeof text> | ReturnType<typeof integer>> = {
-    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
     created_at: text("created_at"),
     updated_at: text("updated_at"),
   }

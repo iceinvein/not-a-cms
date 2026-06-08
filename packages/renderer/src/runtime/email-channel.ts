@@ -1,6 +1,6 @@
+import type { ChannelConfig } from "@not-a-cms/core"
 import mjml2html from "mjml"
 import type { PTBlock, PTTextNode } from "./block-renderer"
-import type { ChannelConfig } from "@not-a-cms/core"
 
 type EmailOptions = {
   title?: string
@@ -27,9 +27,18 @@ export function resolveEmailOptions(
   return {
     title: settingOrConfig(settings, "channel.email.title", configured.title),
     preheader: settingOrConfig(settings, "channel.email.preheader", configured.preheader),
-    footerText: settingOrConfig(settings, "channel.email.footerText", configured.footerText, DEFAULT_EMAIL.footerText),
+    footerText: settingOrConfig(
+      settings,
+      "channel.email.footerText",
+      configured.footerText,
+      DEFAULT_EMAIL.footerText,
+    ),
     fromName: settingOrConfig(settings, "channel.email.fromName", configured.fromName),
-    subjectPrefix: settingOrConfig(settings, "channel.email.subjectPrefix", configured.subjectPrefix),
+    subjectPrefix: settingOrConfig(
+      settings,
+      "channel.email.subjectPrefix",
+      configured.subjectPrefix,
+    ),
   }
 }
 
@@ -86,7 +95,11 @@ function renderEmailText(children: PTTextNode[]): string {
 }
 
 function escapeHtml(str: string): string {
-  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
 }
 
 export function portableTextToEmail(blocks: PTBlock[], options: EmailOptions = {}): string {

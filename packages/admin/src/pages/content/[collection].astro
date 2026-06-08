@@ -1,16 +1,18 @@
 ---
-import AdminLayout from "../../layouts/AdminLayout.astro"
 import { ContentList } from "../../components/ContentList"
+import AdminLayout from "../../layouts/AdminLayout.astro"
 import { getAdminApiBase } from "../../lib/api"
 import { fetchCollection } from "../../lib/schema"
 
 const { collection } = Astro.params
-const schema = await fetchCollection(collection!, { cookie: Astro.request.headers.get("cookie") || "" })
+const schema = await fetchCollection(collection!, {
+  cookie: Astro.request.headers.get("cookie") || "",
+})
 const apiBase = getAdminApiBase()
 
 // Humanize snake_case/kebab-case fallback: "blog_posts" → "Blog Posts"
 function humanize(str: string): string {
-  return str.replace(/[-_]/g, " ").replace(/\b\w/g, c => c.toUpperCase())
+  return str.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
 }
 const label = schema?.labels.plural || humanize(collection || "Content")
 ---

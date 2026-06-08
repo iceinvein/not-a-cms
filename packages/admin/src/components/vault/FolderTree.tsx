@@ -1,4 +1,3 @@
-import type React from "react"
 import {
   Archive,
   Bookmark,
@@ -13,6 +12,7 @@ import {
   Star,
   Video,
 } from "lucide-react"
+import type React from "react"
 import type { FolderNode } from "../../lib/media/folders"
 
 export type ActiveFolder = string | null | "all"
@@ -70,7 +70,11 @@ export function FolderTree({
   const folderRow = (node: FolderNode, depth: number) => {
     const Glyph = folderGlyph(node.icon)
     return (
-      <div key={node.id} className="group/folder relative flex items-center rounded-md" {...dropProps(node.id)}>
+      <div
+        key={node.id}
+        className="group/folder relative flex items-center rounded-md"
+        {...dropProps(node.id)}
+      >
         <button
           type="button"
           onClick={() => onSelect(node.id)}
@@ -82,14 +86,28 @@ export function FolderTree({
           }`}
         >
           <Glyph className="h-4 w-4 shrink-0" />
-          <span className="truncate" style={{ color: node.color }}>{node.name}</span>
-          {node.roles && node.roles.length > 0 && <Lock className="ml-1 h-3 w-3 shrink-0 text-[#71717a]" aria-label="Restricted" />}
+          <span className="truncate" style={{ color: node.color }}>
+            {node.name}
+          </span>
+          {node.roles && node.roles.length > 0 && (
+            <Lock className="ml-1 h-3 w-3 shrink-0 text-[#71717a]" aria-label="Restricted" />
+          )}
         </button>
         <span className="absolute right-1 hidden gap-0.5 group-hover/folder:flex">
-          <button type="button" aria-label={`Move ${node.name} up`} onClick={() => onReorder(node.id, "up")} className="text-[#71717a] hover:text-[#fafafa]">
+          <button
+            type="button"
+            aria-label={`Move ${node.name} up`}
+            onClick={() => onReorder(node.id, "up")}
+            className="text-[#71717a] hover:text-[#fafafa]"
+          >
             <ChevronUp className="h-3.5 w-3.5" />
           </button>
-          <button type="button" aria-label={`Move ${node.name} down`} onClick={() => onReorder(node.id, "down")} className="text-[#71717a] hover:text-[#fafafa]">
+          <button
+            type="button"
+            aria-label={`Move ${node.name} down`}
+            onClick={() => onReorder(node.id, "down")}
+            className="text-[#71717a] hover:text-[#fafafa]"
+          >
             <ChevronDown className="h-3.5 w-3.5" />
           </button>
         </span>
@@ -97,7 +115,12 @@ export function FolderTree({
     )
   }
 
-  const simpleRow = (label: string, value: ActiveFolder, key: string, drop: string | null | false) => (
+  const simpleRow = (
+    label: string,
+    value: ActiveFolder,
+    key: string,
+    drop: string | null | false,
+  ) => (
     <button
       key={key}
       type="button"
@@ -120,8 +143,15 @@ export function FolderTree({
   return (
     <nav className="space-y-1" aria-label="Folders">
       <div className="flex items-center justify-between px-2 pb-1">
-        <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#71717a]">Folders</span>
-        <button type="button" onClick={() => onCreate(null)} aria-label="New folder" className="text-[#71717a] hover:text-[#fafafa]">
+        <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#71717a]">
+          Folders
+        </span>
+        <button
+          type="button"
+          onClick={() => onCreate(null)}
+          aria-label="New folder"
+          className="text-[#71717a] hover:text-[#fafafa]"
+        >
           <FolderPlus className="h-4 w-4" />
         </button>
       </div>

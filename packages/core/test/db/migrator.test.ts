@@ -1,13 +1,13 @@
-import { test, expect, describe, beforeEach, afterEach } from "bun:test"
-import { unlinkSync, mkdirSync, writeFileSync, rmSync } from "node:fs"
+import { afterEach, beforeEach, describe, expect, test } from "bun:test"
+import { mkdirSync, rmSync, unlinkSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
+import { sql } from "drizzle-orm"
+import { bootstrapTables } from "../../src/db/bootstrap"
 import { createDatabase } from "../../src/db/connection"
 import { createMigrator } from "../../src/db/migrator"
 import { generateMigrationSQL } from "../../src/db/schema-generator"
-import { bootstrapTables } from "../../src/db/bootstrap"
 import { defineCollection } from "../../src/schema/collection"
 import { field } from "../../src/schema/field"
-import { sql } from "drizzle-orm"
 
 const testDbPath = "test-migrator.db"
 const testMigrationsDir = "test-migrations"
@@ -21,16 +21,26 @@ describe("createMigrator", () => {
   })
 
   afterEach(() => {
-    try { unlinkSync(testDbPath) } catch {}
-    try { unlinkSync(testDbPath + "-wal") } catch {}
-    try { unlinkSync(testDbPath + "-shm") } catch {}
-    try { rmSync(testMigrationsDir, { recursive: true }) } catch {}
+    try {
+      unlinkSync(testDbPath)
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-wal")
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-shm")
+    } catch {}
+    try {
+      rmSync(testMigrationsDir, { recursive: true })
+    } catch {}
   })
 
   test("creates _migrations table on init", () => {
     const migrator = createMigrator(db, testMigrationsDir)
     migrator.init()
-    const rows = db.all(sql`SELECT name FROM sqlite_master WHERE type='table' AND name='_migrations'`)
+    const rows = db.all(
+      sql`SELECT name FROM sqlite_master WHERE type='table' AND name='_migrations'`,
+    )
     expect((rows as any[]).length).toBe(1)
   })
 
@@ -52,7 +62,10 @@ describe("createMigrator", () => {
   })
 
   test("run() applies pending migrations", () => {
-    writeFileSync(join(testMigrationsDir, "001_init.sql"), "CREATE TABLE test_table (id TEXT PRIMARY KEY, name TEXT);")
+    writeFileSync(
+      join(testMigrationsDir, "001_init.sql"),
+      "CREATE TABLE test_table (id TEXT PRIMARY KEY, name TEXT);",
+    )
     const migrator = createMigrator(db, testMigrationsDir)
     migrator.init()
 
@@ -60,7 +73,9 @@ describe("createMigrator", () => {
     expect(result.applied).toHaveLength(1)
     expect(result.applied[0]).toBe("001_init.sql")
 
-    const rows = db.all(sql`SELECT name FROM sqlite_master WHERE type='table' AND name='test_table'`)
+    const rows = db.all(
+      sql`SELECT name FROM sqlite_master WHERE type='table' AND name='test_table'`,
+    )
     expect((rows as any[]).length).toBe(1)
   })
 
@@ -86,7 +101,10 @@ describe("createMigrator", () => {
 
   test("status() shows applied and pending correctly", () => {
     writeFileSync(join(testMigrationsDir, "001_init.sql"), "CREATE TABLE t1 (id TEXT);")
-    writeFileSync(join(testMigrationsDir, "002_add_col.sql"), "ALTER TABLE t1 ADD COLUMN name TEXT;")
+    writeFileSync(
+      join(testMigrationsDir, "002_add_col.sql"),
+      "ALTER TABLE t1 ADD COLUMN name TEXT;",
+    )
     const migrator = createMigrator(db, testMigrationsDir)
     migrator.init()
 
@@ -100,7 +118,9 @@ describe("createMigrator", () => {
   })
 
   test("generateMigrationSQL creates tables only for new collections when a DB is provided", () => {
-    db.run(sql`${sql.raw("CREATE TABLE existing (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, title TEXT);")}`)
+    db.run(
+      sql`${sql.raw("CREATE TABLE existing (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, title TEXT);")}`,
+    )
     const existing = defineCollection({
       name: "existing",
       fields: { title: field.text() },
@@ -117,7 +137,9 @@ describe("createMigrator", () => {
   })
 
   test("generateMigrationSQL adds missing columns for existing collections", () => {
-    db.run(sql`${sql.raw("CREATE TABLE post (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, title TEXT);")}`)
+    db.run(
+      sql`${sql.raw("CREATE TABLE post (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, title TEXT);")}`,
+    )
     const post = defineCollection({
       name: "post",
       fields: {
@@ -135,7 +157,9 @@ describe("createMigrator", () => {
   })
 
   test("generateMigrationSQL refuses destructive schema changes by default", () => {
-    db.run(sql`${sql.raw("CREATE TABLE post (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, title TEXT, old_field TEXT);")}`)
+    db.run(
+      sql`${sql.raw("CREATE TABLE post (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, title TEXT, old_field TEXT);")}`,
+    )
     const post = defineCollection({
       name: "post",
       fields: { title: field.text() },
@@ -145,7 +169,9 @@ describe("createMigrator", () => {
   })
 
   test("generateMigrationSQL can acknowledge destructive changes with an explicit flag", () => {
-    db.run(sql`${sql.raw("CREATE TABLE post (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, title TEXT, old_field TEXT);")}`)
+    db.run(
+      sql`${sql.raw("CREATE TABLE post (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, title TEXT, old_field TEXT);")}`,
+    )
     const post = defineCollection({
       name: "post",
       fields: { title: field.text() },

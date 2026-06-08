@@ -3,7 +3,9 @@ import type { AdminMediaItem, MediaFolder } from "../media"
 export type FolderNode = MediaFolder & { children: FolderNode[] }
 
 export function buildFolderTree(folders: MediaFolder[]): FolderNode[] {
-  const nodes = new Map<string, FolderNode>(folders.map((folder) => [folder.id, { ...folder, children: [] }]))
+  const nodes = new Map<string, FolderNode>(
+    folders.map((folder) => [folder.id, { ...folder, children: [] }]),
+  )
   const roots: FolderNode[] = []
 
   for (const node of nodes.values()) {
@@ -37,7 +39,10 @@ export function folderPath(folders: MediaFolder[], id: string): MediaFolder[] {
   return path
 }
 
-export function filterByFolder(items: AdminMediaItem[], folderId: string | null | "all"): AdminMediaItem[] {
+export function filterByFolder(
+  items: AdminMediaItem[],
+  folderId: string | null | "all",
+): AdminMediaItem[] {
   if (folderId === "all") return items
   if (folderId === null) return items.filter((item) => !item.folderId)
   return items.filter((item) => item.folderId === folderId)

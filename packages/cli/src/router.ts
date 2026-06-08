@@ -47,4 +47,4 @@ function printHelp() {
   `)
 }
 
-export { commands, type Command }
+export { type Command, commands }

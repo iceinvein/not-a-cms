@@ -24,9 +24,15 @@ function setupDb() {
 
 describe("createInviteStore", () => {
   afterEach(() => {
-    try { unlinkSync(testDbPath) } catch {}
-    try { unlinkSync(testDbPath + "-wal") } catch {}
-    try { unlinkSync(testDbPath + "-shm") } catch {}
+    try {
+      unlinkSync(testDbPath)
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-wal")
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-shm")
+    } catch {}
   })
 
   test("create() stores a token hash and returns the raw token once", () => {
@@ -34,7 +40,9 @@ describe("createInviteStore", () => {
     const store = createInviteStore(db)
 
     const created = store.create({ email: "Editor@Example.test", role: "editor" })
-    const rows = db.all(sql`SELECT token_hash FROM _invites WHERE id = ${created.invite.id}`) as Array<{ token_hash: string }>
+    const rows = db.all(
+      sql`SELECT token_hash FROM _invites WHERE id = ${created.invite.id}`,
+    ) as Array<{ token_hash: string }>
 
     expect(created.token).toBeTruthy()
     expect(created.invite.email).toBe("editor@example.test")

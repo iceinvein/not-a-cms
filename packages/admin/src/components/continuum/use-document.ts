@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { adminApiFetch } from "../../lib/api"
-import { buildPayload } from "../../lib/content-payload"
 import type { AdminFieldDef } from "../../lib/content-fields"
+import { buildPayload } from "../../lib/content-payload"
 
 export type WorkflowAction = "save_draft" | "submit_review" | "publish" | "archive"
 
@@ -62,49 +62,56 @@ export function useDocument(opts: {
     setData((prev) => ({ ...prev, [name]: value }))
   }, [])
 
-  const save = useCallback(async (action: WorkflowAction = "save_draft") => {
-    setSaving(true)
-    setError(null)
-    try {
-      const url = documentId ? `/api/${collection}/${documentId}` : `/api/${collection}`
-      const res = await adminApiFetch(apiBase, url, {
-        method: documentId ? "PATCH" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildPayload(data, fields)),
-      })
-
-      if (!res.ok) throw new Error("Failed to save")
-
-      let result = await res.json()
-      const savedId = String(result.id ?? documentId ?? "")
-
-      if (savedId && shouldRunWorkflowTransition(action)) {
-        const workflowRes = await adminApiFetch(apiBase, `/api/${collection}/${savedId}/workflow`, {
-          method: "POST",
+  const save = useCallback(
+    async (action: WorkflowAction = "save_draft") => {
+      setSaving(true)
+      setError(null)
+      try {
+        const url = documentId ? `/api/${collection}/${documentId}` : `/api/${collection}`
+        const res = await adminApiFetch(apiBase, url, {
+          method: documentId ? "PATCH" : "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action }),
+          body: JSON.stringify(buildPayload(data, fields)),
         })
-        if (!workflowRes.ok) {
-          const body = await workflowRes.json().catch(() => null)
-          throw new Error(body?.error ?? "Failed to update workflow")
+
+        if (!res.ok) throw new Error("Failed to save")
+
+        let result = await res.json()
+        const savedId = String(result.id ?? documentId ?? "")
+
+        if (savedId && shouldRunWorkflowTransition(action)) {
+          const workflowRes = await adminApiFetch(
+            apiBase,
+            `/api/${collection}/${savedId}/workflow`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action }),
+            },
+          )
+          if (!workflowRes.ok) {
+            const body = await workflowRes.json().catch(() => null)
+            throw new Error(body?.error ?? "Failed to update workflow")
+          }
+          result = await workflowRes.json()
         }
-        result = await workflowRes.json()
-      }
 
-      if (!documentId && result.id) {
-        window.location.href = `/content/${collection}/${result.id}`
+        if (!documentId && result.id) {
+          window.location.href = `/content/${collection}/${result.id}`
+          return result
+        }
+
+        setData(result)
         return result
+      } catch (err: any) {
+        setError(err.message)
+        throw err
+      } finally {
+        setSaving(false)
       }
-
-      setData(result)
-      return result
-    } catch (err: any) {
-      setError(err.message)
-      throw err
-    } finally {
-      setSaving(false)
-    }
-  }, [apiBase, collection, documentId, data, fields])
+    },
+    [apiBase, collection, documentId, data, fields],
+  )
 
   return { data, setData, updateField, save, saving, loading, error }
 }

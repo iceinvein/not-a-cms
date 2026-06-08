@@ -1,14 +1,14 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import {
-  listAuditEvents,
-  listTeamMembers,
-  listRoles,
-  saveRoles,
   createInvite,
+  listAuditEvents,
   listInvites,
-  revokeInvite,
-  updateTeamMemberRole,
+  listRoles,
+  listTeamMembers,
   type RoleDefinition,
+  revokeInvite,
+  saveRoles,
+  updateTeamMemberRole,
 } from "../../src/lib/access"
 
 const originalFetch = globalThis.fetch
@@ -66,7 +66,9 @@ describe("admin access API client", () => {
     const calls: Array<{ url: string; init?: RequestInit }> = []
     globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
       calls.push({ url: String(url), init })
-      return Response.json({ data: [{ userId: "user-1", email: "editor@example.test", role: "editor" }] })
+      return Response.json({
+        data: [{ userId: "user-1", email: "editor@example.test", role: "editor" }],
+      })
     }) as typeof fetch
 
     const members = await listTeamMembers("https://cms.example.test")
@@ -83,7 +85,10 @@ describe("admin access API client", () => {
       return Response.json({ userId: "user-1", role: "admin", active: true })
     }) as typeof fetch
 
-    await updateTeamMemberRole("https://cms.example.test", "user-1", { role: "admin", active: true })
+    await updateTeamMemberRole("https://cms.example.test", "user-1", {
+      role: "admin",
+      active: true,
+    })
 
     expect(calls[0]?.url).toBe("https://cms.example.test/api/_users/user-1")
     expect(calls[0]?.init?.method).toBe("PATCH")
@@ -94,20 +99,32 @@ describe("admin access API client", () => {
     const calls: Array<{ url: string; init?: RequestInit }> = []
     globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
       calls.push({ url: String(url), init })
-      if (init?.method === "POST") return Response.json({ invite: { id: "invite-1", email: "new@example.test", role: "editor" }, token: "raw-token" })
+      if (init?.method === "POST")
+        return Response.json({
+          invite: { id: "invite-1", email: "new@example.test", role: "editor" },
+          token: "raw-token",
+        })
       if (init?.method === "DELETE") return Response.json({ revoked: true })
-      return Response.json({ data: [{ id: "invite-1", email: "new@example.test", role: "editor" }] })
+      return Response.json({
+        data: [{ id: "invite-1", email: "new@example.test", role: "editor" }],
+      })
     }) as typeof fetch
 
     const invites = await listInvites("https://cms.example.test")
-    const created = await createInvite("https://cms.example.test", { email: "new@example.test", role: "editor" })
+    const created = await createInvite("https://cms.example.test", {
+      email: "new@example.test",
+      role: "editor",
+    })
     await revokeInvite("https://cms.example.test", "invite-1")
 
     expect(invites[0]?.id).toBe("invite-1")
     expect(created.token).toBe("raw-token")
     expect(calls[0]?.url).toBe("https://cms.example.test/api/_invites")
     expect(calls[1]?.init?.method).toBe("POST")
-    expect(JSON.parse(String(calls[1]?.init?.body))).toEqual({ email: "new@example.test", role: "editor" })
+    expect(JSON.parse(String(calls[1]?.init?.body))).toEqual({
+      email: "new@example.test",
+      role: "editor",
+    })
     expect(calls[2]?.url).toBe("https://cms.example.test/api/_invites/invite-1")
     expect(calls[2]?.init?.method).toBe("DELETE")
   })

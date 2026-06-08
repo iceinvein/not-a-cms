@@ -1,7 +1,7 @@
-import React from "react"
 import { describe, expect, test } from "bun:test"
+import React from "react"
 import { renderToString } from "react-dom/server"
-import { DashboardStats, type DashboardMetrics } from "../../src/components/DashboardStats"
+import { type DashboardMetrics, DashboardStats } from "../../src/components/DashboardStats"
 
 const metrics: DashboardMetrics = {
   collections: [
@@ -39,7 +39,10 @@ const metrics: DashboardMetrics = {
 
 describe("DashboardStats", () => {
   test("renders real metrics, review links, media, and recent audit", () => {
-    const html = renderToString(<DashboardStats initialMetrics={metrics} />).replaceAll("<!-- -->", "")
+    const html = renderToString(<DashboardStats initialMetrics={metrics} />).replaceAll(
+      "<!-- -->",
+      "",
+    )
 
     expect(html).toContain("Content Health")
     expect(html).toContain("Blog Posts")

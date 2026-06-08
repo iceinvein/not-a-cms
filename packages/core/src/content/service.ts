@@ -10,9 +10,9 @@ import {
   serializeFieldValue,
   storageKeyForField,
 } from "./serialization"
-import { applyDefaultsAndValidate } from "./validation"
 import { applyGeneratedSlugs } from "./slug"
-import { WorkflowError, type WorkflowAction, resolveWorkflowTransition } from "./workflow"
+import { applyDefaultsAndValidate } from "./validation"
+import { resolveWorkflowTransition, type WorkflowAction, WorkflowError } from "./workflow"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyTable = any
@@ -40,7 +40,12 @@ type WriteOpts = {
 }
 
 type ContentEmbeddingHooks = {
-  index: (collection: string, docId: string, title: string, bodyText: string) => void | Promise<void>
+  index: (
+    collection: string,
+    docId: string,
+    title: string,
+    bodyText: string,
+  ) => void | Promise<void>
   remove: (collection: string, docId: string) => void | Promise<void>
 }
 
@@ -49,7 +54,11 @@ type ContentEmbeddingHooks = {
 // async adapter would escape that catch — widen to `| Promise<void>` and use
 // Promise.resolve().catch() (like the embedding hooks) before adding one.
 type MediaReferenceHooks = {
-  replaceForDocument: (collection: string, docId: string, refs: { assetId: string; field: string; label: string }[]) => void
+  replaceForDocument: (
+    collection: string,
+    docId: string,
+    refs: { assetId: string; field: string; label: string }[],
+  ) => void
   removeDocument: (collection: string, docId: string) => void
 }
 
@@ -64,9 +73,21 @@ export function createContentService(
   db: AppDatabase,
   collection: CollectionDef,
   table: AnyTable,
-  versioning?: { createVersion: (collection: string, docId: string, data: Record<string, unknown>, action: "save" | "publish") => unknown },
-  search?: { index: (collection: string, docId: string, title: string, bodyText: string) => void; remove: (collection: string, docId: string) => void },
-  automations?: { dispatch: (event: string, collection: string, doc: Record<string, unknown>) => void },
+  versioning?: {
+    createVersion: (
+      collection: string,
+      docId: string,
+      data: Record<string, unknown>,
+      action: "save" | "publish",
+    ) => unknown
+  },
+  search?: {
+    index: (collection: string, docId: string, title: string, bodyText: string) => void
+    remove: (collection: string, docId: string) => void
+  },
+  automations?: {
+    dispatch: (event: string, collection: string, doc: Record<string, unknown>) => void
+  },
   embeddings?: ContentEmbeddingHooks,
   mediaReferences?: MediaReferenceHooks,
 ) {
@@ -80,7 +101,12 @@ export function createContentService(
 
     const id = crypto.randomUUID()
     const now = new Date().toISOString()
-    const row = serializeDocumentForStorage(collection, { ...doc, id, created_at: now, updated_at: now })
+    const row = serializeDocumentForStorage(collection, {
+      ...doc,
+      id,
+      created_at: now,
+      updated_at: now,
+    })
 
     db.insert(table).values(row).run()
 
@@ -158,17 +184,15 @@ export function createContentService(
     const wasPublished = existing.status === "published"
 
     let doc = applyDefaultsAndValidate(collection, { ...existing, ...data })
-    doc = await runHook(
-      "beforeSave",
-      collection.hooks,
-      doc,
-      ctx,
-    )
+    doc = await runHook("beforeSave", collection.hooks, doc, ctx)
     doc = applyGeneratedSlugs(collection, doc)
     doc = applyDefaultsAndValidate(collection, doc)
 
     const updatedAt = new Date().toISOString()
-    db.update(table).set(serializeDocumentForStorage(collection, { ...doc, updated_at: updatedAt })).where(eq(table.id, id)).run()
+    db.update(table)
+      .set(serializeDocumentForStorage(collection, { ...doc, updated_at: updatedAt }))
+      .where(eq(table.id, id))
+      .run()
 
     const rows = db.select().from(table).where(eq(table.id, id)).all()
     let updated = normalizeDocument(rows[0] as Record<string, unknown>)
@@ -233,7 +257,7 @@ export function createContentService(
     const updated: Record<string, unknown>[] = []
     const notFound: string[] = []
     for (const id of uniqueIds(ids)) {
-      if (!await findById(id)) {
+      if (!(await findById(id))) {
         notFound.push(id)
         continue
       }
@@ -246,7 +270,7 @@ export function createContentService(
     const updated: Record<string, unknown>[] = []
     const notFound: string[] = []
     for (const id of uniqueIds(ids)) {
-      if (!await findById(id)) {
+      if (!(await findById(id))) {
         notFound.push(id)
         continue
       }
@@ -265,7 +289,9 @@ export function createContentService(
     }
     removeEmbedding(id)
     if (mediaReferences) {
-      try { mediaReferences.removeDocument(collection.name, id) } catch {}
+      try {
+        mediaReferences.removeDocument(collection.name, id)
+      } catch {}
     }
     db.delete(table).where(eq(table.id, id)).run()
     await runHook("afterDelete", collection.hooks, existing, ctx)
@@ -293,7 +319,8 @@ export function createContentService(
     const richParts: string[] = []
     for (const [name, fieldDef] of Object.entries(collection.fields)) {
       if (fieldDef.type === "text" && doc[name]) textParts.push(String(doc[name]))
-      if (fieldDef.type === "richText" && doc[name]) richParts.push(extractTextFromPortableText(doc[name]))
+      if (fieldDef.type === "richText" && doc[name])
+        richParts.push(extractTextFromPortableText(doc[name]))
     }
     return { title: textParts.join(" "), bodyText: richParts.join(" ") }
   }
@@ -308,7 +335,11 @@ export function createContentService(
   function indexMediaReferences(docId: string, doc: Record<string, unknown>) {
     if (!mediaReferences) return
     try {
-      mediaReferences.replaceForDocument(collection.name, docId, extractMediaReferences(collection, doc))
+      mediaReferences.replaceForDocument(
+        collection.name,
+        docId,
+        extractMediaReferences(collection, doc),
+      )
     } catch {
       // The reference index is derived state; never fail a content write on it.
     }
@@ -352,8 +383,12 @@ export function createContentService(
             case "contains":
               return like(col, `%${String(operand)}%`)
             case "in":
-              if (!Array.isArray(operand)) throw new QueryError(`Operator "in" for field "${fieldName}" expects an array`)
-              return inArray(col, fieldDef ? operand.map((item) => serializeFieldValue(item, fieldDef)) : operand)
+              if (!Array.isArray(operand))
+                throw new QueryError(`Operator "in" for field "${fieldName}" expects an array`)
+              return inArray(
+                col,
+                fieldDef ? operand.map((item) => serializeFieldValue(item, fieldDef)) : operand,
+              )
             case "gt":
               return gt(col, serialized)
             case "lt":
@@ -376,10 +411,12 @@ export function createContentService(
       return { col: table[fieldName], fieldDef: undefined }
     }
     const fieldDef = collection.fields[fieldName]
-    if (!fieldDef) throw new QueryError(`Unknown field "${fieldName}" in collection "${collection.name}"`)
+    if (!fieldDef)
+      throw new QueryError(`Unknown field "${fieldName}" in collection "${collection.name}"`)
     const storageKey = storageKeyForField(fieldName, fieldDef)
     const col = table[storageKey]
-    if (col === undefined) throw new QueryError(`Unknown field "${fieldName}" in collection "${collection.name}"`)
+    if (col === undefined)
+      throw new QueryError(`Unknown field "${fieldName}" in collection "${collection.name}"`)
     return { col, fieldDef }
   }
 
@@ -388,13 +425,33 @@ export function createContentService(
   }
 
   function normalizeStatus(value: unknown): ContentStatus {
-    if (value === "draft" || value === "in_review" || value === "published" || value === "archived" || value === "scheduled") return value
+    if (
+      value === "draft" ||
+      value === "in_review" ||
+      value === "published" ||
+      value === "archived" ||
+      value === "scheduled"
+    )
+      return value
     return "draft"
   }
 
   function uniqueIds(ids: string[]): string[] {
-    return Array.from(new Set(ids.filter((id) => typeof id === "string" && id.trim()).map((id) => id.trim())))
+    return Array.from(
+      new Set(ids.filter((id) => typeof id === "string" && id.trim()).map((id) => id.trim())),
+    )
   }
 
-  return { create, findById, findMany, count, update, bulkUpdate, transitionStatus, bulkTransitionStatus, remove, bulkDelete }
+  return {
+    create,
+    findById,
+    findMany,
+    count,
+    update,
+    bulkUpdate,
+    transitionStatus,
+    bulkTransitionStatus,
+    remove,
+    bulkDelete,
+  }
 }

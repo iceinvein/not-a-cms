@@ -34,7 +34,9 @@ export async function runAutomationLiveStreamSmoke(ctx: E2EContext) {
     throw new Error(`SSE stream returned ${res.status}, expected 200`)
   }
   if (!res.headers.get("Content-Type")?.includes("text/event-stream")) {
-    throw new Error(`SSE stream Content-Type was "${res.headers.get("Content-Type")}", expected text/event-stream`)
+    throw new Error(
+      `SSE stream Content-Type was "${res.headers.get("Content-Type")}", expected text/event-stream`,
+    )
   }
   const reader = res.body!.getReader()
   const decoder = new TextDecoder()

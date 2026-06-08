@@ -1,5 +1,5 @@
-import { mkdirSync, existsSync, unlinkSync, rmSync, readFileSync, writeFileSync } from "node:fs"
 import { createHash, createHmac } from "node:crypto"
+import { existsSync, mkdirSync, readFileSync, rmSync, unlinkSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import type { ImageOptimizer, ImageVariant, VariantFormat } from "./optimizer"
 
@@ -45,9 +45,20 @@ export type MediaRecord = {
   folderId?: string
 }
 
-export type MediaMetadataInput = Pick<MediaRecord, "alt" | "title" | "caption" | "focalX" | "focalY" | "tags">
+export type MediaMetadataInput = Pick<
+  MediaRecord,
+  "alt" | "title" | "caption" | "focalX" | "focalY" | "tags"
+>
 
-export type Folder = { id: string; name: string; parentId: string | null; position: number; color?: string; icon?: string; roles?: string[] }
+export type Folder = {
+  id: string
+  name: string
+  parentId: string | null
+  position: number
+  color?: string
+  icon?: string
+  roles?: string[]
+}
 
 export type StoredMediaFile = {
   body: Blob
@@ -112,9 +123,19 @@ export type S3SignedRequest = {
   headers: Record<string, string>
 }
 
-const IMAGE_MIMES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp", "image/avif", "image/svg+xml"])
+const IMAGE_MIMES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/avif",
+  "image/svg+xml",
+])
 
-export function effectiveFolderRoles(folders: Pick<Folder, "id" | "parentId" | "roles">[], folderId: string | null): string[] | null {
+export function effectiveFolderRoles(
+  folders: Pick<Folder, "id" | "parentId" | "roles">[],
+  folderId: string | null,
+): string[] | null {
   if (folderId === null) return null
   const byId = new Map(folders.map((folder) => [folder.id, folder]))
   let current: string | null = folderId
@@ -129,14 +150,22 @@ export function effectiveFolderRoles(folders: Pick<Folder, "id" | "parentId" | "
   return null
 }
 
-export function canAccessFolder(folders: Pick<Folder, "id" | "parentId" | "roles">[], folderId: string | null, role: string | null): boolean {
+export function canAccessFolder(
+  folders: Pick<Folder, "id" | "parentId" | "roles">[],
+  folderId: string | null,
+  role: string | null,
+): boolean {
   if (role === "admin") return true
   const required = effectiveFolderRoles(folders, folderId)
   if (!required) return true
   return role !== null && required.includes(role)
 }
 
-export function isDescendant(folders: Pick<Folder, "id" | "parentId">[], ancestorId: string, nodeId: string): boolean {
+export function isDescendant(
+  folders: Pick<Folder, "id" | "parentId">[],
+  ancestorId: string,
+  nodeId: string,
+): boolean {
   const byId = new Map(folders.map((folder) => [folder.id, folder]))
   let current: string | null = nodeId
   const seen = new Set<string>()
@@ -148,17 +177,27 @@ export function isDescendant(folders: Pick<Folder, "id" | "parentId">[], ancesto
   return false
 }
 
-export function createLocalStorage(config: LocalStorageConfig, optimizer?: ImageOptimizer): MediaStorage {
+export function createLocalStorage(
+  config: LocalStorageConfig,
+  optimizer?: ImageOptimizer,
+): MediaStorage {
   return createIndexedMediaStorage(config, createLocalObjectProvider(config.path), optimizer)
 }
 
-export function createMediaStorage(config: StorageConfig, optimizer?: ImageOptimizer): MediaStorage {
+export function createMediaStorage(
+  config: StorageConfig,
+  optimizer?: ImageOptimizer,
+): MediaStorage {
   if (config.provider === "local") return createLocalStorage(config, optimizer)
   return createIndexedMediaStorage(config, createS3ObjectProvider(config), optimizer)
 }
 
-function createIndexedMediaStorage(config: StorageConfig, provider: ObjectProvider, optimizer?: ImageOptimizer): MediaStorage {
-  const indexDir = config.provider === "local" ? config.path : config.path ?? "./uploads"
+function createIndexedMediaStorage(
+  config: StorageConfig,
+  provider: ObjectProvider,
+  optimizer?: ImageOptimizer,
+): MediaStorage {
+  const indexDir = config.provider === "local" ? config.path : (config.path ?? "./uploads")
   if (!existsSync(indexDir)) mkdirSync(indexDir, { recursive: true })
 
   const indexPath = join(indexDir, ".media-index.json")
@@ -237,7 +276,9 @@ function createIndexedMediaStorage(config: StorageConfig, provider: ObjectProvid
       const existing = records.get(id)
       if (!existing) return null
       await provider.delete(existing.path)
-      try { rmSync(join(indexDir, id), { recursive: true }) } catch {}
+      try {
+        rmSync(join(indexDir, id), { recursive: true })
+      } catch {}
       const record = await buildRecord(id, file, {
         uploadedAt: new Date().toISOString(),
         ...normalizeMetadata(existing),
@@ -251,7 +292,9 @@ function createIndexedMediaStorage(config: StorageConfig, provider: ObjectProvid
       const record = records.get(id)
       if (!record) return false
       await provider.delete(record.path)
-      try { rmSync(join(indexDir, id), { recursive: true }) } catch {}
+      try {
+        rmSync(join(indexDir, id), { recursive: true })
+      } catch {}
       records.delete(id)
       persistIndex()
       return true
@@ -276,7 +319,10 @@ function createIndexedMediaStorage(config: StorageConfig, provider: ObjectProvid
       if (!key) return
       const existing = tagRegistry[key]
       if (description === null || description.trim() === "") {
-        if (existing) { delete existing.description; persistTagRegistry() }
+        if (existing) {
+          delete existing.description
+          persistTagRegistry()
+        }
         return
       }
       tagRegistry[key] = { ...(existing ?? { color: defaultTagColor(key) }), description }
@@ -288,7 +334,10 @@ function createIndexedMediaStorage(config: StorageConfig, provider: ObjectProvid
       if (!key) return
       const existing = tagRegistry[key]
       if (group === null || group.trim() === "") {
-        if (existing) { delete existing.group; persistTagRegistry() }
+        if (existing) {
+          delete existing.group
+          persistTagRegistry()
+        }
         return
       }
       tagRegistry[key] = { ...(existing ?? { color: defaultTagColor(key) }), group: group.trim() }
@@ -358,7 +407,9 @@ function createIndexedMediaStorage(config: StorageConfig, provider: ObjectProvid
           name,
           count,
           color: tagRegistry[name]?.color ?? defaultTagColor(name),
-          ...(tagRegistry[name]?.description !== undefined && { description: tagRegistry[name]!.description }),
+          ...(tagRegistry[name]?.description !== undefined && {
+            description: tagRegistry[name]!.description,
+          }),
           ...(tagRegistry[name]?.group !== undefined && { group: tagRegistry[name]!.group }),
         }))
         .sort((a, b) => a.name.localeCompare(b.name))
@@ -369,8 +420,12 @@ function createIndexedMediaStorage(config: StorageConfig, provider: ObjectProvid
     },
 
     createFolder(name: string, parentId: string | null): Folder {
-      if (parentId !== null && !folders.some((folder) => folder.id === parentId)) throw new Error("parent not found")
-      const position = folders.filter((folder) => folder.parentId === parentId).reduce((max, folder) => Math.max(max, folder.position), -1) + 1
+      if (parentId !== null && !folders.some((folder) => folder.id === parentId))
+        throw new Error("parent not found")
+      const position =
+        folders
+          .filter((folder) => folder.parentId === parentId)
+          .reduce((max, folder) => Math.max(max, folder.position), -1) + 1
       const folder: Folder = { id: crypto.randomUUID(), name: name.trim(), parentId, position }
       folders.push(folder)
       persistFolders()
@@ -467,7 +522,9 @@ function createIndexedMediaStorage(config: StorageConfig, provider: ObjectProvid
     setFolderRoles(id: string, roles: string[] | null): Folder | null {
       const folder = folders.find((entry) => entry.id === id)
       if (!folder) return null
-      const cleaned = Array.isArray(roles) ? roles.filter((role) => typeof role === "string" && role.length > 0) : []
+      const cleaned = Array.isArray(roles)
+        ? roles.filter((role) => typeof role === "string" && role.length > 0)
+        : []
       if (cleaned.length === 0) delete folder.roles
       else folder.roles = cleaned
       persistFolders()
@@ -475,7 +532,8 @@ function createIndexedMediaStorage(config: StorageConfig, provider: ObjectProvid
     },
 
     moveAssets(ids: string[], folderId: string | null): MediaRecord[] {
-      if (folderId !== null && !folders.some((folder) => folder.id === folderId)) throw new Error("folder not found")
+      if (folderId !== null && !folders.some((folder) => folder.id === folderId))
+        throw new Error("folder not found")
       const updated: MediaRecord[] = []
       for (const id of ids) {
         const record = records.get(id)
@@ -491,7 +549,11 @@ function createIndexedMediaStorage(config: StorageConfig, provider: ObjectProvid
     },
   }
 
-  async function buildRecord(id: string, file: File, base: Pick<MediaRecord, "uploadedAt"> & Partial<MediaMetadataInput>): Promise<MediaRecord> {
+  async function buildRecord(
+    id: string,
+    file: File,
+    base: Pick<MediaRecord, "uploadedAt"> & Partial<MediaMetadataInput>,
+  ): Promise<MediaRecord> {
     const ext = file.name.split(".").pop() || ""
     const storedName = `${id}${ext ? "." + ext : ""}`
     const stored = await provider.put(storedName, file)
@@ -506,7 +568,12 @@ function createIndexedMediaStorage(config: StorageConfig, provider: ObjectProvid
       ...normalizeMetadata(base),
     }
 
-    if (optimizer && stored.localPath && IMAGE_MIMES.has(file.type) && file.type !== "image/svg+xml") {
+    if (
+      optimizer &&
+      stored.localPath &&
+      IMAGE_MIMES.has(file.type) &&
+      file.type !== "image/svg+xml"
+    ) {
       try {
         const result = await optimizer.processImage(stored.localPath, id)
         record.width = result.width
@@ -521,8 +588,14 @@ function createIndexedMediaStorage(config: StorageConfig, provider: ObjectProvid
     return record
   }
 
-  async function getVariant(record: MediaRecord, width: number, format: VariantFormat): Promise<ImageVariant | null> {
-    const existing = record.variants?.find((variant) => variant.width === width && variant.format === format)
+  async function getVariant(
+    record: MediaRecord,
+    width: number,
+    format: VariantFormat,
+  ): Promise<ImageVariant | null> {
+    const existing = record.variants?.find(
+      (variant) => variant.width === width && variant.format === format,
+    )
     if (existing) return existing
     if (!optimizer || config.provider !== "local") return null
     const variant = await optimizer.getOrCreateVariant(record.path, record.id, { width, format })
@@ -550,21 +623,26 @@ function createLocalObjectProvider(baseDir: string): ObjectProvider {
     },
 
     async delete(path: string) {
-      try { unlinkSync(path) } catch {}
+      try {
+        unlinkSync(path)
+      } catch {}
     },
   }
 }
 
 function createS3ObjectProvider(config: S3StorageConfig): ObjectProvider {
   const bucket = config.bucket ?? process.env.S3_BUCKET ?? process.env.AWS_BUCKET_NAME
-  const accessKeyId = config.accessKeyId ?? process.env.S3_ACCESS_KEY_ID ?? process.env.AWS_ACCESS_KEY_ID
-  const secretAccessKey = config.secretAccessKey ?? process.env.S3_SECRET_ACCESS_KEY ?? process.env.AWS_SECRET_ACCESS_KEY
+  const accessKeyId =
+    config.accessKeyId ?? process.env.S3_ACCESS_KEY_ID ?? process.env.AWS_ACCESS_KEY_ID
+  const secretAccessKey =
+    config.secretAccessKey ?? process.env.S3_SECRET_ACCESS_KEY ?? process.env.AWS_SECRET_ACCESS_KEY
   const region = config.region ?? process.env.S3_REGION ?? process.env.AWS_REGION ?? "auto"
   const endpoint = config.endpoint ?? process.env.S3_ENDPOINT ?? defaultS3Endpoint(region)
   const fetcher = config.fetch ?? fetch
 
   if (!bucket) throw new Error("S3 storage requires a bucket")
-  if (!accessKeyId || !secretAccessKey) throw new Error("S3 storage requires access key credentials")
+  if (!accessKeyId || !secretAccessKey)
+    throw new Error("S3 storage requires access key credentials")
 
   return {
     async put(key: string, file: File) {
@@ -584,7 +662,11 @@ function createS3ObjectProvider(config: S3StorageConfig): ObjectProvider {
           "content-type": file.type || "application/octet-stream",
         },
       })
-      const res = await fetcher(signed.url, { method: "PUT", headers: signed.headers, body: buffer })
+      const res = await fetcher(signed.url, {
+        method: "PUT",
+        headers: signed.headers,
+        body: buffer,
+      })
       if (!res.ok) throw new Error(`S3 upload failed with status ${res.status}`)
       return { path: objectKey }
     },
@@ -618,7 +700,8 @@ function createS3ObjectProvider(config: S3StorageConfig): ObjectProvider {
         payloadHash: "UNSIGNED-PAYLOAD",
       })
       const res = await fetcher(signed.url, { method: "DELETE", headers: signed.headers })
-      if (!res.ok && res.status !== 404) throw new Error(`S3 delete failed with status ${res.status}`)
+      if (!res.ok && res.status !== 404)
+        throw new Error(`S3 delete failed with status ${res.status}`)
     },
   }
 }
@@ -654,13 +737,11 @@ export function createS3SignedRequest(input: S3SignedRequestInput): S3SignedRequ
   ].join("\n")
 
   const scope = `${dateStamp}/${input.region}/s3/aws4_request`
-  const stringToSign = [
-    "AWS4-HMAC-SHA256",
-    amzDate,
-    scope,
-    sha256Hex(canonicalRequest),
-  ].join("\n")
-  const signature = hmacHex(signingKey(input.secretAccessKey, dateStamp, input.region), stringToSign)
+  const stringToSign = ["AWS4-HMAC-SHA256", amzDate, scope, sha256Hex(canonicalRequest)].join("\n")
+  const signature = hmacHex(
+    signingKey(input.secretAccessKey, dateStamp, input.region),
+    stringToSign,
+  )
 
   const headers = { ...canonicalHeaderValues }
   delete headers.host
@@ -677,8 +758,10 @@ function normalizeMetadata(input: Partial<MediaMetadataInput>): Partial<MediaMet
     ...(input.alt !== undefined && { alt: String(input.alt) }),
     ...(input.title !== undefined && { title: String(input.title) }),
     ...(input.caption !== undefined && { caption: String(input.caption) }),
-    ...(typeof input.focalX === "number" && Number.isFinite(input.focalX) && { focalX: clamp01(input.focalX) }),
-    ...(typeof input.focalY === "number" && Number.isFinite(input.focalY) && { focalY: clamp01(input.focalY) }),
+    ...(typeof input.focalX === "number" &&
+      Number.isFinite(input.focalX) && { focalX: clamp01(input.focalX) }),
+    ...(typeof input.focalY === "number" &&
+      Number.isFinite(input.focalY) && { focalY: clamp01(input.focalY) }),
     ...(Array.isArray(input.tags) && { tags: normalizeTags(input.tags) }),
   }
 }
@@ -689,7 +772,16 @@ function clamp01(value: number): number {
 
 const MAX_TAG_LENGTH = 25
 const MAX_TAGS = 30
-const TAG_PALETTE = ["#c9956b", "#6b9bc9", "#8bbf7a", "#c97a8b", "#b08bc9", "#c9b06b", "#6bc9b0", "#9b9b6b"]
+const TAG_PALETTE = [
+  "#c9956b",
+  "#6b9bc9",
+  "#8bbf7a",
+  "#c97a8b",
+  "#b08bc9",
+  "#c9b06b",
+  "#6bc9b0",
+  "#9b9b6b",
+]
 const HEX_COLOR = /^#[0-9a-f]{6}$/i
 const FOLDER_ICON_KEY = /^[a-z][a-z0-9-]{0,23}$/
 
@@ -724,7 +816,11 @@ function normalizeTags(input: unknown[]): string[] {
   return out
 }
 
-export function applyTagOps(current: string[], add: string[] = [], remove: string[] = []): string[] {
+export function applyTagOps(
+  current: string[],
+  add: string[] = [],
+  remove: string[] = [],
+): string[] {
   const removeSet = new Set(remove.map(normalizeTag).filter(Boolean))
   return normalizeTags([...current, ...add]).filter((tag) => !removeSet.has(tag))
 }
@@ -746,16 +842,24 @@ function loadFolders(path: string): Folder[] {
     const parsed = JSON.parse(readFileSync(path, "utf8")) as Folder[]
     // Backfill position for legacy folders saved before ordering existed,
     // preserving their on-disk order via the array index.
-    return parsed.map((folder, index) => ({ ...folder, position: typeof folder.position === "number" ? folder.position : index }))
+    return parsed.map((folder, index) => ({
+      ...folder,
+      position: typeof folder.position === "number" ? folder.position : index,
+    }))
   } catch {
     return []
   }
 }
 
-function loadTagRegistry(path: string): Record<string, { color: string; description?: string; group?: string }> {
+function loadTagRegistry(
+  path: string,
+): Record<string, { color: string; description?: string; group?: string }> {
   if (!existsSync(path)) return {}
   try {
-    return JSON.parse(readFileSync(path, "utf8")) as Record<string, { color: string; description?: string; group?: string }>
+    return JSON.parse(readFileSync(path, "utf8")) as Record<
+      string,
+      { color: string; description?: string; group?: string }
+    >
   } catch {
     return {}
   }

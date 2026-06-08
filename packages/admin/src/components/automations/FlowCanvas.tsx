@@ -1,5 +1,5 @@
 import { useState } from "react"
-import type { FlowTrigger, FlowStep, ActionStep, ConditionStep } from "./flow-types"
+import type { ActionStep, ConditionStep, FlowStep, FlowTrigger } from "./flow-types"
 import { StepPicker } from "./StepPicker"
 
 type RunStepStatus = {
@@ -22,28 +22,44 @@ type Props = {
 
 function triggerLabel(trigger: FlowTrigger): string {
   switch (trigger.type) {
-    case "content.created": return `Content Created${trigger.collection ? ` (${trigger.collection})` : ""}`
-    case "content.updated": return `Content Updated${trigger.collection ? ` (${trigger.collection})` : ""}`
-    case "content.published": return `Content Published${trigger.collection ? ` (${trigger.collection})` : ""}`
-    case "content.deleted": return `Content Deleted${trigger.collection ? ` (${trigger.collection})` : ""}`
-    case "webhook.received": return "Webhook Received"
-    case "schedule.cron": return `Cron: ${trigger.cron}`
-    default: return "Trigger"
+    case "content.created":
+      return `Content Created${trigger.collection ? ` (${trigger.collection})` : ""}`
+    case "content.updated":
+      return `Content Updated${trigger.collection ? ` (${trigger.collection})` : ""}`
+    case "content.published":
+      return `Content Published${trigger.collection ? ` (${trigger.collection})` : ""}`
+    case "content.deleted":
+      return `Content Deleted${trigger.collection ? ` (${trigger.collection})` : ""}`
+    case "webhook.received":
+      return "Webhook Received"
+    case "schedule.cron":
+      return `Cron: ${trigger.cron}`
+    default:
+      return "Trigger"
   }
 }
 
 function stepLabel(step: FlowStep): string {
   if (step.label) return step.label
   switch (step.type) {
-    case "condition": return "Condition"
-    case "action.webhook": return "Send Webhook"
-    case "action.email": return "Send Email"
-    case "action.create_content": return "Create Content"
-    case "action.update_content": return "Update Content"
-    case "action.delete_content": return "Delete Content"
-    case "action.log": return "Log"
-    case "action.transform": return "Transform"
-    default: return "Step"
+    case "condition":
+      return "Condition"
+    case "action.webhook":
+      return "Send Webhook"
+    case "action.email":
+      return "Send Email"
+    case "action.create_content":
+      return "Create Content"
+    case "action.update_content":
+      return "Update Content"
+    case "action.delete_content":
+      return "Delete Content"
+    case "action.log":
+      return "Log"
+    case "action.transform":
+      return "Transform"
+    default:
+      return "Step"
   }
 }
 
@@ -68,10 +84,14 @@ function makeStep(type: string): FlowStep {
 
 function runStatusColors(status: string): string {
   switch (status) {
-    case "completed": return "border-[rgba(34,197,94,0.3)] bg-[rgba(34,197,94,0.05)]"
-    case "failed": return "border-[rgba(239,68,68,0.3)] bg-[rgba(239,68,68,0.05)]"
-    case "skipped": return "border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)]"
-    default: return "border-[rgba(255,255,255,0.1)] bg-[#18181b]"
+    case "completed":
+      return "border-[rgba(34,197,94,0.3)] bg-[rgba(34,197,94,0.05)]"
+    case "failed":
+      return "border-[rgba(239,68,68,0.3)] bg-[rgba(239,68,68,0.05)]"
+    case "skipped":
+      return "border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)]"
+    default:
+      return "border-[rgba(255,255,255,0.1)] bg-[#18181b]"
   }
 }
 
@@ -101,7 +121,9 @@ export function FlowCanvas({
       <button
         onClick={onSelectTrigger}
         className={`w-80 px-4 py-3 rounded-xl border-2 bg-[#fafafa] text-[#0a0a0c] text-sm font-medium text-center transition-all ${
-          selectedStepId === null ? "border-[#fafafa] ring-2 ring-[rgba(255,255,255,0.15)]" : "border-[#fafafa] hover:border-[#e4e4e7]"
+          selectedStepId === null
+            ? "border-[#fafafa] ring-2 ring-[rgba(255,255,255,0.15)]"
+            : "border-[#fafafa] hover:border-[#e4e4e7]"
         }`}
       >
         <p className="text-xs font-semibold uppercase tracking-wide opacity-75 mb-0.5">Trigger</p>
@@ -133,13 +155,16 @@ export function FlowCanvas({
         const isSelected = selectedStepId === step.id
         const isCondition = step.type === "condition"
 
-        let blockClasses = "w-80 px-4 py-3 rounded-xl border-2 text-sm transition-all text-left relative"
+        let blockClasses =
+          "w-80 px-4 py-3 rounded-xl border-2 text-sm transition-all text-left relative"
         if (readOnly && runStep) {
           blockClasses += ` ${runStatusColors(runStep.status)}`
         } else if (isCondition) {
-          blockClasses += " border-[rgba(245,158,11,0.3)] bg-[rgba(245,158,11,0.05)] hover:border-[#f59e0b]"
+          blockClasses +=
+            " border-[rgba(245,158,11,0.3)] bg-[rgba(245,158,11,0.05)] hover:border-[#f59e0b]"
         } else {
-          blockClasses += " border-[rgba(255,255,255,0.06)] bg-[#18181b] hover:border-[rgba(255,255,255,0.1)]"
+          blockClasses +=
+            " border-[rgba(255,255,255,0.06)] bg-[#18181b] hover:border-[rgba(255,255,255,0.1)]"
         }
         if (isSelected) {
           blockClasses += " border-[#fafafa] ring-2 ring-[rgba(255,255,255,0.15)]"
@@ -159,16 +184,20 @@ export function FlowCanvas({
                   <p className="font-medium text-[#e4e4e7]">{stepLabel(step)}</p>
                 </div>
                 {readOnly && runStep && (
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                    runStep.status === "completed" ? "bg-[rgba(34,197,94,0.1)] text-[#22c55e]" :
-                    runStep.status === "failed" ? "bg-[rgba(239,68,68,0.1)] text-[#ef4444]" :
-                    "bg-[rgba(255,255,255,0.05)] text-[#71717a]"
-                  }`}>
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                      runStep.status === "completed"
+                        ? "bg-[rgba(34,197,94,0.1)] text-[#22c55e]"
+                        : runStep.status === "failed"
+                          ? "bg-[rgba(239,68,68,0.1)] text-[#ef4444]"
+                          : "bg-[rgba(255,255,255,0.05)] text-[#71717a]"
+                    }`}
+                  >
                     {runStep.status}
                   </span>
                 )}
               </div>
-              {isCondition && (runStep?.branch_taken) && (
+              {isCondition && runStep?.branch_taken && (
                 <p className="text-xs text-[#f59e0b] mt-1">Branch: {runStep.branch_taken}</p>
               )}
             </button>
@@ -212,12 +241,20 @@ export function FlowCanvas({
       {/* Empty state hint */}
       {steps.length === 0 && !readOnly && (
         <div className="text-center max-w-[240px] mx-auto py-2">
-          <p className="text-sm text-[#52525b]">Click the trigger to configure when this flow runs, then use <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)] text-xs text-[#71717a]">+</span> to add steps.</p>
+          <p className="text-sm text-[#52525b]">
+            Click the trigger to configure when this flow runs, then use{" "}
+            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)] text-xs text-[#71717a]">
+              +
+            </span>{" "}
+            to add steps.
+          </p>
         </div>
       )}
 
       {/* End node */}
-      <div className="px-4 py-1.5 rounded-full bg-[rgba(255,255,255,0.05)] text-xs text-[#52525b] font-medium">End</div>
+      <div className="px-4 py-1.5 rounded-full bg-[rgba(255,255,255,0.05)] text-xs text-[#52525b] font-medium">
+        End
+      </div>
     </div>
   )
 }

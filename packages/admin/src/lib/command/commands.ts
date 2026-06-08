@@ -56,7 +56,13 @@ export function buildJumpCommands(collections: CrumbCollection[]): Command[] {
 
   commands.push(
     { id: "jump-media", scope: "jump", title: "Media", icon: "media", href: "/media" },
-    { id: "jump-automations", scope: "jump", title: "Automations", icon: "collection", href: "/automations" },
+    {
+      id: "jump-automations",
+      scope: "jump",
+      title: "Automations",
+      icon: "collection",
+      href: "/automations",
+    },
     { id: "jump-webhooks", scope: "jump", title: "Webhooks", icon: "webhooks", href: "/webhooks" },
     { id: "jump-settings", scope: "jump", title: "Settings", icon: "settings", href: "/settings" },
   )
@@ -111,7 +117,10 @@ export function buildDoCommands(context: DocContext): Command[] {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: "submit_review" }),
         })
-        ctx.notify(res.ok ? "Submitted for review" : "Failed to submit", res.ok ? "success" : "error")
+        ctx.notify(
+          res.ok ? "Submitted for review" : "Failed to submit",
+          res.ok ? "success" : "error",
+        )
       },
     },
     {

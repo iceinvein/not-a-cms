@@ -15,9 +15,15 @@ describe("createUserRoleStore", () => {
   })
 
   afterEach(() => {
-    try { unlinkSync(testDbPath) } catch {}
-    try { unlinkSync(`${testDbPath}-wal`) } catch {}
-    try { unlinkSync(`${testDbPath}-shm`) } catch {}
+    try {
+      unlinkSync(testDbPath)
+    } catch {}
+    try {
+      unlinkSync(`${testDbPath}-wal`)
+    } catch {}
+    try {
+      unlinkSync(`${testDbPath}-shm`)
+    } catch {}
   })
 
   test("upsert() creates and updates a user role assignment", () => {

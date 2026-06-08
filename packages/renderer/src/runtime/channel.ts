@@ -1,7 +1,7 @@
-import type { PTBlock } from "./block-renderer"
-import { renderPortableText } from "./portable-text-html"
 import type { ChannelConfig } from "@not-a-cms/core"
+import type { PTBlock } from "./block-renderer"
 import type { ContentItem } from "./content-fetcher"
+import { renderPortableText } from "./portable-text-html"
 
 // --- RSS Channel ---
 
@@ -58,11 +58,36 @@ export function resolveChannelConfig(
   return {
     siteUrl,
     rss: {
-      title: settingOrConfig(settings, SETTING_KEYS.rssTitle, configured.title, input.site?.name ?? DEFAULT_RSS.title),
-      description: settingOrConfig(settings, SETTING_KEYS.rssDescription, configured.description, DEFAULT_RSS.description),
-      language: settingOrConfig(settings, SETTING_KEYS.rssLanguage, configured.language, DEFAULT_RSS.language),
-      collection: settingOrConfig(settings, SETTING_KEYS.rssCollection, configured.collection, DEFAULT_RSS.collection),
-      itemPath: settingOrConfig(settings, SETTING_KEYS.rssItemPath, configured.itemPath, DEFAULT_RSS.itemPath),
+      title: settingOrConfig(
+        settings,
+        SETTING_KEYS.rssTitle,
+        configured.title,
+        input.site?.name ?? DEFAULT_RSS.title,
+      ),
+      description: settingOrConfig(
+        settings,
+        SETTING_KEYS.rssDescription,
+        configured.description,
+        DEFAULT_RSS.description,
+      ),
+      language: settingOrConfig(
+        settings,
+        SETTING_KEYS.rssLanguage,
+        configured.language,
+        DEFAULT_RSS.language,
+      ),
+      collection: settingOrConfig(
+        settings,
+        SETTING_KEYS.rssCollection,
+        configured.collection,
+        DEFAULT_RSS.collection,
+      ),
+      itemPath: settingOrConfig(
+        settings,
+        SETTING_KEYS.rssItemPath,
+        configured.itemPath,
+        DEFAULT_RSS.itemPath,
+      ),
     },
   }
 }
@@ -71,20 +96,22 @@ export function parseChannelConfig(value: string | undefined): ChannelRuntimeInp
   if (!value) return {}
   try {
     const parsed = JSON.parse(value)
-    return isRecord(parsed) ? parsed as ChannelRuntimeInput : {}
+    return isRecord(parsed) ? (parsed as ChannelRuntimeInput) : {}
   } catch {
     return {}
   }
 }
 
-export function buildChannelItemLink(siteUrl: string, itemPath: string, item: { id?: string; slug?: string }): string {
+export function buildChannelItemLink(
+  siteUrl: string,
+  itemPath: string,
+  item: { id?: string; slug?: string },
+): string {
   const base = normalizeSiteUrl(siteUrl)
   const path = itemPath.startsWith("/") ? itemPath : `/${itemPath}`
   const slug = encodeURIComponent(String(item.slug || item.id || ""))
   const id = encodeURIComponent(String(item.id || item.slug || ""))
-  const rendered = path
-    .replace(/:slug\b/g, slug)
-    .replace(/:id\b/g, id)
+  const rendered = path.replace(/:slug\b/g, slug).replace(/:id\b/g, id)
   return `${base}${rendered}`
 }
 
@@ -116,7 +143,14 @@ ${itemsXml}
 
 // --- Portable Text to HTML (for RSS descriptions) ---
 
-export function portableTextToHtml(blocks: PTBlock[], opts?: { apiBase?: string; collectionData?: Record<number, ContentItem[]>; routes?: import("./content-fetcher").RouteConfig[] }): string {
+export function portableTextToHtml(
+  blocks: PTBlock[],
+  opts?: {
+    apiBase?: string
+    collectionData?: Record<number, ContentItem[]>
+    routes?: import("./content-fetcher").RouteConfig[]
+  },
+): string {
   return renderPortableText(blocks, "web", opts)
 }
 
@@ -154,4 +188,4 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value)
 }
 
-export type { RSSItem, RSSFeedConfig, ChannelRuntimeInput, ResolvedChannelConfig }
+export type { ChannelRuntimeInput, ResolvedChannelConfig, RSSFeedConfig, RSSItem }

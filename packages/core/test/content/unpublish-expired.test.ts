@@ -9,7 +9,9 @@ function fakeCollections(docs: any[], fields: Record<string, any>) {
     def: { name: "post", fields },
     table: {},
     service: {
-      async findMany() { return docs },
+      async findMany() {
+        return docs
+      },
       async transitionStatus(id: string, action: string, role: string) {
         transitions.push({ id, action, role })
         return { id, status: "archived" }

@@ -1,6 +1,6 @@
-import { registerCommand } from "../router"
 import { dirname } from "node:path"
-import { loadConfig, type CMSConfig } from "@not-a-cms/core"
+import { type CMSConfig, loadConfig } from "@not-a-cms/core"
+import { registerCommand } from "../router"
 
 type DevPorts = {
   apiPort: string
@@ -34,20 +34,31 @@ type DevServerOptionsInput = {
   env: Record<string, string | undefined>
 }
 
-export function parseDevPorts(args: string[], env: Record<string, string | undefined>, configPort?: number): DevPorts {
-  const apiPort = args.find((a) => a.startsWith("--port="))?.split("=")[1] ?? env.PORT ?? String(configPort ?? 4321)
-  const adminPort = args.find((a) => a.startsWith("--admin-port="))?.split("=")[1] ?? env.ADMIN_PORT ?? "4322"
-  const rendererPort = args.find((a) => a.startsWith("--renderer-port="))?.split("=")[1] ?? env.RENDERER_PORT ?? "3000"
+export function parseDevPorts(
+  args: string[],
+  env: Record<string, string | undefined>,
+  configPort?: number,
+): DevPorts {
+  const apiPort =
+    args.find((a) => a.startsWith("--port="))?.split("=")[1] ??
+    env.PORT ??
+    String(configPort ?? 4321)
+  const adminPort =
+    args.find((a) => a.startsWith("--admin-port="))?.split("=")[1] ?? env.ADMIN_PORT ?? "4322"
+  const rendererPort =
+    args.find((a) => a.startsWith("--renderer-port="))?.split("=")[1] ?? env.RENDERER_PORT ?? "3000"
   return { apiPort, adminPort, rendererPort }
 }
 
-export function createDevProcessSpecs(options: DevPorts & {
-  adminDir: string
-  rendererDir: string
-  siteName?: string
-  siteUrl?: string
-  channels?: unknown
-}): {
+export function createDevProcessSpecs(
+  options: DevPorts & {
+    adminDir: string
+    rendererDir: string
+    siteName?: string
+    siteUrl?: string
+    channels?: unknown
+  },
+): {
   admin: DevProcessSpec
   renderer: DevProcessSpec
 } {
@@ -69,7 +80,11 @@ export function createDevProcessSpecs(options: DevPorts & {
     renderer: {
       command: ["bunx", "astro", "dev", "--port", options.rendererPort, "--host", "127.0.0.1"],
       cwd: options.rendererDir,
-      env: { PUBLIC_API_BASE: apiBase, PUBLIC_SITE_BASE: siteBase, NOT_A_CMS_CHANNEL_CONFIG: channelConfig },
+      env: {
+        PUBLIC_API_BASE: apiBase,
+        PUBLIC_SITE_BASE: siteBase,
+        NOT_A_CMS_CHANNEL_CONFIG: channelConfig,
+      },
     },
   }
 }
@@ -110,7 +125,9 @@ export function createDevServerOptions({ userConfig, ports, env }: DevServerOpti
     storage: resolveStorageConfig(userConfig.storage),
     collections: userConfig.collections ?? [],
     components: (userConfig.components ?? []) as any[],
-    cors: { origins: [`http://localhost:${ports.adminPort}`, `http://localhost:${ports.rendererPort}`] },
+    cors: {
+      origins: [`http://localhost:${ports.adminPort}`, `http://localhost:${ports.rendererPort}`],
+    },
   }
 }
 
@@ -130,11 +147,13 @@ registerCommand({
       // Import server dynamically (may not be in CLI's own deps)
       const { createServer } = await import("@not-a-cms/server")
 
-      const serverInstance = createServer(createDevServerOptions({
-        userConfig,
-        ports: { apiPort, adminPort, rendererPort },
-        env: process.env,
-      }))
+      const serverInstance = createServer(
+        createDevServerOptions({
+          userConfig,
+          ports: { apiPort, adminPort, rendererPort },
+          env: process.env,
+        }),
+      )
 
       const specs = createDevProcessSpecs({
         apiPort,
@@ -180,7 +199,9 @@ registerCommand({
       await Promise.all([admin.exited, renderer.exited])
     } catch (err: any) {
       for (const child of children) {
-        try { child.kill() } catch {}
+        try {
+          child.kill()
+        } catch {}
       }
       console.error("Failed to start dev server:", err.message)
       if (err?.code === "CONFIG_NOT_FOUND") {

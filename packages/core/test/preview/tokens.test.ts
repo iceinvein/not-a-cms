@@ -1,7 +1,7 @@
-import { test, expect, describe, beforeEach, afterEach } from "bun:test"
+import { afterEach, beforeEach, describe, expect, test } from "bun:test"
 import { unlinkSync } from "node:fs"
-import { createDatabase } from "../../src/db/connection"
 import { bootstrapTables } from "../../src/db/bootstrap"
+import { createDatabase } from "../../src/db/connection"
 import { createPreviewTokenService } from "../../src/preview/tokens"
 
 const testDbPath = "test-preview.db"
@@ -16,9 +16,15 @@ describe("preview tokens", () => {
   })
 
   afterEach(() => {
-    try { unlinkSync(testDbPath) } catch {}
-    try { unlinkSync(testDbPath + "-wal") } catch {}
-    try { unlinkSync(testDbPath + "-shm") } catch {}
+    try {
+      unlinkSync(testDbPath)
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-wal")
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-shm")
+    } catch {}
   })
 
   test("generate() creates a token", () => {
@@ -53,12 +59,16 @@ describe("preview tokens", () => {
   test("validate() can require matching collection and document metadata", () => {
     const t = tokenService.generate("blog_post", "doc-123")
 
-    expect(tokenService.validate(t.token, { collection: "blog_post", documentId: "doc-123" })).toEqual({
+    expect(
+      tokenService.validate(t.token, { collection: "blog_post", documentId: "doc-123" }),
+    ).toEqual({
       collection: "blog_post",
       document_id: "doc-123",
     })
     expect(tokenService.validate(t.token, { collection: "page", documentId: "doc-123" })).toBeNull()
-    expect(tokenService.validate(t.token, { collection: "blog_post", documentId: "other-doc" })).toBeNull()
+    expect(
+      tokenService.validate(t.token, { collection: "blog_post", documentId: "other-doc" }),
+    ).toBeNull()
   })
 
   test("revoke() invalidates active tokens for a document", () => {

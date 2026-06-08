@@ -12,9 +12,14 @@ export function allTags(items: AdminMediaItem[]): { tag: string; count: number }
     .sort((a, b) => a.tag.localeCompare(b.tag))
 }
 
-export function filterByTags(items: AdminMediaItem[], tags: string[], mode: "and" | "or" = "and"): AdminMediaItem[] {
+export function filterByTags(
+  items: AdminMediaItem[],
+  tags: string[],
+  mode: "and" | "or" = "and",
+): AdminMediaItem[] {
   if (tags.length === 0) return items
-  if (mode === "or") return items.filter((item) => tags.some((tag) => (item.tags ?? []).includes(tag)))
+  if (mode === "or")
+    return items.filter((item) => tags.some((tag) => (item.tags ?? []).includes(tag)))
   return items.filter((item) => tags.every((tag) => (item.tags ?? []).includes(tag)))
 }
 
@@ -39,7 +44,16 @@ export function untaggedCount(items: AdminMediaItem[]): number {
   return filterUntagged(items).length
 }
 
-const TAG_PALETTE = ["#c9956b", "#6b9bc9", "#8bbf7a", "#c97a8b", "#b08bc9", "#c9b06b", "#6bc9b0", "#9b9b6b"]
+const TAG_PALETTE = [
+  "#c9956b",
+  "#6b9bc9",
+  "#8bbf7a",
+  "#c97a8b",
+  "#b08bc9",
+  "#c9b06b",
+  "#6bc9b0",
+  "#9b9b6b",
+]
 
 export function defaultTagColor(name: string): string {
   let hash = 0

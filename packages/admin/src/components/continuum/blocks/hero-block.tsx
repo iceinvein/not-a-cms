@@ -1,7 +1,7 @@
 import { NodeViewWrapper } from "@tiptap/react"
-import { MediaPicker } from "./media-picker"
-import { Select } from "../../ui/Select"
 import { Checkbox } from "../../ui/Checkbox"
+import { Select } from "../../ui/Select"
+import { MediaPicker } from "./media-picker"
 
 /**
  * Hero section block (F-012): an eyebrow, headline, subheadline, alignment, and an

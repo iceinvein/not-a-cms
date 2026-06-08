@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test"
+import { describe, expect, test } from "bun:test"
 import { portableTextToEmail, resolveEmailOptions } from "../../src/runtime/email-channel"
 
 describe("portableTextToEmail", () => {
@@ -10,13 +10,24 @@ describe("portableTextToEmail", () => {
   })
 
   test("renders heading blocks", () => {
-    const blocks = [{ type: "heading", level: 2, children: [{ type: "text", value: "My Heading" }] }]
+    const blocks = [
+      { type: "heading", level: 2, children: [{ type: "text", value: "My Heading" }] },
+    ]
     const html = portableTextToEmail(blocks)
     expect(html).toContain("My Heading")
   })
 
   test("renders bold and italic", () => {
-    const blocks = [{ type: "paragraph", children: [{ type: "text", value: "bold", marks: ["bold"] }, { type: "text", value: " and " }, { type: "text", value: "italic", marks: ["italic"] }] }]
+    const blocks = [
+      {
+        type: "paragraph",
+        children: [
+          { type: "text", value: "bold", marks: ["bold"] },
+          { type: "text", value: " and " },
+          { type: "text", value: "italic", marks: ["italic"] },
+        ],
+      },
+    ]
     const html = portableTextToEmail(blocks)
     expect(html).toContain("<b>bold</b>")
     expect(html).toContain("<i>italic</i>")

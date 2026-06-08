@@ -1,11 +1,11 @@
-import { test, expect, describe, beforeEach, afterEach } from "bun:test"
+import { afterEach, beforeEach, describe, expect, test } from "bun:test"
 import { unlinkSync } from "node:fs"
+import { sql } from "drizzle-orm"
+import { createContentService } from "../../src/content/service"
 import { createDatabase } from "../../src/db/connection"
+import { generateTable } from "../../src/db/generate-table"
 import { defineCollection } from "../../src/schema/collection"
 import { field } from "../../src/schema/field"
-import { generateTable } from "../../src/db/generate-table"
-import { createContentService } from "../../src/content/service"
-import { sql } from "drizzle-orm"
 
 const testDbPath = "test-content-service.db"
 
@@ -62,18 +62,32 @@ let service: ReturnType<typeof createContentService>
 describe("createContentService", () => {
   beforeEach(() => {
     db = createDatabase({ url: testDbPath })
-    db.run(sql`CREATE TABLE IF NOT EXISTS page (id TEXT PRIMARY KEY, title TEXT NOT NULL, slug TEXT, body TEXT, status TEXT, created_at TEXT, updated_at TEXT)`)
-    db.run(sql`CREATE TABLE IF NOT EXISTS article (id TEXT PRIMARY KEY, title TEXT NOT NULL, seo TEXT, created_at TEXT, updated_at TEXT)`)
-    db.run(sql`CREATE TABLE IF NOT EXISTS metric (id TEXT PRIMARY KEY, title TEXT NOT NULL, featured INTEGER, views INTEGER, status TEXT, published_at TEXT, created_at TEXT, updated_at TEXT)`)
-    db.run(sql`CREATE TABLE IF NOT EXISTS product (id TEXT PRIMARY KEY, title TEXT NOT NULL, body TEXT, tags TEXT, seo TEXT, author_id TEXT, cover_image_id TEXT, created_at TEXT, updated_at TEXT)`)
+    db.run(
+      sql`CREATE TABLE IF NOT EXISTS page (id TEXT PRIMARY KEY, title TEXT NOT NULL, slug TEXT, body TEXT, status TEXT, created_at TEXT, updated_at TEXT)`,
+    )
+    db.run(
+      sql`CREATE TABLE IF NOT EXISTS article (id TEXT PRIMARY KEY, title TEXT NOT NULL, seo TEXT, created_at TEXT, updated_at TEXT)`,
+    )
+    db.run(
+      sql`CREATE TABLE IF NOT EXISTS metric (id TEXT PRIMARY KEY, title TEXT NOT NULL, featured INTEGER, views INTEGER, status TEXT, published_at TEXT, created_at TEXT, updated_at TEXT)`,
+    )
+    db.run(
+      sql`CREATE TABLE IF NOT EXISTS product (id TEXT PRIMARY KEY, title TEXT NOT NULL, body TEXT, tags TEXT, seo TEXT, author_id TEXT, cover_image_id TEXT, created_at TEXT, updated_at TEXT)`,
+    )
     const table = generateTable(page)
     service = createContentService(db, page, table)
   })
 
   afterEach(() => {
-    try { unlinkSync(testDbPath) } catch {}
-    try { unlinkSync(testDbPath + "-wal") } catch {}
-    try { unlinkSync(testDbPath + "-shm") } catch {}
+    try {
+      unlinkSync(testDbPath)
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-wal")
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-shm")
+    } catch {}
   })
 
   test("create() inserts and returns doc with id, title, created_at", async () => {
@@ -176,7 +190,9 @@ describe("createContentService", () => {
     await productService.create({ title: "One", author: "author-1", coverImage: "media-1" })
     await productService.create({ title: "Two", author: "author-2", coverImage: "media-2" })
 
-    const docs = await productService.findMany({ where: { author: "author-2", coverImage: "media-2" } })
+    const docs = await productService.findMany({
+      where: { author: "author-2", coverImage: "media-2" },
+    })
 
     expect(docs).toHaveLength(1)
     expect(docs[0].title).toBe("Two")
@@ -257,8 +273,12 @@ describe("createContentService", () => {
   test("findMany() rejects unknown fields and operators", async () => {
     const metricService = createContentService(db, metric, generateTable(metric))
 
-    await expect(metricService.findMany({ where: { unknown: "x" } })).rejects.toThrow("Unknown field")
-    await expect(metricService.findMany({ where: { title: { startsWith: "A" } } })).rejects.toThrow("Unsupported operator")
+    await expect(metricService.findMany({ where: { unknown: "x" } })).rejects.toThrow(
+      "Unknown field",
+    )
+    await expect(metricService.findMany({ where: { title: { startsWith: "A" } } })).rejects.toThrow(
+      "Unsupported operator",
+    )
     await expect(metricService.findMany({ sort: "unknown" })).rejects.toThrow("Unknown field")
   })
 
@@ -270,7 +290,11 @@ describe("createContentService", () => {
 
   test("update() round-trips typed field values", async () => {
     const productService = createContentService(db, product, generateTable(product))
-    const created = await productService.create({ title: "Before", tags: ["old"], seo: { metaTitle: "Old" } })
+    const created = await productService.create({
+      title: "Before",
+      tags: ["old"],
+      seo: { metaTitle: "Old" },
+    })
 
     const updated = await productService.update(created.id as string, {
       tags: ["new"],
@@ -314,7 +338,10 @@ describe("createContentService", () => {
     const first = await service.create({ title: "First" })
     const second = await service.create({ title: "Second" })
 
-    const result = await service.bulkUpdate([first.id as string, "missing-id", second.id as string], { title: "Bulk Updated" })
+    const result = await service.bulkUpdate(
+      [first.id as string, "missing-id", second.id as string],
+      { title: "Bulk Updated" },
+    )
 
     expect(result.updated.map((doc) => doc.id)).toEqual([first.id, second.id])
     expect(result.updated.map((doc) => doc.title)).toEqual(["Bulk Updated", "Bulk Updated"])
@@ -350,7 +377,9 @@ describe("createContentService", () => {
     const dispatched: Array<{ event: string; collection: string }> = []
     const tableWithAuto = generateTable(page)
     const serviceWithAuto = createContentService(db, page, tableWithAuto, undefined, undefined, {
-      dispatch: (event, collection) => { dispatched.push({ event, collection }) },
+      dispatch: (event, collection) => {
+        dispatched.push({ event, collection })
+      },
     })
     await serviceWithAuto.create({ title: "Auto Test" })
     expect(dispatched).toHaveLength(1)
@@ -361,16 +390,19 @@ describe("createContentService", () => {
     const dispatched: Array<{ event: string }> = []
     const tableWithAuto = generateTable(page)
     const serviceWithAuto = createContentService(db, page, tableWithAuto, undefined, undefined, {
-      dispatch: (event) => { dispatched.push({ event }) },
+      dispatch: (event) => {
+        dispatched.push({ event })
+      },
     })
     const doc = await serviceWithAuto.create({ title: "Draft", status: "draft" })
     dispatched.length = 0
     await serviceWithAuto.transitionStatus(doc.id as string, "publish", "editor")
-    expect(dispatched.some(d => d.event === "content.published")).toBe(true)
+    expect(dispatched.some((d) => d.event === "content.published")).toBe(true)
   })
 
   test("embedding hooks receive extracted text on create and update, and remove on delete", async () => {
-    const indexed: Array<{ collection: string; docId: string; title: string; bodyText: string }> = []
+    const indexed: Array<{ collection: string; docId: string; title: string; bodyText: string }> =
+      []
     const removed: Array<{ collection: string; docId: string }> = []
     const serviceWithEmbeddings = createContentService(
       db,

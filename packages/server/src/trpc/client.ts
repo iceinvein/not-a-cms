@@ -15,7 +15,9 @@ export function resolveTRPCUrl(apiBase: string): string {
   return normalized.endsWith("/trpc") ? normalized : `${normalized}/trpc`
 }
 
-export function createNotACMSTRPCClient(options: CreateNotACMSTRPCClientOptions): NotACMSTRPCClient {
+export function createNotACMSTRPCClient(
+  options: CreateNotACMSTRPCClientOptions,
+): NotACMSTRPCClient {
   const linkOptions = {
     url: resolveTRPCUrl(options.apiBase),
     fetch: options.fetch,
@@ -23,10 +25,6 @@ export function createNotACMSTRPCClient(options: CreateNotACMSTRPCClientOptions)
   }
 
   return createTRPCClient<AppRouter>({
-    links: [
-      options.batch === false
-        ? httpLink(linkOptions)
-        : httpBatchLink(linkOptions),
-    ],
+    links: [options.batch === false ? httpLink(linkOptions) : httpBatchLink(linkOptions)],
   })
 }

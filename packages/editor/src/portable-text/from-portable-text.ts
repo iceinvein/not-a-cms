@@ -71,7 +71,9 @@ function convertPTBlock(block: PTBlock): TiptapNode | null {
     case "blockquote":
       return {
         type: "blockquote",
-        content: (block.children as PTBlock[]).map(convertPTBlock).filter((n): n is TiptapNode => n !== null),
+        content: (block.children as PTBlock[])
+          .map(convertPTBlock)
+          .filter((n): n is TiptapNode => n !== null),
       }
 
     case "bulletList":

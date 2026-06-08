@@ -1,51 +1,56 @@
-import { fetchRequestHandler } from "@trpc/server/adapters/fetch"
 import {
-  createDatabase,
-  isVectorSearchEnabled,
-  generateTable,
-  createContentService,
-  bootstrapTables,
-  createVersioningService,
-  createSearchService,
-  createEmbeddingStore,
-  createScheduler,
-  createWebhookStore,
-  createWebhookService,
-  createPreviewTokenService,
-  createSettingsService,
-  createRoleService,
-  createAuditLogStore,
-  createUserRoleStore,
-  createInviteStore,
-  createComponentRegistry,
-  createFlowStore,
-  createFlowEngine,
-  createAutomationCron,
-  createRunEventBus,
   type AskConfig,
+  bootstrapTables,
   type CollectionDef,
   type CollectionSettings,
+  createAuditLogStore,
+  createAutomationCron,
+  createComponentRegistry,
+  createContentService,
+  createDatabase,
+  createEmbeddingStore,
+  createFlowEngine,
+  createFlowStore,
+  createInviteStore,
+  createPreviewTokenService,
+  createRoleService,
+  createRunEventBus,
+  createScheduler,
+  createSearchService,
+  createSettingsService,
+  createUserRoleStore,
+  createVersioningService,
+  createWebhookService,
+  createWebhookStore,
+  generateTable,
   type InviteRecord,
+  isVectorSearchEnabled,
 } from "@not-a-cms/core"
+import { fetchRequestHandler } from "@trpc/server/adapters/fetch"
+import { getSessionFromRequest } from "./auth/middleware"
+import { createAuth, getAuthCapabilities } from "./auth/setup"
 import { createAutomationHandler } from "./automations/handler"
 import { createComponentHandler } from "./builder/component-handler"
-import { appRouter } from "./trpc/router"
+import { type CollabWSData, collabWebSocket, presenceSnapshot } from "./collab/handler"
+import { buildPresenceRooms } from "./collab/rooms"
+import { createOpenAPIDocument } from "./docs/openapi"
+import { buildExpiring } from "./expiring/build"
+import { createGraphQLHandler } from "./graphql/handler"
+import { buildGraphQLSchema } from "./graphql/schema"
+import { buildHorizon } from "./horizon/build"
+import { createMediaHandler } from "./media/handler"
+import { createImageOptimizer } from "./media/optimizer"
+import { createMediaReferenceStore } from "./media/reference-store"
+import {
+  canAccessFolder,
+  createMediaStorage,
+  type MediaStorage,
+  type StorageConfig,
+} from "./media/storage"
+import { createPreviewHandler } from "./preview/handler"
 import { createRestHandler } from "./rest/handler"
 import { createSchemaHandler } from "./schema/handler"
-import { createAuth, getAuthCapabilities } from "./auth/setup"
-import { getSessionFromRequest } from "./auth/middleware"
-import { canAccessFolder, createMediaStorage, type MediaStorage, type StorageConfig } from "./media/storage"
-import { createImageOptimizer } from "./media/optimizer"
-import { createMediaHandler } from "./media/handler"
-import { createMediaReferenceStore } from "./media/reference-store"
-import { collabWebSocket, presenceSnapshot, type CollabWSData } from "./collab/handler"
-import { buildPresenceRooms } from "./collab/rooms"
-import { createPreviewHandler } from "./preview/handler"
-import { buildGraphQLSchema } from "./graphql/schema"
-import { createGraphQLHandler } from "./graphql/handler"
-import { createOpenAPIDocument } from "./docs/openapi"
-import { buildHorizon } from "./horizon/build"
-import { buildExpiring } from "./expiring/build"
+import { appRouter } from "./trpc/router"
 
 export type ServerConfig = {
   port?: number
@@ -90,7 +95,10 @@ export type ServerConfig = {
     }
     footer?: {
       tagline?: string
-      columns?: Array<{ heading: string; links: Array<{ label: string; href: string; external?: boolean }> }>
+      columns?: Array<{
+        heading: string
+        links: Array<{ label: string; href: string; external?: boolean }>
+      }>
       social?: Array<{ label: string; href: string }>
       legal?: string
     }
@@ -178,7 +186,10 @@ export function createServer(config: ServerConfig): CreatedServer {
       update: async (name, id, data) => {
         const entry = collections.get(name)
         if (!entry) throw new Error(`Unknown collection: ${name}`)
-        return entry.service.update(id, data, { suppressAutomations: true, allowStatusChange: true })
+        return entry.service.update(id, data, {
+          suppressAutomations: true,
+          allowStatusChange: true,
+        })
       },
       delete: async (name, id) => {
         const entry = collections.get(name)
@@ -192,41 +203,60 @@ export function createServer(config: ServerConfig): CreatedServer {
   const automationHandler = createAutomationHandler(flowStore, flowEngine, runEvents)
   const automationCron = createAutomationCron(flowStore, flowEngine)
 
-  const storagePath = config.storage?.provider === "local" ? config.storage.path : config.storage?.path ?? "./uploads"
+  const storagePath =
+    config.storage?.provider === "local"
+      ? config.storage.path
+      : (config.storage?.path ?? "./uploads")
   const optimizer = createImageOptimizer(storagePath)
-  const storage = createMediaStorage(config.storage ?? { provider: "local", path: storagePath }, optimizer)
+  const storage = createMediaStorage(
+    config.storage ?? { provider: "local", path: storagePath },
+    optimizer,
+  )
   const mediaReferenceStore = createMediaReferenceStore(db, {
     assetExists: (id) => storage.get(id) !== null,
   })
 
   // Build collection registry
   for (const def of config.collections) {
-    const effectiveDef = applyCollectionSettings(def, settingsService.getCollectionSettings(def.name))
+    const effectiveDef = applyCollectionSettings(
+      def,
+      settingsService.getCollectionSettings(def.name),
+    )
     const table = generateTable(effectiveDef)
-    const embeddingHooks = askProvider && embeddings
-      ? {
-          index: async (collection: string, docId: string, title: string, bodyText: string) => {
-            const text = `${title}\n${bodyText}`.trim()
-            if (!text) return
-            const [vector] = await askProvider.embed([text])
-            if (!vector) return
-            embeddings.upsert(collection, docId, new Float32Array(vector), askProvider.model)
-          },
-          remove: (collection: string, docId: string) => {
-            embeddings.remove(collection, docId)
-          },
-        }
-      : undefined
-    const service = createContentService(db, effectiveDef, table, versioning, search, {
-      dispatch: (event, collection, doc) => {
-        const matchingFlows = flowStore.getActiveFlowsByTrigger(event)
-        for (const flow of matchingFlows) {
-          const trigger = flow.trigger as { type: string; collection?: string }
-          if (trigger.collection && trigger.collection !== collection) continue
-          flowEngine.executeFlow(flow, { event, collection, document: doc }).catch(() => {})
-        }
+    const embeddingHooks =
+      askProvider && embeddings
+        ? {
+            index: async (collection: string, docId: string, title: string, bodyText: string) => {
+              const text = `${title}\n${bodyText}`.trim()
+              if (!text) return
+              const [vector] = await askProvider.embed([text])
+              if (!vector) return
+              embeddings.upsert(collection, docId, new Float32Array(vector), askProvider.model)
+            },
+            remove: (collection: string, docId: string) => {
+              embeddings.remove(collection, docId)
+            },
+          }
+        : undefined
+    const service = createContentService(
+      db,
+      effectiveDef,
+      table,
+      versioning,
+      search,
+      {
+        dispatch: (event, collection, doc) => {
+          const matchingFlows = flowStore.getActiveFlowsByTrigger(event)
+          for (const flow of matchingFlows) {
+            const trigger = flow.trigger as { type: string; collection?: string }
+            if (trigger.collection && trigger.collection !== collection) continue
+            flowEngine.executeFlow(flow, { event, collection, document: doc }).catch(() => {})
+          }
+        },
       },
-    }, embeddingHooks, mediaReferenceStore)
+      embeddingHooks,
+      mediaReferenceStore,
+    )
     collections.set(effectiveDef.name, { def: effectiveDef, table, service })
   }
 
@@ -239,24 +269,35 @@ export function createServer(config: ServerConfig): CreatedServer {
   const inviteStore = createInviteStore(db)
   const previewTokenService = createPreviewTokenService(db)
 
-  const getSession = (req: Request) => getSessionFromRequest(auth, req, {
-    getRoleForUser: async (user) => {
-      const assigned = userRoleStore.get(user.id)
-      if (assigned?.active) return assigned.role
-      if (!userRoleStore.hasActiveAdmin()) {
-        userRoleStore.upsert({ userId: user.id, email: user.email ?? null, role: "admin", active: true })
-        return "admin"
-      }
-      if (user.email) {
-        const acceptedInvite = inviteStore.acceptByEmail(user.email, user.id)
-        if (acceptedInvite) {
-          userRoleStore.upsert({ userId: user.id, email: user.email, role: acceptedInvite.role, active: true })
-          return acceptedInvite.role
+  const getSession = (req: Request) =>
+    getSessionFromRequest(auth, req, {
+      getRoleForUser: async (user) => {
+        const assigned = userRoleStore.get(user.id)
+        if (assigned?.active) return assigned.role
+        if (!userRoleStore.hasActiveAdmin()) {
+          userRoleStore.upsert({
+            userId: user.id,
+            email: user.email ?? null,
+            role: "admin",
+            active: true,
+          })
+          return "admin"
         }
-      }
-      return null
-    },
-  })
+        if (user.email) {
+          const acceptedInvite = inviteStore.acceptByEmail(user.email, user.id)
+          if (acceptedInvite) {
+            userRoleStore.upsert({
+              userId: user.id,
+              email: user.email,
+              role: acceptedInvite.role,
+              active: true,
+            })
+            return acceptedInvite.role
+          }
+        }
+        return null
+      },
+    })
 
   const previewHandler = createPreviewHandler(previewTokenService, collections, {
     getRole: async (req) => (await getSession(req))?.role ?? null,
@@ -272,26 +313,33 @@ export function createServer(config: ServerConfig): CreatedServer {
     getRole: async (req) => (await getSession(req))?.role ?? null,
   })
   const trpcRouter = appRouter(collections)
-  const restHandler = createRestHandler(collections, versioning, search, webhookStore, settingsService, {
-    authorize: async (req) => Boolean(await getSession(req)),
-    getActor: async (req) => await getSession(req),
-    getRole: async (req) => (await getSession(req))?.role ?? null,
-    auditLog: auditLogStore,
-    media: {
-      get: (id) => {
-        const record = storage.get(id)
-        if (!record) return null
-        const { path: _path, ...publicRecord } = record
-        return { ...publicRecord, url: `/api/media/${id}/file` }
+  const restHandler = createRestHandler(
+    collections,
+    versioning,
+    search,
+    webhookStore,
+    settingsService,
+    {
+      authorize: async (req) => Boolean(await getSession(req)),
+      getActor: async (req) => await getSession(req),
+      getRole: async (req) => (await getSession(req))?.role ?? null,
+      auditLog: auditLogStore,
+      media: {
+        get: (id) => {
+          const record = storage.get(id)
+          if (!record) return null
+          const { path: _path, ...publicRecord } = record
+          return { ...publicRecord, url: `/api/media/${id}/file` }
+        },
+      },
+      webhookService,
+      ask: {
+        provider: askProvider,
+        embeddings,
+        topK: config.ai?.topK,
       },
     },
-    webhookService,
-    ask: {
-      provider: askProvider,
-      embeddings,
-      topK: config.ai?.topK,
-    },
-  })
+  )
   const schemaHandler = createSchemaHandler(collections, {
     getRole: async (req) => (await getSession(req))?.role ?? null,
   })
@@ -308,9 +356,7 @@ export function createServer(config: ServerConfig): CreatedServer {
     async fetch(req: Request, server) {
       const url = new URL(req.url)
       const origin = req.headers.get("origin")
-      const corsHeaders = origin && corsOrigins.has(origin)
-        ? createCorsHeaders(origin, req)
-        : null
+      const corsHeaders = origin && corsOrigins.has(origin) ? createCorsHeaders(origin, req) : null
       const withCors = (res: Response): Response => {
         if (!corsHeaders) return res
         const headers = new Headers(res.headers)
@@ -318,7 +364,13 @@ export function createServer(config: ServerConfig): CreatedServer {
         const vary = headers.get("vary")
         if (!vary) {
           headers.set("vary", "Origin")
-        } else if (!vary.toLowerCase().split(",").map((part) => part.trim()).includes("origin")) {
+        } else if (
+          !vary
+            .toLowerCase()
+            .split(",")
+            .map((part) => part.trim())
+            .includes("origin")
+        ) {
           headers.set("vary", `${vary}, Origin`)
         }
         return new Response(res.body, { status: res.status, statusText: res.statusText, headers })
@@ -331,12 +383,16 @@ export function createServer(config: ServerConfig): CreatedServer {
       const requireAdmin = async () => {
         const session = await getSession(req)
         if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 })
-        return session.role === "admin" ? null : Response.json({ error: "Forbidden" }, { status: 403 })
+        return session.role === "admin"
+          ? null
+          : Response.json({ error: "Forbidden" }, { status: 403 })
       }
       const requireEditorOrAdmin = async () => {
         const session = await getSession(req)
         if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 })
-        return session.role === "admin" || session.role === "editor" ? null : Response.json({ error: "Forbidden" }, { status: 403 })
+        return session.role === "admin" || session.role === "editor"
+          ? null
+          : Response.json({ error: "Forbidden" }, { status: 403 })
       }
 
       if (req.method === "OPTIONS" && corsHeaders) {
@@ -365,7 +421,9 @@ export function createServer(config: ServerConfig): CreatedServer {
         if (req.method !== "GET") {
           return withCors(Response.json({ error: "Method not allowed" }, { status: 405 }))
         }
-        return withCors(Response.json({ data: getPublicChannelSettings(settingsService.getAll("channel.")) }))
+        return withCors(
+          Response.json({ data: getPublicChannelSettings(settingsService.getAll("channel.")) }),
+        )
       }
 
       // Public theme: lets the renderer brand the site from the project's config.theme.
@@ -411,7 +469,11 @@ export function createServer(config: ServerConfig): CreatedServer {
         return withCors(Response.json(createOpenAPIDocument(config.collections)))
       }
 
-      if (config.testAuth?.enabled && process.env.E2E_TEST_AUTH === "1" && url.pathname === "/api/_test/magic-link") {
+      if (
+        config.testAuth?.enabled &&
+        process.env.E2E_TEST_AUTH === "1" &&
+        url.pathname === "/api/_test/magic-link"
+      ) {
         if (req.method !== "GET") {
           return withCors(Response.json({ error: "Method not allowed" }, { status: 405 }))
         }
@@ -442,12 +504,14 @@ export function createServer(config: ServerConfig): CreatedServer {
       // tRPC routes
       if (url.pathname.startsWith("/trpc")) {
         const session = await getSession(req)
-        return withCors(await fetchRequestHandler({
-          endpoint: "/trpc",
-          req,
-          router: trpcRouter,
-          createContext: () => ({ db, session }),
-        }))
+        return withCors(
+          await fetchRequestHandler({
+            endpoint: "/trpc",
+            req,
+            router: trpcRouter,
+            createContext: () => ({ db, session }),
+          }),
+        )
       }
 
       // Preview routes
@@ -483,7 +547,9 @@ export function createServer(config: ServerConfig): CreatedServer {
           try {
             return withCors(Response.json({ data: roleService.saveRoles(body.roles ?? []) }))
           } catch (err: any) {
-            return withCors(Response.json({ error: err.message || "Invalid role definitions" }, { status: 400 }))
+            return withCors(
+              Response.json({ error: err.message || "Invalid role definitions" }, { status: 400 }),
+            )
           }
         }
         return withCors(Response.json({ error: "Method not allowed" }, { status: 405 }))
@@ -500,10 +566,19 @@ export function createServer(config: ServerConfig): CreatedServer {
 
         if (url.pathname === "/api/_invites" && req.method === "POST") {
           const body = await req.json()
-          const error = validateInviteInput(body, roleService.listRoles().map((role) => role.key))
+          const error = validateInviteInput(
+            body,
+            roleService.listRoles().map((role) => role.key),
+          )
           if (error) return withCors(Response.json({ error }, { status: 400 }))
-          const created = inviteStore.create({ email: body.email, role: body.role, expiresAt: body.expiresAt })
-          return withCors(Response.json({ invite: serializeInvite(created.invite), token: created.token }))
+          const created = inviteStore.create({
+            email: body.email,
+            role: body.role,
+            expiresAt: body.expiresAt,
+          })
+          return withCors(
+            Response.json({ invite: serializeInvite(created.invite), token: created.token }),
+          )
         }
 
         const inviteId = decodeURIComponent(url.pathname.replace("/api/_invites/", ""))
@@ -515,20 +590,30 @@ export function createServer(config: ServerConfig): CreatedServer {
       }
 
       // Collection settings
-      if (url.pathname === "/api/_collection-settings" || url.pathname.startsWith("/api/_collection-settings/")) {
+      if (
+        url.pathname === "/api/_collection-settings" ||
+        url.pathname.startsWith("/api/_collection-settings/")
+      ) {
         const unauthorized = await requireAuthorized()
         if (unauthorized) return withCors(unauthorized)
 
         if (url.pathname === "/api/_collection-settings" && req.method === "GET") {
-          return withCors(Response.json({
-            data: Array.from(collections.values()).map((entry) => serializeCollectionSettings(entry, settingsService)),
-            roles: roleService.listRoles(),
-          }))
+          return withCors(
+            Response.json({
+              data: Array.from(collections.values()).map((entry) =>
+                serializeCollectionSettings(entry, settingsService),
+              ),
+              roles: roleService.listRoles(),
+            }),
+          )
         }
 
-        const collectionName = decodeURIComponent(url.pathname.replace("/api/_collection-settings/", ""))
+        const collectionName = decodeURIComponent(
+          url.pathname.replace("/api/_collection-settings/", ""),
+        )
         const entry = collections.get(collectionName)
-        if (!entry) return withCors(Response.json({ error: "Collection not found" }, { status: 404 }))
+        if (!entry)
+          return withCors(Response.json({ error: "Collection not found" }, { status: 404 }))
 
         if (req.method === "GET") {
           return withCors(Response.json(serializeCollectionSettings(entry, settingsService)))
@@ -538,8 +623,13 @@ export function createServer(config: ServerConfig): CreatedServer {
           const forbidden = await requireAdmin()
           if (forbidden) return withCors(forbidden)
           const body = await req.json()
-          const validationError = validateCollectionSettingsInput(body, entry.def, roleService.listRoles().map((role) => role.key))
-          if (validationError) return withCors(Response.json({ error: validationError }, { status: 400 }))
+          const validationError = validateCollectionSettingsInput(
+            body,
+            entry.def,
+            roleService.listRoles().map((role) => role.key),
+          )
+          if (validationError)
+            return withCors(Response.json({ error: validationError }, { status: 400 }))
           const normalized = normalizeCollectionSettingsForSchema(body, entry.def)
           const saved = settingsService.setCollectionSettings(collectionName, normalized)
           entry.def = applyCollectionSettings(entry.def, saved)
@@ -566,7 +656,9 @@ export function createServer(config: ServerConfig): CreatedServer {
             return withCors(Response.json({ error: "User role is not valid" }, { status: 400 }))
           }
           if (body.active !== undefined && typeof body.active !== "boolean") {
-            return withCors(Response.json({ error: "User active flag must be a boolean" }, { status: 400 }))
+            return withCors(
+              Response.json({ error: "User active flag must be a boolean" }, { status: 400 }),
+            )
           }
           const updated = userRoleStore.upsert({
             userId,
@@ -584,23 +676,31 @@ export function createServer(config: ServerConfig): CreatedServer {
       if (url.pathname === "/api/_audit") {
         const forbidden = await requireAdmin()
         if (forbidden) return withCors(forbidden)
-        const limit = url.searchParams.has("limit") ? Number(url.searchParams.get("limit")) : undefined
-        const offset = url.searchParams.has("offset") ? Number(url.searchParams.get("offset")) : undefined
-        return withCors(Response.json({
-          data: auditLogStore.list({
-            collection: url.searchParams.get("collection") ?? undefined,
-            documentId: url.searchParams.get("documentId") ?? undefined,
-            limit,
-            offset,
+        const limit = url.searchParams.has("limit")
+          ? Number(url.searchParams.get("limit"))
+          : undefined
+        const offset = url.searchParams.has("offset")
+          ? Number(url.searchParams.get("offset"))
+          : undefined
+        return withCors(
+          Response.json({
+            data: auditLogStore.list({
+              collection: url.searchParams.get("collection") ?? undefined,
+              documentId: url.searchParams.get("documentId") ?? undefined,
+              limit,
+              offset,
+            }),
           }),
-        }))
+        )
       }
 
       // Dashboard metrics
       if (url.pathname === "/api/_metrics") {
         const unauthorized = await requireAuthorized()
         if (unauthorized) return withCors(unauthorized)
-        return withCors(Response.json(await buildDashboardMetrics(collections, storage, auditLogStore)))
+        return withCors(
+          Response.json(await buildDashboardMetrics(collections, storage, auditLogStore)),
+        )
       }
 
       // Publishing horizon
@@ -615,7 +715,9 @@ export function createServer(config: ServerConfig): CreatedServer {
         const unauthorized = await requireAuthorized()
         if (unauthorized) return withCors(unauthorized)
         const windowDays = Number(url.searchParams.get("window")?.replace("d", "") ?? 7)
-        return withCors(Response.json({ items: await buildExpiring(collections, new Date(), windowDays) }))
+        return withCors(
+          Response.json({ items: await buildExpiring(collections, new Date(), windowDays) }),
+        )
       }
 
       // Live presence
@@ -629,9 +731,13 @@ export function createServer(config: ServerConfig): CreatedServer {
           const entry = collections.get(collection)
           if (!entry) return documentId
           const doc = await entry.service.findById(documentId).catch(() => null)
-          return doc ? String((doc as any).title || (doc as any).name || (doc as any).slug || documentId) : documentId
+          return doc
+            ? String((doc as any).title || (doc as any).name || (doc as any).slug || documentId)
+            : documentId
         }
-        return withCors(Response.json({ rooms: await buildPresenceRooms(presenceSnapshot(), resolveTitle) }))
+        return withCors(
+          Response.json({ rooms: await buildPresenceRooms(presenceSnapshot(), resolveTitle) }),
+        )
       }
 
       // Viewer role + role list, so the Vault can show admin-only permission controls
@@ -642,7 +748,9 @@ export function createServer(config: ServerConfig): CreatedServer {
         const unauthorized = await requireAuthorized()
         if (unauthorized) return withCors(unauthorized)
         const session = await getSession(req)
-        return withCors(Response.json({ role: session?.role ?? null, roles: roleService.listRoles() }))
+        return withCors(
+          Response.json({ role: session?.role ?? null, roles: roleService.listRoles() }),
+        )
       }
 
       // Media usage counts for Vault clustering
@@ -713,7 +821,8 @@ export function createServer(config: ServerConfig): CreatedServer {
 
       // Scheduled publishing
       if (url.pathname === "/api/_scheduler/run") {
-        if (req.method !== "POST") return withCors(Response.json({ error: "Method not allowed" }, { status: 405 }))
+        if (req.method !== "POST")
+          return withCors(Response.json({ error: "Method not allowed" }, { status: 405 }))
         const forbidden = await requireAdmin()
         if (forbidden) return withCors(forbidden)
         const promoted = await scheduler.promoteScheduled()
@@ -756,26 +865,52 @@ export function createServer(config: ServerConfig): CreatedServer {
     console.log(`not-a-cms API server on http://localhost:${server.port}`)
   }
 
-  return { server, db, collections, versioning, search, embeddings, trpcRouter, webhookStore, webhookService, previewTokenService, settingsService, roleService, auditLogStore, userRoleStore, inviteStore, componentRegistry, flowStore, flowEngine, runEvents, scheduler, mediaReferenceStore, rebuildIndex }
+  return {
+    server,
+    db,
+    collections,
+    versioning,
+    search,
+    embeddings,
+    trpcRouter,
+    webhookStore,
+    webhookService,
+    previewTokenService,
+    settingsService,
+    roleService,
+    auditLogStore,
+    userRoleStore,
+    inviteStore,
+    componentRegistry,
+    flowStore,
+    flowEngine,
+    runEvents,
+    scheduler,
+    mediaReferenceStore,
+    rebuildIndex,
+  }
 }
 
-// Re-exports for external consumers
-export { appRouter, type AppRouter } from "./trpc/router"
-export {
-  createNotACMSTRPCClient,
-  resolveTRPCUrl,
-  type CreateNotACMSTRPCClientOptions,
-  type NotACMSTRPCClient,
-} from "./trpc/client"
-export { createRestHandler } from "./rest/handler"
 export { createAuth } from "./auth/setup"
+export { createRestHandler } from "./rest/handler"
+export {
+  type CreateNotACMSTRPCClientOptions,
+  createNotACMSTRPCClient,
+  type NotACMSTRPCClient,
+  resolveTRPCUrl,
+} from "./trpc/client"
+// Re-exports for external consumers
+export { type AppRouter, appRouter } from "./trpc/router"
 
 function createCorsHeaders(origin: string, req: Request): Headers {
   const headers = new Headers()
   headers.set("access-control-allow-origin", origin)
   headers.set("access-control-allow-credentials", "true")
   headers.set("access-control-allow-methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS")
-  headers.set("access-control-allow-headers", req.headers.get("access-control-request-headers") ?? "content-type, authorization")
+  headers.set(
+    "access-control-allow-headers",
+    req.headers.get("access-control-request-headers") ?? "content-type, authorization",
+  )
   headers.set("access-control-max-age", "600")
   return headers
 }
@@ -848,25 +983,27 @@ async function buildDashboardMetrics(
   storage: MediaStorage,
   auditLogStore: ReturnType<typeof createAuditLogStore>,
 ) {
-  const collectionMetrics = await Promise.all(Array.from(collections.values()).map(async (entry) => {
-    const hasStatus = Boolean(entry.def.fields.status)
-    const [total, drafts, inReview, published, scheduled] = await Promise.all([
-      entry.service.count(),
-      hasStatus ? entry.service.count({ where: { status: "draft" } }) : Promise.resolve(0),
-      hasStatus ? entry.service.count({ where: { status: "in_review" } }) : Promise.resolve(0),
-      hasStatus ? entry.service.count({ where: { status: "published" } }) : Promise.resolve(0),
-      hasStatus ? entry.service.count({ where: { status: "scheduled" } }) : Promise.resolve(0),
-    ])
-    return {
-      name: entry.def.name,
-      label: entry.def.labels.plural,
-      total,
-      drafts,
-      inReview,
-      published,
-      scheduled,
-    }
-  }))
+  const collectionMetrics = await Promise.all(
+    Array.from(collections.values()).map(async (entry) => {
+      const hasStatus = Boolean(entry.def.fields.status)
+      const [total, drafts, inReview, published, scheduled] = await Promise.all([
+        entry.service.count(),
+        hasStatus ? entry.service.count({ where: { status: "draft" } }) : Promise.resolve(0),
+        hasStatus ? entry.service.count({ where: { status: "in_review" } }) : Promise.resolve(0),
+        hasStatus ? entry.service.count({ where: { status: "published" } }) : Promise.resolve(0),
+        hasStatus ? entry.service.count({ where: { status: "scheduled" } }) : Promise.resolve(0),
+      ])
+      return {
+        name: entry.def.name,
+        label: entry.def.labels.plural,
+        total,
+        drafts,
+        inReview,
+        published,
+        scheduled,
+      }
+    }),
+  )
 
   return {
     collections: collectionMetrics,
@@ -882,7 +1019,11 @@ async function buildDashboardMetrics(
   }
 }
 
-function validateCollectionSettingsInput(input: unknown, def: CollectionDef, roleKeys: string[]): string | null {
+function validateCollectionSettingsInput(
+  input: unknown,
+  def: CollectionDef,
+  roleKeys: string[],
+): string | null {
   if (!isRecord(input)) return "Collection settings must be an object"
   const validRoles = new Set(roleKeys)
   if (isRecord(input.access)) {
@@ -898,16 +1039,23 @@ function validateCollectionSettingsInput(input: unknown, def: CollectionDef, rol
   if (Array.isArray(input.searchFields)) {
     for (const field of input.searchFields) {
       if (typeof field === "string" && field.trim() && !def.fields[field.trim()]) {
-        continue
       }
     }
   }
   return null
 }
 
-function normalizeCollectionSettingsForSchema(input: Record<string, unknown>, def: CollectionDef): CollectionSettings {
+function normalizeCollectionSettingsForSchema(
+  input: Record<string, unknown>,
+  def: CollectionDef,
+): CollectionSettings {
   const searchFields = Array.isArray(input.searchFields)
-    ? input.searchFields.filter((field): field is string => typeof field === "string" && Boolean(def.fields[field.trim()])).map((field) => field.trim())
+    ? input.searchFields
+        .filter(
+          (field): field is string =>
+            typeof field === "string" && Boolean(def.fields[field.trim()]),
+        )
+        .map((field) => field.trim())
     : undefined
   return {
     ...(isRecord(input.labels) && { labels: input.labels as CollectionSettings["labels"] }),

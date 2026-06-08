@@ -1,8 +1,8 @@
-import type { CollectionDef } from "./types"
-import type { ExtensionManifest } from "./extensions/manifest"
 import { existsSync } from "node:fs"
 import { join, resolve } from "node:path"
 import { pathToFileURL } from "node:url"
+import type { ExtensionManifest } from "./extensions/manifest"
+import type { CollectionDef } from "./types"
 
 export type CMSConfig = {
   site?: {
@@ -14,7 +14,10 @@ export type CMSConfig = {
     }
     footer?: {
       tagline?: string
-      columns?: Array<{ heading: string; links: Array<{ label: string; href: string; external?: boolean }> }>
+      columns?: Array<{
+        heading: string
+        links: Array<{ label: string; href: string; external?: boolean }>
+      }>
       social?: Array<{ label: string; href: string }>
       legal?: string
     }
@@ -114,9 +117,13 @@ export async function loadConfig(options: LoadConfigOptions = {}): Promise<CMSCo
   try {
     mod = await import(`${pathToFileURL(configPath).href}?v=${Date.now()}`)
   } catch (error) {
-    throw new ConfigLoadError(`Failed to load ${configPath}: ${errorMessage(error)}`, "CONFIG_IMPORT_FAILED", {
-      cause: error,
-    })
+    throw new ConfigLoadError(
+      `Failed to load ${configPath}: ${errorMessage(error)}`,
+      "CONFIG_IMPORT_FAILED",
+      {
+        cause: error,
+      },
+    )
   }
 
   assertCMSConfig(mod.default)

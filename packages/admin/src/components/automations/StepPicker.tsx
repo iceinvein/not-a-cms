@@ -72,12 +72,21 @@ export function StepPicker({ onSelect, onCancel }: Props) {
       onMouseDown={(e) => e.stopPropagation()}
     >
       <div className="p-3 border-b border-[rgba(255,255,255,0.06)] flex items-center justify-between">
-        <span className="text-xs font-semibold text-[#71717a] uppercase tracking-wide">Add step</span>
-        <button onClick={onCancel} className="text-[#52525b] hover:text-[#a1a1aa] text-sm leading-none">✕</button>
+        <span className="text-xs font-semibold text-[#71717a] uppercase tracking-wide">
+          Add step
+        </span>
+        <button
+          onClick={onCancel}
+          className="text-[#52525b] hover:text-[#a1a1aa] text-sm leading-none"
+        >
+          ✕
+        </button>
       </div>
 
-      <div className="p-2" style={{ maxHeight: '260px', overflowY: 'auto' }}>
-        <p className="text-xs font-semibold text-[#52525b] uppercase tracking-wide px-2 py-1">Logic</p>
+      <div className="p-2" style={{ maxHeight: "260px", overflowY: "auto" }}>
+        <p className="text-xs font-semibold text-[#52525b] uppercase tracking-wide px-2 py-1">
+          Logic
+        </p>
         {logic.map((opt) => (
           <button
             key={opt.type}
@@ -89,7 +98,9 @@ export function StepPicker({ onSelect, onCancel }: Props) {
           </button>
         ))}
 
-        <p className="text-xs font-semibold text-[#52525b] uppercase tracking-wide px-2 py-1 mt-2">Actions</p>
+        <p className="text-xs font-semibold text-[#52525b] uppercase tracking-wide px-2 py-1 mt-2">
+          Actions
+        </p>
         {actions.map((opt) => (
           <button
             key={opt.type}

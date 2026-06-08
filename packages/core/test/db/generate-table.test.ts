@@ -1,8 +1,8 @@
-import { test, expect, describe } from "bun:test"
+import { describe, expect, test } from "bun:test"
+import { getTableColumns, getTableName } from "drizzle-orm"
 import { generateTable } from "../../src/db/generate-table"
 import { defineCollection } from "../../src/schema/collection"
 import { field } from "../../src/schema/field"
-import { getTableName, getTableColumns } from "drizzle-orm"
 
 describe("generateTable", () => {
   const blogPost = defineCollection({

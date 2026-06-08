@@ -1,4 +1,4 @@
-import { NodeViewWrapper, NodeViewContent } from "@tiptap/react"
+import { NodeViewContent, NodeViewWrapper } from "@tiptap/react"
 
 const VARIANT_STYLES: Record<string, { icon: string; bg: string }> = {
   info: { icon: "ℹ️", bg: "#e3f2fd" },

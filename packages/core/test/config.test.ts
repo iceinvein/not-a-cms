@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test"
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { loadConfig, ConfigLoadError } from "../src/config"
+import { ConfigLoadError, loadConfig } from "../src/config"
 
 const tempDirs: string[] = []
 
@@ -50,7 +50,10 @@ export default defineConfig({
 
   test("throws a config error for invalid config defaults", async () => {
     const cwd = makeTempProject()
-    writeFileSync(join(cwd, "not-a-cms.config.ts"), "export default { database: { url: 'bad.db' } }")
+    writeFileSync(
+      join(cwd, "not-a-cms.config.ts"),
+      "export default { database: { url: 'bad.db' } }",
+    )
 
     await expect(loadConfig({ cwd })).rejects.toThrow(ConfigLoadError)
     await expect(loadConfig({ cwd })).rejects.toThrow("collections must be an array")

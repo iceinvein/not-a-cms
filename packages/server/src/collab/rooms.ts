@@ -19,7 +19,10 @@ export async function buildPresenceRooms(
   snapshot: PresenceRoom[],
   resolveTitle: ResolveTitle,
 ): Promise<PresenceRoomView[]> {
-  const grouped = new Map<string, { collection: string; documentId: string; byName: Map<string, { name: string; color: string }> }>()
+  const grouped = new Map<
+    string,
+    { collection: string; documentId: string; byName: Map<string, { name: string; color: string }> }
+  >()
   for (const room of snapshot) {
     const parsed = parseDocName(room.docName)
     if (!parsed) continue

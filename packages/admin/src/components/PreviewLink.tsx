@@ -8,7 +8,12 @@ type Props = {
   siteBase?: string
 }
 
-export function PreviewLink({ collection, documentId, apiBase = "", siteBase = "http://localhost:3000" }: Props) {
+export function PreviewLink({
+  collection,
+  documentId,
+  apiBase = "",
+  siteBase = "http://localhost:3000",
+}: Props) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState<"generate" | "regenerate" | "revoke" | null>(null)
   const [copied, setCopied] = useState(false)

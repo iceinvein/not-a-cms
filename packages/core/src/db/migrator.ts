@@ -1,6 +1,6 @@
-import { sql } from "drizzle-orm"
 import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
+import { sql } from "drizzle-orm"
 import type { AppDatabase } from "./connection"
 
 type MigrationStatus = {
@@ -14,17 +14,17 @@ type RunResult = {
 
 export function createMigrator(db: AppDatabase, migrationsDir: string) {
   function init() {
-    db.run(sql`${sql.raw(`CREATE TABLE IF NOT EXISTS _migrations (
+    db.run(
+      sql`${sql.raw(`CREATE TABLE IF NOT EXISTS _migrations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL UNIQUE,
       applied_at TEXT NOT NULL
-    )`)}`)
+    )`)}`,
+    )
   }
 
   function getApplied(): string[] {
-    const rows = db.all<{ name: string }>(
-      sql`SELECT name FROM _migrations ORDER BY id ASC`,
-    )
+    const rows = db.all<{ name: string }>(sql`SELECT name FROM _migrations ORDER BY id ASC`)
     return (rows as { name: string }[]).map((r) => r.name)
   }
 
@@ -63,9 +63,7 @@ export function createMigrator(db: AppDatabase, migrationsDir: string) {
       }
 
       const now = new Date().toISOString()
-      db.run(
-        sql`INSERT INTO _migrations (name, applied_at) VALUES (${filename}, ${now})`,
-      )
+      db.run(sql`INSERT INTO _migrations (name, applied_at) VALUES (${filename}, ${now})`)
       applied.push(filename)
     }
 

@@ -1,11 +1,18 @@
 import { describe, expect, test } from "bun:test"
-import { defaultPayloadForTrigger, documentToPayload } from "../../../src/lib/automations/test-payload"
 import type { FlowTrigger } from "../../../src/components/automations/flow-types"
+import {
+  defaultPayloadForTrigger,
+  documentToPayload,
+} from "../../../src/lib/automations/test-payload"
 
 describe("defaultPayloadForTrigger", () => {
   test("content trigger includes event, collection, empty document", () => {
     const t: FlowTrigger = { type: "content.created", collection: "posts" }
-    expect(defaultPayloadForTrigger(t)).toEqual({ event: "content.created", collection: "posts", document: {} })
+    expect(defaultPayloadForTrigger(t)).toEqual({
+      event: "content.created",
+      collection: "posts",
+      document: {},
+    })
   })
 
   test("content trigger without collection omits collection", () => {
@@ -28,7 +35,9 @@ describe("documentToPayload", () => {
   test("wraps a document under the trigger event + collection", () => {
     const t: FlowTrigger = { type: "content.created", collection: "posts" }
     expect(documentToPayload(t, { id: "1", title: "Hi" })).toEqual({
-      event: "content.created", collection: "posts", document: { id: "1", title: "Hi" },
+      event: "content.created",
+      collection: "posts",
+      document: { id: "1", title: "Hi" },
     })
   })
 })

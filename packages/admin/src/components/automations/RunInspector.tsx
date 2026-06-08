@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react"
-import type { FlowRun, FlowRunDetail } from "./flow-types"
 import { runToTimeline, type TimelineStep } from "../../lib/automations/timeline"
+import type { FlowRun, FlowRunDetail } from "./flow-types"
 
 export function statusDot(status: FlowRun["status"] | TimelineStep["status"]): string {
   if (status === "completed") return "bg-[#22c55e]"
@@ -44,8 +44,12 @@ export function RunInspector({ run }: { run: FlowRunDetail }) {
 
       <div className="mb-5 rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#111113] p-3">
         <div className="mb-2 flex items-center justify-between">
-          <label htmlFor={`scrub-${run.id}`} className="text-xs font-medium text-[#a1a1aa]">scrub timeline</label>
-          <span className="font-mono text-xs text-[#71717a]">{formatMs(cursor)} / {formatMs(timeline.totalMs)}</span>
+          <label htmlFor={`scrub-${run.id}`} className="text-xs font-medium text-[#a1a1aa]">
+            scrub timeline
+          </label>
+          <span className="font-mono text-xs text-[#71717a]">
+            {formatMs(cursor)} / {formatMs(timeline.totalMs)}
+          </span>
         </div>
         <input
           id={`scrub-${run.id}`}
@@ -77,11 +81,16 @@ export function RunInspector({ run }: { run: FlowRunDetail }) {
 
       <div className="space-y-3">
         {timeline.steps.map((step, index) => (
-          <div key={`${step.stepId}-${index}`} className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#111113] p-3">
+          <div
+            key={`${step.stepId}-${index}`}
+            className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#111113] p-3"
+          >
             <div className="mb-2 flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="truncate font-mono text-sm text-[#fafafa]">{step.stepId}</p>
-                <p className="text-xs text-[#71717a]">{formatMs(step.durationMs)} after +{formatMs(step.offsetMs)}</p>
+                <p className="text-xs text-[#71717a]">
+                  {formatMs(step.durationMs)} after +{formatMs(step.offsetMs)}
+                </p>
               </div>
               <div className="flex items-center gap-2">
                 {step.simulated && (
@@ -96,8 +105,14 @@ export function RunInspector({ run }: { run: FlowRunDetail }) {
               </div>
             </div>
             {step.summary && <p className="mb-2 text-xs text-[#d4a57c]">{step.summary}</p>}
-            {step.branchTaken && <p className="mb-2 text-xs text-[#f59e0b]">Branch: {step.branchTaken}</p>}
-            {step.error && <p className="mb-2 rounded bg-[rgba(239,68,68,0.1)] px-2 py-1 text-xs text-[#ef4444]">{step.error}</p>}
+            {step.branchTaken && (
+              <p className="mb-2 text-xs text-[#f59e0b]">Branch: {step.branchTaken}</p>
+            )}
+            {step.error && (
+              <p className="mb-2 rounded bg-[rgba(239,68,68,0.1)] px-2 py-1 text-xs text-[#ef4444]">
+                {step.error}
+              </p>
+            )}
             <JsonBlock value={step.input} />
             <JsonBlock value={step.output} />
           </div>

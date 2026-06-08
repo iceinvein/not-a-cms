@@ -1,10 +1,10 @@
 import { existsSync, mkdirSync, rmSync } from "node:fs"
 import { join } from "node:path"
 import { runAdminContentSmoke } from "./admin-content.spec"
-import { runMediaPreviewSmoke } from "./media-preview.spec"
-import { runVaultPolishSmoke } from "./vault-polish.spec"
 import { runAutomationDryRunSmoke } from "./automation-dry-run.spec"
 import { runAutomationLiveStreamSmoke } from "./automation-live-stream.spec"
+import { runMediaPreviewSmoke } from "./media-preview.spec"
+import { runVaultPolishSmoke } from "./vault-polish.spec"
 
 type AgentResult = {
   stdout: string
@@ -134,17 +134,27 @@ async function main() {
         results.push(await scenario.run(ctx))
       } catch (err) {
         const message = err instanceof Error ? err.stack || err.message : String(err)
-        const slug = scenario.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+        const slug = scenario.name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "")
         scenarioFailures.push(`${scenario.name}: ${message}`)
         results.push({ name: `${scenario.name} (FAILED)`, details: [message.split("\n")[0]] })
-        await runAgent(["screenshot", "--annotate", join(screenshotDir, `failure-${slug}.png`)], { allowFailure: true })
+        await runAgent(["screenshot", "--annotate", join(screenshotDir, `failure-${slug}.png`)], {
+          allowFailure: true,
+        })
       }
     }
 
     const pageErrors = await runAgent(["errors"], { allowFailure: true })
     const consoleOutput = await runAgent(["console"], { allowFailure: true })
-    notes.push("agent-browser page errors:\n" + fenced(pageErrors.trim() || "No page errors reported."))
-    notes.push("agent-browser console output:\n" + fenced(consoleOutput.trim() || "No console output reported."))
+    notes.push(
+      "agent-browser page errors:\n" + fenced(pageErrors.trim() || "No page errors reported."),
+    )
+    notes.push(
+      "agent-browser console output:\n" +
+        fenced(consoleOutput.trim() || "No console output reported."),
+    )
     const consoleErrors = getConsoleErrors(consoleOutput)
     if (consoleErrors.length > 0) {
       scenarioFailures.push(`agent-browser console reported errors:\n${consoleErrors.join("\n")}`)
@@ -152,7 +162,9 @@ async function main() {
 
     if (scenarioFailures.length > 0) {
       notes.push("Scenario failures:\n" + fenced(scenarioFailures.join("\n\n")))
-      failed = new Error(`${scenarioFailures.length} scenario(s) failed:\n${scenarioFailures.join("\n")}`)
+      failed = new Error(
+        `${scenarioFailures.length} scenario(s) failed:\n${scenarioFailures.join("\n")}`,
+      )
     }
 
     await writeReport({
@@ -165,7 +177,9 @@ async function main() {
     failed = err
     notes.push(err instanceof Error ? err.stack || err.message : String(err))
     try {
-      await runAgent(["screenshot", "--annotate", join(screenshotDir, "failure.png")], { allowFailure: true })
+      await runAgent(["screenshot", "--annotate", join(screenshotDir, "failure.png")], {
+        allowFailure: true,
+      })
       notes.push("Failure screenshot: screenshots/failure.png")
     } catch {}
     await writeReport({
@@ -225,8 +239,17 @@ function createContext(cookieHeader: string): E2EContext {
   }
 }
 
-async function runAgent(args: string[], options: { allowFailure?: boolean; json?: boolean } = {}): Promise<string> {
-  const command = ["agent-browser", "--session", session, ...(options.json ? ["--json"] : []), ...args]
+async function runAgent(
+  args: string[],
+  options: { allowFailure?: boolean; json?: boolean } = {},
+): Promise<string> {
+  const command = [
+    "agent-browser",
+    "--session",
+    session,
+    ...(options.json ? ["--json"] : []),
+    ...args,
+  ]
   const result = await spawn(command)
   if (result.code !== 0 && !options.allowFailure) {
     throw new Error(`agent-browser ${args.join(" ")} failed:\n${result.stderr || result.stdout}`)
@@ -271,7 +294,7 @@ async function waitForMagicLink(email: string) {
   while (Date.now() - started < 10_000) {
     const res = await fetch(url)
     if (res.ok) {
-      const body = await res.json() as { url?: string }
+      const body = (await res.json()) as { url?: string }
       if (body.url) return body.url
     }
     await Bun.sleep(250)
@@ -284,7 +307,10 @@ async function getCookieHeader() {
   const parsed = JSON.parse(raw)
   const cookies = extractCookies(parsed)
   return cookies
-    .filter((cookie: { name?: string; value?: string; domain?: string }) => cookie.name && cookie.value && (cookie.domain ?? "").includes("localhost"))
+    .filter(
+      (cookie: { name?: string; value?: string; domain?: string }) =>
+        cookie.name && cookie.value && (cookie.domain ?? "").includes("localhost"),
+    )
     .map((cookie: { name: string; value: string }) => `${cookie.name}=${cookie.value}`)
     .join("; ")
 }
@@ -332,7 +358,9 @@ async function writeReport(input: {
       : ["No scenario completed successfully.", ""]),
     "## Screenshots",
     "",
-    ...(screenshots.length ? screenshots.map((file) => `- screenshots/${file}`) : ["No screenshots captured."]),
+    ...(screenshots.length
+      ? screenshots.map((file) => `- screenshots/${file}`)
+      : ["No screenshots captured."]),
     "",
     "## Notes",
     "",

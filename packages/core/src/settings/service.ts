@@ -5,7 +5,7 @@ const COLLECTION_SETTINGS_PREFIX = "collection."
 const COLLECTION_SETTINGS_SUFFIX = ".settings"
 const ACCESS_ACTIONS = ["read", "create", "update", "delete"] as const
 
-export type CollectionAccessSettings = Partial<Record<typeof ACCESS_ACTIONS[number], string[]>>
+export type CollectionAccessSettings = Partial<Record<(typeof ACCESS_ACTIONS)[number], string[]>>
 
 export type CollectionSettings = {
   labels?: {
@@ -26,8 +26,8 @@ export function createSettingsService(db: AppDatabase) {
 
   function getAll(prefix?: string): Record<string, string> {
     const rows = prefix
-      ? db.all(sql`SELECT key, value FROM _settings WHERE key LIKE ${prefix + "%"}`) as any[]
-      : db.all(sql`SELECT key, value FROM _settings`) as any[]
+      ? (db.all(sql`SELECT key, value FROM _settings WHERE key LIKE ${prefix + "%"}`) as any[])
+      : (db.all(sql`SELECT key, value FROM _settings`) as any[])
     const result: Record<string, string> = {}
     for (const row of rows) result[row.key] = row.value
     return result
@@ -35,7 +35,9 @@ export function createSettingsService(db: AppDatabase) {
 
   function set(key: string, value: string): void {
     const now = new Date().toISOString()
-    db.run(sql`INSERT INTO _settings (key, value, updated_at) VALUES (${key}, ${value}, ${now}) ON CONFLICT(key) DO UPDATE SET value = ${value}, updated_at = ${now}`)
+    db.run(
+      sql`INSERT INTO _settings (key, value, updated_at) VALUES (${key}, ${value}, ${now}) ON CONFLICT(key) DO UPDATE SET value = ${value}, updated_at = ${now}`,
+    )
   }
 
   function remove(key: string): void {
@@ -52,7 +54,10 @@ export function createSettingsService(db: AppDatabase) {
     }
   }
 
-  function setCollectionSettings(collection: string, value: CollectionSettings): CollectionSettings {
+  function setCollectionSettings(
+    collection: string,
+    value: CollectionSettings,
+  ): CollectionSettings {
     const normalized = normalizeCollectionSettings(value)
     set(collectionSettingsKey(collection), JSON.stringify(normalized))
     return normalized

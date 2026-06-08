@@ -1,17 +1,17 @@
-import { useEditor, EditorContent } from "@tiptap/react"
-import { useEffect, useMemo, useRef } from "react"
-import StarterKit from "@tiptap/starter-kit"
+import type { Extension } from "@tiptap/core"
 import Typography from "@tiptap/extension-typography"
 import { Placeholder } from "@tiptap/extensions"
-import { DEFAULT_COMMANDS, SlashExtension, type SlashCommandItem } from "./extensions/slash-command"
-import { CalloutExtension } from "./blocks/callout"
+import { EditorContent, useEditor } from "@tiptap/react"
+import StarterKit from "@tiptap/starter-kit"
+import { useEffect, useMemo, useRef } from "react"
 import type { DefinedBlock } from "./blocks"
-import { BubbleToolbar } from "./menus/bubble-menu"
-import { toPortableText } from "./portable-text/to-portable-text"
-import { fromPortableText } from "./portable-text/from-portable-text"
-import { useCollaboration, type CollabConfig } from "./collaboration/provider"
+import { CalloutExtension } from "./blocks/callout"
+import { type CollabConfig, useCollaboration } from "./collaboration/provider"
 import { RemoteCursors, setRemoteCursors } from "./collaboration/remote-cursors"
-import type { Extension } from "@tiptap/core"
+import { DEFAULT_COMMANDS, type SlashCommandItem, SlashExtension } from "./extensions/slash-command"
+import { BubbleToolbar } from "./menus/bubble-menu"
+import { fromPortableText } from "./portable-text/from-portable-text"
+import { toPortableText } from "./portable-text/to-portable-text"
 
 type PortableTextBlock = { type: string; [key: string]: any }
 
@@ -42,11 +42,15 @@ export function Editor({
   const appliedContentSignature = useRef<string | null>(initialContentSignature)
   const hasAppliedInitialContent = useRef(Boolean(initialContentSignature) && !collaboration)
   const remoteCursorExtensions = useMemo(
-    () => collaboration ? [
-      RemoteCursors.configure({
-        onLocalSelection: (anchor, head) => collabProviderRef.current?.sendCursor(anchor, head),
-      }),
-    ] : [],
+    () =>
+      collaboration
+        ? [
+            RemoteCursors.configure({
+              onLocalSelection: (anchor, head) =>
+                collabProviderRef.current?.sendCursor(anchor, head),
+            }),
+          ]
+        : [],
     [Boolean(collaboration)],
   )
 

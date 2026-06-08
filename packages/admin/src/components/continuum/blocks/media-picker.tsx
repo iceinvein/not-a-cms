@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { getAdminApiBase } from "../../../lib/api"
-import { listMediaItems, uploadMediaFile, type AdminMediaItem } from "../../../lib/media"
+import { type AdminMediaItem, listMediaItems, uploadMediaFile } from "../../../lib/media"
 
 type Props = {
   /** Current image URL (for the thumbnail preview), if any. */

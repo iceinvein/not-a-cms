@@ -32,9 +32,15 @@ describe("extension manifests", () => {
   test("resolveExtensionManifests filters invalid declarations", () => {
     const extension = defineExtension({ name: "valid" })
 
-    expect(resolveExtensionManifests([extension, null, {}, { name: "" }, { name: "missing", blocks: "bad" }])).toEqual([
-      extension,
-    ])
+    expect(
+      resolveExtensionManifests([
+        extension,
+        null,
+        {},
+        { name: "" },
+        { name: "missing", blocks: "bad" },
+      ]),
+    ).toEqual([extension])
   })
 
   test("collectors flatten fields, blocks, and ordered admin panels", () => {
@@ -51,9 +57,18 @@ describe("extension manifests", () => {
       admin: { panels: [{ label: "SEO", href: "/seo", order: 10 }] },
     })
 
-    expect(collectExtensionFields([commerce, seo]).map((field) => field.name)).toEqual(["money", "score"])
-    expect(collectExtensionBlocks([commerce, seo]).map((block) => block.name)).toEqual(["pricing", "toc"])
-    expect(collectExtensionAdminPanels([commerce, seo]).map((panel) => panel.label)).toEqual(["SEO", "Commerce"])
+    expect(collectExtensionFields([commerce, seo]).map((field) => field.name)).toEqual([
+      "money",
+      "score",
+    ])
+    expect(collectExtensionBlocks([commerce, seo]).map((block) => block.name)).toEqual([
+      "pricing",
+      "toc",
+    ])
+    expect(collectExtensionAdminPanels([commerce, seo]).map((panel) => panel.label)).toEqual([
+      "SEO",
+      "Commerce",
+    ])
   })
 
   test("defineConfig accepts typed extension manifests", () => {

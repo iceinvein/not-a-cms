@@ -1,11 +1,13 @@
 ---
-import AdminLayout from "../../../layouts/AdminLayout.astro"
 import { Continuum } from "../../../components/continuum/Continuum"
+import AdminLayout from "../../../layouts/AdminLayout.astro"
 import { getAdminApiBase } from "../../../lib/api"
 import { fetchCollection } from "../../../lib/schema"
 
 const { collection, id } = Astro.params
-const schema = await fetchCollection(collection!, { cookie: Astro.request.headers.get("cookie") || "" })
+const schema = await fetchCollection(collection!, {
+  cookie: Astro.request.headers.get("cookie") || "",
+})
 
 if (!schema) return Astro.redirect("/")
 

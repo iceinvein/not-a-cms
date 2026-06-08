@@ -1,18 +1,24 @@
-import { test, expect, describe, afterEach } from "bun:test"
-import { createDatabase } from "../../src/db/connection"
+import { afterEach, describe, expect, test } from "bun:test"
+import { unlinkSync } from "node:fs"
+import { sql } from "drizzle-orm"
 import { bootstrapTables } from "../../src/db/bootstrap"
+import { createDatabase } from "../../src/db/connection"
 import { defineCollection } from "../../src/schema/collection"
 import { field } from "../../src/schema/field"
-import { sql } from "drizzle-orm"
-import { unlinkSync } from "node:fs"
 
 const testDbPath = "test-bootstrap.db"
 
 describe("bootstrapTables", () => {
   afterEach(() => {
-    try { unlinkSync(testDbPath) } catch {}
-    try { unlinkSync(testDbPath + "-wal") } catch {}
-    try { unlinkSync(testDbPath + "-shm") } catch {}
+    try {
+      unlinkSync(testDbPath)
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-wal")
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-shm")
+    } catch {}
   })
 
   test("creates tables for collections", () => {
@@ -23,8 +29,10 @@ describe("bootstrapTables", () => {
     })
     bootstrapTables(db, [col])
 
-    const rows = db.all(sql`${sql.raw("PRAGMA table_info(test_create)")}`) as Array<{ name: string }>
-    const colNames = rows.map(r => r.name)
+    const rows = db.all(sql`${sql.raw("PRAGMA table_info(test_create)")}`) as Array<{
+      name: string
+    }>
+    const colNames = rows.map((r) => r.name)
     expect(colNames).toContain("id")
     expect(colNames).toContain("title")
     expect(colNames).toContain("created_at")
@@ -52,7 +60,9 @@ describe("bootstrapTables", () => {
     bootstrapTables(db, [v2])
 
     // Verify the new column exists by inserting data
-    db.run(sql`${sql.raw("INSERT INTO test_migrate (id, title, layout) VALUES ('1', 'Test', '{}')")}`)
+    db.run(
+      sql`${sql.raw("INSERT INTO test_migrate (id, title, layout) VALUES ('1', 'Test', '{}')")}`,
+    )
     const rows = db.all(sql`${sql.raw("SELECT * FROM test_migrate WHERE id = '1'")}`) as any[]
     expect(rows[0].layout).toBe("{}")
   })
@@ -75,8 +85,10 @@ describe("bootstrapTables", () => {
     })
     bootstrapTables(db, [v2])
 
-    const rows = db.all(sql`${sql.raw("PRAGMA table_info(test_relation)")}`) as Array<{ name: string }>
-    const colNames = rows.map(r => r.name)
+    const rows = db.all(sql`${sql.raw("PRAGMA table_info(test_relation)")}`) as Array<{
+      name: string
+    }>
+    const colNames = rows.map((r) => r.name)
     expect(colNames).toContain("author_id")
   })
 
@@ -95,8 +107,10 @@ describe("bootstrapTables", () => {
     bootstrapTables(db, [col])
     bootstrapTables(db, [col])
 
-    const rows = db.all(sql`${sql.raw("PRAGMA table_info(test_idempotent)")}`) as Array<{ name: string }>
-    const colNames = rows.map(r => r.name)
+    const rows = db.all(sql`${sql.raw("PRAGMA table_info(test_idempotent)")}`) as Array<{
+      name: string
+    }>
+    const colNames = rows.map((r) => r.name)
     expect(colNames).toContain("title")
     expect(colNames).toContain("slug")
   })

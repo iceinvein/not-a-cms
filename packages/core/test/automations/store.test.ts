@@ -1,9 +1,9 @@
-import { test, expect, describe, beforeEach, afterEach } from "bun:test"
-import { sql } from "drizzle-orm"
+import { afterEach, beforeEach, describe, expect, test } from "bun:test"
 import { unlinkSync } from "node:fs"
-import { createDatabase } from "../../src/db/connection"
-import { bootstrapTables } from "../../src/db/bootstrap"
+import { sql } from "drizzle-orm"
 import { createFlowStore } from "../../src/automations/store"
+import { bootstrapTables } from "../../src/db/bootstrap"
+import { createDatabase } from "../../src/db/connection"
 
 const testDbPath = "test-automations.db"
 let db: ReturnType<typeof createDatabase>
@@ -22,9 +22,15 @@ describe("flow store", () => {
   })
 
   afterEach(() => {
-    try { unlinkSync(testDbPath) } catch {}
-    try { unlinkSync(testDbPath + "-wal") } catch {}
-    try { unlinkSync(testDbPath + "-shm") } catch {}
+    try {
+      unlinkSync(testDbPath)
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-wal")
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-shm")
+    } catch {}
   })
 
   test("createFlow() creates a flow with defaults", () => {
@@ -39,14 +45,20 @@ describe("flow store", () => {
   })
 
   test("createFlow() respects active=false", () => {
-    const flow = store.createFlow({ name: "Inactive", trigger: sampleTrigger, steps: [], active: false })
+    const flow = store.createFlow({
+      name: "Inactive",
+      trigger: sampleTrigger,
+      steps: [],
+      active: false,
+    })
     expect(flow.active).toBe(false)
   })
 
   test("listFlows() returns all flows ordered by created_at DESC", () => {
     store.createFlow({ name: "First", trigger: sampleTrigger, steps: [] })
     // Small delay to ensure distinct timestamps
-    const start = Date.now(); while (Date.now() - start < 2) {}
+    const start = Date.now()
+    while (Date.now() - start < 2) {}
     store.createFlow({ name: "Second", trigger: sampleTrigger, steps: [] })
     const flows = store.listFlows()
     expect(flows).toHaveLength(2)
@@ -55,7 +67,11 @@ describe("flow store", () => {
   })
 
   test("getFlowById() returns the flow when found", () => {
-    const created = store.createFlow({ name: "Find Me", trigger: sampleTrigger, steps: sampleSteps })
+    const created = store.createFlow({
+      name: "Find Me",
+      trigger: sampleTrigger,
+      steps: sampleSteps,
+    })
     const found = store.getFlowById(created.id)
     expect(found).not.toBeNull()
     expect(found?.name).toBe("Find Me")
@@ -111,9 +127,24 @@ describe("flow store", () => {
   })
 
   test("getActiveFlowsByTrigger() filters by trigger type and active status", () => {
-    store.createFlow({ name: "Active Published", trigger: { type: "content.published", collection: "posts" }, steps: [], active: true })
-    store.createFlow({ name: "Inactive Published", trigger: { type: "content.published" }, steps: [], active: false })
-    store.createFlow({ name: "Active Created", trigger: { type: "content.created" }, steps: [], active: true })
+    store.createFlow({
+      name: "Active Published",
+      trigger: { type: "content.published", collection: "posts" },
+      steps: [],
+      active: true,
+    })
+    store.createFlow({
+      name: "Inactive Published",
+      trigger: { type: "content.published" },
+      steps: [],
+      active: false,
+    })
+    store.createFlow({
+      name: "Active Created",
+      trigger: { type: "content.created" },
+      steps: [],
+      active: true,
+    })
     const results = store.getActiveFlowsByTrigger("content.published")
     expect(results).toHaveLength(1)
     expect(results[0].name).toBe("Active Published")

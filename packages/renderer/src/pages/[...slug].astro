@@ -1,12 +1,18 @@
 ---
 import DefaultLayout from "../defaults/layouts/default.astro"
-import { createContentFetcher, documentPath, mediaUrl, mergeRoutes } from "../runtime/content-fetcher"
+import {
+  createContentFetcher,
+  documentPath,
+  mediaUrl,
+  mergeRoutes,
+} from "../runtime/content-fetcher"
 import { renderDocumentContent } from "../runtime/document-renderer"
 import { relatedPosts } from "../runtime/related"
 
 const apiBase = import.meta.env.PUBLIC_API_BASE || "http://localhost:4321"
 
-let apiSite: { routes?: Array<{ collection: string; path: string; slug?: string }> | null } | null = null
+let apiSite: { routes?: Array<{ collection: string; path: string; slug?: string }> | null } | null =
+  null
 try {
   const siteRes = await fetch(`${apiBase}/api/_site`)
   if (siteRes.ok) apiSite = await siteRes.json()
@@ -34,12 +40,16 @@ const showsDate = isBlogPost
 
 // Fetch related posts only for blog post pages.
 async function fetchRelated() {
-  if (!isBlogPost) return [] as typeof post[]
+  if (!isBlogPost) return [] as (typeof post)[]
   try {
     const all = await fetcher.list("blog_post", { limit: 20 })
-    return relatedPosts(post, all.filter((p) => p.status === "published"), 3)
+    return relatedPosts(
+      post,
+      all.filter((p) => p.status === "published"),
+      3,
+    )
   } catch {
-    return [] as typeof post[]
+    return [] as (typeof post)[]
   }
 }
 

@@ -3,13 +3,16 @@ type RegistryComponentDef = {
   label: string
   category?: string
   icon?: string
-  props: Record<string, {
-    type: "text" | "number" | "boolean" | "media" | "select" | "group"
-    default?: unknown
-    label?: string
-    options?: string[]
-    fields?: Record<string, any>
-  }>
+  props: Record<
+    string,
+    {
+      type: "text" | "number" | "boolean" | "media" | "select" | "group"
+      default?: unknown
+      label?: string
+      options?: string[]
+      fields?: Record<string, any>
+    }
+  >
 }
 
 export function createComponentRegistry(components: RegistryComponentDef[]) {

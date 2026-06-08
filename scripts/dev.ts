@@ -6,13 +6,17 @@
  * Usage: bun scripts/dev.ts [--port=4321] [--admin-port=4322] [--renderer-port=3000] [--site=<name>]
  */
 import { resolveSiteConfigPath } from "./dev-site"
-export {}
 
 const args = Bun.argv.slice(2)
 const configPath = resolveSiteConfigPath(args, process.env)
-const apiPort = args.find(a => a.startsWith("--port="))?.split("=")[1] ?? process.env.PORT ?? "4321"
-const adminPort = args.find(a => a.startsWith("--admin-port="))?.split("=")[1] ?? process.env.ADMIN_PORT ?? "4322"
-const rendererPort = args.find(a => a.startsWith("--renderer-port="))?.split("=")[1] ?? process.env.RENDERER_PORT ?? "3000"
+const apiPort =
+  args.find((a) => a.startsWith("--port="))?.split("=")[1] ?? process.env.PORT ?? "4321"
+const adminPort =
+  args.find((a) => a.startsWith("--admin-port="))?.split("=")[1] ?? process.env.ADMIN_PORT ?? "4322"
+const rendererPort =
+  args.find((a) => a.startsWith("--renderer-port="))?.split("=")[1] ??
+  process.env.RENDERER_PORT ??
+  "3000"
 
 // Track every spawned child so a startup timeout (or signal) can tear them all
 // down instead of orphaning a process that is already holding a port.
@@ -20,7 +24,9 @@ const children: Bun.Subprocess[] = []
 function shutdown(code: number, message?: string) {
   if (message) console.error(message)
   for (const child of children) {
-    try { child.kill() } catch {}
+    try {
+      child.kill()
+    } catch {}
   }
   process.exit(code)
 }
@@ -50,7 +56,11 @@ console.log("  Starting admin UI...")
 // explicitly so it matches the IPv4 health check and never resolves to an ::1 squatter.
 const admin = Bun.spawn(["bunx", "astro", "dev", "--port", adminPort, "--host", "127.0.0.1"], {
   cwd: "packages/admin",
-  env: { ...process.env, PUBLIC_API_BASE: `http://localhost:${apiPort}`, PUBLIC_SITE_BASE: `http://localhost:${rendererPort}` },
+  env: {
+    ...process.env,
+    PUBLIC_API_BASE: `http://localhost:${apiPort}`,
+    PUBLIC_SITE_BASE: `http://localhost:${rendererPort}`,
+  },
   stdout: "ignore",
   stderr: "ignore",
 })
@@ -61,12 +71,15 @@ await waitForServer(`http://127.0.0.1:${adminPort}`, 15_000)
 
 console.log("  Starting public site renderer...")
 
-const renderer = Bun.spawn(["bunx", "astro", "dev", "--port", rendererPort, "--host", "127.0.0.1"], {
-  cwd: "packages/renderer",
-  env: { ...process.env, PUBLIC_API_BASE: `http://localhost:${apiPort}` },
-  stdout: "ignore",
-  stderr: "ignore",
-})
+const renderer = Bun.spawn(
+  ["bunx", "astro", "dev", "--port", rendererPort, "--host", "127.0.0.1"],
+  {
+    cwd: "packages/renderer",
+    env: { ...process.env, PUBLIC_API_BASE: `http://localhost:${apiPort}` },
+    stdout: "ignore",
+    stderr: "ignore",
+  },
+)
 children.push(renderer)
 
 await waitForServer(`http://127.0.0.1:${rendererPort}`, 15_000)

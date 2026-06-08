@@ -2,8 +2,8 @@ import { describe, expect, test } from "bun:test"
 import {
   buildDoCommands,
   buildJumpCommands,
-  rankCommands,
   type Command,
+  rankCommands,
 } from "../../../src/lib/command/commands"
 
 const collections = [

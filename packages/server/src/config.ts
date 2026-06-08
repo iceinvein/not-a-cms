@@ -11,7 +11,10 @@ export function resolveConfigLoadOptions(env: Env = process.env): LoadConfigOpti
   return env.CONFIG_PATH ? { path: env.CONFIG_PATH } : {}
 }
 
-export function createServerConfigFromCMSConfig(userConfig: ProjectConfig, env: Env = process.env): ServerConfig {
+export function createServerConfigFromCMSConfig(
+  userConfig: ProjectConfig,
+  env: Env = process.env,
+): ServerConfig {
   const port = parseInt(env.PORT ?? String(userConfig.port ?? 4321), 10)
   const corsOrigins = (env.CORS_ORIGINS ?? "")
     .split(",")
@@ -29,7 +32,8 @@ export function createServerConfigFromCMSConfig(userConfig: ProjectConfig, env: 
     auth: {
       secret: env.BETTER_AUTH_SECRET ?? "dev-secret-change-me-" + "x".repeat(16),
       baseURL: userConfig.site?.url ?? env.BASE_URL ?? `http://localhost:${port}`,
-      trustedOrigins: corsOrigins.length > 0 ? corsOrigins : ["http://localhost:4322", "http://localhost:3000"],
+      trustedOrigins:
+        corsOrigins.length > 0 ? corsOrigins : ["http://localhost:4322", "http://localhost:3000"],
       magicLink: {
         sendMagicLink: async ({ email, url }) => {
           if (testAuthEnabled) e2eMagicLinks.set(email, url)
@@ -54,15 +58,24 @@ export function createServerConfigFromCMSConfig(userConfig: ProjectConfig, env: 
     theme: userConfig.theme as ServerConfig["theme"],
     routes: userConfig.routes,
     cors: {
-      origins: corsOrigins.length > 0 ? corsOrigins : ["http://localhost:4322", "http://localhost:3000"],
+      origins:
+        corsOrigins.length > 0 ? corsOrigins : ["http://localhost:4322", "http://localhost:3000"],
     },
     ...(testAuthEnabled
-      ? { testAuth: { enabled: true, getMagicLink: (email: string) => e2eMagicLinks.get(email) ?? null } }
+      ? {
+          testAuth: {
+            enabled: true,
+            getMagicLink: (email: string) => e2eMagicLinks.get(email) ?? null,
+          },
+        }
       : {}),
   }
 }
 
-export function resolveServerStorageConfig(storage: CMSConfig["storage"], env: Env = process.env): StorageConfig | undefined {
+export function resolveServerStorageConfig(
+  storage: CMSConfig["storage"],
+  env: Env = process.env,
+): StorageConfig | undefined {
   if (storage?.provider === "local") {
     return {
       provider: "local",

@@ -24,7 +24,9 @@ const SECTION_PREFIX: Record<string, string> = {
  * field without a default. Accepts either a DefinedTheme or the plain `{ settings }`
  * shape the API serves.
  */
-export function resolveThemeSettings(theme: Pick<DefinedTheme, "settings"> | null | undefined): ResolvedThemeSettings {
+export function resolveThemeSettings(
+  theme: Pick<DefinedTheme, "settings"> | null | undefined,
+): ResolvedThemeSettings {
   const resolved: ResolvedThemeSettings = {}
   for (const [section, fields] of Object.entries(theme?.settings ?? {})) {
     for (const [key, field] of Object.entries(fields as Record<string, ThemeSettingField>)) {
@@ -40,7 +42,10 @@ export function resolveThemeSettings(theme: Pick<DefinedTheme, "settings"> | nul
  * theme (from config.theme) can selectively override the renderer's bundled defaults
  * without having to restate every token.
  */
-export function mergeResolvedSettings(base: ResolvedThemeSettings, override: ResolvedThemeSettings): ResolvedThemeSettings {
+export function mergeResolvedSettings(
+  base: ResolvedThemeSettings,
+  override: ResolvedThemeSettings,
+): ResolvedThemeSettings {
   const merged: ResolvedThemeSettings = {}
   for (const section of new Set([...Object.keys(base), ...Object.keys(override)])) {
     merged[section] = { ...base[section], ...override[section] }

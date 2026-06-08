@@ -1,13 +1,13 @@
-import { useEffect, useRef, useState, type ChangeEvent } from "react"
-import { EmptyState, ErrorState, LoadingState } from "./AdminState"
+import { type ChangeEvent, useEffect, useRef, useState } from "react"
 import {
+  type AdminMediaItem,
   deleteMediaItem,
   listMediaItems,
   replaceMediaFile,
-  type AdminMediaItem,
   updateMediaItem,
   uploadMediaFile,
 } from "../lib/media"
+import { EmptyState, ErrorState, LoadingState } from "./AdminState"
 
 export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
   const [items, setItems] = useState<AdminMediaItem[]>([])
@@ -17,7 +17,13 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
   const [replacing, setReplacing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [metadata, setMetadata] = useState({ alt: "", title: "", caption: "", focalX: "0.5", focalY: "0.5" })
+  const [metadata, setMetadata] = useState({
+    alt: "",
+    title: "",
+    caption: "",
+    focalX: "0.5",
+    focalY: "0.5",
+  })
   const fileInputRef = useRef<HTMLInputElement>(null)
   const replaceInputRef = useRef<HTMLInputElement>(null)
   const selectedItem = items.find((item) => item.id === selectedId) ?? null
@@ -92,7 +98,7 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
         focalX: Number(metadata.focalX),
         focalY: Number(metadata.focalY),
       })
-      setItems((prev) => prev.map((item) => item.id === updated.id ? updated : item))
+      setItems((prev) => prev.map((item) => (item.id === updated.id ? updated : item)))
     } catch (err: any) {
       setError(err.message || "Failed to update media")
     } finally {
@@ -107,7 +113,7 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
     setError(null)
     try {
       const updated = await replaceMediaFile(apiBase, selectedItem.id, file)
-      setItems((prev) => prev.map((item) => item.id === updated.id ? updated : item))
+      setItems((prev) => prev.map((item) => (item.id === updated.id ? updated : item)))
     } catch (err: any) {
       setError(err.message || "Failed to replace media file")
     } finally {
@@ -150,9 +156,7 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
         className="hidden"
       />
 
-      {error && (
-        <ErrorState compact title="Media action failed" description={error} />
-      )}
+      {error && <ErrorState compact title="Media action failed" description={error} />}
 
       {loading ? (
         <LoadingState compact title="Loading media" description="Fetching uploaded files." />
@@ -160,7 +164,7 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
         <EmptyState
           title="No media files yet"
           description="Upload images, videos, or documents to reuse them across your content."
-          action={(
+          action={
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
@@ -168,7 +172,7 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
             >
               Upload files
             </button>
-          )}
+          }
         />
       ) : (
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
@@ -192,7 +196,9 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
                   )}
                 </div>
                 <div className="p-3">
-                  <p className="text-xs font-medium text-[#fafafa] truncate">{item.title || item.filename}</p>
+                  <p className="text-xs font-medium text-[#fafafa] truncate">
+                    {item.title || item.filename}
+                  </p>
                   <p className="text-xs text-[#52525b]">{formatSize(item.size)}</p>
                 </div>
               </button>
@@ -201,13 +207,26 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
 
           <aside className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b] p-4">
             {!selectedItem ? (
-              <EmptyState compact title="Select a media item" description="Edit metadata, focal point, or replace the selected file." />
+              <EmptyState
+                compact
+                title="Select a media item"
+                description="Edit metadata, focal point, or replace the selected file."
+              />
             ) : (
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm font-medium text-[#fafafa] truncate">{selectedItem.filename}</p>
+                  <p className="text-sm font-medium text-[#fafafa] truncate">
+                    {selectedItem.filename}
+                  </p>
                   <p className="text-xs text-[#71717a]">
-                    {[formatSize(selectedItem.size), selectedItem.width && selectedItem.height ? `${selectedItem.width}x${selectedItem.height}` : null].filter(Boolean).join(" / ")}
+                    {[
+                      formatSize(selectedItem.size),
+                      selectedItem.width && selectedItem.height
+                        ? `${selectedItem.width}x${selectedItem.height}`
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" / ")}
                   </p>
                 </div>
 
@@ -215,7 +234,9 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
                   Title
                   <input
                     value={metadata.title}
-                    onChange={(event) => setMetadata((current) => ({ ...current, title: event.target.value }))}
+                    onChange={(event) =>
+                      setMetadata((current) => ({ ...current, title: event.target.value }))
+                    }
                     className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c9956b] focus:outline-none"
                   />
                 </label>
@@ -223,7 +244,9 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
                   Alt text
                   <input
                     value={metadata.alt}
-                    onChange={(event) => setMetadata((current) => ({ ...current, alt: event.target.value }))}
+                    onChange={(event) =>
+                      setMetadata((current) => ({ ...current, alt: event.target.value }))
+                    }
                     className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c9956b] focus:outline-none"
                   />
                 </label>
@@ -231,7 +254,9 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
                   Caption
                   <textarea
                     value={metadata.caption}
-                    onChange={(event) => setMetadata((current) => ({ ...current, caption: event.target.value }))}
+                    onChange={(event) =>
+                      setMetadata((current) => ({ ...current, caption: event.target.value }))
+                    }
                     rows={3}
                     className="resize-none px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c9956b] focus:outline-none"
                   />
@@ -246,7 +271,9 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
                       max="1"
                       step="0.01"
                       value={metadata.focalX}
-                      onChange={(event) => setMetadata((current) => ({ ...current, focalX: event.target.value }))}
+                      onChange={(event) =>
+                        setMetadata((current) => ({ ...current, focalX: event.target.value }))
+                      }
                       className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] focus:border-[#c9956b] focus:outline-none"
                     />
                   </label>
@@ -258,7 +285,9 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
                       max="1"
                       step="0.01"
                       value={metadata.focalY}
-                      onChange={(event) => setMetadata((current) => ({ ...current, focalY: event.target.value }))}
+                      onChange={(event) =>
+                        setMetadata((current) => ({ ...current, focalY: event.target.value }))
+                      }
                       className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] focus:border-[#c9956b] focus:outline-none"
                     />
                   </label>

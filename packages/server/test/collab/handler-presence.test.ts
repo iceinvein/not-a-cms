@@ -18,7 +18,15 @@ describe("collab handler presence wiring", () => {
     const docName = "content:post:wire-test:body"
     const ws = fakeWs(docName)
     collabWebSocket.open(ws as any)
-    collabWebSocket.message(ws as any, JSON.stringify({ type: "presence", clientId: "cX", user: { name: "Sam", color: "#c9956b" }, status: "online" }))
+    collabWebSocket.message(
+      ws as any,
+      JSON.stringify({
+        type: "presence",
+        clientId: "cX",
+        user: { name: "Sam", color: "#c9956b" },
+        status: "online",
+      }),
+    )
 
     const room = presenceSnapshot().find((r) => r.docName === docName)
     expect(room?.users.map((u) => u.name)).toEqual(["Sam"])
@@ -31,12 +39,15 @@ describe("collab handler presence wiring", () => {
     const published: string[] = []
     const ws = fakeWs("content:post:close-test:body", published)
     collabWebSocket.open(ws as any)
-    collabWebSocket.message(ws as any, JSON.stringify({
-      type: "presence",
-      clientId: "cY",
-      user: { name: "Riley", color: "#38bdf8" },
-      status: "online",
-    }))
+    collabWebSocket.message(
+      ws as any,
+      JSON.stringify({
+        type: "presence",
+        clientId: "cY",
+        user: { name: "Riley", color: "#38bdf8" },
+        status: "online",
+      }),
+    )
 
     collabWebSocket.close(ws as any)
 

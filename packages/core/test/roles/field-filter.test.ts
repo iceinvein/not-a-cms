@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test"
+import { describe, expect, test } from "bun:test"
 import {
   canAccessCollection,
   filterFieldsByRole,
@@ -67,7 +67,11 @@ describe("projectDocumentFields", () => {
   })
 
   test("keeps restricted fields for allowed roles", () => {
-    const doc = { title: "Public", secret: "private", seo: { description: "Visible", notes: "kept" } }
+    const doc = {
+      title: "Public",
+      secret: "private",
+      seo: { description: "Visible", notes: "kept" },
+    }
 
     expect(projectDocumentFields(doc, fields, "admin")).toEqual(doc)
   })
@@ -84,18 +88,28 @@ describe("filterWritableFields", () => {
   }
 
   test("removes fields that the role cannot write", () => {
-    expect(filterWritableFields({
-      title: "Draft",
-      secret: "private",
-      seo: { description: "Visible", notes: "hidden" },
-    }, fields, "editor")).toEqual({
+    expect(
+      filterWritableFields(
+        {
+          title: "Draft",
+          secret: "private",
+          seo: { description: "Visible", notes: "hidden" },
+        },
+        fields,
+        "editor",
+      ),
+    ).toEqual({
       title: "Draft",
       seo: { description: "Visible" },
     })
   })
 
   test("keeps restricted fields for allowed roles", () => {
-    const input = { title: "Draft", secret: "private", seo: { description: "Visible", notes: "kept" } }
+    const input = {
+      title: "Draft",
+      secret: "private",
+      seo: { description: "Visible", notes: "kept" },
+    }
 
     expect(filterWritableFields(input, fields, "admin")).toEqual(input)
   })

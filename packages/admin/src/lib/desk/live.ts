@@ -4,7 +4,14 @@ export type PresenceRoomView = {
   title: string
   users: Array<{ name: string; color: string }>
 }
-export type LiveRow = { name: string; color: string; title: string; href: string; collection: string; documentId: string }
+export type LiveRow = {
+  name: string
+  color: string
+  title: string
+  href: string
+  collection: string
+  documentId: string
+}
 
 export function toLiveRows(rooms: PresenceRoomView[]): LiveRow[] {
   const rows: LiveRow[] = []

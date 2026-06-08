@@ -1,5 +1,9 @@
-import { test, expect, describe } from "bun:test"
-import { filterCommands, DEFAULT_COMMANDS, SlashExtension } from "../../src/extensions/slash-command"
+import { describe, expect, test } from "bun:test"
+import {
+  DEFAULT_COMMANDS,
+  filterCommands,
+  SlashExtension,
+} from "../../src/extensions/slash-command"
 
 describe("filterCommands", () => {
   test("returns all commands for empty query", () => {

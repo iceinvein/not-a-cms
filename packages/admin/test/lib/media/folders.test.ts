@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test"
-import { buildFolderTree, filterByFolder, folderDescendantIds, folderPath } from "../../../src/lib/media/folders"
+import {
+  buildFolderTree,
+  filterByFolder,
+  folderDescendantIds,
+  folderPath,
+} from "../../../src/lib/media/folders"
 
 const folders = [
   { id: "a", name: "Brand", parentId: null },
@@ -7,7 +12,15 @@ const folders = [
   { id: "c", name: "Campaigns", parentId: null },
 ]
 const items = [
-  { id: "1", filename: "x", mimetype: "image/png", size: 1, uploadedAt: "", url: "", folderId: "b" },
+  {
+    id: "1",
+    filename: "x",
+    mimetype: "image/png",
+    size: 1,
+    uploadedAt: "",
+    url: "",
+    folderId: "b",
+  },
   { id: "2", filename: "y", mimetype: "image/png", size: 1, uploadedAt: "", url: "" },
 ]
 

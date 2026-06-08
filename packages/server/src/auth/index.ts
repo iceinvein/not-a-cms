@@ -1,2 +1,2 @@
-export { createAuth } from "./setup"
 export { getSessionFromRequest } from "./middleware"
+export { createAuth } from "./setup"

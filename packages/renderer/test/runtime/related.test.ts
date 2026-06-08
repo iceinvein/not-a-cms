@@ -14,7 +14,7 @@ describe("relatedPosts", () => {
   test("orders by shared-tag count descending", () => {
     const current = post({ id: "current", tags: ["typescript", "bun"] })
     const candidates = [
-      post({ id: "a", tags: ["rust"], created_at: "2025-03-01T00:00:00Z" }),      // 0 shared
+      post({ id: "a", tags: ["rust"], created_at: "2025-03-01T00:00:00Z" }), // 0 shared
       post({ id: "b", tags: ["typescript"], created_at: "2025-02-01T00:00:00Z" }), // 1 shared
       post({ id: "c", tags: ["typescript", "bun"], created_at: "2025-01-01T00:00:00Z" }), // 2 shared
     ]
@@ -35,8 +35,18 @@ describe("relatedPosts", () => {
   test("breaks ties using publishedAt when present", () => {
     const current = post({ id: "current", tags: ["typescript"] })
     const candidates = [
-      post({ id: "a", tags: ["typescript"], created_at: "2025-01-01T00:00:00Z", publishedAt: "2025-03-01T00:00:00Z" }),
-      post({ id: "b", tags: ["typescript"], created_at: "2025-06-01T00:00:00Z", publishedAt: "2025-02-01T00:00:00Z" }),
+      post({
+        id: "a",
+        tags: ["typescript"],
+        created_at: "2025-01-01T00:00:00Z",
+        publishedAt: "2025-03-01T00:00:00Z",
+      }),
+      post({
+        id: "b",
+        tags: ["typescript"],
+        created_at: "2025-06-01T00:00:00Z",
+        publishedAt: "2025-02-01T00:00:00Z",
+      }),
     ]
     // publishedAt takes precedence over created_at for date sort
     const result = relatedPosts(current, candidates, 2)
@@ -75,19 +85,14 @@ describe("relatedPosts", () => {
 
   test("safe with missing tags (undefined)", () => {
     const current = post({ id: "current", tags: undefined })
-    const candidates = [
-      post({ id: "a", tags: ["typescript"] }),
-      post({ id: "b", tags: undefined }),
-    ]
+    const candidates = [post({ id: "a", tags: ["typescript"] }), post({ id: "b", tags: undefined })]
     // no crashes; recency order
     expect(() => relatedPosts(current, candidates, 3)).not.toThrow()
   })
 
   test("safe with non-array tags (string)", () => {
     const current = post({ id: "current", tags: "typescript" })
-    const candidates = [
-      post({ id: "a", tags: "typescript" }),
-    ]
+    const candidates = [post({ id: "a", tags: "typescript" })]
     // non-array tags are treated as empty; recency fallback applies
     expect(() => relatedPosts(current, candidates, 3)).not.toThrow()
     const result = relatedPosts(current, candidates, 3)

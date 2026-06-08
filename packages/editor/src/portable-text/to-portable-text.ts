@@ -50,7 +50,9 @@ function convertTextNode(node: TiptapNode): PTTextNode {
   return result
 }
 
-function convertInlineContent(content: TiptapNode[] | undefined): Array<PTTextNode | { type: "break" }> {
+function convertInlineContent(
+  content: TiptapNode[] | undefined,
+): Array<PTTextNode | { type: "break" }> {
   if (!content || content.length === 0) return []
   return content.map((node) => {
     if (node.type === "hardBreak") {
@@ -84,7 +86,7 @@ function convertBlock(node: TiptapNode): PTBlock | null {
     case "bulletList":
     case "orderedList": {
       const items = (node.content ?? []).map((listItem) =>
-        (listItem.content ?? []).map(convertBlock).filter((b): b is PTBlock => b !== null)
+        (listItem.content ?? []).map(convertBlock).filter((b): b is PTBlock => b !== null),
       )
       return {
         type: node.type,

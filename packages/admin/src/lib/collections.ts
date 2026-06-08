@@ -1,7 +1,9 @@
-import { adminApiFetch } from "./api"
 import type { RoleDefinition } from "./access"
+import { adminApiFetch } from "./api"
 
-export type CollectionAccessSettings = Partial<Record<"read" | "create" | "update" | "delete", string[]>>
+export type CollectionAccessSettings = Partial<
+  Record<"read" | "create" | "update" | "delete", string[]>
+>
 
 export type CollectionSettingsInput = {
   labels?: {
@@ -44,11 +46,15 @@ export async function saveCollectionSettings(
   collection: string,
   settings: CollectionSettingsInput,
 ): Promise<CollectionSettingsEntry> {
-  const res = await adminApiFetch(apiBase, `/api/_collection-settings/${encodeURIComponent(collection)}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(settings),
-  })
+  const res = await adminApiFetch(
+    apiBase,
+    `/api/_collection-settings/${encodeURIComponent(collection)}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(settings),
+    },
+  )
   if (!res.ok) throw new Error("Failed to save collection settings")
   return res.json()
 }

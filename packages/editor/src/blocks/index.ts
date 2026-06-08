@@ -1,9 +1,9 @@
 import type { DefinedBlock } from "./define-block"
 
-export { defineBlock } from "./define-block"
-export type { BlockDefinition, BlockFieldDef, BlockSchema, DefinedBlock } from "./define-block"
 export { CalloutExtension } from "./callout"
 export { CalloutView } from "./callout-view"
+export type { BlockDefinition, BlockFieldDef, BlockSchema, DefinedBlock } from "./define-block"
+export { defineBlock } from "./define-block"
 
 type EditorBlockManifest = {
   blocks?: DefinedBlock[]
@@ -12,7 +12,9 @@ type EditorBlockManifest = {
   }
 }
 
-export function resolveEditorBlocksFromExtensions(extensions: EditorBlockManifest[] = []): DefinedBlock[] {
+export function resolveEditorBlocksFromExtensions(
+  extensions: EditorBlockManifest[] = [],
+): DefinedBlock[] {
   const blocks: DefinedBlock[] = []
   const seen = new Set<string>()
 

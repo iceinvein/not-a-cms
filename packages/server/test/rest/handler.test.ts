@@ -1,18 +1,18 @@
-import { test, expect, describe, beforeEach, afterEach } from "bun:test"
-import { createRestHandler } from "../../src/rest/handler"
+import { afterEach, beforeEach, describe, expect, test } from "bun:test"
+import { unlinkSync } from "node:fs"
 import {
-  createDatabase,
   bootstrapTables,
-  generateTable,
+  createContentService,
+  createDatabase,
+  createVersioningService,
+  createWebhookService,
+  createWebhookStore,
   defineCollection,
   field,
-  createContentService,
-  createVersioningService,
-  createWebhookStore,
-  createWebhookService,
+  generateTable,
 } from "@not-a-cms/core"
 import { sql } from "drizzle-orm"
-import { unlinkSync } from "node:fs"
+import { createRestHandler } from "../../src/rest/handler"
 
 const testDbPath = "test-rest.db"
 
@@ -29,7 +29,9 @@ const page = defineCollection({
     }),
     author: field.relation("author"),
     coverImage: field.media({ accept: ["image/*"] }),
-    status: field.select(["draft", "in_review", "published", "archived", "scheduled"], { default: "draft" }),
+    status: field.select(["draft", "in_review", "published", "archived", "scheduled"], {
+      default: "draft",
+    }),
     publishedAt: field.datetime(),
     secret: field.text({ access: { read: ["admin"], write: ["admin"] } }),
     views: field.number(),
@@ -117,26 +119,55 @@ describe("REST API handler", () => {
     const lockedPageTable = generateTable(lockedPage)
     versioning = createVersioningService(db)
     collections = new Map([
-      ["page", { def: page, table: pageTable, service: createContentService(db, page, pageTable, versioning) }],
-      ["author", { def: author, table: authorTable, service: createContentService(db, author, authorTable, versioning) }],
-      ["locked_page", { def: lockedPage, table: lockedPageTable, service: createContentService(db, lockedPage, lockedPageTable, versioning) }],
+      [
+        "page",
+        {
+          def: page,
+          table: pageTable,
+          service: createContentService(db, page, pageTable, versioning),
+        },
+      ],
+      [
+        "author",
+        {
+          def: author,
+          table: authorTable,
+          service: createContentService(db, author, authorTable, versioning),
+        },
+      ],
+      [
+        "locked_page",
+        {
+          def: lockedPage,
+          table: lockedPageTable,
+          service: createContentService(db, lockedPage, lockedPageTable, versioning),
+        },
+      ],
     ])
 
     const media = {
-      get: (id: string) => id === "media-1" ? { id, filename: "cover.png", url: `/api/media/${id}/file` } : null,
+      get: (id: string) =>
+        id === "media-1" ? { id, filename: "cover.png", url: `/api/media/${id}/file` } : null,
     }
 
     handler = createRestHandler(collections, versioning, undefined, undefined, undefined, { media })
     auditEvents = []
-    authorizedHandler = createRestHandler(collections, versioning, undefined, undefined, undefined, {
-      authorize: () => true,
-      getRole: () => "admin",
-      getActor: () => ({ userId: "admin-user", role: "admin" }),
-      auditLog: {
-        record: (event) => auditEvents.push(event),
+    authorizedHandler = createRestHandler(
+      collections,
+      versioning,
+      undefined,
+      undefined,
+      undefined,
+      {
+        authorize: () => true,
+        getRole: () => "admin",
+        getActor: () => ({ userId: "admin-user", role: "admin" }),
+        auditLog: {
+          record: (event) => auditEvents.push(event),
+        },
+        media,
       },
-      media,
-    })
+    )
     editorHandler = createRestHandler(collections, versioning, undefined, undefined, undefined, {
       authorize: () => true,
       getRole: () => "editor",
@@ -152,9 +183,15 @@ describe("REST API handler", () => {
   })
 
   afterEach(() => {
-    try { unlinkSync(testDbPath) } catch {}
-    try { unlinkSync(testDbPath + "-wal") } catch {}
-    try { unlinkSync(testDbPath + "-shm") } catch {}
+    try {
+      unlinkSync(testDbPath)
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-wal")
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-shm")
+    } catch {}
   })
 
   test("POST /api/page creates a document (201)", async () => {
@@ -174,20 +211,22 @@ describe("REST API handler", () => {
 
   test("POST and GET /api/page round-trip typed values", async () => {
     const bodyBlocks = [{ type: "paragraph", children: [{ text: "Typed body" }] }]
-    const createRes = await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: "Typed Page",
-        slug: "typed-page",
-        status: "published",
-        body: bodyBlocks,
-        tags: ["one", "two"],
-        seo: { metaTitle: "Typed SEO", featured: true },
-        author: "author-1",
-        coverImage: "media-1",
+    const createRes = await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: "Typed Page",
+          slug: "typed-page",
+          status: "published",
+          body: bodyBlocks,
+          tags: ["one", "two"],
+          seo: { metaTitle: "Typed SEO", featured: true },
+          author: "author-1",
+          coverImage: "media-1",
+        }),
       }),
-    }))
+    )
 
     expect(createRes!.status).toBe(201)
     const created = await createRes!.json()
@@ -209,11 +248,13 @@ describe("REST API handler", () => {
   })
 
   test("POST /api/page returns validation errors for invalid input", async () => {
-    const res = await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ slug: "missing-title" }),
-    }))
+    const res = await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: "missing-title" }),
+      }),
+    )
 
     expect(res).not.toBeNull()
     expect(res!.status).toBe(400)
@@ -257,15 +298,24 @@ describe("REST API handler", () => {
       fetch: async () => new Response("ok", { status: 200 }),
       retryDelays: [],
     })
-    const webhookHandler = createRestHandler(collections, versioning, undefined, webhookStore, undefined, {
-      authorize: () => true,
-      getRole: () => "admin",
-      webhookService,
-    })
+    const webhookHandler = createRestHandler(
+      collections,
+      versioning,
+      undefined,
+      webhookStore,
+      undefined,
+      {
+        authorize: () => true,
+        getRole: () => "admin",
+        webhookService,
+      },
+    )
 
-    const res = await webhookHandler(new Request(`http://localhost/api/_webhooks/${hook.id}/logs/${failed.id}/replay`, {
-      method: "POST",
-    }))
+    const res = await webhookHandler(
+      new Request(`http://localhost/api/_webhooks/${hook.id}/logs/${failed.id}/replay`, {
+        method: "POST",
+      }),
+    )
 
     expect(res).not.toBeNull()
     expect(res!.status).toBe(200)
@@ -276,76 +326,94 @@ describe("REST API handler", () => {
   })
 
   test("collection access blocks disallowed REST reads and writes", async () => {
-    const adminCreate = await authorizedHandler(new Request("http://localhost/api/locked_page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Locked", slug: "locked" }),
-    }))
+    const adminCreate = await authorizedHandler(
+      new Request("http://localhost/api/locked_page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Locked", slug: "locked" }),
+      }),
+    )
     expect(adminCreate!.status).toBe(201)
     const created = await adminCreate!.json()
 
     const publicRead = await handler(new Request(`http://localhost/api/locked_page/${created.id}`))
     expect(publicRead!.status).toBe(403)
 
-    const editorCreate = await editorHandler(new Request("http://localhost/api/locked_page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Editor Locked", slug: "editor-locked" }),
-    }))
+    const editorCreate = await editorHandler(
+      new Request("http://localhost/api/locked_page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Editor Locked", slug: "editor-locked" }),
+      }),
+    )
     expect(editorCreate!.status).toBe(403)
 
-    const editorUpdate = await editorHandler(new Request(`http://localhost/api/locked_page/${created.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Editor Updated" }),
-    }))
+    const editorUpdate = await editorHandler(
+      new Request(`http://localhost/api/locked_page/${created.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Editor Updated" }),
+      }),
+    )
     expect(editorUpdate!.status).toBe(403)
 
-    const editorDelete = await editorHandler(new Request(`http://localhost/api/locked_page/${created.id}`, {
-      method: "DELETE",
-    }))
+    const editorDelete = await editorHandler(
+      new Request(`http://localhost/api/locked_page/${created.id}`, {
+        method: "DELETE",
+      }),
+    )
     expect(editorDelete!.status).toBe(403)
   })
 
   test("default collection access lets viewers read but not mutate content", async () => {
-    const adminCreate = await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Default ACL", slug: "default-acl" }),
-    }))
+    const adminCreate = await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Default ACL", slug: "default-acl" }),
+      }),
+    )
     expect(adminCreate!.status).toBe(201)
     const created = await adminCreate!.json()
 
     const viewerRead = await viewerHandler(new Request(`http://localhost/api/page/${created.id}`))
     expect(viewerRead!.status).toBe(200)
 
-    const anonymousCreate = await handler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Anonymous Write", slug: "anonymous-write" }),
-    }))
+    const anonymousCreate = await handler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Anonymous Write", slug: "anonymous-write" }),
+      }),
+    )
     expect(anonymousCreate!.status).toBe(401)
 
-    const viewerUpdate = await viewerHandler(new Request(`http://localhost/api/page/${created.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Viewer Write" }),
-    }))
+    const viewerUpdate = await viewerHandler(
+      new Request(`http://localhost/api/page/${created.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Viewer Write" }),
+      }),
+    )
     expect(viewerUpdate!.status).toBe(403)
   })
 
   test("GET /api/page lists documents (200, body.data)", async () => {
     // Create two docs first
-    await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Page One", slug: "page-one", status: "published" }),
-    }))
-    await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Page Two", slug: "page-two", status: "published" }),
-    }))
+    await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Page One", slug: "page-one", status: "published" }),
+      }),
+    )
+    await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Page Two", slug: "page-two", status: "published" }),
+      }),
+    )
 
     const req = new Request("http://localhost/api/page")
     const res = await handler(req)
@@ -358,24 +426,34 @@ describe("REST API handler", () => {
   })
 
   test("GET /api/page supports pagination, sorting, and JSON where operators", async () => {
-    await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Alpha", slug: "alpha", status: "draft", views: 1 }),
-    }))
-    await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Beta", slug: "beta", status: "published", views: 10 }),
-    }))
-    await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Gamma", slug: "gamma", status: "published", views: 5 }),
-    }))
+    await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Alpha", slug: "alpha", status: "draft", views: 1 }),
+      }),
+    )
+    await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Beta", slug: "beta", status: "published", views: 10 }),
+      }),
+    )
+    await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Gamma", slug: "gamma", status: "published", views: 5 }),
+      }),
+    )
 
     const where = encodeURIComponent(JSON.stringify({ status: "published", views: { gt: 4 } }))
-    const res = await handler(new Request(`http://localhost/api/page?where=${where}&sort=views&order=desc&limit=1&offset=0`))
+    const res = await handler(
+      new Request(
+        `http://localhost/api/page?where=${where}&sort=views&order=desc&limit=1&offset=0`,
+      ),
+    )
     expect(res!.status).toBe(200)
     const body = await res!.json()
 
@@ -394,11 +472,17 @@ describe("REST API handler", () => {
   })
 
   test("GET /api/page/:id retrieves a document (200)", async () => {
-    const createRes = await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Specific Page", slug: "specific-page", status: "published" }),
-    }))
+    const createRes = await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: "Specific Page",
+          slug: "specific-page",
+          status: "published",
+        }),
+      }),
+    )
     const created = await createRes!.json()
 
     const req = new Request(`http://localhost/api/page/${created.id}`)
@@ -410,34 +494,57 @@ describe("REST API handler", () => {
   })
 
   test("GET /api/page/:id?populate=author,coverImage expands relation and media fields", async () => {
-    const authorRes = await authorizedHandler(new Request("http://localhost/api/author", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: "Ada", secret: "admin-only" }),
-    }))
+    const authorRes = await authorizedHandler(
+      new Request("http://localhost/api/author", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "Ada", secret: "admin-only" }),
+      }),
+    )
     const createdAuthor = await authorRes!.json()
 
-    const pageRes = await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Populated Page", slug: "populated-page", status: "published", author: createdAuthor.id, coverImage: "media-1" }),
-    }))
+    const pageRes = await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: "Populated Page",
+          slug: "populated-page",
+          status: "published",
+          author: createdAuthor.id,
+          coverImage: "media-1",
+        }),
+      }),
+    )
     const createdPage = await pageRes!.json()
 
-    const res = await handler(new Request(`http://localhost/api/page/${createdPage.id}?populate=author,coverImage`))
+    const res = await handler(
+      new Request(`http://localhost/api/page/${createdPage.id}?populate=author,coverImage`),
+    )
     expect(res!.status).toBe(200)
     const body = await res!.json()
     expect(body.author).toEqual(expect.objectContaining({ id: createdAuthor.id, name: "Ada" }))
     expect(body.author.secret).toBeUndefined()
-    expect(body.coverImage).toEqual({ id: "media-1", filename: "cover.png", url: "/api/media/media-1/file" })
+    expect(body.coverImage).toEqual({
+      id: "media-1",
+      filename: "cover.png",
+      url: "/api/media/media-1/file",
+    })
   })
 
   test("GET /api/page/:id filters unreadable fields for public callers", async () => {
-    const createRes = await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Private Page", slug: "private-page", status: "published", secret: "admin-only" }),
-    }))
+    const createRes = await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: "Private Page",
+          slug: "private-page",
+          status: "published",
+          secret: "admin-only",
+        }),
+      }),
+    )
     const created = await createRes!.json()
 
     const publicRes = await handler(new Request(`http://localhost/api/page/${created.id}`))
@@ -453,18 +560,34 @@ describe("REST API handler", () => {
   })
 
   test("GET /api/page list and search filter unreadable fields", async () => {
-    const createRes = await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Searchable Secret", slug: "searchable-secret", status: "published", secret: "admin-only" }),
-    }))
+    const createRes = await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: "Searchable Secret",
+          slug: "searchable-secret",
+          status: "published",
+          secret: "admin-only",
+        }),
+      }),
+    )
     const created = await createRes!.json()
 
     const search = {
       query: () => [{ collection: "page", document_id: created.id }],
     }
     const searchableHandler = createRestHandler(
-      new Map([["page", { def: page, table: generateTable(page), service: createContentService(db, page, generateTable(page)) }]]),
+      new Map([
+        [
+          "page",
+          {
+            def: page,
+            table: generateTable(page),
+            service: createContentService(db, page, generateTable(page)),
+          },
+        ],
+      ]),
       undefined,
       search,
     )
@@ -473,7 +596,9 @@ describe("REST API handler", () => {
     const listBody = await listRes!.json()
     expect(listBody.data[0].secret).toBeUndefined()
 
-    const searchRes = await searchableHandler(new Request("http://localhost/api/page?search=secret"))
+    const searchRes = await searchableHandler(
+      new Request("http://localhost/api/page?search=secret"),
+    )
     const searchBody = await searchRes!.json()
     expect(searchBody.data[0].secret).toBeUndefined()
   })
@@ -488,11 +613,13 @@ describe("REST API handler", () => {
   })
 
   test("PATCH /api/page/:id updates a document (200)", async () => {
-    const createRes = await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Original Title", slug: "original" }),
-    }))
+    const createRes = await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Original Title", slug: "original" }),
+      }),
+    )
     const created = await createRes!.json()
 
     const req = new Request(`http://localhost/api/page/${created.id}`, {
@@ -508,18 +635,22 @@ describe("REST API handler", () => {
   })
 
   test("PATCH /api/page/:id rejects direct status transitions", async () => {
-    const createRes = await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Workflow Patch", slug: "workflow-patch" }),
-    }))
+    const createRes = await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Workflow Patch", slug: "workflow-patch" }),
+      }),
+    )
     const created = await createRes!.json()
 
-    const res = await authorizedHandler(new Request(`http://localhost/api/page/${created.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "published" }),
-    }))
+    const res = await authorizedHandler(
+      new Request(`http://localhost/api/page/${created.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "published" }),
+      }),
+    )
 
     expect(res!.status).toBe(400)
     const body = await res!.json()
@@ -527,73 +658,91 @@ describe("REST API handler", () => {
   })
 
   test("POST /api/page/:id/workflow transitions status and records audit events", async () => {
-    const createRes = await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Workflow Page", slug: "workflow-page" }),
-    }))
+    const createRes = await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Workflow Page", slug: "workflow-page" }),
+      }),
+    )
     const created = await createRes!.json()
 
-    const reviewRes = await authorizedHandler(new Request(`http://localhost/api/page/${created.id}/workflow`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "submit_review" }),
-    }))
+    const reviewRes = await authorizedHandler(
+      new Request(`http://localhost/api/page/${created.id}/workflow`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "submit_review" }),
+      }),
+    )
     expect(reviewRes!.status).toBe(200)
     const reviewed = await reviewRes!.json()
     expect(reviewed.status).toBe("in_review")
 
-    const publishRes = await authorizedHandler(new Request(`http://localhost/api/page/${created.id}/workflow`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "publish" }),
-    }))
+    const publishRes = await authorizedHandler(
+      new Request(`http://localhost/api/page/${created.id}/workflow`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "publish" }),
+      }),
+    )
     expect(publishRes!.status).toBe(200)
     const published = await publishRes!.json()
     expect(published.status).toBe("published")
 
-    expect(auditEvents.some((event) => event.action === "content.workflow.submit_review")).toBe(true)
+    expect(auditEvents.some((event) => event.action === "content.workflow.submit_review")).toBe(
+      true,
+    )
     expect(auditEvents.some((event) => event.action === "content.workflow.publish")).toBe(true)
   })
 
   test("POST /api/page/:id/workflow enforces publish and archive role gates", async () => {
-    const createRes = await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Author Workflow", slug: "author-workflow" }),
-    }))
+    const createRes = await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Author Workflow", slug: "author-workflow" }),
+      }),
+    )
     const created = await createRes!.json()
 
-    const submitRes = await authorHandler(new Request(`http://localhost/api/page/${created.id}/workflow`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "submit_review" }),
-    }))
+    const submitRes = await authorHandler(
+      new Request(`http://localhost/api/page/${created.id}/workflow`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "submit_review" }),
+      }),
+    )
     expect(submitRes!.status).toBe(200)
     expect((await submitRes!.json()).status).toBe("in_review")
 
-    const publishRes = await authorHandler(new Request(`http://localhost/api/page/${created.id}/workflow`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "publish" }),
-    }))
+    const publishRes = await authorHandler(
+      new Request(`http://localhost/api/page/${created.id}/workflow`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "publish" }),
+      }),
+    )
     expect(publishRes!.status).toBe(403)
     expect((await publishRes!.json()).error).toContain("cannot publish")
   })
 
   test("POST /api/page/:id/schedule sets an ISO publish time and scheduled status", async () => {
-    const createRes = await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Scheduled Page", slug: "scheduled-page" }),
-    }))
+    const createRes = await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Scheduled Page", slug: "scheduled-page" }),
+      }),
+    )
     const created = await createRes!.json()
 
-    const scheduleRes = await authorizedHandler(new Request(`http://localhost/api/page/${created.id}/schedule`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ publishedAt: "2026-05-31T05:00:00.000Z" }),
-    }))
+    const scheduleRes = await authorizedHandler(
+      new Request(`http://localhost/api/page/${created.id}/schedule`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ publishedAt: "2026-05-31T05:00:00.000Z" }),
+      }),
+    )
 
     expect(scheduleRes!.status).toBe(200)
     const scheduled = await scheduleRes!.json()
@@ -602,48 +751,75 @@ describe("REST API handler", () => {
   })
 
   test("GET /api/page/:id/versions/:versionId/compare compares version data with current document", async () => {
-    const createRes = await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Version One", slug: "version-one" }),
-    }))
+    const createRes = await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Version One", slug: "version-one" }),
+      }),
+    )
     const created = await createRes!.json()
-    await authorizedHandler(new Request(`http://localhost/api/page/${created.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Version Two" }),
-    }))
+    await authorizedHandler(
+      new Request(`http://localhost/api/page/${created.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Version Two" }),
+      }),
+    )
 
-    const versionsRes = await authorizedHandler(new Request(`http://localhost/api/page/${created.id}/versions`))
+    const versionsRes = await authorizedHandler(
+      new Request(`http://localhost/api/page/${created.id}/versions`),
+    )
     const versionsBody = await versionsRes!.json()
-    const originalVersion = versionsBody.data.find((version: any) => version.data.title === "Version One")
+    const originalVersion = versionsBody.data.find(
+      (version: any) => version.data.title === "Version One",
+    )
 
-    const compareRes = await authorizedHandler(new Request(`http://localhost/api/page/${created.id}/versions/${originalVersion.id}/compare`))
+    const compareRes = await authorizedHandler(
+      new Request(`http://localhost/api/page/${created.id}/versions/${originalVersion.id}/compare`),
+    )
     expect(compareRes!.status).toBe(200)
     const compare = await compareRes!.json()
-    expect(compare.changes).toContainEqual({ field: "title", before: "Version Two", after: "Version One" })
+    expect(compare.changes).toContainEqual({
+      field: "title",
+      before: "Version Two",
+      after: "Version One",
+    })
   })
 
   test("POST /api/page/:id/versions/:versionId/restore restores version data and records audit", async () => {
-    const createRes = await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Restore One", slug: "restore-one" }),
-    }))
+    const createRes = await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Restore One", slug: "restore-one" }),
+      }),
+    )
     const created = await createRes!.json()
-    await authorizedHandler(new Request(`http://localhost/api/page/${created.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Restore Two" }),
-    }))
+    await authorizedHandler(
+      new Request(`http://localhost/api/page/${created.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Restore Two" }),
+      }),
+    )
 
-    const versionsRes = await authorizedHandler(new Request(`http://localhost/api/page/${created.id}/versions`))
+    const versionsRes = await authorizedHandler(
+      new Request(`http://localhost/api/page/${created.id}/versions`),
+    )
     const versionsBody = await versionsRes!.json()
-    const originalVersion = versionsBody.data.find((version: any) => version.data.title === "Restore One")
+    const originalVersion = versionsBody.data.find(
+      (version: any) => version.data.title === "Restore One",
+    )
 
-    const restoreRes = await authorizedHandler(new Request(`http://localhost/api/page/${created.id}/versions/${originalVersion.id}/restore`, {
-      method: "POST",
-    }))
+    const restoreRes = await authorizedHandler(
+      new Request(
+        `http://localhost/api/page/${created.id}/versions/${originalVersion.id}/restore`,
+        {
+          method: "POST",
+        },
+      ),
+    )
     expect(restoreRes!.status).toBe(200)
     const restored = await restoreRes!.json()
     expect(restored.title).toBe("Restore One")
@@ -651,18 +827,22 @@ describe("REST API handler", () => {
   })
 
   test("PATCH /api/page/:id returns validation errors when clearing required fields", async () => {
-    const createRes = await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Required Title", slug: "required-title" }),
-    }))
+    const createRes = await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Required Title", slug: "required-title" }),
+      }),
+    )
     const created = await createRes!.json()
 
-    const res = await authorizedHandler(new Request(`http://localhost/api/page/${created.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "" }),
-    }))
+    const res = await authorizedHandler(
+      new Request(`http://localhost/api/page/${created.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "" }),
+      }),
+    )
 
     expect(res).not.toBeNull()
     expect(res!.status).toBe(400)
@@ -671,63 +851,79 @@ describe("REST API handler", () => {
   })
 
   test("POST and PATCH ignore fields the caller cannot write", async () => {
-    const createRes = await editorHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Editor Page", slug: "editor-page", secret: "not-allowed" }),
-    }))
+    const createRes = await editorHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Editor Page", slug: "editor-page", secret: "not-allowed" }),
+      }),
+    )
     expect(createRes).not.toBeNull()
     expect(createRes!.status).toBe(201)
     const created = await createRes!.json()
     expect(created.secret).toBeUndefined()
 
-    const adminRead = await authorizedHandler(new Request(`http://localhost/api/page/${created.id}`))
+    const adminRead = await authorizedHandler(
+      new Request(`http://localhost/api/page/${created.id}`),
+    )
     const adminBody = await adminRead!.json()
     expect(adminBody.secret).toBeNull()
 
-    await authorizedHandler(new Request(`http://localhost/api/page/${created.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ secret: "admin-secret" }),
-    }))
+    await authorizedHandler(
+      new Request(`http://localhost/api/page/${created.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ secret: "admin-secret" }),
+      }),
+    )
 
-    const editorPatch = await editorHandler(new Request(`http://localhost/api/page/${created.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Editor Updated", secret: "editor-secret" }),
-    }))
+    const editorPatch = await editorHandler(
+      new Request(`http://localhost/api/page/${created.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Editor Updated", secret: "editor-secret" }),
+      }),
+    )
     const patched = await editorPatch!.json()
     expect(patched.title).toBe("Editor Updated")
     expect(patched.secret).toBeUndefined()
 
-    const finalAdminRead = await authorizedHandler(new Request(`http://localhost/api/page/${created.id}`))
+    const finalAdminRead = await authorizedHandler(
+      new Request(`http://localhost/api/page/${created.id}`),
+    )
     const finalAdminBody = await finalAdminRead!.json()
     expect(finalAdminBody.secret).toBe("admin-secret")
   })
 
   test("POST /api/page/_bulk updates selected documents with writable fields only", async () => {
-    const firstRes = await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Bulk One", slug: "bulk-one", secret: "first-secret" }),
-    }))
-    const secondRes = await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Bulk Two", slug: "bulk-two", secret: "second-secret" }),
-    }))
+    const firstRes = await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Bulk One", slug: "bulk-one", secret: "first-secret" }),
+      }),
+    )
+    const secondRes = await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Bulk Two", slug: "bulk-two", secret: "second-secret" }),
+      }),
+    )
     const first = await firstRes!.json()
     const second = await secondRes!.json()
 
-    const bulkRes = await editorHandler(new Request("http://localhost/api/page/_bulk", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "update",
-        ids: [first.id, "missing-id", second.id],
-        data: { title: "Bulk Edited", secret: "editor-secret" },
+    const bulkRes = await editorHandler(
+      new Request("http://localhost/api/page/_bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "update",
+          ids: [first.id, "missing-id", second.id],
+          data: { title: "Bulk Edited", secret: "editor-secret" },
+        }),
       }),
-    }))
+    )
 
     expect(bulkRes!.status).toBe(200)
     const body = await bulkRes!.json()
@@ -742,44 +938,54 @@ describe("REST API handler", () => {
   })
 
   test("POST /api/page/_bulk deletes selected documents and enforces collection ACL", async () => {
-    const firstRes = await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Bulk Delete One", slug: "bulk-delete-one" }),
-    }))
-    const secondRes = await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Bulk Delete Two", slug: "bulk-delete-two" }),
-    }))
+    const firstRes = await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Bulk Delete One", slug: "bulk-delete-one" }),
+      }),
+    )
+    const secondRes = await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Bulk Delete Two", slug: "bulk-delete-two" }),
+      }),
+    )
     const first = await firstRes!.json()
     const second = await secondRes!.json()
 
-    const deleteRes = await authorizedHandler(new Request("http://localhost/api/page/_bulk", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "delete", ids: [first.id, "missing-id", second.id] }),
-    }))
+    const deleteRes = await authorizedHandler(
+      new Request("http://localhost/api/page/_bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", ids: [first.id, "missing-id", second.id] }),
+      }),
+    )
 
     expect(deleteRes!.status).toBe(200)
     const body = await deleteRes!.json()
     expect(body.deleted).toEqual([first.id, second.id])
     expect(body.notFound).toEqual(["missing-id"])
 
-    const lockedRes = await editorHandler(new Request("http://localhost/api/locked_page/_bulk", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "delete", ids: [first.id] }),
-    }))
+    const lockedRes = await editorHandler(
+      new Request("http://localhost/api/locked_page/_bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", ids: [first.id] }),
+      }),
+    )
     expect(lockedRes!.status).toBe(403)
   })
 
   test("DELETE /api/page/:id removes a document (200, deleted: true)", async () => {
-    const createRes = await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "To Delete", slug: "to-delete" }),
-    }))
+    const createRes = await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "To Delete", slug: "to-delete" }),
+      }),
+    )
     const created = await createRes!.json()
 
     const req = new Request(`http://localhost/api/page/${created.id}`, {
@@ -793,22 +999,28 @@ describe("REST API handler", () => {
   })
 
   test("POST, PATCH, and DELETE write audit events with actor context", async () => {
-    const createRes = await authorizedHandler(new Request("http://localhost/api/page", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Audited", slug: "audited" }),
-    }))
+    const createRes = await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Audited", slug: "audited" }),
+      }),
+    )
     const created = await createRes!.json()
 
-    await authorizedHandler(new Request(`http://localhost/api/page/${created.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Audited Updated" }),
-    }))
+    await authorizedHandler(
+      new Request(`http://localhost/api/page/${created.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Audited Updated" }),
+      }),
+    )
 
-    await authorizedHandler(new Request(`http://localhost/api/page/${created.id}`, {
-      method: "DELETE",
-    }))
+    await authorizedHandler(
+      new Request(`http://localhost/api/page/${created.id}`, {
+        method: "DELETE",
+      }),
+    )
 
     expect(auditEvents.map((event) => event.action)).toEqual([
       "content.created",

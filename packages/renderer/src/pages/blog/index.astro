@@ -5,7 +5,14 @@ import { createContentFetcher, documentPath, mediaUrl } from "../../runtime/cont
 const apiBase = import.meta.env.PUBLIC_API_BASE || "http://localhost:4321"
 const fetcher = createContentFetcher({ apiBase })
 
-let posts: Array<{ title?: string; slug?: string; excerpt?: string; created_at?: string; status?: string; coverImage?: unknown }> = []
+let posts: Array<{
+  title?: string
+  slug?: string
+  excerpt?: string
+  created_at?: string
+  status?: string
+  coverImage?: unknown
+}> = []
 try {
   const all = await fetcher.list("blog_post", { limit: 50 })
   posts = all.filter((p) => p.status === "published")

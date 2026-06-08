@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, createContext, useContext, type ReactNode } from "react"
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from "react"
 
 type ToastType = "success" | "error" | "info"
 
@@ -60,9 +60,18 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
       className={`${colors[toast.type]} px-4 py-3 rounded-lg text-sm font-medium flex items-center gap-3 shadow-[0_18px_50px_rgba(0,0,0,0.18)]`}
     >
       <span>{toast.message}</span>
-      <button onClick={() => onDismiss(toast.id)} aria-label="Dismiss notification" className="opacity-70 hover:opacity-100">
+      <button
+        onClick={() => onDismiss(toast.id)}
+        aria-label="Dismiss notification"
+        className="opacity-70 hover:opacity-100"
+      >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M6 18L18 6M6 6l12 12"
+          />
         </svg>
       </button>
     </div>

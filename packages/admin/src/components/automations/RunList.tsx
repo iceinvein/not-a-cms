@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react"
-import type { FlowStep, FlowRun } from "./flow-types"
-import { RunDetail } from "./RunDetail"
-import { EmptyState, LoadingState } from "../AdminState"
+import { useEffect, useState } from "react"
 import { adminApiFetch } from "../../lib/api"
+import { EmptyState, LoadingState } from "../AdminState"
+import type { FlowRun, FlowStep } from "./flow-types"
+import { RunDetail } from "./RunDetail"
 
 type Props = {
   flowId: string
@@ -73,9 +73,17 @@ export function RunList({ flowId, apiBase = "", steps }: Props) {
   return (
     <div className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] overflow-hidden">
       {loading ? (
-        <div className="p-5"><LoadingState compact title="Loading runs" description="Fetching recent executions." /></div>
+        <div className="p-5">
+          <LoadingState compact title="Loading runs" description="Fetching recent executions." />
+        </div>
       ) : runs.length === 0 ? (
-        <div className="p-5"><EmptyState compact title="No runs yet" description="Runs will appear here when this flow is triggered." /></div>
+        <div className="p-5">
+          <EmptyState
+            compact
+            title="No runs yet"
+            description="Runs will appear here when this flow is triggered."
+          />
+        </div>
       ) : (
         <>
           <table className="w-full text-sm">

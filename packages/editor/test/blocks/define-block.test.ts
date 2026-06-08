@@ -1,6 +1,6 @@
-import { test, expect, describe } from "bun:test"
-import { defineBlock } from "../../src/blocks/define-block"
+import { describe, expect, test } from "bun:test"
 import { collectManifestBlockExtensions, resolveEditorBlocksFromExtensions } from "../../src/blocks"
+import { defineBlock } from "../../src/blocks/define-block"
 
 // Minimal mock component for tests (no actual React rendering needed)
 const MockEditor = () => null
@@ -84,7 +84,9 @@ describe("defineBlock", () => {
     ])
 
     expect(blocks.map((block) => block.name)).toEqual(["hero", "cta"])
-    expect(collectManifestBlockExtensions([{ blocks }]).map((extension) => extension.name)).toEqual(["hero", "cta"])
+    expect(collectManifestBlockExtensions([{ blocks }]).map((extension) => extension.name)).toEqual(
+      ["hero", "cta"],
+    )
   })
 
   test("keeps the first editor block when manifests declare duplicate names", () => {

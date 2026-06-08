@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { searchContent, type ContentHit } from "../../../src/lib/command/content-search"
+import { type ContentHit, searchContent } from "../../../src/lib/command/content-search"
 
 const collections = [
   { name: "blog_post", labels: { singular: "Blog Post", plural: "Blog Posts" }, fields: {} },

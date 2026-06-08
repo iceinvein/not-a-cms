@@ -33,12 +33,16 @@ export function createUserRoleStore(db: AppDatabase) {
   }
 
   function list(): UserRoleRecord[] {
-    const rows = db.all(sql`SELECT * FROM _user_roles ORDER BY updated_at DESC, rowid DESC`) as UserRoleRow[]
+    const rows = db.all(
+      sql`SELECT * FROM _user_roles ORDER BY updated_at DESC, rowid DESC`,
+    ) as UserRoleRow[]
     return rows.map(fromRow)
   }
 
   function hasActiveAdmin(): boolean {
-    const rows = db.all(sql`SELECT user_id FROM _user_roles WHERE role = ${"admin"} AND active = 1 LIMIT 1`) as Array<{ user_id: string }>
+    const rows = db.all(
+      sql`SELECT user_id FROM _user_roles WHERE role = ${"admin"} AND active = 1 LIMIT 1`,
+    ) as Array<{ user_id: string }>
     return rows.length > 0
   }
 

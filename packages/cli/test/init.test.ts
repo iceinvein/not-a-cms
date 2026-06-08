@@ -1,4 +1,4 @@
-import { test, expect, describe, afterEach } from "bun:test"
+import { afterEach, describe, expect, test } from "bun:test"
 import { existsSync, readFileSync, rmSync } from "node:fs"
 import { join } from "node:path"
 
@@ -47,8 +47,17 @@ describe("init command", () => {
     // Dependencies must pin a concrete published version, never "latest"
     // (which resolves to nothing while the packages are unpublished and is bad
     // practice once they are).
-    const cliVersion = JSON.parse(readFileSync(join(import.meta.dir, "..", "package.json"), "utf8")).version
-    for (const dep of ["@not-a-cms/core", "@not-a-cms/server", "@not-a-cms/editor", "@not-a-cms/admin", "@not-a-cms/renderer", "@not-a-cms/cli"]) {
+    const cliVersion = JSON.parse(
+      readFileSync(join(import.meta.dir, "..", "package.json"), "utf8"),
+    ).version
+    for (const dep of [
+      "@not-a-cms/core",
+      "@not-a-cms/server",
+      "@not-a-cms/editor",
+      "@not-a-cms/admin",
+      "@not-a-cms/renderer",
+      "@not-a-cms/cli",
+    ]) {
       expect(pkg.dependencies[dep]).not.toBe("latest")
       expect(pkg.dependencies[dep]).toBe(`^${cliVersion}`)
     }

@@ -1,15 +1,15 @@
 import { describe, expect, test } from "bun:test"
 import { existsSync, rmSync } from "node:fs"
 import {
-  createDatabase,
-  isVectorSearchEnabled,
   bootstrapTables,
+  createDatabase,
   createEmbeddingStore,
   defineCollection,
   field,
+  isVectorSearchEnabled,
 } from "@not-a-cms/core"
-import { createServer } from "../../src/index"
 import { runAsk } from "../../src/ask/handler"
+import { createServer } from "../../src/index"
 
 // Probe via the real code path first so setCustomSQLite is established here.
 const probe = createDatabase({ url: ":memory:", vectorSearch: { enabled: true } })

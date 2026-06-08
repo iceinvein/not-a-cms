@@ -1,6 +1,6 @@
+import Collaboration from "@tiptap/extension-collaboration"
 import { useEffect, useMemo, useState } from "react"
 import * as Y from "yjs"
-import Collaboration from "@tiptap/extension-collaboration"
 
 type CollabUser = {
   name: string
@@ -133,7 +133,10 @@ export class RawYjsWebSocketProvider {
   }
 
   private flushPendingUpdates(): void {
-    while (this.pendingUpdates.length > 0 && this.websocket.readyState === this.WebSocketConstructor.OPEN) {
+    while (
+      this.pendingUpdates.length > 0 &&
+      this.websocket.readyState === this.WebSocketConstructor.OPEN
+    ) {
       const update = this.pendingUpdates.shift()
       if (update) this.websocket.send(update)
     }
@@ -156,9 +159,12 @@ export class RawYjsWebSocketProvider {
     }
 
     if (typeof Blob !== "undefined" && data instanceof Blob) {
-      data.arrayBuffer().then((buffer) => {
-        Y.applyUpdate(this.doc, new Uint8Array(buffer), this)
-      }).catch(() => {})
+      data
+        .arrayBuffer()
+        .then((buffer) => {
+          Y.applyUpdate(this.doc, new Uint8Array(buffer), this)
+        })
+        .catch(() => {})
     }
   }
 
@@ -261,7 +267,7 @@ export function useCollaboration(config?: CollabConfig | null) {
   const [provider, setProvider] = useState<RawYjsWebSocketProvider | null>(null)
   const [users, setUsers] = useState<CollabPresenceUser[]>([])
   const [cursors, setCursors] = useState<CursorState[]>([])
-  const ydoc = useMemo(() => config ? new Y.Doc() : null, [config?.documentId])
+  const ydoc = useMemo(() => (config ? new Y.Doc() : null), [config?.documentId])
 
   useEffect(() => {
     if (!config || !ydoc) {
@@ -271,16 +277,11 @@ export function useCollaboration(config?: CollabConfig | null) {
       return
     }
 
-    const provider = new RawYjsWebSocketProvider(
-      config.serverUrl,
-      config.documentId,
-      ydoc,
-      {
-        user: config.user,
-        onPresenceChange: setUsers,
-        onCursorChange: setCursors,
-      },
-    )
+    const provider = new RawYjsWebSocketProvider(config.serverUrl, config.documentId, ydoc, {
+      user: config.user,
+      onPresenceChange: setUsers,
+      onCursorChange: setCursors,
+    })
     setProvider(provider)
 
     return () => {
@@ -293,7 +294,7 @@ export function useCollaboration(config?: CollabConfig | null) {
   }, [config?.serverUrl, config?.documentId, config?.user.name, config?.user.color, ydoc])
 
   const extensions = useMemo(
-    () => ydoc ? [Collaboration.configure({ document: ydoc })] : [],
+    () => (ydoc ? [Collaboration.configure({ document: ydoc })] : []),
     [ydoc],
   )
 

@@ -1,6 +1,5 @@
+import type { createContentService, PreviewTokenService } from "@not-a-cms/core"
 import { canAccessCollection } from "@not-a-cms/core"
-import type { PreviewTokenService } from "@not-a-cms/core"
-import type { createContentService } from "@not-a-cms/core"
 
 type CollectionEntry = {
   def: any
@@ -39,7 +38,9 @@ export function createPreviewHandler(
       const doc = await entry.service.findById(documentId)
       if (!doc) return json({ error: "Document not found" }, 404)
 
-      const token = tokenService.generate(collection, documentId, { regenerate: body.regenerate === true })
+      const token = tokenService.generate(collection, documentId, {
+        regenerate: body.regenerate === true,
+      })
       const previewUrl = `${url.origin}/api/_preview/${token.token}`
       return json({ ...token, previewUrl })
     }

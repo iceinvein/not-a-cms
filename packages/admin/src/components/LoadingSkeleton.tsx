@@ -7,7 +7,10 @@ export function ContentListSkeleton() {
         <div className="h-3 w-14 bg-[rgba(255,255,255,0.06)] rounded animate-pulse" />
       </div>
       {[1, 2, 3, 4, 5].map((i) => (
-        <div key={i} className="px-6 py-4 flex items-center gap-6 border-b border-[rgba(255,255,255,0.04)] last:border-0">
+        <div
+          key={i}
+          className="px-6 py-4 flex items-center gap-6 border-b border-[rgba(255,255,255,0.04)] last:border-0"
+        >
           <div className="flex-1 h-4 bg-[rgba(255,255,255,0.06)] rounded animate-pulse" />
           <div className="h-5 w-16 bg-[rgba(255,255,255,0.06)] rounded-full animate-pulse" />
           <div className="h-4 w-20 bg-[rgba(255,255,255,0.06)] rounded animate-pulse" />

@@ -16,7 +16,8 @@ type PreviewToken = {
   token: string
 }
 
-const png1x1 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII="
+const png1x1 =
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII="
 
 export async function runMediaPreviewSmoke(ctx: E2EContext) {
   const stamp = Date.now()
@@ -24,7 +25,11 @@ export async function runMediaPreviewSmoke(ctx: E2EContext) {
   const title = `Agent Preview E2E ${stamp}`
 
   const mediaForm = new FormData()
-  mediaForm.append("file", new Blob([Buffer.from(png1x1, "base64")], { type: "image/png" }), filename)
+  mediaForm.append(
+    "file",
+    new Blob([Buffer.from(png1x1, "base64")], { type: "image/png" }),
+    filename,
+  )
   mediaForm.append("alt", "E2E preview image")
   mediaForm.append("title", "E2E hero")
 
@@ -44,7 +49,12 @@ export async function runMediaPreviewSmoke(ctx: E2EContext) {
       title,
       slug: `agent-preview-e2e-${stamp}`,
       excerpt: "Preview smoke excerpt",
-      body: [{ type: "paragraph", children: [{ type: "text", value: "Preview content is visible before publish." }] }],
+      body: [
+        {
+          type: "paragraph",
+          children: [{ type: "text", value: "Preview content is visible before publish." }],
+        },
+      ],
       coverImage: media.id,
       status: "draft",
     }),
@@ -59,10 +69,17 @@ export async function runMediaPreviewSmoke(ctx: E2EContext) {
     }),
   })
 
-  await ctx.agent(["open", `${ctx.siteBase}/preview/${preview.token}?collection=blog_post&documentId=${draft.id}`])
+  await ctx.agent([
+    "open",
+    `${ctx.siteBase}/preview/${preview.token}?collection=blog_post&documentId=${draft.id}`,
+  ])
   await ctx.agent(["wait", "--load", "networkidle"], { allowFailure: true })
   await ctx.screenshot("06-preview-render.png")
-  await ctx.assertPageContains("draft preview", [title, "This is a preview", "Preview content is visible before publish."])
+  await ctx.assertPageContains("draft preview", [
+    title,
+    "This is a preview",
+    "Preview content is visible before publish.",
+  ])
 
   return {
     name: "Media upload and preview smoke",

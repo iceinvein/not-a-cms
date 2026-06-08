@@ -7,7 +7,11 @@ function cards(value: unknown): FeatureCard[] {
   if (!Array.isArray(value)) return []
   return value.map((item) => {
     const card = (item ?? {}) as Partial<FeatureCard>
-    return { icon: String(card.icon ?? ""), title: String(card.title ?? ""), text: String(card.text ?? "") }
+    return {
+      icon: String(card.icon ?? ""),
+      title: String(card.title ?? ""),
+      text: String(card.text ?? ""),
+    }
   })
 }
 
@@ -43,19 +47,25 @@ export function FeatureGridBlockView({ node, updateAttributes }: any) {
               className="cn-block-input cn-feature-icon-input"
               value={card.icon}
               placeholder="Icon (emoji, optional)"
-              onChange={(event) => update(items.map((c, i) => (i === index ? { ...c, icon: event.target.value } : c)))}
+              onChange={(event) =>
+                update(items.map((c, i) => (i === index ? { ...c, icon: event.target.value } : c)))
+              }
             />
             <input
               className="cn-block-input"
               value={card.title}
               placeholder="Card title"
-              onChange={(event) => update(items.map((c, i) => (i === index ? { ...c, title: event.target.value } : c)))}
+              onChange={(event) =>
+                update(items.map((c, i) => (i === index ? { ...c, title: event.target.value } : c)))
+              }
             />
             <textarea
               className="cn-block-input cn-block-textarea"
               value={card.text}
               placeholder="Card text"
-              onChange={(event) => update(items.map((c, i) => (i === index ? { ...c, text: event.target.value } : c)))}
+              onChange={(event) =>
+                update(items.map((c, i) => (i === index ? { ...c, text: event.target.value } : c)))
+              }
             />
             <button
               type="button"
@@ -67,7 +77,11 @@ export function FeatureGridBlockView({ node, updateAttributes }: any) {
           </div>
         ))}
       </div>
-      <button type="button" className="cn-block-action cn-block-cta" onClick={() => update([...items, { icon: "", title: "", text: "" }])}>
+      <button
+        type="button"
+        className="cn-block-action cn-block-cta"
+        onClick={() => update([...items, { icon: "", title: "", text: "" }])}
+      >
         + Add card
       </button>
       <span className="cn-block-label">feature grid</span>

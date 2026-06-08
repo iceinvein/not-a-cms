@@ -42,7 +42,15 @@ export function createVersioningService(db: AppDatabase) {
       sql`INSERT INTO _versions (id, collection, document_id, data, version_number, action, created_at) VALUES (${id}, ${collection}, ${documentId}, ${dataJson}, ${versionNumber}, ${action}, ${now})`,
     )
 
-    return { id, collection, document_id: documentId, data, version_number: versionNumber, action, created_at: now }
+    return {
+      id,
+      collection,
+      document_id: documentId,
+      data,
+      version_number: versionNumber,
+      action,
+      created_at: now,
+    }
   }
 
   function listVersions(collection: string, documentId: string): VersionRecord[] {
@@ -53,9 +61,7 @@ export function createVersioningService(db: AppDatabase) {
   }
 
   function getVersion(versionId: string): VersionRecord | null {
-    const rows = db.all<VersionRow>(
-      sql`SELECT * FROM _versions WHERE id = ${versionId}`,
-    )
+    const rows = db.all<VersionRow>(sql`SELECT * FROM _versions WHERE id = ${versionId}`)
     const row = (rows as VersionRow[])[0]
     if (!row) return null
     return parseVersionRow(row)

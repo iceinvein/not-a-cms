@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react"
-import type { Flow, FlowStep, FlowTrigger } from "./flow-types"
-import { FlowCanvas } from "./FlowCanvas"
-import { StepConfigurator } from "./StepConfigurator"
-import { RunList } from "./RunList"
-import { ErrorState, LoadingState } from "../AdminState"
+import { useEffect, useState } from "react"
 import { adminApiFetch } from "../../lib/api"
+import { ErrorState, LoadingState } from "../AdminState"
+import { FlowCanvas } from "./FlowCanvas"
+import type { Flow, FlowStep, FlowTrigger } from "./flow-types"
+import { RunList } from "./RunList"
+import { StepConfigurator } from "./StepConfigurator"
 
 type Props = {
   flowId: string
@@ -41,7 +41,8 @@ export function FlowEditor({ flowId, apiBase = "" }: Props) {
         setLocalTrigger(data.trigger)
         setLocalActive(data.active)
       }
-    } catch {} finally {
+    } catch {
+    } finally {
       setLoading(false)
     }
   }
@@ -95,9 +96,7 @@ export function FlowEditor({ flowId, apiBase = "" }: Props) {
   }
 
   const handleUpdateStep = (id: string, updates: Partial<FlowStep>) => {
-    setLocalSteps((prev) =>
-      prev.map((s) => (s.id === id ? ({ ...s, ...updates } as FlowStep) : s))
-    )
+    setLocalSteps((prev) => prev.map((s) => (s.id === id ? ({ ...s, ...updates } as FlowStep) : s)))
   }
 
   const handleSelectStep = (id: string | null) => {
@@ -117,7 +116,12 @@ export function FlowEditor({ flowId, apiBase = "" }: Props) {
   }
 
   if (!flow) {
-    return <ErrorState title="Flow not found" description="This automation may have been deleted or is no longer available." />
+    return (
+      <ErrorState
+        title="Flow not found"
+        description="This automation may have been deleted or is no longer available."
+      />
+    )
   }
 
   return (
@@ -177,16 +181,20 @@ export function FlowEditor({ flowId, apiBase = "" }: Props) {
           {saving ? "Saving…" : "Save"}
         </button>
 
-        {savedAt && (
-          <span className="text-xs text-[#52525b]">Saved at {savedAt}</span>
-        )}
+        {savedAt && <span className="text-xs text-[#52525b]">Saved at {savedAt}</span>}
       </div>
 
       {/* Main content */}
       {tab === "editor" ? (
         <div className="flex gap-4 items-start">
           {/* Canvas panel */}
-          <div className="flex-1 bg-[#0a0a0c] rounded-xl border border-[rgba(255,255,255,0.06)] min-h-[500px]" style={{ backgroundImage: 'radial-gradient(circle, #27272a 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
+          <div
+            className="flex-1 bg-[#0a0a0c] rounded-xl border border-[rgba(255,255,255,0.06)] min-h-[500px]"
+            style={{
+              backgroundImage: "radial-gradient(circle, #27272a 1px, transparent 1px)",
+              backgroundSize: "20px 20px",
+            }}
+          >
             <FlowCanvas
               trigger={localTrigger}
               steps={localSteps}

@@ -14,7 +14,11 @@ describe("collab WebSocket cursor relay", () => {
     server = createServer({
       port: 0,
       database: { url: testDbPath },
-      auth: { secret: "a".repeat(32), baseURL: "http://localhost", magicLink: { sendMagicLink: async () => {} } },
+      auth: {
+        secret: "a".repeat(32),
+        baseURL: "http://localhost",
+        magicLink: { sendMagicLink: async () => {} },
+      },
       collections: [page],
       collaboration: { requireAuth: false },
     })
@@ -23,9 +27,15 @@ describe("collab WebSocket cursor relay", () => {
 
   afterAll(() => {
     server.server.stop()
-    try { unlinkSync(testDbPath) } catch {}
-    try { unlinkSync(testDbPath + "-wal") } catch {}
-    try { unlinkSync(testDbPath + "-shm") } catch {}
+    try {
+      unlinkSync(testDbPath)
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-wal")
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-shm")
+    } catch {}
   })
 
   test("broadcasts cursor messages between clients for the same document", async () => {
@@ -34,8 +44,12 @@ describe("collab WebSocket cursor relay", () => {
     const wsB = new WebSocket(`${wsUrl}/collab?doc=${encodeURIComponent(docName)}`)
 
     await Promise.all([
-      new Promise<void>((resolve) => { wsA.onopen = () => resolve() }),
-      new Promise<void>((resolve) => { wsB.onopen = () => resolve() }),
+      new Promise<void>((resolve) => {
+        wsA.onopen = () => resolve()
+      }),
+      new Promise<void>((resolve) => {
+        wsB.onopen = () => resolve()
+      }),
     ])
 
     const received = new Promise<string>((resolve) => {

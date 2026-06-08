@@ -1,5 +1,5 @@
 import { portableTextToHtml } from "./channel"
-import { createContentFetcher, type ContentItem, type RouteConfig } from "./content-fetcher"
+import { type ContentItem, createContentFetcher, type RouteConfig } from "./content-fetcher"
 
 export type RenderedDocument = {
   html: string
@@ -23,7 +23,10 @@ type RenderOpts = {
  * the configured collection before the synchronous serializer runs, then injects the
  * results as collectionData keyed by top-level block index.
  */
-export async function renderDocumentContent(document: ContentItem, opts: RenderOpts): Promise<RenderedDocument> {
+export async function renderDocumentContent(
+  document: ContentItem,
+  opts: RenderOpts,
+): Promise<RenderedDocument> {
   if (document.body) {
     try {
       const blocks = typeof document.body === "string" ? JSON.parse(document.body) : document.body
@@ -34,33 +37,42 @@ export async function renderDocumentContent(document: ContentItem, opts: RenderO
       if (Array.isArray(blocks)) {
         const fetcher = createContentFetcher({ apiBase: opts.apiBase, fetch: opts.fetch })
         await Promise.all(
-          blocks.map(async (block: { type?: string; collection?: string; limit?: unknown; filterTag?: unknown }, i: number) => {
-            if (block.type !== "collectionList") return
-            try {
-              const limit = Number(block.limit) || 3
-              const collection = String(block.collection ?? "")
-              if (!collection) return
-              let entries = await fetcher.list(collection, {
-                limit,
-                where: { status: "published" },
-              })
-              // Best-effort tag filter: the list endpoint may not support tag membership.
-              const filterTag = String(block.filterTag ?? "").trim()
-              if (filterTag) {
-                entries = entries.filter((entry) => {
-                  const tags = entry.tags
-                  return Array.isArray(tags) && tags.includes(filterTag)
+          blocks.map(
+            async (
+              block: { type?: string; collection?: string; limit?: unknown; filterTag?: unknown },
+              i: number,
+            ) => {
+              if (block.type !== "collectionList") return
+              try {
+                const limit = Number(block.limit) || 3
+                const collection = String(block.collection ?? "")
+                if (!collection) return
+                let entries = await fetcher.list(collection, {
+                  limit,
+                  where: { status: "published" },
                 })
+                // Best-effort tag filter: the list endpoint may not support tag membership.
+                const filterTag = String(block.filterTag ?? "").trim()
+                if (filterTag) {
+                  entries = entries.filter((entry) => {
+                    const tags = entry.tags
+                    return Array.isArray(tags) && tags.includes(filterTag)
+                  })
+                }
+                collectionData[i] = entries
+              } catch {
+                // Leave collectionData[i] undefined; serializer renders an empty band.
               }
-              collectionData[i] = entries
-            } catch {
-              // Leave collectionData[i] undefined; serializer renders an empty band.
-            }
-          }),
+            },
+          ),
         )
       }
 
-      const html = portableTextToHtml(blocks, { apiBase: opts.apiBase, collectionData, routes: opts.routes })
+      const html = portableTextToHtml(blocks, {
+        apiBase: opts.apiBase,
+        collectionData,
+        routes: opts.routes,
+      })
       return { html, leadsWithHero }
     } catch {
       return { html: "<p>Error rendering content.</p>", leadsWithHero: false }

@@ -100,4 +100,4 @@ export function sanitizeUrl(value: unknown, opts: { allowDataImage?: boolean } =
   return "#"
 }
 
-export { DEFAULT_BLOCK_MAP, type PTBlock, type PTTextNode, type BlockComponentMap }
+export { type BlockComponentMap, DEFAULT_BLOCK_MAP, type PTBlock, type PTTextNode }

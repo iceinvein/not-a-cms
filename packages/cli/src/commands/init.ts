@@ -1,7 +1,7 @@
-import { registerCommand } from "../router"
+import { existsSync, mkdirSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
-import { mkdirSync, writeFileSync, existsSync } from "node:fs"
 import pkg from "../../package.json"
+import { registerCommand } from "../router"
 
 // Pin scaffolded @not-a-cms/* dependencies to the CLI's own version so a
 // generated project installs a matching, released set (coordinated monorepo

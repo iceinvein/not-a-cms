@@ -1,9 +1,16 @@
-import { z } from "zod"
+import type { CollectionDef, createContentService } from "@not-a-cms/core"
+import {
+  canAccessCollection,
+  filterWritableFields,
+  populateDocuments,
+  projectDocumentFields,
+  QueryError,
+  ValidationError,
+  WorkflowError,
+} from "@not-a-cms/core"
 import { TRPCError } from "@trpc/server"
+import { z } from "zod"
 import { protectedProcedure, publicProcedure, router } from "./context"
-import { QueryError, ValidationError, WorkflowError, canAccessCollection, filterWritableFields, populateDocuments, projectDocumentFields } from "@not-a-cms/core"
-import type { CollectionDef } from "@not-a-cms/core"
-import type { createContentService } from "@not-a-cms/core"
 
 export type CollectionEntry = {
   def: CollectionDef
@@ -22,7 +29,11 @@ function getEntry(collections: Map<string, CollectionEntry>, name: string) {
   return entry
 }
 
-function requireCollectionAccess(entry: CollectionEntry, role: string, action: "read" | "create" | "update" | "delete") {
+function requireCollectionAccess(
+  entry: CollectionEntry,
+  role: string,
+  action: "read" | "create" | "update" | "delete",
+) {
   if (!canAccessCollection(entry.def, role, action)) {
     throw new TRPCError({
       code: "FORBIDDEN",
@@ -65,7 +76,9 @@ export function createContentRouter(collections: Map<string, CollectionEntry>) {
         const role = ctx.session.role
         requireCollectionAccess(entry, role, "create")
         try {
-          const doc = await entry.service.create(filterWritableFields(input.data, entry.def.fields, role))
+          const doc = await entry.service.create(
+            filterWritableFields(input.data, entry.def.fields, role),
+          )
           return projectDocumentFields(doc, entry.def.fields, role)
         } catch (err) {
           mapValidationError(err)
@@ -73,7 +86,13 @@ export function createContentRouter(collections: Map<string, CollectionEntry>) {
       }),
 
     findById: publicProcedure
-      .input(z.object({ collection: z.string(), id: z.string(), populate: z.array(z.string()).optional() }))
+      .input(
+        z.object({
+          collection: z.string(),
+          id: z.string(),
+          populate: z.array(z.string()).optional(),
+        }),
+      )
       .query(async ({ input, ctx }) => {
         const entry = getEntry(collections, input.collection)
         const role = ctx.session?.role ?? "viewer"
@@ -116,7 +135,13 @@ export function createContentRouter(collections: Map<string, CollectionEntry>) {
         const publicOnly = !ctx.session && Boolean(entry.def.fields.status)
         try {
           const where = publicOnly ? { ...(input.where ?? {}), status: "published" } : input.where
-          const query = { limit: input.limit, offset: input.offset, where, sort: input.sort, order: input.order }
+          const query = {
+            limit: input.limit,
+            offset: input.offset,
+            where,
+            sort: input.sort,
+            order: input.order,
+          }
           const docs = await entry.service.findMany(query)
           const populated = await populateDocuments(docs, entry.def, {
             populate: input.populate ?? [],
@@ -141,7 +166,10 @@ export function createContentRouter(collections: Map<string, CollectionEntry>) {
         const role = ctx.session.role
         requireCollectionAccess(entry, role, "update")
         try {
-          const updated = await entry.service.update(input.id, filterWritableFields(input.data, entry.def.fields, role))
+          const updated = await entry.service.update(
+            input.id,
+            filterWritableFields(input.data, entry.def.fields, role),
+          )
           return projectDocumentFields(updated, entry.def.fields, role)
         } catch (err) {
           mapValidationError(err)

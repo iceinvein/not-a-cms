@@ -21,11 +21,16 @@ describe("RawYjsWebSocketProvider cursor protocol", () => {
       close() {}
     }
 
-    const provider = new RawYjsWebSocketProvider("ws://localhost:4321/collab", "doc-1", new Y.Doc(), {
-      WebSocketImpl: FakeWebSocket as any,
-      clientId: "local-client",
-      user: { name: "Local Editor", color: "#c9956b" },
-    })
+    const provider = new RawYjsWebSocketProvider(
+      "ws://localhost:4321/collab",
+      "doc-1",
+      new Y.Doc(),
+      {
+        WebSocketImpl: FakeWebSocket as any,
+        clientId: "local-client",
+        user: { name: "Local Editor", color: "#c9956b" },
+      },
+    )
 
     provider.sendCursor(3, 7)
 
@@ -55,30 +60,42 @@ describe("RawYjsWebSocketProvider cursor protocol", () => {
     }
 
     const cursorSnapshots: string[][] = []
-    const provider = new RawYjsWebSocketProvider("ws://localhost:4321/collab", "doc-1", new Y.Doc(), {
-      WebSocketImpl: FakeWebSocket as any,
-      clientId: "local-client",
-      user: { name: "Local Editor", color: "#c9956b" },
-      onCursorChange: (cursors) => cursorSnapshots.push(cursors.map((cursor) => `${cursor.clientId}:${cursor.anchor}:${cursor.head}`)),
-    })
+    const provider = new RawYjsWebSocketProvider(
+      "ws://localhost:4321/collab",
+      "doc-1",
+      new Y.Doc(),
+      {
+        WebSocketImpl: FakeWebSocket as any,
+        clientId: "local-client",
+        user: { name: "Local Editor", color: "#c9956b" },
+        onCursorChange: (cursors) =>
+          cursorSnapshots.push(
+            cursors.map((cursor) => `${cursor.clientId}:${cursor.anchor}:${cursor.head}`),
+          ),
+      },
+    )
 
-    provider.handleMessage(JSON.stringify({
-      type: "cursor",
-      clientId: "remote-client",
-      user: { name: "Remote Editor", color: "#38bdf8" },
-      anchor: 4,
-      head: 9,
-    }))
+    provider.handleMessage(
+      JSON.stringify({
+        type: "cursor",
+        clientId: "remote-client",
+        user: { name: "Remote Editor", color: "#38bdf8" },
+        anchor: 4,
+        head: 9,
+      }),
+    )
 
     expect(cursorSnapshots.at(-1)).toEqual(["remote-client:4:9"])
 
-    provider.handleMessage(JSON.stringify({
-      type: "cursor",
-      clientId: "local-client",
-      user: { name: "Local Editor", color: "#c9956b" },
-      anchor: 1,
-      head: 2,
-    }))
+    provider.handleMessage(
+      JSON.stringify({
+        type: "cursor",
+        clientId: "local-client",
+        user: { name: "Local Editor", color: "#c9956b" },
+        anchor: 1,
+        head: 2,
+      }),
+    )
 
     expect(cursorSnapshots).toHaveLength(1)
     provider.destroy()
@@ -99,26 +116,35 @@ describe("RawYjsWebSocketProvider cursor protocol", () => {
     }
 
     const cursorSnapshots: number[] = []
-    const provider = new RawYjsWebSocketProvider("ws://localhost:4321/collab", "doc-1", new Y.Doc(), {
-      WebSocketImpl: FakeWebSocket as any,
-      clientId: "local-client",
-      user: { name: "Local Editor", color: "#c9956b" },
-      onCursorChange: (cursors) => cursorSnapshots.push(cursors.length),
-    })
+    const provider = new RawYjsWebSocketProvider(
+      "ws://localhost:4321/collab",
+      "doc-1",
+      new Y.Doc(),
+      {
+        WebSocketImpl: FakeWebSocket as any,
+        clientId: "local-client",
+        user: { name: "Local Editor", color: "#c9956b" },
+        onCursorChange: (cursors) => cursorSnapshots.push(cursors.length),
+      },
+    )
 
-    provider.handleMessage(JSON.stringify({
-      type: "cursor",
-      clientId: "remote-client",
-      user: { name: "Remote Editor", color: "#38bdf8" },
-      anchor: 4,
-      head: 9,
-    }))
-    provider.handleMessage(JSON.stringify({
-      type: "presence",
-      clientId: "remote-client",
-      user: { name: "Remote Editor", color: "#38bdf8" },
-      status: "offline",
-    }))
+    provider.handleMessage(
+      JSON.stringify({
+        type: "cursor",
+        clientId: "remote-client",
+        user: { name: "Remote Editor", color: "#38bdf8" },
+        anchor: 4,
+        head: 9,
+      }),
+    )
+    provider.handleMessage(
+      JSON.stringify({
+        type: "presence",
+        clientId: "remote-client",
+        user: { name: "Remote Editor", color: "#38bdf8" },
+        status: "offline",
+      }),
+    )
 
     expect(cursorSnapshots).toEqual([1, 0])
     provider.destroy()

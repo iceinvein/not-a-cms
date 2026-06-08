@@ -4,7 +4,13 @@ import { renderPortableText } from "../../src/runtime/portable-text-html"
 describe("section blocks (F-012)", () => {
   test("renders a hero with eyebrow, headline, subheadline and alignment", () => {
     const html = renderPortableText([
-      { type: "hero", eyebrow: "New", headline: "Ship faster", subheadline: "The CMS for 2026", align: "left" },
+      {
+        type: "hero",
+        eyebrow: "New",
+        headline: "Ship faster",
+        subheadline: "The CMS for 2026",
+        align: "left",
+      },
     ])
     expect(html).toContain("nac-band")
     expect(html).toContain("nac-hero")
@@ -21,7 +27,9 @@ describe("section blocks (F-012)", () => {
   })
 
   test("renders a CTA button with a safe href and variant", () => {
-    const html = renderPortableText([{ type: "cta", label: "Get started", url: "/signup", variant: "primary" }])
+    const html = renderPortableText([
+      { type: "cta", label: "Get started", url: "/signup", variant: "primary" },
+    ])
     expect(html).toContain('class="nac-cta-btn"')
     expect(html).toContain('data-variant="primary"')
     expect(html).toContain('href="/signup"')
@@ -74,13 +82,20 @@ describe("section blocks (F-012)", () => {
 
   test("hero overlay can be disabled", () => {
     const html = renderPortableText([
-      { type: "hero", headline: "Hi", backgroundImage: "https://cdn.example.com/bg.jpg", overlay: false },
+      {
+        type: "hero",
+        headline: "Hi",
+        backgroundImage: "https://cdn.example.com/bg.jpg",
+        overlay: false,
+      },
     ])
     expect(html).toContain('data-overlay="false"')
   })
 
   test("hero background rejects dangerous urls", () => {
-    const html = renderPortableText([{ type: "hero", headline: "Hi", backgroundImage: "javascript:alert(1)" }])
+    const html = renderPortableText([
+      { type: "hero", headline: "Hi", backgroundImage: "javascript:alert(1)" },
+    ])
     expect(html).not.toContain("javascript:")
     expect(html).toContain('data-has-bg="false"')
   })
@@ -96,7 +111,9 @@ describe("section blocks (F-012)", () => {
 
   test("feature grid defaults to 3 columns and clamps invalid counts", () => {
     expect(renderPortableText([{ type: "featureGrid", items: [] }])).toContain('data-columns="3"')
-    expect(renderPortableText([{ type: "featureGrid", columns: 7, items: [] }])).toContain('data-columns="3"')
+    expect(renderPortableText([{ type: "featureGrid", columns: 7, items: [] }])).toContain(
+      'data-columns="3"',
+    )
   })
 })
 
@@ -134,8 +151,12 @@ describe("stats section block", () => {
   })
 
   test("stats accepts 2 and 4 column counts", () => {
-    expect(renderPortableText([{ type: "stats", columns: 2, items: [] }])).toContain('data-columns="2"')
-    expect(renderPortableText([{ type: "stats", columns: 4, items: [] }])).toContain('data-columns="4"')
+    expect(renderPortableText([{ type: "stats", columns: 2, items: [] }])).toContain(
+      'data-columns="2"',
+    )
+    expect(renderPortableText([{ type: "stats", columns: 4, items: [] }])).toContain(
+      'data-columns="4"',
+    )
   })
 
   test("stats escapes html in value and label", () => {
@@ -180,9 +201,7 @@ describe("logoCloud section block", () => {
   })
 
   test("logoCloud omits eyebrow element when empty", () => {
-    const html = renderPortableText([
-      { type: "logoCloud", eyebrow: "", logos: [] },
-    ])
+    const html = renderPortableText([{ type: "logoCloud", eyebrow: "", logos: [] }])
     expect(html).not.toContain("nac-eyebrow")
   })
 
@@ -311,9 +330,7 @@ describe("pricingCards section block", () => {
   })
 
   test("pricingCards omits heading element when heading is empty", () => {
-    const html = renderPortableText([
-      { type: "pricingCards", heading: "", tiers: [] },
-    ])
+    const html = renderPortableText([{ type: "pricingCards", heading: "", tiers: [] }])
     expect(html).not.toContain("nac-section-heading")
   })
 
@@ -321,7 +338,17 @@ describe("pricingCards section block", () => {
     const html = renderPortableText([
       {
         type: "pricingCards",
-        tiers: [{ name: "Free", price: "$0", period: "", features: [], ctaLabel: "", ctaUrl: "", highlighted: false }],
+        tiers: [
+          {
+            name: "Free",
+            price: "$0",
+            period: "",
+            features: [],
+            ctaLabel: "",
+            ctaUrl: "",
+            highlighted: false,
+          },
+        ],
       },
     ])
     expect(html).not.toContain("nac-cta-btn")
@@ -331,7 +358,17 @@ describe("pricingCards section block", () => {
     const html = renderPortableText([
       {
         type: "pricingCards",
-        tiers: [{ name: "Free", price: "$0", period: "", features: [], ctaLabel: "", ctaUrl: "", highlighted: false }],
+        tiers: [
+          {
+            name: "Free",
+            price: "$0",
+            period: "",
+            features: [],
+            ctaLabel: "",
+            ctaUrl: "",
+            highlighted: false,
+          },
+        ],
       },
     ])
     expect(html).not.toContain("nac-tier-period")
@@ -354,7 +391,15 @@ describe("pricingCards section block", () => {
       {
         type: "pricingCards",
         tiers: [
-          { name: "<script>x</script>", price: "$0", period: "", features: ["<b>bad</b>"], ctaLabel: "", ctaUrl: "", highlighted: false },
+          {
+            name: "<script>x</script>",
+            price: "$0",
+            period: "",
+            features: ["<b>bad</b>"],
+            ctaLabel: "",
+            ctaUrl: "",
+            highlighted: false,
+          },
         ],
       },
     ])
@@ -368,7 +413,17 @@ describe("pricingCards section block", () => {
     const html = renderPortableText([
       {
         type: "pricingCards",
-        tiers: [{ name: "Bad", price: "$0", period: "", features: [], ctaLabel: "Click", ctaUrl: "javascript:alert(1)", highlighted: false }],
+        tiers: [
+          {
+            name: "Bad",
+            price: "$0",
+            period: "",
+            features: [],
+            ctaLabel: "Click",
+            ctaUrl: "javascript:alert(1)",
+            highlighted: false,
+          },
+        ],
       },
     ])
     expect(html).not.toContain("javascript:")
@@ -379,7 +434,17 @@ describe("pricingCards section block", () => {
     const html = renderPortableText([
       {
         type: "pricingCards",
-        tiers: [{ name: "Free", price: "$0", period: "", features: null, ctaLabel: "", ctaUrl: "", highlighted: false }],
+        tiers: [
+          {
+            name: "Free",
+            price: "$0",
+            period: "",
+            features: null,
+            ctaLabel: "",
+            ctaUrl: "",
+            highlighted: false,
+          },
+        ],
       },
     ])
     expect(html).toContain("nac-tier")
@@ -638,7 +703,13 @@ describe("testimonial section block", () => {
 
   test("testimonial escapes html in all text fields", () => {
     const html = renderPortableText([
-      { type: "testimonial", quote: "<script>bad</script>", name: "<b>Name</b>", role: "<i>r</i>", avatar: "" },
+      {
+        type: "testimonial",
+        quote: "<script>bad</script>",
+        name: "<b>Name</b>",
+        role: "<i>r</i>",
+        avatar: "",
+      },
     ])
     expect(html).not.toContain("<script>")
     expect(html).not.toContain("<b>Name")
@@ -702,12 +773,29 @@ describe("collectionList section block", () => {
 
   test("showCover:false omits the cover image", () => {
     const html = renderPortableText(
-      [{ type: "collectionList", collection: "blog_post", showCover: false, showExcerpt: true, showDate: true }],
+      [
+        {
+          type: "collectionList",
+          collection: "blog_post",
+          showCover: false,
+          showExcerpt: true,
+          showDate: true,
+        },
+      ],
       "web",
       {
         apiBase: "http://api",
         collectionData: {
-          0: [{ id: "1", title: "Post A", slug: "a", excerpt: "X", coverImage: "img1", publishedAt: "2026-01-01" }],
+          0: [
+            {
+              id: "1",
+              title: "Post A",
+              slug: "a",
+              excerpt: "X",
+              coverImage: "img1",
+              publishedAt: "2026-01-01",
+            },
+          ],
         },
       },
     )
@@ -717,12 +805,29 @@ describe("collectionList section block", () => {
 
   test("showExcerpt:false omits the excerpt", () => {
     const html = renderPortableText(
-      [{ type: "collectionList", collection: "blog_post", showCover: true, showExcerpt: false, showDate: true }],
+      [
+        {
+          type: "collectionList",
+          collection: "blog_post",
+          showCover: true,
+          showExcerpt: false,
+          showDate: true,
+        },
+      ],
       "web",
       {
         apiBase: "http://api",
         collectionData: {
-          0: [{ id: "1", title: "Post A", slug: "a", excerpt: "X", coverImage: "img1", publishedAt: "2026-01-01" }],
+          0: [
+            {
+              id: "1",
+              title: "Post A",
+              slug: "a",
+              excerpt: "X",
+              coverImage: "img1",
+              publishedAt: "2026-01-01",
+            },
+          ],
         },
       },
     )
@@ -732,12 +837,29 @@ describe("collectionList section block", () => {
 
   test("showDate:false omits the date", () => {
     const html = renderPortableText(
-      [{ type: "collectionList", collection: "blog_post", showCover: true, showExcerpt: true, showDate: false }],
+      [
+        {
+          type: "collectionList",
+          collection: "blog_post",
+          showCover: true,
+          showExcerpt: true,
+          showDate: false,
+        },
+      ],
       "web",
       {
         apiBase: "http://api",
         collectionData: {
-          0: [{ id: "1", title: "Post A", slug: "a", excerpt: "X", coverImage: "img1", publishedAt: "2026-01-01" }],
+          0: [
+            {
+              id: "1",
+              title: "Post A",
+              slug: "a",
+              excerpt: "X",
+              coverImage: "img1",
+              publishedAt: "2026-01-01",
+            },
+          ],
         },
       },
     )

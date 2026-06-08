@@ -1,9 +1,9 @@
 import { useState } from "react"
-import type { Flow, FlowTrigger, DryRunResult } from "./flow-types"
-import { RunInspector } from "./RunInspector"
-import { defaultPayloadForTrigger, documentToPayload } from "../../lib/automations/test-payload"
 import { adminApiFetch, messageForAdminResponse } from "../../lib/api"
+import { defaultPayloadForTrigger, documentToPayload } from "../../lib/automations/test-payload"
 import { ErrorState } from "../AdminState"
+import type { DryRunResult, Flow, FlowTrigger } from "./flow-types"
+import { RunInspector } from "./RunInspector"
 
 type Props = {
   flow: Flow
@@ -12,12 +12,15 @@ type Props = {
 }
 
 function contentCollection(trigger: FlowTrigger): string | null {
-  if (trigger.type.startsWith("content.") && "collection" in trigger && trigger.collection) return trigger.collection
+  if (trigger.type.startsWith("content.") && "collection" in trigger && trigger.collection)
+    return trigger.collection
   return null
 }
 
 export function TestPanel({ flow, apiBase = "", onClose }: Props) {
-  const [payloadText, setPayloadText] = useState(() => JSON.stringify(defaultPayloadForTrigger(flow.trigger), null, 2))
+  const [payloadText, setPayloadText] = useState(() =>
+    JSON.stringify(defaultPayloadForTrigger(flow.trigger), null, 2),
+  )
   const [result, setResult] = useState<DryRunResult | null>(null)
   const [error, setError] = useState("")
   const [running, setRunning] = useState(false)
@@ -30,10 +33,16 @@ export function TestPanel({ flow, apiBase = "", onClose }: Props) {
     if (!collection) return
     try {
       const res = await adminApiFetch(apiBase, `/api/${collection}?limit=5`)
-      if (!res.ok) { setError(messageForAdminResponse(res, "Could not load documents.")); return }
+      if (!res.ok) {
+        setError(messageForAdminResponse(res, "Could not load documents."))
+        return
+      }
       const body = await res.json()
       const doc = (body.data || [])[0]
-      if (!doc) { setError("No documents found in this collection."); return }
+      if (!doc) {
+        setError("No documents found in this collection.")
+        return
+      }
       setPayloadText(JSON.stringify(documentToPayload(flow.trigger, doc), null, 2))
     } catch {
       setError("Could not reach the server.")
@@ -44,10 +53,16 @@ export function TestPanel({ flow, apiBase = "", onClose }: Props) {
     setError("")
     try {
       const res = await adminApiFetch(apiBase, `/api/_flows/${flow.id}/runs?limit=10`)
-      if (!res.ok) { setError(messageForAdminResponse(res, "Could not load runs.")); return }
+      if (!res.ok) {
+        setError(messageForAdminResponse(res, "Could not load runs."))
+        return
+      }
       const body = await res.json()
       const run = (body.data || [])[0]
-      if (!run?.trigger_payload) { setError("No past runs with a payload."); return }
+      if (!run?.trigger_payload) {
+        setError("No past runs with a payload.")
+        return
+      }
       const parsed = JSON.parse(run.trigger_payload)
       setPayloadText(JSON.stringify(parsed, null, 2))
     } catch {
@@ -72,7 +87,10 @@ export function TestPanel({ flow, apiBase = "", onClose }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ flow, payload }),
       })
-      if (!res.ok) { setError(messageForAdminResponse(res, "Dry-run failed.")); return }
+      if (!res.ok) {
+        setError(messageForAdminResponse(res, "Dry-run failed."))
+        return
+      }
       setResult(await res.json())
     } catch {
       setError("Could not reach the server.")
@@ -82,7 +100,10 @@ export function TestPanel({ flow, apiBase = "", onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(0,0,0,0.6)] p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(0,0,0,0.6)] p-4"
+      onClick={onClose}
+    >
       <div
         className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#0a0a0c] p-5"
         onClick={(event) => event.stopPropagation()}
@@ -90,25 +111,43 @@ export function TestPanel({ flow, apiBase = "", onClose }: Props) {
         <div className="mb-4 flex items-center justify-between">
           <div>
             <p className="text-base font-semibold text-[#fafafa]">Test rule</p>
-            <p className="text-xs text-[#71717a]">Simulated: no webhooks, emails, or content writes are performed.</p>
+            <p className="text-xs text-[#71717a]">
+              Simulated: no webhooks, emails, or content writes are performed.
+            </p>
           </div>
-          <button type="button" onClick={onClose} className="text-sm text-[#71717a] hover:text-[#fafafa]">Close</button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-sm text-[#71717a] hover:text-[#fafafa]"
+          >
+            Close
+          </button>
         </div>
 
         <div className="mb-3 flex flex-wrap gap-2">
           {collection && (
-            <button type="button" onClick={loadRecentDocument} className="rounded-lg border border-[rgba(255,255,255,0.12)] px-3 py-1.5 text-xs text-[#e4e4e7] hover:bg-[rgba(255,255,255,0.05)]">
+            <button
+              type="button"
+              onClick={loadRecentDocument}
+              className="rounded-lg border border-[rgba(255,255,255,0.12)] px-3 py-1.5 text-xs text-[#e4e4e7] hover:bg-[rgba(255,255,255,0.05)]"
+            >
               Load recent document
             </button>
           )}
           {isSaved && (
-            <button type="button" onClick={loadPastRun} className="rounded-lg border border-[rgba(255,255,255,0.12)] px-3 py-1.5 text-xs text-[#e4e4e7] hover:bg-[rgba(255,255,255,0.05)]">
+            <button
+              type="button"
+              onClick={loadPastRun}
+              className="rounded-lg border border-[rgba(255,255,255,0.12)] px-3 py-1.5 text-xs text-[#e4e4e7] hover:bg-[rgba(255,255,255,0.05)]"
+            >
               Load from past run
             </button>
           )}
         </div>
 
-        <label htmlFor="dry-run-payload" className="mb-1 block text-xs font-medium text-[#a1a1aa]">Test payload (JSON)</label>
+        <label htmlFor="dry-run-payload" className="mb-1 block text-xs font-medium text-[#a1a1aa]">
+          Test payload (JSON)
+        </label>
         <textarea
           id="dry-run-payload"
           value={payloadText}

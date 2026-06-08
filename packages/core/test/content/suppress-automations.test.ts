@@ -18,14 +18,22 @@ const task = defineCollection({
 
 describe("content automation dispatch suppression", () => {
   afterEach(() => {
-    try { unlinkSync(testDbPath) } catch {}
-    try { unlinkSync(testDbPath + "-wal") } catch {}
-    try { unlinkSync(testDbPath + "-shm") } catch {}
+    try {
+      unlinkSync(testDbPath)
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-wal")
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-shm")
+    } catch {}
   })
 
   test("create can suppress automation dispatch without changing normal dispatch", async () => {
     const db = createDatabase({ url: testDbPath })
-    db.run(sql`CREATE TABLE IF NOT EXISTS task (id TEXT PRIMARY KEY, title TEXT NOT NULL, created_at TEXT, updated_at TEXT)`)
+    db.run(
+      sql`CREATE TABLE IF NOT EXISTS task (id TEXT PRIMARY KEY, title TEXT NOT NULL, created_at TEXT, updated_at TEXT)`,
+    )
     const table = generateTable(task)
     const calls: Array<[string, string, Record<string, unknown>]> = []
     const service = createContentService(db, task, table, undefined, undefined, {

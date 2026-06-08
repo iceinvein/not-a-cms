@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react"
-import type { Flow } from "./flow-types"
-import { flowToReadable, type RuleToken } from "../../lib/automations/readable"
 import { adminApiFetch, messageForAdminResponse } from "../../lib/api"
+import { flowToReadable, type RuleToken } from "../../lib/automations/readable"
 import { EmptyState, ErrorState, LoadingState } from "../AdminState"
+import type { Flow } from "./flow-types"
 import { RuleEditor } from "./RuleEditor"
 
 type Props = {
@@ -32,7 +32,9 @@ function statusDot(active: boolean): string {
 
 export function Rules({ apiBase = "", initialFlows, initialSelectedId }: Props) {
   const [flows, setFlows] = useState<Flow[]>(initialFlows ?? [])
-  const [selectedId, setSelectedId] = useState<string | null>(initialSelectedId ?? initialFlows?.[0]?.id ?? null)
+  const [selectedId, setSelectedId] = useState<string | null>(
+    initialSelectedId ?? initialFlows?.[0]?.id ?? null,
+  )
   const [loading, setLoading] = useState(!initialFlows)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState("")
@@ -92,7 +94,8 @@ export function Rules({ apiBase = "", initialFlows, initialSelectedId }: Props) 
     setFlows((current) => current.map((item) => (item.id === flow.id ? flow : item)))
   }
 
-  if (loading) return <LoadingState title="Loading rules" description="Fetching automation definitions." />
+  if (loading)
+    return <LoadingState title="Loading rules" description="Fetching automation definitions." />
 
   const selectedFlow = flows.find((flow) => flow.id === selectedId) ?? null
 
@@ -100,7 +103,9 @@ export function Rules({ apiBase = "", initialFlows, initialSelectedId }: Props) 
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-sm text-[#a1a1aa]">Readable WHEN, IF, DO rules backed by automation flows.</p>
+          <p className="text-sm text-[#a1a1aa]">
+            Readable WHEN, IF, DO rules backed by automation flows.
+          </p>
         </div>
         <button
           type="button"
@@ -116,12 +121,23 @@ export function Rules({ apiBase = "", initialFlows, initialSelectedId }: Props) 
         <ErrorState
           title="Rules unavailable"
           description={error}
-          action={<button type="button" onClick={fetchFlows} className="rounded-md bg-[rgba(255,255,255,0.08)] px-3 py-1.5 text-sm font-medium text-[#fafafa] transition-colors hover:bg-[rgba(255,255,255,0.12)]">Try again</button>}
+          action={
+            <button
+              type="button"
+              onClick={fetchFlows}
+              className="rounded-md bg-[rgba(255,255,255,0.08)] px-3 py-1.5 text-sm font-medium text-[#fafafa] transition-colors hover:bg-[rgba(255,255,255,0.12)]"
+            >
+              Try again
+            </button>
+          }
         />
       )}
 
       {flows.length === 0 ? (
-        <EmptyState title="No rules yet" description="Create a rule to run actions when content changes, a webhook arrives, or a schedule fires." />
+        <EmptyState
+          title="No rules yet"
+          description="Create a rule to run actions when content changes, a webhook arrives, or a schedule fires."
+        />
       ) : (
         <div className="grid gap-4 xl:grid-cols-[minmax(320px,420px)_minmax(0,1fr)]">
           <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#18181b]">
@@ -160,7 +176,10 @@ export function Rules({ apiBase = "", initialFlows, initialSelectedId }: Props) 
             {selectedFlow ? (
               <RuleEditor flow={selectedFlow} apiBase={apiBase} onSaved={handleSaved} />
             ) : (
-              <EmptyState title="Select a rule" description="Choose a rule to inspect or edit its WHEN, IF, DO outline." />
+              <EmptyState
+                title="Select a rule"
+                description="Choose a rule to inspect or edit its WHEN, IF, DO outline."
+              />
             )}
           </div>
         </div>

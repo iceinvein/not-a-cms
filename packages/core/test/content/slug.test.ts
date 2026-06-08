@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
+import { applyGeneratedSlugs } from "../../src/content/slug"
 import { defineCollection } from "../../src/schema/collection"
 import { field } from "../../src/schema/field"
-import { applyGeneratedSlugs } from "../../src/content/slug"
 
 const collection = defineCollection({
   name: "page",

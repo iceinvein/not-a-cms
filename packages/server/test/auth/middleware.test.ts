@@ -12,7 +12,7 @@ describe("getSessionFromRequest", () => {
     }
 
     const session = await getSessionFromRequest(auth, new Request("http://localhost"), {
-      getRoleForUser: async (user) => user.id === "user-1" ? "admin" : null,
+      getRoleForUser: async (user) => (user.id === "user-1" ? "admin" : null),
     })
 
     expect(session).toEqual({

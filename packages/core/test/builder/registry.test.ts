@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test"
+import { describe, expect, test } from "bun:test"
 import { createComponentRegistry } from "../../src/builder/registry"
 
 const heroComponent = {
@@ -34,7 +34,7 @@ describe("createComponentRegistry", () => {
     const registry = createComponentRegistry([heroComponent, ctaComponent])
     const all = registry.list()
     expect(all).toHaveLength(2)
-    expect(all.map(c => c.name)).toEqual(["hero", "cta"])
+    expect(all.map((c) => c.name)).toEqual(["hero", "cta"])
   })
 
   test("listByCategory() groups components", () => {

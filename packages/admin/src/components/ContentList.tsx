@@ -1,10 +1,10 @@
-import { useState, useEffect, useMemo } from "react"
-import type { ReactNode } from "react"
 import { Archive, CheckCircle2, Download, Send, Trash2, X } from "lucide-react"
-import { SearchBar } from "./SearchBar"
-import { ContentListSkeleton } from "./LoadingSkeleton"
-import { EmptyState, ErrorState } from "./AdminState"
+import type { ReactNode } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { adminApiFetch, messageForAdminResponse } from "../lib/api"
+import { EmptyState, ErrorState } from "./AdminState"
+import { ContentListSkeleton } from "./LoadingSkeleton"
+import { SearchBar } from "./SearchBar"
 
 type ContentItem = {
   id: string
@@ -71,7 +71,7 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
     setOffset(0)
     setSort((current) => {
       if (current === field) {
-        setOrder((currentOrder) => currentOrder === "asc" ? "desc" : "asc")
+        setOrder((currentOrder) => (currentOrder === "asc" ? "desc" : "asc"))
         return current
       }
       setOrder(field === "updated_at" ? "desc" : "asc")
@@ -86,9 +86,11 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
   const allVisibleSelected = items.length > 0 && selectedIds.length === items.length
 
   const toggleSelected = (id: string, checked: boolean) => {
-    setSelectedIds((current) => checked
-      ? Array.from(new Set([...current, id]))
-      : current.filter((selectedId) => selectedId !== id))
+    setSelectedIds((current) =>
+      checked
+        ? Array.from(new Set([...current, id]))
+        : current.filter((selectedId) => selectedId !== id),
+    )
   }
 
   const toggleAllVisible = (checked: boolean) => {
@@ -106,13 +108,17 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
     return data
   }
 
-  const handleBulkWorkflow = async (workflowAction: "save_draft" | "submit_review" | "publish" | "archive") => {
+  const handleBulkWorkflow = async (
+    workflowAction: "save_draft" | "submit_review" | "publish" | "archive",
+  ) => {
     if (selectedIds.length === 0) return
     setBulkBusy(workflowAction)
     setError("")
     try {
       const result = await postBulk({ action: "workflow", workflowAction, ids: selectedIds })
-      const updatedById = new Map<string, ContentItem>((result.updated ?? []).map((item: ContentItem) => [item.id, item]))
+      const updatedById = new Map<string, ContentItem>(
+        (result.updated ?? []).map((item: ContentItem) => [item.id, item]),
+      )
       setItems((current) => current.map((item) => updatedById.get(item.id) ?? item))
       setSelectedIds([])
     } catch (err: any) {
@@ -124,7 +130,12 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
 
   const handleBulkDelete = async () => {
     if (selectedIds.length === 0) return
-    if (!confirm(`Delete ${selectedIds.length} selected ${selectedIds.length === 1 ? "item" : "items"}?`)) return
+    if (
+      !confirm(
+        `Delete ${selectedIds.length} selected ${selectedIds.length === 1 ? "item" : "items"}?`,
+      )
+    )
+      return
     setBulkBusy("delete")
     setError("")
     try {
@@ -146,7 +157,9 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
     setError("")
     try {
       const result = await postBulk({ action: "export", ids: selectedIds })
-      const blob = new Blob([JSON.stringify(result.data ?? [], null, 2)], { type: "application/json" })
+      const blob = new Blob([JSON.stringify(result.data ?? [], null, 2)], {
+        type: "application/json",
+      })
       const url = URL.createObjectURL(blob)
       const anchor = document.createElement("a")
       anchor.href = url
@@ -195,16 +208,19 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
   const currentPage = Math.floor(offset / pageSize) + 1
   const canGoBack = offset > 0
   const canGoForward = offset + pageSize < total
-  const sortLabel = (field: string) => sort === field ? (order === "asc" ? " ↑" : " ↓") : ""
+  const sortLabel = (field: string) => (sort === field ? (order === "asc" ? " ↑" : " ↓") : "")
 
   const sortableHeader = (field: string, label: string, align: "left" | "right" = "left") => (
-    <th className={`${align === "right" ? "text-right" : "text-left"} px-6 py-3 text-xs font-medium text-[#52525b] uppercase tracking-wider`}>
+    <th
+      className={`${align === "right" ? "text-right" : "text-left"} px-6 py-3 text-xs font-medium text-[#52525b] uppercase tracking-wider`}
+    >
       <button
         type="button"
         onClick={() => changeSort(field)}
         className="uppercase tracking-wider hover:text-[#a1a1aa]"
       >
-        {label}{sortLabel(field)}
+        {label}
+        {sortLabel(field)}
       </button>
     </th>
   )
@@ -213,7 +229,10 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
     return (
       <>
         <div className="mb-4">
-          <SearchBar onSearch={handleSearch} placeholder={`Search ${collectionLabel.toLowerCase()}...`} />
+          <SearchBar
+            onSearch={handleSearch}
+            placeholder={`Search ${collectionLabel.toLowerCase()}...`}
+          />
         </div>
         <ContentListSkeleton />
       </>
@@ -223,16 +242,20 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
   if (error) {
     return (
       <ErrorState
-        title={error === "Sign in to continue." || error.startsWith("You do not have permission") ? "Permission needed" : "Could not load content"}
+        title={
+          error === "Sign in to continue." || error.startsWith("You do not have permission")
+            ? "Permission needed"
+            : "Could not load content"
+        }
         description={error}
-        action={(
+        action={
           <button
             onClick={() => fetchItems()}
             className="px-3 py-1.5 text-sm font-medium text-[#fafafa] bg-[rgba(255,255,255,0.08)] rounded-md hover:bg-[rgba(255,255,255,0.12)] transition-colors"
           >
             Try again
           </button>
-        )}
+        }
       />
     )
   }
@@ -240,9 +263,14 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
   return (
     <>
       <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <SearchBar onSearch={handleSearch} placeholder={`Search ${collectionLabel.toLowerCase()}...`} />
+        <SearchBar
+          onSearch={handleSearch}
+          placeholder={`Search ${collectionLabel.toLowerCase()}...`}
+        />
         <p className="text-sm text-[#71717a]">
-          {total === 0 ? "0 items" : `${offset + 1}-${Math.min(offset + items.length, total)} of ${total}`}
+          {total === 0
+            ? "0 items"
+            : `${offset + 1}-${Math.min(offset + items.length, total)} of ${total}`}
         </p>
       </div>
       {selectedIds.length > 0 && (
@@ -259,19 +287,40 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
             </button>
           </div>
           <div className="flex flex-wrap gap-2">
-            <BulkButton busy={bulkBusy === "submit_review"} onClick={() => handleBulkWorkflow("submit_review")} icon={<Send className="h-4 w-4" />}>
+            <BulkButton
+              busy={bulkBusy === "submit_review"}
+              onClick={() => handleBulkWorkflow("submit_review")}
+              icon={<Send className="h-4 w-4" />}
+            >
               Review
             </BulkButton>
-            <BulkButton busy={bulkBusy === "publish"} onClick={() => handleBulkWorkflow("publish")} icon={<CheckCircle2 className="h-4 w-4" />}>
+            <BulkButton
+              busy={bulkBusy === "publish"}
+              onClick={() => handleBulkWorkflow("publish")}
+              icon={<CheckCircle2 className="h-4 w-4" />}
+            >
               Publish
             </BulkButton>
-            <BulkButton busy={bulkBusy === "archive"} onClick={() => handleBulkWorkflow("archive")} icon={<Archive className="h-4 w-4" />}>
+            <BulkButton
+              busy={bulkBusy === "archive"}
+              onClick={() => handleBulkWorkflow("archive")}
+              icon={<Archive className="h-4 w-4" />}
+            >
               Archive
             </BulkButton>
-            <BulkButton busy={bulkBusy === "export"} onClick={handleBulkExport} icon={<Download className="h-4 w-4" />}>
+            <BulkButton
+              busy={bulkBusy === "export"}
+              onClick={handleBulkExport}
+              icon={<Download className="h-4 w-4" />}
+            >
               Export
             </BulkButton>
-            <BulkButton danger busy={bulkBusy === "delete"} onClick={handleBulkDelete} icon={<Trash2 className="h-4 w-4" />}>
+            <BulkButton
+              danger
+              busy={bulkBusy === "delete"}
+              onClick={handleBulkDelete}
+              icon={<Trash2 className="h-4 w-4" />}
+            >
               Delete
             </BulkButton>
           </div>
@@ -281,20 +330,22 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
         searchTerm ? (
           <div className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] p-12 text-center">
             <p className="text-[#71717a] mb-1">No results for "{searchTerm}"</p>
-            <p className="text-sm text-[#52525b]">Try a different search term or clear the filter.</p>
+            <p className="text-sm text-[#52525b]">
+              Try a different search term or clear the filter.
+            </p>
           </div>
         ) : (
           <EmptyState
             title={`No ${collectionLabel.toLowerCase()} yet`}
             description="Create your first entry to start building content."
-            action={(
-            <a
-              href={`/content/${collection}/new`}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-md text-sm font-medium hover:bg-[#d4a57c] transition-colors"
-            >
-              + Create your first one
-            </a>
-            )}
+            action={
+              <a
+                href={`/content/${collection}/new`}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-md text-sm font-medium hover:bg-[#d4a57c] transition-colors"
+              >
+                + Create your first one
+              </a>
+            }
           />
         )
       ) : (
@@ -313,7 +364,9 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
                 {sortableHeader("title", "Title")}
                 {sortableHeader("status", "Status")}
                 {sortableHeader("updated_at", "Updated")}
-                <th className="text-right px-6 py-3 text-xs font-medium text-[#52525b] uppercase tracking-wider">Actions</th>
+                <th className="text-right px-6 py-3 text-xs font-medium text-[#52525b] uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[rgba(255,255,255,0.06)]">
@@ -336,7 +389,9 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
                     </a>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${statusBadge(item.status as string)}`}>
+                    <span
+                      className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${statusBadge(item.status as string)}`}
+                    >
                       {String(item.status || "draft")}
                     </span>
                   </td>

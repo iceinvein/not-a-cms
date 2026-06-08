@@ -1,9 +1,9 @@
-import { test, expect, describe, afterAll, beforeAll } from "bun:test"
-import { createServer } from "../src/index"
-import { createServerConfigFromCMSConfig } from "../src/config"
+import { afterAll, beforeAll, describe, expect, test } from "bun:test"
+import { existsSync, rmSync, unlinkSync } from "node:fs"
 import { defineCollection, field } from "@not-a-cms/core"
 import { sql } from "drizzle-orm"
-import { existsSync, rmSync, unlinkSync } from "node:fs"
+import { createServerConfigFromCMSConfig } from "../src/config"
+import { createServer } from "../src/index"
 
 const testDbPath = "test-integration.db"
 const testUploadsPath = "test-integration-uploads"
@@ -14,7 +14,9 @@ const blogPost = defineCollection({
     title: field.text({ required: true }),
     slug: field.slug({ from: "title" }),
     body: field.richText(),
-    status: field.select(["draft", "in_review", "published", "archived", "scheduled"], { default: "draft" }),
+    status: field.select(["draft", "in_review", "published", "archived", "scheduled"], {
+      default: "draft",
+    }),
     publishedAt: field.datetime(),
   },
 })
@@ -69,9 +71,15 @@ describe("integration: full server", () => {
 
   afterAll(() => {
     serverInstance.server.stop()
-    try { unlinkSync(testDbPath) } catch {}
-    try { unlinkSync(testDbPath + "-wal") } catch {}
-    try { unlinkSync(testDbPath + "-shm") } catch {}
+    try {
+      unlinkSync(testDbPath)
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-wal")
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-shm")
+    } catch {}
     if (existsSync(testUploadsPath)) rmSync(testUploadsPath, { recursive: true })
   })
 
@@ -168,8 +176,17 @@ describe("integration: full server", () => {
     expect(body.paths["/api/locked_preview"].get.security).toEqual([{ cookieAuth: [] }])
     expect(body.components.schemas.BlogPost.required).toContain("title")
     expect(body.components.schemas.BlogPost.properties.title).toEqual({ type: "string" })
-    expect(body.components.schemas.BlogPost.properties.body).toEqual({ type: "array", items: { type: "object", additionalProperties: true } })
-    expect(body.components.schemas.BlogPost.properties.status.enum).toEqual(["draft", "in_review", "published", "archived", "scheduled"])
+    expect(body.components.schemas.BlogPost.properties.body).toEqual({
+      type: "array",
+      items: { type: "object", additionalProperties: true },
+    })
+    expect(body.components.schemas.BlogPost.properties.status.enum).toEqual([
+      "draft",
+      "in_review",
+      "published",
+      "archived",
+      "scheduled",
+    ])
     expect(body.components.securitySchemes.cookieAuth).toBeDefined()
     expect(body.components.responses.Unauthorized).toBeDefined()
     expect(body.components.responses.Forbidden).toBeDefined()
@@ -264,7 +281,9 @@ describe("integration: full server", () => {
     const promoted = await serverInstance.scheduler.promoteScheduled(new Date(due))
     expect(promoted.map((doc) => doc.id)).toContain(post.id)
 
-    const updated = await serverInstance.collections.get("blog_post")!.service.findById(String(post.id))
+    const updated = await serverInstance.collections
+      .get("blog_post")!
+      .service.findById(String(post.id))
     expect(updated?.status).toBe("published")
   })
 
@@ -278,15 +297,21 @@ describe("integration: full server", () => {
     const restRes = await fetch(`${baseUrl}/api/locked_preview/${locked.id}`)
     expect(restRes.status).toBe(403)
 
-    const token = serverInstance.previewTokenService.generate("locked_preview", String(locked.id), { regenerate: true })
-    const previewRes = await fetch(`${baseUrl}/api/_preview/validate/${token.token}?collection=locked_preview&documentId=${locked.id}`)
+    const token = serverInstance.previewTokenService.generate("locked_preview", String(locked.id), {
+      regenerate: true,
+    })
+    const previewRes = await fetch(
+      `${baseUrl}/api/_preview/validate/${token.token}?collection=locked_preview&documentId=${locked.id}`,
+    )
     expect(previewRes.status).toBe(200)
     const preview = await previewRes.json()
     expect(preview.title).toBe("Private Draft Preview")
     expect(preview._preview).toBe(true)
     expect(preview._collection).toBe("locked_preview")
 
-    const mismatchRes = await fetch(`${baseUrl}/api/_preview/validate/${token.token}?collection=blog_post&documentId=${locked.id}`)
+    const mismatchRes = await fetch(
+      `${baseUrl}/api/_preview/validate/${token.token}?collection=blog_post&documentId=${locked.id}`,
+    )
     expect(mismatchRes.status).toBe(403)
   })
 
@@ -296,7 +321,12 @@ describe("integration: full server", () => {
       name: "Content create audit",
       trigger: { type: "content.created", collection: "blog_post" },
       steps: [
-        { id: "log-created", type: "action.log", config: { message: "Created {{document.title}}" }, next: null },
+        {
+          id: "log-created",
+          type: "action.log",
+          config: { message: "Created {{document.title}}" },
+          next: null,
+        },
       ],
       active: true,
     })
@@ -311,17 +341,23 @@ describe("integration: full server", () => {
     expect(runs[0].trigger_event).toBe("content.created")
     expect(JSON.parse(runs[0].trigger_payload).document.title).toBe("Automation Event Post")
 
-    const detailRes = await fetch(`${baseUrl}/api/_flows/${flow.id}/runs/${runs[0].id}`, { headers: { cookie } })
+    const detailRes = await fetch(`${baseUrl}/api/_flows/${flow.id}/runs/${runs[0].id}`, {
+      headers: { cookie },
+    })
     expect(detailRes.status).toBe(200)
     const detail = await detailRes.json()
     expect(detail.steps[0].step_id).toBe("log-created")
     expect(JSON.parse(detail.steps[0].output).message).toBe("Created Automation Event Post")
 
-    const failed = serverInstance.flowStore.createRun(flow.id, "content.created", JSON.stringify({
-      event: "content.created",
-      collection: "blog_post",
-      document: { title: "Retry Event Post" },
-    }))
+    const failed = serverInstance.flowStore.createRun(
+      flow.id,
+      "content.created",
+      JSON.stringify({
+        event: "content.created",
+        collection: "blog_post",
+        document: { title: "Retry Event Post" },
+      }),
+    )
     serverInstance.flowStore.completeRun(failed.id, "failed", "Temporary failure")
 
     const retryRes = await fetch(`${baseUrl}/api/_flows/${flow.id}/runs/${failed.id}/retry`, {
@@ -448,11 +484,15 @@ describe("integration: full server", () => {
     const listRes = await fetch(`${baseUrl}/api/_invites`, { headers: { cookie: adminCookie } })
     expect(listRes.status).toBe(200)
     const listed = await listRes.json()
-    expect(listed.data.some((invite: any) => invite.email === "invited.editor@example.test")).toBe(true)
+    expect(listed.data.some((invite: any) => invite.email === "invited.editor@example.test")).toBe(
+      true,
+    )
     expect(listed.data[0].tokenHash).toBeUndefined()
 
     const invitedCookie = await signInAndGetCookie("invited.editor@example.test")
-    const invitedRoles = await fetch(`${baseUrl}/api/_roles`, { headers: { cookie: invitedCookie } })
+    const invitedRoles = await fetch(`${baseUrl}/api/_roles`, {
+      headers: { cookie: invitedCookie },
+    })
     expect(invitedRoles.status).toBe(200)
 
     const usersRes = await fetch(`${baseUrl}/api/_users`, { headers: { cookie: adminCookie } })
@@ -478,8 +518,15 @@ describe("integration: full server", () => {
   test("management endpoints enforce admin or editor role gates", async () => {
     const adminCookie = await signInAndGetCookie("settings-admin@example.test")
     const viewerCookie = await signInAndGetCookie("security-viewer@example.test")
-    const viewerRows = serverInstance.db.all(sql`SELECT id, email FROM user WHERE email = ${"security-viewer@example.test"}`) as Array<{ id: string; email: string }>
-    serverInstance.userRoleStore.upsert({ userId: viewerRows[0].id, email: viewerRows[0].email, role: "viewer", active: true })
+    const viewerRows = serverInstance.db.all(
+      sql`SELECT id, email FROM user WHERE email = ${"security-viewer@example.test"}`,
+    ) as Array<{ id: string; email: string }>
+    serverInstance.userRoleStore.upsert({
+      userId: viewerRows[0].id,
+      email: viewerRows[0].email,
+      role: "viewer",
+      active: true,
+    })
 
     serverInstance.auditLogStore.record({
       action: "security.audit",
@@ -491,10 +538,14 @@ describe("integration: full server", () => {
     const adminAudit = await fetch(`${baseUrl}/api/_audit`, { headers: { cookie: adminCookie } })
     expect(adminAudit.status).toBe(200)
 
-    const viewerSettings = await fetch(`${baseUrl}/api/_settings`, { headers: { cookie: viewerCookie } })
+    const viewerSettings = await fetch(`${baseUrl}/api/_settings`, {
+      headers: { cookie: viewerCookie },
+    })
     expect(viewerSettings.status).toBe(403)
 
-    const viewerWebhooks = await fetch(`${baseUrl}/api/_webhooks`, { headers: { cookie: viewerCookie } })
+    const viewerWebhooks = await fetch(`${baseUrl}/api/_webhooks`, {
+      headers: { cookie: viewerCookie },
+    })
     expect(viewerWebhooks.status).toBe(403)
 
     const viewerFlows = await fetch(`${baseUrl}/api/_flows`, { headers: { cookie: viewerCookie } })
@@ -516,7 +567,9 @@ describe("integration: full server", () => {
     })
     expect(invalidWebhook.status).toBe(400)
 
-    const viewerRowsAfterSignIn = serverInstance.db.all(sql`SELECT id FROM user WHERE email = ${"security-viewer@example.test"}`) as Array<{ id: string }>
+    const viewerRowsAfterSignIn = serverInstance.db.all(
+      sql`SELECT id FROM user WHERE email = ${"security-viewer@example.test"}`,
+    ) as Array<{ id: string }>
     const invalidRole = await fetch(`${baseUrl}/api/_users/${viewerRowsAfterSignIn[0].id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json", cookie: adminCookie },

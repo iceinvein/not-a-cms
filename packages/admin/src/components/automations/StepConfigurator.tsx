@@ -1,5 +1,12 @@
 import { useState } from "react"
-import type { FlowStep, FlowTrigger, ConditionStep, ActionStep, ConditionRule, ConditionOperator } from "./flow-types"
+import type {
+  ActionStep,
+  ConditionOperator,
+  ConditionRule,
+  ConditionStep,
+  FlowStep,
+  FlowTrigger,
+} from "./flow-types"
 
 type Props = {
   selectedStep: FlowStep | null
@@ -42,7 +49,9 @@ const OPERATORS: { value: ConditionOperator; label: string }[] = [
 ]
 
 function isContentTrigger(type: FlowTrigger["type"]): boolean {
-  return ["content.created", "content.updated", "content.published", "content.deleted"].includes(type)
+  return ["content.created", "content.updated", "content.published", "content.deleted"].includes(
+    type,
+  )
 }
 
 function TriggerConfig({
@@ -63,7 +72,7 @@ function TriggerConfig({
     }
   }
 
-  const collection = "collection" in trigger ? trigger.collection ?? "" : ""
+  const collection = "collection" in trigger ? (trigger.collection ?? "") : ""
   const cron = trigger.type === "schedule.cron" ? trigger.cron : ""
 
   return (
@@ -89,7 +98,9 @@ function TriggerConfig({
           <input
             type="text"
             value={collection}
-            onChange={(e) => onUpdateTrigger({ ...trigger, collection: e.target.value } as FlowTrigger)}
+            onChange={(e) =>
+              onUpdateTrigger({ ...trigger, collection: e.target.value } as FlowTrigger)
+            }
             placeholder="e.g. posts"
             className={inputClass}
           />
@@ -119,7 +130,6 @@ function TriggerConfig({
           </div>
         </div>
       )}
-
     </div>
   )
 }
@@ -137,10 +147,7 @@ function ConditionConfig({
   }
 
   const addRule = () => {
-    const rules: ConditionRule[] = [
-      ...step.rules,
-      { field: "", operator: "eq", value: "" },
-    ]
+    const rules: ConditionRule[] = [...step.rules, { field: "", operator: "eq", value: "" }]
     onUpdateStep(step.id, { rules } as Partial<ConditionStep>)
   }
 
@@ -156,7 +163,9 @@ function ConditionConfig({
         <select
           value={step.match}
           onChange={(e) =>
-            onUpdateStep(step.id, { match: e.target.value as "all" | "any" } as Partial<ConditionStep>)
+            onUpdateStep(step.id, {
+              match: e.target.value as "all" | "any",
+            } as Partial<ConditionStep>)
           }
           className={inputClass}
         >
@@ -171,7 +180,10 @@ function ConditionConfig({
           <p className="text-xs text-[#52525b] italic">No rules yet. Add one below.</p>
         )}
         {step.rules.map((rule, i) => (
-          <div key={i} className="bg-[rgba(255,255,255,0.05)] rounded-lg border border-[rgba(255,255,255,0.06)] p-2 flex flex-col gap-2">
+          <div
+            key={i}
+            className="bg-[rgba(255,255,255,0.05)] rounded-lg border border-[rgba(255,255,255,0.06)] p-2 flex flex-col gap-2"
+          >
             <div className="flex gap-2 items-center">
               <input
                 type="text"
@@ -420,25 +432,29 @@ export function StepConfigurator({
   const title = showTriggerConfig
     ? "Trigger"
     : selectedStep?.type === "condition"
-    ? "Condition"
-    : selectedStep
-    ? "Action"
-    : null
+      ? "Condition"
+      : selectedStep
+        ? "Action"
+        : null
 
   const panelAccent = showTriggerConfig
     ? "ring-1 ring-[rgba(255,255,255,0.16)]"
     : selectedStep?.type === "condition"
-    ? "ring-1 ring-[rgba(245,158,11,0.22)] bg-[rgba(245,158,11,0.03)]"
-    : selectedStep
-    ? "ring-1 ring-[rgba(255,255,255,0.1)]"
-    : ""
+      ? "ring-1 ring-[rgba(245,158,11,0.22)] bg-[rgba(245,158,11,0.03)]"
+      : selectedStep
+        ? "ring-1 ring-[rgba(255,255,255,0.1)]"
+        : ""
 
   return (
-    <div className={`bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] p-4 ${panelAccent}`}>
+    <div
+      className={`bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] p-4 ${panelAccent}`}
+    >
       {title && (
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold text-[#fafafa]">{title}</h3>
-          <button onClick={onClose} className="text-[#52525b] hover:text-[#a1a1aa] text-sm">✕</button>
+          <button onClick={onClose} className="text-[#52525b] hover:text-[#a1a1aa] text-sm">
+            ✕
+          </button>
         </div>
       )}
 

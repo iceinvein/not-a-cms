@@ -28,7 +28,11 @@ export function createEmbeddingStore(db: any, options: EmbeddingStoreOptions = {
   }
 
   function fromBlob(blob: Uint8Array): Float32Array {
-    return new Float32Array(blob.buffer, blob.byteOffset, blob.byteLength / Float32Array.BYTES_PER_ELEMENT)
+    return new Float32Array(
+      blob.buffer,
+      blob.byteOffset,
+      blob.byteLength / Float32Array.BYTES_PER_ELEMENT,
+    )
   }
 
   function run(query: ReturnType<typeof sql> | string, params: unknown[] = []) {
@@ -53,12 +57,18 @@ export function createEmbeddingStore(db: any, options: EmbeddingStoreOptions = {
   }
 
   function vrun(rawSql: string, drizzleSql: ReturnType<typeof sql>, params: unknown[] = []): void {
-    if (hasRaw) { db.run(rawSql, params); return }
+    if (hasRaw) {
+      db.run(rawSql, params)
+      return
+    }
     db.run(drizzleSql)
   }
 
   function dropVec(): void {
-    if (hasRaw) { db.run(`DROP TABLE IF EXISTS ${VEC_TABLE}`); return }
+    if (hasRaw) {
+      db.run(`DROP TABLE IF EXISTS ${VEC_TABLE}`)
+      return
+    }
     db.run(sql`DROP TABLE IF EXISTS content_embeddings_vec`)
   }
 
@@ -69,7 +79,10 @@ export function createEmbeddingStore(db: any, options: EmbeddingStoreOptions = {
       +document_id text,
       embedding float[${dim}] distance_metric=cosine
     )`
-    if (hasRaw) { db.run(ddl); return }
+    if (hasRaw) {
+      db.run(ddl)
+      return
+    }
     db.run(sql.raw(ddl))
   }
 
@@ -104,7 +117,7 @@ export function createEmbeddingStore(db: any, options: EmbeddingStoreOptions = {
   function bulkLoad(dim: number): void {
     const rows: Row[] = hasRaw
       ? all<Row>("SELECT collection, document_id, vector, dim FROM content_embeddings")
-      : db.all(sql`SELECT collection, document_id, vector, dim FROM content_embeddings`) as Row[]
+      : (db.all(sql`SELECT collection, document_id, vector, dim FROM content_embeddings`) as Row[])
     for (const row of rows) {
       if (row.dim !== dim) continue
       vecInsert(row.collection, row.document_id, row.vector)
@@ -116,21 +129,29 @@ export function createEmbeddingStore(db: any, options: EmbeddingStoreOptions = {
     type Hit = { collection: string; document_id: string; distance: number }
     const rows: Hit[] = collection
       ? hasRaw
-        ? db.query(
-            `SELECT collection, document_id, distance FROM ${VEC_TABLE}
+        ? (db
+            .query(
+              `SELECT collection, document_id, distance FROM ${VEC_TABLE}
              WHERE embedding MATCH ? AND k = ? AND collection = ? ORDER BY distance`,
-          ).all(blob, k, collection) as Hit[]
-        : db.all(sql`SELECT collection, document_id, distance FROM content_embeddings_vec
-             WHERE embedding MATCH ${blob} AND k = ${k} AND collection = ${collection} ORDER BY distance`) as Hit[]
+            )
+            .all(blob, k, collection) as Hit[])
+        : (db.all(sql`SELECT collection, document_id, distance FROM content_embeddings_vec
+             WHERE embedding MATCH ${blob} AND k = ${k} AND collection = ${collection} ORDER BY distance`) as Hit[])
       : hasRaw
-        ? db.query(
-            `SELECT collection, document_id, distance FROM ${VEC_TABLE}
+        ? (db
+            .query(
+              `SELECT collection, document_id, distance FROM ${VEC_TABLE}
              WHERE embedding MATCH ? AND k = ? ORDER BY distance`,
-          ).all(blob, k) as Hit[]
-        : db.all(sql`SELECT collection, document_id, distance FROM content_embeddings_vec
-             WHERE embedding MATCH ${blob} AND k = ${k} ORDER BY distance`) as Hit[]
+            )
+            .all(blob, k) as Hit[])
+        : (db.all(sql`SELECT collection, document_id, distance FROM content_embeddings_vec
+             WHERE embedding MATCH ${blob} AND k = ${k} ORDER BY distance`) as Hit[])
 
-    return rows.map((r) => ({ collection: r.collection, document_id: r.document_id, score: 1 - r.distance }))
+    return rows.map((r) => ({
+      collection: r.collection,
+      document_id: r.document_id,
+      score: 1 - r.distance,
+    }))
   }
 
   return {
@@ -170,9 +191,14 @@ export function createEmbeddingStore(db: any, options: EmbeddingStoreOptions = {
 
     remove(collection: string, documentId: string): void {
       if (hasRaw) {
-        run("DELETE FROM content_embeddings WHERE collection = ? AND document_id = ?", [collection, documentId])
+        run("DELETE FROM content_embeddings WHERE collection = ? AND document_id = ?", [
+          collection,
+          documentId,
+        ])
       } else {
-        db.run(sql`DELETE FROM content_embeddings WHERE collection = ${collection} AND document_id = ${documentId}`)
+        db.run(
+          sql`DELETE FROM content_embeddings WHERE collection = ${collection} AND document_id = ${documentId}`,
+        )
       }
 
       if (vectorSearch && vecDim !== null) {
@@ -195,11 +221,18 @@ export function createEmbeddingStore(db: any, options: EmbeddingStoreOptions = {
 
       const rows: Row[] = collection
         ? hasRaw
-          ? all<Row>("SELECT collection, document_id, vector, dim FROM content_embeddings WHERE collection = ?", [collection])
-          : db.all(sql`SELECT collection, document_id, vector, dim FROM content_embeddings WHERE collection = ${collection}`) as Row[]
+          ? all<Row>(
+              "SELECT collection, document_id, vector, dim FROM content_embeddings WHERE collection = ?",
+              [collection],
+            )
+          : (db.all(
+              sql`SELECT collection, document_id, vector, dim FROM content_embeddings WHERE collection = ${collection}`,
+            ) as Row[])
         : hasRaw
           ? all<Row>("SELECT collection, document_id, vector, dim FROM content_embeddings")
-          : db.all(sql`SELECT collection, document_id, vector, dim FROM content_embeddings`) as Row[]
+          : (db.all(
+              sql`SELECT collection, document_id, vector, dim FROM content_embeddings`,
+            ) as Row[])
 
       return rows
         .filter((row) => row.dim === query.length)

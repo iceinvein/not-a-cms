@@ -1,9 +1,9 @@
-import { test, expect, describe, beforeEach, afterEach } from "bun:test"
+import { afterEach, beforeEach, describe, expect, test } from "bun:test"
 import { unlinkSync } from "node:fs"
-import { createDatabase } from "../../src/db/connection"
 import { bootstrapTables } from "../../src/db/bootstrap"
-import { createWebhookStore } from "../../src/webhooks/store"
+import { createDatabase } from "../../src/db/connection"
 import { createWebhookHeaders, createWebhookService } from "../../src/webhooks/service"
+import { createWebhookStore } from "../../src/webhooks/store"
 
 const testDbPath = "test-webhooks.db"
 let db: ReturnType<typeof createDatabase>
@@ -19,13 +19,23 @@ describe("webhook system", () => {
   })
 
   afterEach(() => {
-    try { unlinkSync(testDbPath) } catch {}
-    try { unlinkSync(testDbPath + "-wal") } catch {}
-    try { unlinkSync(testDbPath + "-shm") } catch {}
+    try {
+      unlinkSync(testDbPath)
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-wal")
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-shm")
+    } catch {}
   })
 
   test("store.create() creates a webhook", () => {
-    const hook = store.create({ url: "https://example.com/webhook", events: ["content:afterPublish"], active: true })
+    const hook = store.create({
+      url: "https://example.com/webhook",
+      events: ["content:afterPublish"],
+      active: true,
+    })
     expect(hook.id).toBeDefined()
     expect(hook.url).toBe("https://example.com/webhook")
   })
@@ -49,7 +59,12 @@ describe("webhook system", () => {
   })
 
   test("service.getMatchingWebhooks() returns hooks matching event and collection", () => {
-    store.create({ url: "https://a.com", events: ["content:afterPublish"], collection: "blog_post", active: true })
+    store.create({
+      url: "https://a.com",
+      events: ["content:afterPublish"],
+      collection: "blog_post",
+      active: true,
+    })
     store.create({ url: "https://b.com", events: ["content:afterPublish"], active: true })
     store.create({ url: "https://c.com", events: ["content:afterDelete"], active: true })
     const matches = webhookService.getMatchingWebhooks("content:afterPublish", "blog_post")
@@ -62,8 +77,19 @@ describe("webhook system", () => {
   })
 
   test("store.logDelivery() records a delivery", () => {
-    const hook = store.create({ url: "https://a.com", events: ["content:afterPublish"], active: true })
-    store.logDelivery({ webhook_id: hook.id, event: "content:afterPublish", status: 200, request_body: '{"test":true}', response_body: "ok", attempts: 1 })
+    const hook = store.create({
+      url: "https://a.com",
+      events: ["content:afterPublish"],
+      active: true,
+    })
+    store.logDelivery({
+      webhook_id: hook.id,
+      event: "content:afterPublish",
+      status: 200,
+      request_body: '{"test":true}',
+      response_body: "ok",
+      attempts: 1,
+    })
     const logs = store.getDeliveryLogs(hook.id)
     expect(logs).toHaveLength(1)
     expect(logs[0].status).toBe(200)
@@ -94,7 +120,12 @@ describe("webhook system", () => {
   })
 
   test("service.replayDelivery() re-sends a failed delivery and records a new log", async () => {
-    const hook = store.create({ url: "https://a.com", events: ["content:afterPublish"], secret: "secret", active: true })
+    const hook = store.create({
+      url: "https://a.com",
+      events: ["content:afterPublish"],
+      secret: "secret",
+      active: true,
+    })
     const failed = store.logDelivery({
       webhook_id: hook.id,
       event: "content:afterPublish",

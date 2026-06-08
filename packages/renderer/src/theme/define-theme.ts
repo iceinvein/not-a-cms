@@ -36,4 +36,4 @@ export function defineTheme(def: ThemeDefinition): DefinedTheme {
   }
 }
 
-export type { ThemeDefinition, ThemeSettings, ThemeSettingField, DefinedTheme }
+export type { DefinedTheme, ThemeDefinition, ThemeSettingField, ThemeSettings }

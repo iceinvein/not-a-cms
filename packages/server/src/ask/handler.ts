@@ -45,9 +45,14 @@ export async function runAsk({
   const trimmed = q.trim()
   if (!trimmed) return { data: [] }
 
-  const rawHits = provider && embeddings
-    ? embeddings.search(new Float32Array((await provider.embed([trimmed]))[0] ?? []), topK, collection)
-    : fts(trimmed, collection).slice(0, topK)
+  const rawHits =
+    provider && embeddings
+      ? embeddings.search(
+          new Float32Array((await provider.embed([trimmed]))[0] ?? []),
+          topK,
+          collection,
+        )
+      : fts(trimmed, collection).slice(0, topK)
 
   const data: AskHit[] = []
   const contexts: AskContext[] = []
@@ -68,9 +73,10 @@ export async function runAsk({
     })
   }
 
-  const answer = provider?.synthesize && contexts.length > 0
-    ? await provider.synthesize(trimmed, contexts)
-    : undefined
+  const answer =
+    provider?.synthesize && contexts.length > 0
+      ? await provider.synthesize(trimmed, contexts)
+      : undefined
 
   return answer ? { data, answer } : { data }
 }

@@ -32,22 +32,28 @@ export function createAnthropicAskProvider(options: AnthropicAskProviderOptions)
         body: JSON.stringify({
           model: options.model,
           max_tokens: 600,
-          system: "Answer using only the supplied CMS contexts. If the answer is not present, say you do not know.",
+          system:
+            "Answer using only the supplied CMS contexts. If the answer is not present, say you do not know.",
           messages: [{ role: "user", content: formatAskPrompt(question, contexts) }],
         }),
       })
-      const json = await res.json() as AnthropicMessagesResponse
+      const json = (await res.json()) as AnthropicMessagesResponse
       if (!res.ok) throw new Error(json.error?.message ?? `Anthropic request failed: ${res.status}`)
-      return (json.content ?? []).map((part) => part.text ?? "").join("").trim()
+      return (json.content ?? [])
+        .map((part) => part.text ?? "")
+        .join("")
+        .trim()
     },
   }
 }
 
 function formatAskPrompt(question: string, contexts: AskContext[]): string {
-  const contextText = contexts.map((ctx, index) => [
-    `Context ${index + 1}: ${ctx.title}`,
-    ctx.href ? `URL: ${ctx.href}` : "",
-    ctx.text,
-  ].filter(Boolean).join("\n")).join("\n\n")
+  const contextText = contexts
+    .map((ctx, index) =>
+      [`Context ${index + 1}: ${ctx.title}`, ctx.href ? `URL: ${ctx.href}` : "", ctx.text]
+        .filter(Boolean)
+        .join("\n"),
+    )
+    .join("\n\n")
   return `Question: ${question}\n\n${contextText}`
 }

@@ -1,10 +1,10 @@
-import { test, expect, describe, beforeEach, afterEach } from "bun:test"
+import { afterEach, beforeEach, describe, expect, test } from "bun:test"
 import { unlinkSync } from "node:fs"
-import { createDatabase } from "../../src/db/connection"
+import { createSearchService, extractTextFromPortableText } from "../../src/content/search"
 import { bootstrapTables } from "../../src/db/bootstrap"
+import { createDatabase } from "../../src/db/connection"
 import { defineCollection } from "../../src/schema/collection"
 import { field } from "../../src/schema/field"
-import { createSearchService, extractTextFromPortableText } from "../../src/content/search"
 
 const testDbPath = "test-search.db"
 
@@ -29,9 +29,15 @@ describe("createSearchService", () => {
   })
 
   afterEach(() => {
-    try { unlinkSync(testDbPath) } catch {}
-    try { unlinkSync(testDbPath + "-wal") } catch {}
-    try { unlinkSync(testDbPath + "-shm") } catch {}
+    try {
+      unlinkSync(testDbPath)
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-wal")
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-shm")
+    } catch {}
   })
 
   test("index() adds a document to the search index", () => {

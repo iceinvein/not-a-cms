@@ -17,7 +17,9 @@ export function createWebhookStore(db: AppDatabase) {
     const id = crypto.randomUUID()
     const now = new Date().toISOString()
     const eventsJson = JSON.stringify(input.events)
-    db.run(sql`INSERT INTO _webhooks (id, url, events, collection, secret, active, created_at) VALUES (${id}, ${input.url}, ${eventsJson}, ${input.collection ?? null}, ${input.secret ?? null}, ${input.active ? 1 : 0}, ${now})`)
+    db.run(
+      sql`INSERT INTO _webhooks (id, url, events, collection, secret, active, created_at) VALUES (${id}, ${input.url}, ${eventsJson}, ${input.collection ?? null}, ${input.secret ?? null}, ${input.active ? 1 : 0}, ${now})`,
+    )
     return { id, ...input, created_at: now }
   }
 
@@ -36,7 +38,9 @@ export function createWebhookStore(db: AppDatabase) {
     const existing = getById(id)
     if (!existing) return null
     const merged = { ...existing, ...data }
-    db.run(sql`UPDATE _webhooks SET url = ${merged.url}, events = ${JSON.stringify(merged.events)}, collection = ${merged.collection ?? null}, secret = ${merged.secret ?? null}, active = ${merged.active ? 1 : 0} WHERE id = ${id}`)
+    db.run(
+      sql`UPDATE _webhooks SET url = ${merged.url}, events = ${JSON.stringify(merged.events)}, collection = ${merged.collection ?? null}, secret = ${merged.secret ?? null}, active = ${merged.active ? 1 : 0} WHERE id = ${id}`,
+    )
     return getById(id)
   }
 
@@ -49,12 +53,16 @@ export function createWebhookStore(db: AppDatabase) {
     const id = crypto.randomUUID()
     const now = new Date().toISOString()
     const responseBody = truncateBody(input.response_body)
-    db.run(sql`INSERT INTO _webhook_logs (id, webhook_id, event, status, request_body, response_body, attempts, created_at) VALUES (${id}, ${input.webhook_id}, ${input.event}, ${input.status}, ${input.request_body}, ${responseBody ?? null}, ${input.attempts}, ${now})`)
+    db.run(
+      sql`INSERT INTO _webhook_logs (id, webhook_id, event, status, request_body, response_body, attempts, created_at) VALUES (${id}, ${input.webhook_id}, ${input.event}, ${input.status}, ${input.request_body}, ${responseBody ?? null}, ${input.attempts}, ${now})`,
+    )
     return getDeliveryLog(id)!
   }
 
   function getDeliveryLogs(webhookId: string, limit = 50): WebhookDelivery[] {
-    const rows = db.all(sql`SELECT * FROM _webhook_logs WHERE webhook_id = ${webhookId} ORDER BY created_at DESC LIMIT ${limit}`)
+    const rows = db.all(
+      sql`SELECT * FROM _webhook_logs WHERE webhook_id = ${webhookId} ORDER BY created_at DESC LIMIT ${limit}`,
+    )
     return rows as WebhookDelivery[]
   }
 
@@ -67,7 +75,11 @@ export function createWebhookStore(db: AppDatabase) {
 }
 
 function parseRow(row: any): WebhookConfig {
-  return { ...row, events: typeof row.events === "string" ? JSON.parse(row.events) : row.events, active: Boolean(row.active) }
+  return {
+    ...row,
+    events: typeof row.events === "string" ? JSON.parse(row.events) : row.events,
+    active: Boolean(row.active),
+  }
 }
 
 function truncateBody(value: string | undefined): string | undefined {

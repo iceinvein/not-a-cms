@@ -1,23 +1,34 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import { unlinkSync } from "node:fs"
+import { createFlowStore } from "../../src/automations/store"
 import { bootstrapTables } from "../../src/db/bootstrap"
 import { createDatabase } from "../../src/db/connection"
-import { createFlowStore } from "../../src/automations/store"
 
 const testDbPath = "test-automations-step-timing.db"
 
 describe("recordStep timing", () => {
   afterEach(() => {
-    try { unlinkSync(testDbPath) } catch {}
-    try { unlinkSync(testDbPath + "-wal") } catch {}
-    try { unlinkSync(testDbPath + "-shm") } catch {}
+    try {
+      unlinkSync(testDbPath)
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-wal")
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-shm")
+    } catch {}
   })
 
   test("persists distinct started_at and finished_at when provided", () => {
     const db = createDatabase({ url: testDbPath })
     bootstrapTables(db, [])
     const store = createFlowStore(db)
-    const flow = store.createFlow({ name: "t", trigger: { type: "content.created" }, steps: [], active: true })
+    const flow = store.createFlow({
+      name: "t",
+      trigger: { type: "content.created" },
+      steps: [],
+      active: true,
+    })
     const run = store.createRun(flow.id, "content.created", "{}")
 
     store.recordStep({

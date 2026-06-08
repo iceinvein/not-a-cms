@@ -4,7 +4,10 @@ type DocumentValue = Record<string, unknown>
 
 const SYSTEM_FIELDS = new Set(["id", "created_at", "updated_at"])
 
-export function serializeDocumentForStorage(collection: CollectionDef, doc: DocumentValue): DocumentValue {
+export function serializeDocumentForStorage(
+  collection: CollectionDef,
+  doc: DocumentValue,
+): DocumentValue {
   const row: DocumentValue = {}
 
   for (const name of SYSTEM_FIELDS) {
@@ -22,7 +25,10 @@ export function serializeDocumentForStorage(collection: CollectionDef, doc: Docu
   return row
 }
 
-export function deserializeDocumentFromStorage(collection: CollectionDef, row: DocumentValue): DocumentValue {
+export function deserializeDocumentFromStorage(
+  collection: CollectionDef,
+  row: DocumentValue,
+): DocumentValue {
   const doc: DocumentValue = {}
 
   for (const field of SYSTEM_FIELDS) {
@@ -60,7 +66,12 @@ export function serializeFieldValue(value: unknown, fieldDef: FieldDef): unknown
     return valueId(value)
   }
 
-  if (fieldDef.type === "array" || fieldDef.type === "group" || fieldDef.type === "richText" || fieldDef.type === "pageLayout") {
+  if (
+    fieldDef.type === "array" ||
+    fieldDef.type === "group" ||
+    fieldDef.type === "richText" ||
+    fieldDef.type === "pageLayout"
+  ) {
     return typeof value === "string" ? value : JSON.stringify(value)
   }
 
@@ -74,7 +85,12 @@ export function deserializeFieldValue(value: unknown, fieldDef: FieldDef): unkno
     return Boolean(value)
   }
 
-  if (fieldDef.type === "array" || fieldDef.type === "group" || fieldDef.type === "richText" || fieldDef.type === "pageLayout") {
+  if (
+    fieldDef.type === "array" ||
+    fieldDef.type === "group" ||
+    fieldDef.type === "richText" ||
+    fieldDef.type === "pageLayout"
+  ) {
     if (typeof value !== "string") return value
     try {
       return JSON.parse(value)

@@ -1,9 +1,9 @@
 ---
-import Header from "../components/Header.astro"
-import Footer from "../components/Footer.astro"
 import { resolveSiteChrome } from "../../runtime/site-chrome"
-import { resolveActiveThemeCss } from "../../theme/default-theme"
 import { brandCss } from "../../theme/brand-css"
+import { resolveActiveThemeCss } from "../../theme/default-theme"
+import Footer from "../components/Footer.astro"
+import Header from "../components/Header.astro"
 
 interface Props {
   title: string
@@ -18,8 +18,19 @@ const apiBase = import.meta.env.PUBLIC_API_BASE || "http://localhost:4321"
 // Falls back gracefully when the API is unavailable during build.
 let apiSite: {
   siteName?: string | null
-  nav?: { links?: Array<{ label: string; href: string; external?: boolean }>; cta?: { label: string; href: string } } | null
-  footer?: { tagline?: string; columns?: Array<{ heading: string; links: Array<{ label: string; href: string; external?: boolean }> }>; social?: Array<{ label: string; href: string }>; legal?: string } | null
+  nav?: {
+    links?: Array<{ label: string; href: string; external?: boolean }>
+    cta?: { label: string; href: string }
+  } | null
+  footer?: {
+    tagline?: string
+    columns?: Array<{
+      heading: string
+      links: Array<{ label: string; href: string; external?: boolean }>
+    }>
+    social?: Array<{ label: string; href: string }>
+    legal?: string
+  } | null
   theme?: { name?: string | null; version?: string | null; settings?: unknown } | null
 } | null = null
 try {

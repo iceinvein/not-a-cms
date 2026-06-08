@@ -17,7 +17,10 @@ export class ValidationError extends Error {
 
 type DocumentValue = Record<string, unknown>
 
-export function applyDefaultsAndValidate(collection: CollectionDef, input: DocumentValue): DocumentValue {
+export function applyDefaultsAndValidate(
+  collection: CollectionDef,
+  input: DocumentValue,
+): DocumentValue {
   const doc = applyDefaults(input, collection.fields)
   const issues = validateFields(doc, collection.fields)
   if (issues.length > 0) {
@@ -42,7 +45,11 @@ function applyDefaults(input: DocumentValue, fields: Record<string, FieldDef>): 
   return doc
 }
 
-function validateFields(doc: DocumentValue, fields: Record<string, FieldDef>, prefix = ""): ValidationIssue[] {
+function validateFields(
+  doc: DocumentValue,
+  fields: Record<string, FieldDef>,
+  prefix = "",
+): ValidationIssue[] {
   const issues: ValidationIssue[] = []
 
   for (const [name, fieldDef] of Object.entries(fields)) {

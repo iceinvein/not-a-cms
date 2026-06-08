@@ -64,7 +64,9 @@ export function removeArrayItem(value: unknown, index: number): unknown[] {
 }
 
 export function updateArrayItem(value: unknown, index: number, itemValue: unknown): unknown[] {
-  return coerceArrayValue(value).map((existing, itemIndex) => itemIndex === index ? itemValue : existing)
+  return coerceArrayValue(value).map((existing, itemIndex) =>
+    itemIndex === index ? itemValue : existing,
+  )
 }
 
 export function prepareValueForField(value: unknown, field: AdminFieldDef): unknown {
@@ -75,7 +77,9 @@ export function prepareValueForField(value: unknown, field: AdminFieldDef): unkn
     case "relation":
       return valueId(value)
     case "array":
-      return coerceArrayValue(value).map((item) => field.items ? prepareValueForField(item, field.items) : item)
+      return coerceArrayValue(value).map((item) =>
+        field.items ? prepareValueForField(item, field.items) : item,
+      )
     case "group": {
       if (!isRecord(value)) return value
       const prepared: Record<string, unknown> = {}

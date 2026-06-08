@@ -7,15 +7,11 @@ const collections: CrumbCollection[] = [
 
 describe("breadcrumbFromPath", () => {
   test("dashboard root", () => {
-    expect(breadcrumbFromPath("/", collections)).toEqual([
-      { label: "Dashboard", current: true },
-    ])
+    expect(breadcrumbFromPath("/", collections)).toEqual([{ label: "Dashboard", current: true }])
   })
 
   test("known static route", () => {
-    expect(breadcrumbFromPath("/media", collections)).toEqual([
-      { label: "Media", current: true },
-    ])
+    expect(breadcrumbFromPath("/media", collections)).toEqual([{ label: "Media", current: true }])
   })
 
   test("collection list uses plural label and is current", () => {

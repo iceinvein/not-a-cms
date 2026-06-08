@@ -21,7 +21,9 @@ export function ImageBlockView({ node, updateAttributes }: any) {
       )}
       <MediaPicker
         value={url}
-        onSelect={(item) => updateAttributes({ url: item.url, mediaId: item.id, alt: alt || item.alt || "" })}
+        onSelect={(item) =>
+          updateAttributes({ url: item.url, mediaId: item.id, alt: alt || item.alt || "" })
+        }
         onClear={() => updateAttributes({ url: "", mediaId: "" })}
       />
       <input

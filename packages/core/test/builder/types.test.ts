@@ -1,5 +1,5 @@
-import { test, expect, describe } from "bun:test"
-import { createEmptySection, createEmptyLayout, DEFAULT_GRID } from "../../src/builder/types"
+import { describe, expect, test } from "bun:test"
+import { createEmptyLayout, createEmptySection, DEFAULT_GRID } from "../../src/builder/types"
 
 describe("page layout types", () => {
   test("createEmptySection returns valid section", () => {

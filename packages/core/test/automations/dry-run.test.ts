@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test, spyOn } from "bun:test"
+import { afterEach, describe, expect, spyOn, test } from "bun:test"
 import { unlinkSync } from "node:fs"
 import { createFlowEngine } from "../../src/automations/engine"
 import { createFlowStore } from "../../src/automations/store"
@@ -14,28 +14,56 @@ function engineWithSpies() {
   const calls: unknown[][] = []
   const engine = createFlowEngine(store, {
     content: {
-      create: async (collection, data) => { calls.push(["create", collection, data]); return { id: "real-id", ...data } },
-      update: async (collection, id, data) => { calls.push(["update", collection, id, data]); return { id, ...data } },
-      delete: async (collection, id) => { calls.push(["delete", collection, id]); return true },
+      create: async (collection, data) => {
+        calls.push(["create", collection, data])
+        return { id: "real-id", ...data }
+      },
+      update: async (collection, id, data) => {
+        calls.push(["update", collection, id, data])
+        return { id, ...data }
+      },
+      delete: async (collection, id) => {
+        calls.push(["delete", collection, id])
+        return true
+      },
     },
-    sendEmail: async (msg) => { calls.push(["email", msg]) },
+    sendEmail: async (msg) => {
+      calls.push(["email", msg])
+    },
   })
   return { db, store, engine, calls }
 }
 
 describe("flow engine dry-run", () => {
   afterEach(() => {
-    try { unlinkSync(testDbPath) } catch {}
-    try { unlinkSync(testDbPath + "-wal") } catch {}
-    try { unlinkSync(testDbPath + "-shm") } catch {}
+    try {
+      unlinkSync(testDbPath)
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-wal")
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-shm")
+    } catch {}
   })
 
   test("simulates create_content without calling the content adapter", async () => {
     const { engine, calls } = engineWithSpies()
     const flow = {
-      id: "f1", name: "f", active: false, created_at: "", updated_at: "",
+      id: "f1",
+      name: "f",
+      active: false,
+      created_at: "",
+      updated_at: "",
       trigger: { type: "content.created" as const, collection: "posts" },
-      steps: [{ id: "a1", type: "action.create_content" as const, config: { collection: "posts", data: { title: "{{document.title}}" } }, next: null }],
+      steps: [
+        {
+          id: "a1",
+          type: "action.create_content" as const,
+          config: { collection: "posts", data: { title: "{{document.title}}" } },
+          next: null,
+        },
+      ],
     }
     const result = await engine.dryRun(flow, { document: { title: "Hello" } })
 
@@ -45,7 +73,12 @@ describe("flow engine dry-run", () => {
     expect(step.simulated).toBe(true)
     expect(step.summary).toContain("would create")
     const output = JSON.parse(step.output!)
-    expect(output).toMatchObject({ action: "create_content", collection: "posts", documentId: "(simulated)", data: { title: "Hello" } })
+    expect(output).toMatchObject({
+      action: "create_content",
+      collection: "posts",
+      documentId: "(simulated)",
+      data: { title: "Hello" },
+    })
     expect(calls).toHaveLength(0)
   })
 
@@ -53,9 +86,20 @@ describe("flow engine dry-run", () => {
     const fetchSpy = spyOn(globalThis, "fetch")
     const { engine, calls } = engineWithSpies()
     const flow = {
-      id: "f2", name: "f", active: false, created_at: "", updated_at: "",
+      id: "f2",
+      name: "f",
+      active: false,
+      created_at: "",
+      updated_at: "",
       trigger: { type: "webhook.received" as const },
-      steps: [{ id: "a1", type: "action.webhook" as const, config: { url: "https://example.test/{{id}}", method: "POST" }, next: null }],
+      steps: [
+        {
+          id: "a1",
+          type: "action.webhook" as const,
+          config: { url: "https://example.test/{{id}}", method: "POST" },
+          next: null,
+        },
+      ],
     }
     const result = await engine.dryRun(flow, { id: "42" })
 
@@ -70,9 +114,20 @@ describe("flow engine dry-run", () => {
   test("simulates email without sending", async () => {
     const { engine, calls } = engineWithSpies()
     const flow = {
-      id: "f3", name: "f", active: false, created_at: "", updated_at: "",
+      id: "f3",
+      name: "f",
+      active: false,
+      created_at: "",
+      updated_at: "",
       trigger: { type: "content.created" as const },
-      steps: [{ id: "a1", type: "action.email" as const, config: { to: "a@b.test", subject: "Hi {{document.title}}" }, next: null }],
+      steps: [
+        {
+          id: "a1",
+          type: "action.email" as const,
+          config: { to: "a@b.test", subject: "Hi {{document.title}}" },
+          next: null,
+        },
+      ],
     }
     const result = await engine.dryRun(flow, { document: { title: "X" } })
     const step = result.steps[0]
@@ -84,11 +139,26 @@ describe("flow engine dry-run", () => {
   test("runs condition + transform for real and follows branches", async () => {
     const { engine } = engineWithSpies()
     const flow = {
-      id: "f4", name: "f", active: false, created_at: "", updated_at: "",
+      id: "f4",
+      name: "f",
+      active: false,
+      created_at: "",
+      updated_at: "",
       trigger: { type: "content.created" as const },
       steps: [
-        { id: "c1", type: "condition" as const, match: "all" as const, rules: [{ field: "document.category", operator: "eq" as const, value: "news" }], branches: { true: "t1", false: null } },
-        { id: "t1", type: "action.transform" as const, config: { mappings: { slug: "{{document.category}}" } }, next: null },
+        {
+          id: "c1",
+          type: "condition" as const,
+          match: "all" as const,
+          rules: [{ field: "document.category", operator: "eq" as const, value: "news" }],
+          branches: { true: "t1", false: null },
+        },
+        {
+          id: "t1",
+          type: "action.transform" as const,
+          config: { mappings: { slug: "{{document.category}}" } },
+          next: null,
+        },
       ],
     }
     const result = await engine.dryRun(flow, { document: { category: "news" } })
@@ -103,8 +173,13 @@ describe("flow engine dry-run", () => {
   test("empty-steps flow completes with no steps", async () => {
     const { engine } = engineWithSpies()
     const flow = {
-      id: "f5", name: "f", active: false, created_at: "", updated_at: "",
-      trigger: { type: "content.created" as const }, steps: [],
+      id: "f5",
+      name: "f",
+      active: false,
+      created_at: "",
+      updated_at: "",
+      trigger: { type: "content.created" as const },
+      steps: [],
     }
     const result = await engine.dryRun(flow, {})
     expect(result.status).toBe("completed")
@@ -114,39 +189,79 @@ describe("flow engine dry-run", () => {
   test("simulates update_content (document_id alias) without calling the adapter", async () => {
     const { engine, calls } = engineWithSpies()
     const flow = {
-      id: "f7", name: "f", active: false, created_at: "", updated_at: "",
+      id: "f7",
+      name: "f",
+      active: false,
+      created_at: "",
+      updated_at: "",
       trigger: { type: "content.updated" as const, collection: "posts" },
-      steps: [{ id: "a1", type: "action.update_content" as const, config: { collection: "posts", document_id: "{{document.id}}", data: { title: "{{document.title}}" } }, next: null }],
+      steps: [
+        {
+          id: "a1",
+          type: "action.update_content" as const,
+          config: {
+            collection: "posts",
+            document_id: "{{document.id}}",
+            data: { title: "{{document.title}}" },
+          },
+          next: null,
+        },
+      ],
     }
     const result = await engine.dryRun(flow, { document: { id: "p1", title: "New" } })
     const step = result.steps[0]
     expect(step.simulated).toBe(true)
     expect(step.summary).toContain("would update")
     const output = JSON.parse(step.output!)
-    expect(output).toMatchObject({ action: "update_content", collection: "posts", documentId: "p1", data: { title: "New" } })
+    expect(output).toMatchObject({
+      action: "update_content",
+      collection: "posts",
+      documentId: "p1",
+      data: { title: "New" },
+    })
     expect(calls).toHaveLength(0)
   })
 
   test("simulates delete_content without calling the adapter", async () => {
     const { engine, calls } = engineWithSpies()
     const flow = {
-      id: "f8", name: "f", active: false, created_at: "", updated_at: "",
+      id: "f8",
+      name: "f",
+      active: false,
+      created_at: "",
+      updated_at: "",
       trigger: { type: "content.deleted" as const, collection: "posts" },
-      steps: [{ id: "a1", type: "action.delete_content" as const, config: { collection: "posts", documentId: "{{document.id}}" }, next: null }],
+      steps: [
+        {
+          id: "a1",
+          type: "action.delete_content" as const,
+          config: { collection: "posts", documentId: "{{document.id}}" },
+          next: null,
+        },
+      ],
     }
     const result = await engine.dryRun(flow, { document: { id: "p9" } })
     const step = result.steps[0]
     expect(step.simulated).toBe(true)
     expect(step.summary).toContain("would delete")
     const output = JSON.parse(step.output!)
-    expect(output).toMatchObject({ action: "delete_content", collection: "posts", documentId: "p9", deleted: true })
+    expect(output).toMatchObject({
+      action: "delete_content",
+      collection: "posts",
+      documentId: "p9",
+      deleted: true,
+    })
     expect(calls).toHaveLength(0)
   })
 
   test("dry-run does not persist a run", async () => {
     const { engine, store } = engineWithSpies()
     const flow = {
-      id: "f6", name: "f", active: false, created_at: "", updated_at: "",
+      id: "f6",
+      name: "f",
+      active: false,
+      created_at: "",
+      updated_at: "",
       trigger: { type: "content.created" as const },
       steps: [{ id: "a1", type: "action.log" as const, config: { message: "hi" }, next: null }],
     }

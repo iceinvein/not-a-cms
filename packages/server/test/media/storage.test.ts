@@ -1,4 +1,4 @@
-import { test, expect, describe, afterEach } from "bun:test"
+import { afterEach, describe, expect, test } from "bun:test"
 import { existsSync, rmSync } from "node:fs"
 import {
   applyTagOps,
@@ -57,7 +57,10 @@ describe("local media storage", () => {
       caption: "Keep this",
     })
 
-    const replaced = await storage.replaceFile(stored.id, new File(["new content"], "new.txt", { type: "text/plain" }))
+    const replaced = await storage.replaceFile(
+      stored.id,
+      new File(["new content"], "new.txt", { type: "text/plain" }),
+    )
 
     expect(replaced?.id).toBe(stored.id)
     expect(replaced?.filename).toBe("new.txt")
@@ -83,7 +86,9 @@ describe("local media storage", () => {
 
   test("omitting tags on update preserves existing tags; empty array clears them", async () => {
     const storage = createLocalStorage({ provider: "local", path: uploadsDir })
-    const stored = await storage.store(new File(["x"], "x.txt", { type: "text/plain" }), { tags: ["keep"] })
+    const stored = await storage.store(new File(["x"], "x.txt", { type: "text/plain" }), {
+      tags: ["keep"],
+    })
 
     const afterAltOnly = storage.update(stored.id, { alt: "Alt only" })
     expect(afterAltOnly?.tags).toEqual(["keep"])
@@ -156,7 +161,10 @@ describe("local media storage", () => {
     await storage.store(new File(["x"], "a.txt"), { tags: ["hero", "2024"] })
     await storage.store(new File(["x"], "b.txt"), { tags: ["2024"] })
     const list = storage.listTags()
-    expect(list.map((t) => [t.name, t.count])).toEqual([["2024", 2], ["hero", 1]])
+    expect(list.map((t) => [t.name, t.count])).toEqual([
+      ["2024", 2],
+      ["hero", 1],
+    ])
     expect(list.every((t) => /^#[0-9a-f]{6}$/i.test(t.color))).toBe(true)
   })
 
@@ -196,7 +204,12 @@ describe("local media storage", () => {
     const storage = createLocalStorage({ provider: "local", path: uploadsDir })
     const brand = storage.createFolder("Brand", null)
     const logos = storage.createFolder("Logos", brand.id)
-    expect(storage.listFolders().map((f) => f.name).sort()).toEqual(["Brand", "Logos"])
+    expect(
+      storage
+        .listFolders()
+        .map((f) => f.name)
+        .sort(),
+    ).toEqual(["Brand", "Logos"])
     expect(storage.renameFolder(logos.id, "Marks")?.name).toBe("Marks")
     expect(() => storage.moveFolder(brand.id, logos.id)).toThrow()
     expect(storage.moveFolder(logos.id, null)?.parentId).toBeNull()
@@ -235,7 +248,11 @@ describe("local media storage", () => {
     const b = storage.createFolder("B", null)
     const c = storage.createFolder("C", null)
     const ordered = () =>
-      storage.listFolders().filter((f) => f.parentId === null).sort((x, y) => x.position - y.position).map((f) => f.name)
+      storage
+        .listFolders()
+        .filter((f) => f.parentId === null)
+        .sort((x, y) => x.position - y.position)
+        .map((f) => f.name)
     storage.reorderFolder(b.id, "up")
     expect(ordered()).toEqual(["B", "A", "C"])
     storage.reorderFolder(b.id, "up") // already at top -> no-op
@@ -320,8 +337,12 @@ describe("s3 media storage", () => {
 
     expect(signed.url).toBe("https://storage.example.test/media/uploads/hero%20image.png")
     expect(signed.headers["x-amz-date"]).toBe("20260531T080000Z")
-    expect(signed.headers.authorization).toContain("Credential=test-access-key/20260531/auto/s3/aws4_request")
-    expect(signed.headers.authorization).toContain("SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date")
+    expect(signed.headers.authorization).toContain(
+      "Credential=test-access-key/20260531/auto/s3/aws4_request",
+    )
+    expect(signed.headers.authorization).toContain(
+      "SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date",
+    )
     expect(signed.headers.authorization).toMatch(/Signature=[a-f0-9]{64}$/)
   })
 

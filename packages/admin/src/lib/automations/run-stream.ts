@@ -1,4 +1,4 @@
-import type { FlowRun, FlowRunStep, FlowRunDetail } from "../../components/automations/flow-types"
+import type { FlowRun, FlowRunDetail, FlowRunStep } from "../../components/automations/flow-types"
 
 /** Matches the server's cross-flow runs feed `limit`. */
 export const FEED_LIMIT = 50
@@ -26,9 +26,8 @@ export function applyRunStep(
   if (!selected || selected.id !== runId) return selected
   const steps = selected.steps ?? []
   const index = steps.findIndex((existing) => existing.step_id === step.step_id)
-  const nextSteps = index >= 0
-    ? steps.map((existing, i) => (i === index ? step : existing))
-    : [...steps, step]
+  const nextSteps =
+    index >= 0 ? steps.map((existing, i) => (i === index ? step : existing)) : [...steps, step]
   return { ...selected, steps: nextSteps }
 }
 

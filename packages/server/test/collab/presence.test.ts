@@ -6,8 +6,18 @@ const u = (name: string) => ({ name, color: "#c9956b" })
 describe("PresenceRegistry", () => {
   test("online adds, snapshot reflects per-room users", () => {
     const r = new PresenceRegistry()
-    r.applyPresence("content:post:1:body", { type: "presence", clientId: "c1", user: u("Sam"), status: "online" })
-    r.applyPresence("content:post:1:body", { type: "presence", clientId: "c2", user: u("Jo"), status: "online" })
+    r.applyPresence("content:post:1:body", {
+      type: "presence",
+      clientId: "c1",
+      user: u("Sam"),
+      status: "online",
+    })
+    r.applyPresence("content:post:1:body", {
+      type: "presence",
+      clientId: "c2",
+      user: u("Jo"),
+      status: "online",
+    })
     const room = r.snapshot().find((x) => x.docName === "content:post:1:body")!
     expect(room.users.map((x) => x.name).sort()).toEqual(["Jo", "Sam"])
   })

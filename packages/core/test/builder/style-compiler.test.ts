@@ -1,17 +1,17 @@
-import { test, expect, describe } from "bun:test"
-import { compileStyles, compileInlineStyle } from "../../src/builder/style-compiler"
+import { describe, expect, test } from "bun:test"
+import { compileInlineStyle, compileStyles } from "../../src/builder/style-compiler"
 
 describe("compileStyles", () => {
   test("compiles a style map to CSS string", () => {
     const styles = {
       "hero-bg": {
         "background-color": "#1a1a2e",
-        "color": "#ffffff",
-        "padding": "64px 32px",
+        color: "#ffffff",
+        padding: "64px 32px",
       },
-      "centered": {
+      centered: {
         "text-align": "center",
-        "margin": "0 auto",
+        margin: "0 auto",
       },
     }
     const css = compileStyles(styles)
@@ -36,7 +36,7 @@ describe("compileInlineStyle", () => {
   test("converts style object to inline CSS string", () => {
     const result = compileInlineStyle({
       "background-color": "#fff",
-      "padding": "16px",
+      padding: "16px",
       "font-size": "14px",
     })
     expect(result).toBe("background-color:#fff;padding:16px;font-size:14px")

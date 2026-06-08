@@ -1,14 +1,14 @@
 export type GridConfig = {
-  columns: number    // default 12
-  rowHeight: number  // px, default 60
-  gap: number        // px, default 16
+  columns: number // default 12
+  rowHeight: number // px, default 60
+  gap: number // px, default 16
 }
 
 export type GridArea = {
-  column: number     // 1-based
+  column: number // 1-based
   columnSpan: number // default 1
-  row: number        // 1-based
-  rowSpan: number    // default 1
+  row: number // 1-based
+  rowSpan: number // default 1
 }
 
 export type StyleOverrides = {
@@ -25,7 +25,7 @@ export type ResponsiveOverrides = {
 export type PageComponent = {
   _type: "component"
   _id: string
-  component: string  // registry name
+  component: string // registry name
   props: Record<string, unknown>
   gridArea: GridArea
   style?: StyleOverrides
@@ -47,7 +47,7 @@ export type PageSection = {
 export type PageLayout = {
   _type: "page"
   sections: PageSection[]
-  styles?: Record<string, Record<string, string>>  // className -> CSS properties
+  styles?: Record<string, Record<string, string>> // className -> CSS properties
 }
 
 export const DEFAULT_GRID: GridConfig = {

@@ -1,8 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import {
-  WorkflowError,
-  resolveWorkflowTransition,
-} from "../../src/content/workflow"
+import { resolveWorkflowTransition, WorkflowError } from "../../src/content/workflow"
 
 describe("content workflow", () => {
   test("allows draft content to be submitted for review", () => {
@@ -29,6 +26,8 @@ describe("content workflow", () => {
   })
 
   test("rejects unsupported transitions", () => {
-    expect(() => resolveWorkflowTransition("archived", "publish", "admin")).toThrow("Cannot publish archived content")
+    expect(() => resolveWorkflowTransition("archived", "publish", "admin")).toThrow(
+      "Cannot publish archived content",
+    )
   })
 })

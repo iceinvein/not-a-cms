@@ -1,4 +1,4 @@
-import { defineConfig, defineCollection, field } from "@not-a-cms/core"
+import { defineCollection, defineConfig, field } from "@not-a-cms/core"
 
 const author = defineCollection({
   name: "author",
@@ -19,7 +19,9 @@ const blogPost = defineCollection({
     body: field.richText(),
     author: field.relation("author"),
     coverImage: field.media({ accept: ["image/*"] }),
-    status: field.select(["draft", "in_review", "published", "archived", "scheduled"], { default: "draft" }),
+    status: field.select(["draft", "in_review", "published", "archived", "scheduled"], {
+      default: "draft",
+    }),
     publishedAt: field.datetime(),
     tags: field.array(field.text()),
   },
@@ -32,7 +34,9 @@ const page = defineCollection({
     slug: field.slug({ from: "title" }),
     author: field.relation("author"),
     body: field.richText(),
-    status: field.select(["draft", "in_review", "published", "archived", "scheduled"], { default: "draft" }),
+    status: field.select(["draft", "in_review", "published", "archived", "scheduled"], {
+      default: "draft",
+    }),
     publishedAt: field.datetime(),
   },
 })

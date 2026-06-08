@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
+import { adminApiFetch } from "../../lib/api"
 import type { AdminFieldDef } from "../../lib/content-fields"
 import {
   addArrayItem,
@@ -9,10 +10,14 @@ import {
   removeArrayItem,
   updateArrayItem,
 } from "../../lib/content-fields"
-import { adminApiFetch } from "../../lib/api"
-import { listMediaItems, mediaDisplayUrl, uploadMediaFile, type AdminMediaItem } from "../../lib/media"
-import { Select } from "../ui/Select"
+import {
+  type AdminMediaItem,
+  listMediaItems,
+  mediaDisplayUrl,
+  uploadMediaFile,
+} from "../../lib/media"
 import { Checkbox } from "../ui/Checkbox"
+import { Select } from "../ui/Select"
 
 type Props = {
   fields: Record<string, AdminFieldDef>
@@ -74,7 +79,13 @@ function FieldRow({ fieldName, def, value, apiBase, onChange }: RowProps) {
   )
 }
 
-function FieldControl({ id, def, value, apiBase, onChange }: { id: string } & Omit<RowProps, "fieldName">) {
+function FieldControl({
+  id,
+  def,
+  value,
+  apiBase,
+  onChange,
+}: { id: string } & Omit<RowProps, "fieldName">) {
   switch (def.type) {
     case "boolean":
       return (
@@ -150,7 +161,17 @@ function FieldControl({ id, def, value, apiBase, onChange }: { id: string } & Om
   }
 }
 
-function ArrayField({ id, def, value, onChange }: { id: string; def: AdminFieldDef; value: unknown; onChange: (v: unknown) => void }) {
+function ArrayField({
+  id,
+  def,
+  value,
+  onChange,
+}: {
+  id: string
+  def: AdminFieldDef
+  value: unknown
+  onChange: (v: unknown) => void
+}) {
   const items = coerceArrayValue(value)
   const itemField = def.items ?? { type: "text" }
   return (
@@ -164,19 +185,40 @@ function ArrayField({ id, def, value, onChange }: { id: string; def: AdminFieldD
             value={String(item ?? "")}
             onChange={(e) => onChange(updateArrayItem(items, index, e.target.value))}
           />
-          <button type="button" className="cn-field-remove" aria-label="Remove" onClick={() => onChange(removeArrayItem(items, index))}>
+          <button
+            type="button"
+            className="cn-field-remove"
+            aria-label="Remove"
+            onClick={() => onChange(removeArrayItem(items, index))}
+          >
             ×
           </button>
         </span>
       ))}
-      <button type="button" className="cn-field-add" onClick={() => onChange(addArrayItem(items, itemField))}>
+      <button
+        type="button"
+        className="cn-field-add"
+        onClick={() => onChange(addArrayItem(items, itemField))}
+      >
         + Add
       </button>
     </span>
   )
 }
 
-function RelationField({ id, def, value, apiBase, onChange }: { id: string; def: AdminFieldDef; value: unknown; apiBase: string; onChange: (v: unknown) => void }) {
+function RelationField({
+  id,
+  def,
+  value,
+  apiBase,
+  onChange,
+}: {
+  id: string
+  def: AdminFieldDef
+  value: unknown
+  apiBase: string
+  onChange: (v: unknown) => void
+}) {
   const [options, setOptions] = useState<Array<{ id: string; label: string }>>([])
   const target = def.target
 
@@ -206,7 +248,10 @@ function RelationField({ id, def, value, apiBase, onChange }: { id: string; def:
       value={mediaId(value)}
       onValueChange={(next) => onChange(next === "" ? null : next)}
       placeholder="—"
-      options={[{ value: "", label: "—" }, ...options.map((opt) => ({ value: opt.id, label: opt.label }))]}
+      options={[
+        { value: "", label: "—" },
+        ...options.map((opt) => ({ value: opt.id, label: opt.label })),
+      ]}
     />
   )
 }
@@ -216,7 +261,17 @@ function RelationField({ id, def, value, apiBase, onChange }: { id: string; def:
  * (F-014). Shows a thumbnail of the current selection, a "Choose from Vault" picker
  * listing existing assets, an inline upload, and a clear control.
  */
-function MediaField({ id, value, apiBase, onChange }: { id: string; value: unknown; apiBase: string; onChange: (v: unknown) => void }) {
+function MediaField({
+  id,
+  value,
+  apiBase,
+  onChange,
+}: {
+  id: string
+  value: unknown
+  apiBase: string
+  onChange: (v: unknown) => void
+}) {
   const selectedId = mediaId(value)
   const [open, setOpen] = useState(false)
   const [items, setItems] = useState<AdminMediaItem[]>([])
@@ -261,7 +316,12 @@ function MediaField({ id, value, apiBase, onChange }: { id: string; value: unkno
         <div className="cn-media-selected">
           <img className="cn-media-thumb" src={previewUrl} alt="" />
           <span className="cn-media-name">{selectedId}</span>
-          <button type="button" className="cn-field-remove" aria-label="Remove image" onClick={() => onChange(null)}>
+          <button
+            type="button"
+            className="cn-field-remove"
+            aria-label="Remove image"
+            onClick={() => onChange(null)}
+          >
             ×
           </button>
         </div>
@@ -273,7 +333,12 @@ function MediaField({ id, value, apiBase, onChange }: { id: string; value: unkno
         <button type="button" className="cn-media-btn" onClick={openPicker}>
           {selectedId ? "Replace" : "Choose from Vault"}
         </button>
-        <button type="button" className="cn-media-btn" disabled={uploading} onClick={() => fileRef.current?.click()}>
+        <button
+          type="button"
+          className="cn-media-btn"
+          disabled={uploading}
+          onClick={() => fileRef.current?.click()}
+        >
           {uploading ? "Uploading…" : "Upload"}
         </button>
         <input
@@ -295,7 +360,12 @@ function MediaField({ id, value, apiBase, onChange }: { id: string; value: unkno
         <div className="cn-media-picker" role="dialog" aria-label="Choose media">
           <div className="cn-media-picker-head">
             <span>Choose an image</span>
-            <button type="button" className="cn-field-remove" aria-label="Close picker" onClick={() => setOpen(false)}>
+            <button
+              type="button"
+              className="cn-field-remove"
+              aria-label="Close picker"
+              onClick={() => setOpen(false)}
+            >
               ×
             </button>
           </div>
@@ -316,7 +386,10 @@ function MediaField({ id, value, apiBase, onChange }: { id: string; value: unkno
                     setOpen(false)
                   }}
                 >
-                  <img src={mediaDisplayUrl({ id: item.id }, apiBase)} alt={item.alt || item.filename} />
+                  <img
+                    src={mediaDisplayUrl({ id: item.id }, apiBase)}
+                    alt={item.alt || item.filename}
+                  />
                 </button>
               ))}
             </div>
@@ -328,6 +401,7 @@ function MediaField({ id, value, apiBase, onChange }: { id: string; value: unkno
 }
 
 function mediaId(value: unknown): string {
-  if (value && typeof value === "object" && "id" in value) return String((value as { id: unknown }).id)
+  if (value && typeof value === "object" && "id" in value)
+    return String((value as { id: unknown }).id)
   return value === null || value === undefined ? "" : String(value)
 }

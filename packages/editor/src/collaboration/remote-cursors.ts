@@ -1,4 +1,4 @@
-import { Extension, type Editor } from "@tiptap/core"
+import { type Editor, Extension } from "@tiptap/core"
 import { Plugin, PluginKey } from "@tiptap/pm/state"
 import { Decoration, DecorationSet, type EditorView } from "@tiptap/pm/view"
 import type { CursorState } from "./provider"
@@ -38,7 +38,9 @@ export const RemoteCursors = Extension.create<RemoteCursorsOptions>({
         props: {
           decorations(state) {
             const cursors = remoteCursorsPluginKey.getState(state) ?? []
-            const decorations = cursors.flatMap((cursor) => cursorDecorations(cursor, state.doc.content.size))
+            const decorations = cursors.flatMap((cursor) =>
+              cursorDecorations(cursor, state.doc.content.size),
+            )
             return DecorationSet.create(state.doc, decorations)
           },
         },
@@ -63,16 +65,20 @@ function cursorDecorations(cursor: CursorState, documentSize: number): Decoratio
   const decorations: Decoration[] = []
 
   if (from < to) {
-    decorations.push(Decoration.inline(from, to, {
-      class: "nacms-remote-selection",
-      style: `background: color-mix(in srgb, ${color} 24%, transparent);`,
-    }))
+    decorations.push(
+      Decoration.inline(from, to, {
+        class: "nacms-remote-selection",
+        style: `background: color-mix(in srgb, ${color} 24%, transparent);`,
+      }),
+    )
   }
 
-  decorations.push(Decoration.widget(head, () => createCaretElement(cursor.user.name, color), {
-    key: `cursor-${cursor.clientId}`,
-    side: -1,
-  }))
+  decorations.push(
+    Decoration.widget(head, () => createCaretElement(cursor.user.name, color), {
+      key: `cursor-${cursor.clientId}`,
+      side: -1,
+    }),
+  )
 
   return decorations
 }
@@ -159,5 +165,8 @@ function expandHex(color: string): string | null {
   if (!match) return null
   const value = match[1]!
   if (value.length === 6) return value
-  return value.split("").map((char) => char + char).join("")
+  return value
+    .split("")
+    .map((char) => char + char)
+    .join("")
 }

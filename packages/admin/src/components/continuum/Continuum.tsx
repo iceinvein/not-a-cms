@@ -1,16 +1,18 @@
+import type { CollabUser } from "@not-a-cms/editor"
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react"
-import { ErrorBoundary } from "../ErrorBoundary"
-import { ToastProvider, useToast } from "../Toast"
-import { portableTextValue } from "../../lib/portable-text-value"
 import { buildCollaborationConfig, defaultCollabUser } from "../../lib/collaboration"
 import type { AdminFieldDef } from "../../lib/content-fields"
-import type { CollabUser } from "@not-a-cms/editor"
+import { portableTextValue } from "../../lib/portable-text-value"
+import { ErrorBoundary } from "../ErrorBoundary"
+import { ToastProvider, useToast } from "../Toast"
+import { continuumBlocks, continuumSlashCommands } from "./blocks"
 import { ChannelMirror } from "./ChannelMirror"
 import { FieldsPanel } from "./FieldsPanel"
-import { continuumBlocks, continuumSlashCommands } from "./blocks"
 import { useDocument, type WorkflowAction } from "./use-document"
 
-const Editor = lazy(() => import("@not-a-cms/editor").then((module) => ({ default: module.Editor })))
+const Editor = lazy(() =>
+  import("@not-a-cms/editor").then((module) => ({ default: module.Editor })),
+)
 
 type Props = {
   collection: string
@@ -75,13 +77,13 @@ function ContinuumInner({
   })
   const titleField = titleFieldName(fields)
   const bodyField = richTextFieldName(fields)
-  const parsedBodyBlocks = bodyField ? portableTextValue(data[bodyField]) ?? [] : []
+  const parsedBodyBlocks = bodyField ? (portableTextValue(data[bodyField]) ?? []) : []
   const [bodyBlocks, setBodyBlocks] = useState<any[]>(parsedBodyBlocks)
   const collaborationBaseline = useRef<{ key: string; blockCount: number } | null>(null)
   const collaborationKey = `${documentId ?? "new"}:${bodyField ?? ""}`
 
   useEffect(() => {
-    const next = bodyField ? portableTextValue(data[bodyField]) ?? [] : []
+    const next = bodyField ? (portableTextValue(data[bodyField]) ?? []) : []
     setBodyBlocks((current) => (JSON.stringify(current) === JSON.stringify(next) ? current : next))
   }, [bodyField, data])
 
@@ -92,19 +94,22 @@ function ContinuumInner({
     }
   }, [loading, bodyField, collaborationKey, parsedBodyBlocks.length])
 
-  const initialCollaborationBlockCount = collaborationBaseline.current?.key === collaborationKey
-    ? collaborationBaseline.current.blockCount
-    : loading
-      ? null
-      : parsedBodyBlocks.length
+  const initialCollaborationBlockCount =
+    collaborationBaseline.current?.key === collaborationKey
+      ? collaborationBaseline.current.blockCount
+      : loading
+        ? null
+        : parsedBodyBlocks.length
 
   const collaboration = useMemo(() => {
     if (!bodyField) return null
-    if (!shouldEnableContinuumCollaboration({
-      documentId,
-      initialBlockCount: initialCollaborationBlockCount,
-      currentBlockCount: bodyBlocks.length,
-    })) {
+    if (
+      !shouldEnableContinuumCollaboration({
+        documentId,
+        initialBlockCount: initialCollaborationBlockCount,
+        currentBlockCount: bodyBlocks.length,
+      })
+    ) {
       return null
     }
     const cfg = buildCollaborationConfig({
@@ -115,7 +120,15 @@ function ContinuumInner({
       user: collaborationUser,
     })
     return cfg
-  }, [apiBase, collection, documentId, bodyField, collaborationUser, initialCollaborationBlockCount, bodyBlocks.length])
+  }, [
+    apiBase,
+    collection,
+    documentId,
+    bodyField,
+    collaborationUser,
+    initialCollaborationBlockCount,
+    bodyBlocks.length,
+  ])
 
   const handleSave = async (action: WorkflowAction) => {
     try {
@@ -187,23 +200,45 @@ function ContinuumInner({
             fields={fields}
             data={data}
             updateField={updateField}
-            exclude={[titleField, bodyField, "status"].filter((name): name is string => Boolean(name))}
+            exclude={[titleField, bodyField, "status"].filter((name): name is string =>
+              Boolean(name),
+            )}
             apiBase={apiBase}
           />
         </section>
       </main>
 
-      <ChannelMirror apiBase={apiBase} blocks={bodyBlocks} title={title || "Untitled"} byline={byline} />
+      <ChannelMirror
+        apiBase={apiBase}
+        blocks={bodyBlocks}
+        title={title || "Untitled"}
+        byline={byline}
+      />
 
       <div className="cn-status">
         <span className="cn-status-state">{saving ? "Saving..." : error || statusLabel}</span>
-        <button className="cn-status-btn" type="button" disabled={saving} onClick={() => handleSave("save_draft")}>
+        <button
+          className="cn-status-btn"
+          type="button"
+          disabled={saving}
+          onClick={() => handleSave("save_draft")}
+        >
           Save
         </button>
-        <button className="cn-status-btn" type="button" disabled={saving} onClick={() => handleSave("submit_review")}>
+        <button
+          className="cn-status-btn"
+          type="button"
+          disabled={saving}
+          onClick={() => handleSave("submit_review")}
+        >
           Review
         </button>
-        <button className="cn-status-publish" type="button" disabled={saving} onClick={() => handleSave("publish")}>
+        <button
+          className="cn-status-publish"
+          type="button"
+          disabled={saving}
+          onClick={() => handleSave("publish")}
+        >
           <kbd>⌘↵</kbd> publish
         </button>
       </div>

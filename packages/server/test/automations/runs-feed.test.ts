@@ -1,6 +1,6 @@
-import { describe, expect, test, beforeEach, afterEach } from "bun:test"
+import { afterEach, beforeEach, describe, expect, test } from "bun:test"
 import { unlinkSync } from "node:fs"
-import { createDatabase, bootstrapTables, createFlowStore, type FlowEngine } from "@not-a-cms/core"
+import { bootstrapTables, createDatabase, createFlowStore, type FlowEngine } from "@not-a-cms/core"
 import { createAutomationHandler } from "../../src/automations/handler"
 
 const testDbPath = "test-automation-runs-feed.db"
@@ -21,13 +21,23 @@ describe("automation runs feed", () => {
   })
 
   afterEach(() => {
-    try { unlinkSync(testDbPath) } catch {}
-    try { unlinkSync(testDbPath + "-wal") } catch {}
-    try { unlinkSync(testDbPath + "-shm") } catch {}
+    try {
+      unlinkSync(testDbPath)
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-wal")
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-shm")
+    } catch {}
   })
 
   test("GET /api/_flows/runs returns failed runs across flows", async () => {
-    const flow = store.createFlow({ name: "Failed Feed", trigger: { type: "content.created" }, steps: [] })
+    const flow = store.createFlow({
+      name: "Failed Feed",
+      trigger: { type: "content.created" },
+      steps: [],
+    })
     const run = store.createRun(flow.id, "content.created")
     store.completeRun(run.id, "failed", "boom")
 

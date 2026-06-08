@@ -17,9 +17,19 @@ function fakeCollections() {
     service: {
       async findMany() {
         return [
-          { id: "soon", title: "Soon", status: "published", unpublishAt: "2026-06-03T12:00:00.000Z" },
+          {
+            id: "soon",
+            title: "Soon",
+            status: "published",
+            unpublishAt: "2026-06-03T12:00:00.000Z",
+          },
           { id: "far", title: "Far", status: "published", unpublishAt: "2026-07-01T12:00:00.000Z" },
-          { id: "past", title: "Past", status: "published", unpublishAt: "2026-05-30T12:00:00.000Z" },
+          {
+            id: "past",
+            title: "Past",
+            status: "published",
+            unpublishAt: "2026-05-30T12:00:00.000Z",
+          },
         ]
       },
     },

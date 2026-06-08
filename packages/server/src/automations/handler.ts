@@ -1,4 +1,4 @@
-import type { FlowStore, FlowEngine, FlowRunStatus, RunEventBus, RunEvent } from "@not-a-cms/core"
+import type { FlowEngine, FlowRunStatus, FlowStore, RunEvent, RunEventBus } from "@not-a-cms/core"
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -7,7 +7,11 @@ function json(data: unknown, status = 200) {
   })
 }
 
-export function createAutomationHandler(store: FlowStore, engine: FlowEngine, events?: RunEventBus) {
+export function createAutomationHandler(
+  store: FlowStore,
+  engine: FlowEngine,
+  events?: RunEventBus,
+) {
   return async function handler(req: Request): Promise<Response | null> {
     const url = new URL(req.url)
     const pathname = url.pathname
@@ -45,7 +49,12 @@ export function createAutomationHandler(store: FlowStore, engine: FlowEngine, ev
       }
 
       // GET /api/_flows/runs/stream: Server-Sent Events feed of live run progress
-      if (segments.length === 2 && segments[0] === "runs" && segments[1] === "stream" && method === "GET") {
+      if (
+        segments.length === 2 &&
+        segments[0] === "runs" &&
+        segments[1] === "stream" &&
+        method === "GET"
+      ) {
         if (!events) return json({ error: "Streaming not available" }, 503)
         const flowFilter = url.searchParams.get("flowId")
         const encoder = new TextEncoder()
@@ -58,13 +67,20 @@ export function createAutomationHandler(store: FlowStore, engine: FlowEngine, ev
         const cleanup = () => {
           unsubscribe?.()
           unsubscribe = null
-          if (heartbeat) { clearInterval(heartbeat); heartbeat = null }
+          if (heartbeat) {
+            clearInterval(heartbeat)
+            heartbeat = null
+          }
         }
 
         const stream = new ReadableStream<Uint8Array>({
           start(controller) {
             const send = (chunk: string) => {
-              try { controller.enqueue(encoder.encode(chunk)) } catch { /* controller closed */ }
+              try {
+                controller.enqueue(encoder.encode(chunk))
+              } catch {
+                /* controller closed */
+              }
             }
             unsubscribe = events.subscribe((event) => {
               if (flowFilter && flowIdOf(event) !== flowFilter) return
@@ -74,7 +90,11 @@ export function createAutomationHandler(store: FlowStore, engine: FlowEngine, ev
             heartbeat = setInterval(() => send(`: ping\n\n`), 25000)
             req.signal.addEventListener("abort", () => {
               cleanup()
-              try { controller.close() } catch { /* already closed */ }
+              try {
+                controller.close()
+              } catch {
+                /* already closed */
+              }
             })
           },
           cancel() {
@@ -95,14 +115,17 @@ export function createAutomationHandler(store: FlowStore, engine: FlowEngine, ev
       // POST /api/_flows/dry-run: simulate a flow without side effects (ephemeral)
       if (segments.length === 1 && segments[0] === "dry-run" && method === "POST") {
         let body: any = {}
-        try { body = await req.json() } catch {}
+        try {
+          body = await req.json()
+        } catch {}
         const flow = body?.flow
         if (!flow || typeof flow !== "object" || !flow.trigger || !Array.isArray(flow.steps)) {
           return json({ error: "A flow with a trigger and steps is required" }, 400)
         }
-        const payload = (body.payload && typeof body.payload === "object" && !Array.isArray(body.payload))
-          ? body.payload as Record<string, unknown>
-          : { event: flow.trigger.type }
+        const payload =
+          body.payload && typeof body.payload === "object" && !Array.isArray(body.payload)
+            ? (body.payload as Record<string, unknown>)
+            : { event: flow.trigger.type }
         const result = await engine.dryRun(flow, payload)
         return json(result)
       }
@@ -118,7 +141,9 @@ export function createAutomationHandler(store: FlowStore, engine: FlowEngine, ev
           return json({ error: "Flow trigger is not webhook.received" }, 400)
         }
         let payload: Record<string, unknown> = {}
-        try { payload = await req.json() } catch {}
+        try {
+          payload = await req.json()
+        } catch {}
         const runId = await engine.executeFlow(flow, { event: "webhook.received", ...payload })
         return json({ runId })
       }
@@ -150,7 +175,12 @@ export function createAutomationHandler(store: FlowStore, engine: FlowEngine, ev
       }
 
       // POST /api/_flows/:id/runs/:runId/retry — replay a failed run
-      if (segments.length === 4 && segments[1] === "runs" && segments[3] === "retry" && method === "POST") {
+      if (
+        segments.length === 4 &&
+        segments[1] === "runs" &&
+        segments[3] === "retry" &&
+        method === "POST"
+      ) {
         const flow = store.getFlowById(id)
         if (!flow) return json({ error: "Flow not found" }, 404)
         const retryRunId = await engine.retryRun(flow, segments[2])

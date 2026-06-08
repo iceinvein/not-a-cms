@@ -1,6 +1,6 @@
-import sharp from "sharp"
-import { join } from "node:path"
 import { existsSync, mkdirSync, statSync } from "node:fs"
+import { join } from "node:path"
+import sharp from "sharp"
 
 const RESPONSIVE_WIDTHS = [640, 768, 1024, 1280, 1536]
 const OUTPUT_FORMATS = ["webp", "avif"] as const
@@ -20,7 +20,7 @@ type ProcessResult = {
   variants: ImageVariant[]
 }
 
-type VariantFormat = typeof OUTPUT_FORMATS[number]
+type VariantFormat = (typeof OUTPUT_FORMATS)[number]
 
 export function createImageOptimizer(outputDir: string) {
   mkdirSync(outputDir, { recursive: true })
@@ -53,7 +53,10 @@ export function createImageOptimizer(outputDir: string) {
         const height = Math.round((width / origWidth) * origHeight)
 
         try {
-          const pipeline = sharp(inputPath).resize(width, height, { fit: "inside", withoutEnlargement: true })
+          const pipeline = sharp(inputPath).resize(width, height, {
+            fit: "inside",
+            withoutEnlargement: true,
+          })
 
           let result
           if (format === "webp") {
@@ -78,7 +81,11 @@ export function createImageOptimizer(outputDir: string) {
     return { width: origWidth, height: origHeight, blurDataURL, variants }
   }
 
-  async function getOrCreateVariant(inputPath: string, id: string, options: { width: number; format: VariantFormat }): Promise<ImageVariant> {
+  async function getOrCreateVariant(
+    inputPath: string,
+    id: string,
+    options: { width: number; format: VariantFormat },
+  ): Promise<ImageVariant> {
     const variantDir = join(outputDir, id)
     mkdirSync(variantDir, { recursive: true })
     const outputPath = join(variantDir, `${options.width}.${options.format}`)
@@ -96,13 +103,18 @@ export function createImageOptimizer(outputDir: string) {
     const metadata = await sharp(inputPath).metadata()
     const origWidth = metadata.width ?? 0
     const origHeight = metadata.height ?? 0
-    if (origWidth <= 0 || origHeight <= 0) throw new Error("Cannot create image variant without dimensions")
+    if (origWidth <= 0 || origHeight <= 0)
+      throw new Error("Cannot create image variant without dimensions")
     const width = Math.min(options.width, origWidth)
     const height = Math.round((width / origWidth) * origHeight)
-    const pipeline = sharp(inputPath).resize(width, height, { fit: "inside", withoutEnlargement: true })
-    const result = options.format === "webp"
-      ? await pipeline.webp({ quality: 80 }).toFile(outputPath)
-      : await pipeline.avif({ quality: 65 }).toFile(outputPath)
+    const pipeline = sharp(inputPath).resize(width, height, {
+      fit: "inside",
+      withoutEnlargement: true,
+    })
+    const result =
+      options.format === "webp"
+        ? await pipeline.webp({ quality: 80 }).toFile(outputPath)
+        : await pipeline.avif({ quality: 65 }).toFile(outputPath)
 
     return {
       width: result.width,
@@ -117,4 +129,4 @@ export function createImageOptimizer(outputDir: string) {
 }
 
 export type ImageOptimizer = ReturnType<typeof createImageOptimizer>
-export type { ProcessResult, ImageVariant, VariantFormat }
+export type { ImageVariant, ProcessResult, VariantFormat }

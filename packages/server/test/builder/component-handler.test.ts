@@ -1,6 +1,6 @@
-import { test, expect, describe } from "bun:test"
-import { createComponentHandler } from "../../src/builder/component-handler"
+import { describe, expect, test } from "bun:test"
 import { createComponentRegistry } from "@not-a-cms/core"
+import { createComponentHandler } from "../../src/builder/component-handler"
 
 const registry = createComponentRegistry([
   {

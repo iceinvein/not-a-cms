@@ -1,5 +1,5 @@
 import * as Y from "yjs"
-import { PresenceRegistry, type PresenceMessage, type PresenceUser } from "./presence"
+import { type PresenceMessage, PresenceRegistry, type PresenceUser } from "./presence"
 
 const docs = new Map<string, Y.Doc>()
 const presence = new PresenceRegistry()
@@ -84,11 +84,13 @@ function isPresenceMessage(message: string): boolean {
       user?: { name?: unknown; color?: unknown }
       status?: unknown
     }
-    return parsed.type === "presence" &&
+    return (
+      parsed.type === "presence" &&
       typeof parsed.clientId === "string" &&
       typeof parsed.user?.name === "string" &&
       typeof parsed.user?.color === "string" &&
       (parsed.status === "online" || parsed.status === "offline")
+    )
   } catch {
     return false
   }
@@ -103,12 +105,14 @@ function isCursorMessage(message: string): boolean {
       anchor?: unknown
       head?: unknown
     }
-    return parsed.type === "cursor" &&
+    return (
+      parsed.type === "cursor" &&
       typeof parsed.clientId === "string" &&
       typeof parsed.user?.name === "string" &&
       typeof parsed.user?.color === "string" &&
       typeof parsed.anchor === "number" &&
       typeof parsed.head === "number"
+    )
   } catch {
     return false
   }

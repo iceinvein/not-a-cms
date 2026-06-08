@@ -1,6 +1,10 @@
 import type { CollabConfig, CollabUser } from "@not-a-cms/editor"
 
-export function contentCollabDocumentId(collection: string, documentId: string, fieldName: string): string {
+export function contentCollabDocumentId(
+  collection: string,
+  documentId: string,
+  fieldName: string,
+): string {
   return `content:${collection}:${documentId}:${fieldName}`
 }
 

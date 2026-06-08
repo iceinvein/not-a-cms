@@ -1,4 +1,10 @@
-import { applyTagOps, canAccessFolder, type MediaMetadataInput, type MediaRecord, type MediaStorage } from "./storage"
+import {
+  applyTagOps,
+  canAccessFolder,
+  type MediaMetadataInput,
+  type MediaRecord,
+  type MediaStorage,
+} from "./storage"
 
 type PublicMediaRecord = Omit<MediaRecord, "path"> & {
   url: string
@@ -61,7 +67,12 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
       const forbidden = await requireManager(req)
       if (forbidden) return forbidden
       const body = await req.json().catch(() => null)
-      if (!isRecord(body) || !Array.isArray(body.ids) || body.ids.some((id) => typeof id !== "string") || body.ids.length === 0) {
+      if (
+        !isRecord(body) ||
+        !Array.isArray(body.ids) ||
+        body.ids.some((id) => typeof id !== "string") ||
+        body.ids.length === 0
+      ) {
         return json({ error: "ids must be a non-empty array of strings" }, 400)
       }
       const add = Array.isArray(body.add) ? body.add.map(String) : []
@@ -80,7 +91,13 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
       const forbidden = await requireManager(req)
       if (forbidden) return forbidden
       const body = await req.json().catch(() => null)
-      if (!isRecord(body) || typeof body.source !== "string" || !body.source.trim() || typeof body.target !== "string" || !body.target.trim()) {
+      if (
+        !isRecord(body) ||
+        typeof body.source !== "string" ||
+        !body.source.trim() ||
+        typeof body.target !== "string" ||
+        !body.target.trim()
+      ) {
         return json({ error: "source and target are required" }, 400)
       }
       return json({ merged: storage.mergeTag(body.source, body.target) })
@@ -90,7 +107,11 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
       const forbidden = await requireManager(req)
       if (forbidden) return forbidden
       const body = await req.json().catch(() => null)
-      if (!isRecord(body) || !Array.isArray(body.ids) || body.ids.some((id) => typeof id !== "string")) {
+      if (
+        !isRecord(body) ||
+        !Array.isArray(body.ids) ||
+        body.ids.some((id) => typeof id !== "string")
+      ) {
         return json({ error: "ids must be an array of strings" }, 400)
       }
       const r = enforce ? await role() : null
@@ -110,7 +131,9 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
     if (req.method === "GET" && !subpath) {
       const folders = storage.listFolders()
       const r = enforce ? await role() : null
-      const list = storage.list().filter((rec) => !enforce || canAccessFolder(folders, rec.folderId ?? null, r))
+      const list = storage
+        .list()
+        .filter((rec) => !enforce || canAccessFolder(folders, rec.folderId ?? null, r))
       return json({ data: list.map(toPublicRecord) })
     }
 
@@ -129,9 +152,11 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
       const forbidden = await requireManager(req)
       if (forbidden) return forbidden
       const body = await req.json().catch(() => null)
-      if (!isRecord(body) || typeof body.name !== "string" || !body.name.trim()) return json({ error: "name is required" }, 400)
+      if (!isRecord(body) || typeof body.name !== "string" || !body.name.trim())
+        return json({ error: "name is required" }, 400)
       const parentId = body.parentId === undefined ? null : body.parentId
-      if (parentId !== null && typeof parentId !== "string") return json({ error: "parentId must be a string or null" }, 400)
+      if (parentId !== null && typeof parentId !== "string")
+        return json({ error: "parentId must be a string or null" }, 400)
       try {
         return json(storage.createFolder(body.name, parentId), 201)
       } catch {
@@ -146,10 +171,12 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
       if (!isRecord(body)) return json({ error: "Body must be an object" }, 400)
       let folder = storage.listFolders().find((entry) => entry.id === action) ?? null
       if (!folder) return json({ error: "Not found" }, 404)
-      if (typeof body.name === "string" && body.name.trim()) folder = storage.renameFolder(action, body.name)
+      if (typeof body.name === "string" && body.name.trim())
+        folder = storage.renameFolder(action, body.name)
       if (body.parentId !== undefined) {
         const parentId = body.parentId === null ? null : body.parentId
-        if (parentId !== null && typeof parentId !== "string") return json({ error: "parentId must be a string or null" }, 400)
+        if (parentId !== null && typeof parentId !== "string")
+          return json({ error: "parentId must be a string or null" }, 400)
         try {
           folder = storage.moveFolder(action, parentId)
         } catch {
@@ -157,13 +184,19 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
         }
       }
       if (body.color !== undefined) {
-        if (body.color !== null && (typeof body.color !== "string" || !/^#[0-9a-f]{6}$/i.test(body.color))) {
+        if (
+          body.color !== null &&
+          (typeof body.color !== "string" || !/^#[0-9a-f]{6}$/i.test(body.color))
+        ) {
           return json({ error: "color must be a #rrggbb hex or null" }, 400)
         }
         folder = storage.setFolderColor(action, body.color)
       }
       if (body.icon !== undefined) {
-        if (body.icon !== null && (typeof body.icon !== "string" || !/^[a-z][a-z0-9-]{0,23}$/.test(body.icon))) {
+        if (
+          body.icon !== null &&
+          (typeof body.icon !== "string" || !/^[a-z][a-z0-9-]{0,23}$/.test(body.icon))
+        ) {
           return json({ error: "icon must be a short lowercase key or null" }, 400)
         }
         folder = storage.setFolderIcon(action, body.icon)
@@ -176,7 +209,10 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
       }
       if (body.roles !== undefined) {
         if (enforce && (await role()) !== "admin") return json({ error: "Forbidden" }, 403)
-        if (body.roles !== null && (!Array.isArray(body.roles) || body.roles.some((x) => typeof x !== "string"))) {
+        if (
+          body.roles !== null &&
+          (!Array.isArray(body.roles) || body.roles.some((x) => typeof x !== "string"))
+        ) {
           return json({ error: "roles must be an array of strings or null" }, 400)
         }
         folder = storage.setFolderRoles(action, body.roles)
@@ -196,11 +232,16 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
       const forbidden = await requireManager(req)
       if (forbidden) return forbidden
       const body = await req.json().catch(() => null)
-      if (!isRecord(body) || !Array.isArray(body.ids) || body.ids.some((id) => typeof id !== "string")) {
+      if (
+        !isRecord(body) ||
+        !Array.isArray(body.ids) ||
+        body.ids.some((id) => typeof id !== "string")
+      ) {
         return json({ error: "ids must be an array of strings" }, 400)
       }
       const folderId = body.folderId === undefined ? null : body.folderId
-      if (folderId !== null && typeof folderId !== "string") return json({ error: "folderId must be a string or null" }, 400)
+      if (folderId !== null && typeof folderId !== "string")
+        return json({ error: "folderId must be a string or null" }, 400)
       if (enforce) {
         const r = await role()
         const folders = storage.listFolders()
@@ -216,7 +257,9 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
         }
       }
       try {
-        return json({ data: storage.moveAssets(body.ids as string[], folderId).map(toPublicRecord) })
+        return json({
+          data: storage.moveAssets(body.ids as string[], folderId).map(toPublicRecord),
+        })
       } catch {
         return json({ error: "folder not found" }, 400)
       }
@@ -237,7 +280,8 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
       const forbidden = await requireManager(req)
       if (forbidden) return forbidden
       const target = storage.get(subpath)
-      if (target && !(await accessible(target.folderId ?? null))) return json({ error: "Not found" }, 404)
+      if (target && !(await accessible(target.folderId ?? null)))
+        return json({ error: "Not found" }, 404)
       const formData = await req.formData()
       const file = formData.get("file") as File | null
       if (!file) return json({ error: "No file provided" }, 400)
@@ -254,25 +298,33 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
       if (!isRecord(body)) return json({ error: "Body must be an object" }, 400)
       let finalName = normalizeName(name)
       if (body.color !== undefined) {
-        if (typeof body.color !== "string" || !/^#[0-9a-f]{6}$/i.test(body.color)) return json({ error: "color must be a #rrggbb hex" }, 400)
+        if (typeof body.color !== "string" || !/^#[0-9a-f]{6}$/i.test(body.color))
+          return json({ error: "color must be a #rrggbb hex" }, 400)
         storage.setTagColor(name, body.color)
       }
       if (body.description !== undefined) {
-        if (body.description !== null && typeof body.description !== "string") return json({ error: "description must be a string or null" }, 400)
+        if (body.description !== null && typeof body.description !== "string")
+          return json({ error: "description must be a string or null" }, 400)
         storage.setTagDescription(name, body.description)
       }
       if (body.group !== undefined) {
-        if (body.group !== null && typeof body.group !== "string") return json({ error: "group must be a string or null" }, 400)
+        if (body.group !== null && typeof body.group !== "string")
+          return json({ error: "group must be a string or null" }, 400)
         storage.setTagGroup(name, body.group)
       }
       if (body.newName !== undefined) {
-        if (typeof body.newName !== "string") return json({ error: "newName must be a non-empty string" }, 400)
+        if (typeof body.newName !== "string")
+          return json({ error: "newName must be a non-empty string" }, 400)
         const normalized = normalizeName(body.newName)
         if (!normalized) return json({ error: "newName must be a non-empty string" }, 400)
         storage.renameTag(name, body.newName)
         finalName = normalized
       }
-      const entry = storage.listTags().find((tag) => tag.name === finalName) ?? { name: finalName, color: storage.tagColors()[finalName] ?? "#c9956b", count: 0 }
+      const entry = storage.listTags().find((tag) => tag.name === finalName) ?? {
+        name: finalName,
+        color: storage.tagColors()[finalName] ?? "#c9956b",
+        count: 0,
+      }
       return json(entry)
     }
 
@@ -292,7 +344,8 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
       const validationError = validateMetadata(metadata)
       if (validationError) return json({ error: validationError }, 400)
       const existing = storage.get(subpath)
-      if (existing && !(await accessible(existing.folderId ?? null))) return json({ error: "Not found" }, 404)
+      if (existing && !(await accessible(existing.folderId ?? null)))
+        return json({ error: "Not found" }, 404)
       const record = storage.update(subpath, metadata)
       if (!record) return json({ error: "Not found" }, 404)
       return json(toPublicRecord(record))
@@ -308,7 +361,8 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
       const forbidden = await requireManager(req)
       if (forbidden) return forbidden
       const existing = storage.get(subpath)
-      if (existing && !(await accessible(existing.folderId ?? null))) return json({ error: "Not found" }, 404)
+      if (existing && !(await accessible(existing.folderId ?? null)))
+        return json({ error: "Not found" }, 404)
       const deleted = await storage.remove(subpath)
       if (deleted) options.onAssetsDeleted?.([subpath])
       return json({ deleted })
@@ -319,7 +373,7 @@ export function createMediaHandler(storage: MediaStorage, options: MediaHandlerO
 
   async function requireManager(req: Request): Promise<Response | null> {
     if (!options.canManage) return null
-    return await options.canManage(req) ? null : json({ error: "Forbidden" }, 403)
+    return (await options.canManage(req)) ? null : json({ error: "Forbidden" }, 403)
   }
 }
 
@@ -337,7 +391,8 @@ function metadataFromRecord(input: Record<string, unknown>): Partial<MediaMetada
   return {
     ...(input.alt !== undefined && input.alt !== null && { alt: String(input.alt) }),
     ...(input.title !== undefined && input.title !== null && { title: String(input.title) }),
-    ...(input.caption !== undefined && input.caption !== null && { caption: String(input.caption) }),
+    ...(input.caption !== undefined &&
+      input.caption !== null && { caption: String(input.caption) }),
     ...(input.focalX !== undefined && input.focalX !== null && { focalX: Number(input.focalX) }),
     ...(input.focalY !== undefined && input.focalY !== null && { focalY: Number(input.focalY) }),
     ...(input.tags !== undefined && input.tags !== null && { tags: input.tags as string[] }),
@@ -349,10 +404,16 @@ function validateMetadata(input: Partial<MediaMetadataInput>): string | null {
     if ((key === "alt" || key === "title" || key === "caption") && typeof value !== "string") {
       return `${key} must be a string`
     }
-    if ((key === "focalX" || key === "focalY") && (typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > 1)) {
+    if (
+      (key === "focalX" || key === "focalY") &&
+      (typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > 1)
+    ) {
       return `${key} must be a number between 0 and 1`
     }
-    if (key === "tags" && (!Array.isArray(value) || value.some((entry) => typeof entry !== "string"))) {
+    if (
+      key === "tags" &&
+      (!Array.isArray(value) || value.some((entry) => typeof entry !== "string"))
+    ) {
       return "tags must be an array of strings"
     }
   }
@@ -363,7 +424,8 @@ function validateVariantRequest(url: URL): { width?: number; format?: "webp" | "
   const widthValue = url.searchParams.get("w")
   const formatValue = url.searchParams.get("format")
   if (!widthValue && !formatValue) return {}
-  if (!widthValue || !formatValue) return json({ error: "Both w and format are required for media variants" }, 400)
+  if (!widthValue || !formatValue)
+    return json({ error: "Both w and format are required for media variants" }, 400)
 
   const width = Number(widthValue)
   if (!Number.isInteger(width) || width < 16 || width > 3840) {

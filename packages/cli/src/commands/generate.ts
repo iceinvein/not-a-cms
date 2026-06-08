@@ -1,7 +1,7 @@
-import { registerCommand } from "../router"
-import { writeFileSync, mkdirSync } from "node:fs"
+import { mkdirSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
-import { createDatabase, generateMigrationSQL, loadConfig, type CMSConfig } from "@not-a-cms/core"
+import { type CMSConfig, createDatabase, generateMigrationSQL, loadConfig } from "@not-a-cms/core"
+import { registerCommand } from "../router"
 
 type MigrationStatus = {
   applied: string[]
@@ -18,12 +18,17 @@ type GenerateMigrationFileOptions = {
 
 export function createMigrationFilename(name: string, now = new Date()): string {
   const timestamp = now.toISOString().replace(/[-:T]/g, "").slice(0, 14)
-  const safeName = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || "schema"
+  const safeName =
+    name
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "") || "schema"
   return `${timestamp}_${safeName}.sql`
 }
 
 export async function generateMigrationFile(options: GenerateMigrationFileOptions) {
-  const userConfig = options.config ?? await loadConfig({ cwd: options.cwd })
+  const userConfig = options.config ?? (await loadConfig({ cwd: options.cwd }))
   const collections = userConfig.collections ?? []
 
   if (collections.length === 0) {
@@ -72,7 +77,8 @@ registerCommand({
 
     if (subcommand === "migration") {
       const allowDestructive = args.includes("--allow-destructive")
-      const migrationName = args.find((arg, index) => index > 0 && !arg.startsWith("--")) || "schema"
+      const migrationName =
+        args.find((arg, index) => index > 0 && !arg.startsWith("--")) || "schema"
 
       try {
         const result = await generateMigrationFile({

@@ -1,4 +1,4 @@
-import { defineConfig, defineCollection, field } from "@not-a-cms/core"
+import { defineCollection, defineConfig, field } from "@not-a-cms/core"
 
 const project = defineCollection({
   name: "project",
@@ -13,7 +13,9 @@ const project = defineCollection({
     liveUrl: field.text(),
     body: field.richText(),
     gallery: field.array(field.media({ accept: ["image/*"] })),
-    status: field.select(["draft", "in_review", "published", "archived", "scheduled"], { default: "draft" }),
+    status: field.select(["draft", "in_review", "published", "archived", "scheduled"], {
+      default: "draft",
+    }),
     publishedAt: field.datetime(),
   },
 })
@@ -27,7 +29,9 @@ const blogPost = defineCollection({
     excerpt: field.text({ multiline: true, maxLength: 500 }),
     body: field.richText(),
     coverImage: field.media({ accept: ["image/*"] }),
-    status: field.select(["draft", "in_review", "published", "archived", "scheduled"], { default: "draft" }),
+    status: field.select(["draft", "in_review", "published", "archived", "scheduled"], {
+      default: "draft",
+    }),
     publishedAt: field.datetime(),
     tags: field.array(field.text()),
   },
@@ -39,7 +43,9 @@ const page = defineCollection({
     title: field.text({ required: true }),
     slug: field.slug({ from: "title" }),
     body: field.richText(),
-    status: field.select(["draft", "in_review", "published", "archived", "scheduled"], { default: "draft" }),
+    status: field.select(["draft", "in_review", "published", "archived", "scheduled"], {
+      default: "draft",
+    }),
     publishedAt: field.datetime(),
   },
 })

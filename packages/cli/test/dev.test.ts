@@ -1,9 +1,18 @@
 import { describe, expect, test } from "bun:test"
-import { createDevProcessSpecs, createDevServerOptions, parseDevPorts, resolveStorageConfig } from "../src/commands/dev"
+import {
+  createDevProcessSpecs,
+  createDevServerOptions,
+  parseDevPorts,
+  resolveStorageConfig,
+} from "../src/commands/dev"
 
 describe("dev command wiring", () => {
   test("parses API, admin, and renderer ports", () => {
-    const ports = parseDevPorts(["--port=5000", "--admin-port=5001", "--renderer-port=5002"], {}, 4321)
+    const ports = parseDevPorts(
+      ["--port=5000", "--admin-port=5001", "--renderer-port=5002"],
+      {},
+      4321,
+    )
 
     expect(ports).toEqual({ apiPort: "5000", adminPort: "5001", rendererPort: "5002" })
   })
@@ -20,8 +29,24 @@ describe("dev command wiring", () => {
     })
 
     // Bind astro to 127.0.0.1 so it matches the IPv4 health check (no ::1 ambiguity)
-    expect(specs.admin.command).toEqual(["bunx", "astro", "dev", "--port", "5001", "--host", "127.0.0.1"])
-    expect(specs.renderer.command).toEqual(["bunx", "astro", "dev", "--port", "5002", "--host", "127.0.0.1"])
+    expect(specs.admin.command).toEqual([
+      "bunx",
+      "astro",
+      "dev",
+      "--port",
+      "5001",
+      "--host",
+      "127.0.0.1",
+    ])
+    expect(specs.renderer.command).toEqual([
+      "bunx",
+      "astro",
+      "dev",
+      "--port",
+      "5002",
+      "--host",
+      "127.0.0.1",
+    ])
 
     expect(specs.admin.cwd).toBe("/repo/packages/admin")
     expect(specs.admin.env.PUBLIC_API_BASE).toBe("http://localhost:5000")
@@ -36,16 +61,18 @@ describe("dev command wiring", () => {
   })
 
   test("passes S3-compatible storage config through to the server", () => {
-    expect(resolveStorageConfig({
-      provider: "r2",
-      path: ".media-index",
-      bucket: "media",
-      endpoint: "https://account.r2.cloudflarestorage.com",
-      region: "auto",
-      accessKeyId: "key",
-      secretAccessKey: "secret",
-      prefix: "uploads",
-    })).toEqual({
+    expect(
+      resolveStorageConfig({
+        provider: "r2",
+        path: ".media-index",
+        bucket: "media",
+        endpoint: "https://account.r2.cloudflarestorage.com",
+        region: "auto",
+        accessKeyId: "key",
+        secretAccessKey: "secret",
+        prefix: "uploads",
+      }),
+    ).toEqual({
       provider: "r2",
       path: ".media-index",
       bucket: "media",

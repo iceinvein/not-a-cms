@@ -1,5 +1,13 @@
 import { describe, expect, test } from "bun:test"
-import { buildNav, createContentFetcher, DEFAULT_ROUTES, documentPath, mergeRoutes, resolveRouteMatch, type RouteConfig } from "../../src/runtime/content-fetcher"
+import {
+  buildNav,
+  createContentFetcher,
+  DEFAULT_ROUTES,
+  documentPath,
+  mergeRoutes,
+  type RouteConfig,
+  resolveRouteMatch,
+} from "../../src/runtime/content-fetcher"
 
 describe("resolveRouteMatch", () => {
   const routes: RouteConfig[] = [
@@ -78,7 +86,10 @@ describe("buildNav", () => {
   })
 
   test("skips pages without a slug", () => {
-    const nav = buildNav([{ title: "Draftish", slug: "" }, { title: "Docs", slug: "docs" }])
+    const nav = buildNav([
+      { title: "Draftish", slug: "" },
+      { title: "Docs", slug: "docs" },
+    ])
     expect(nav).toEqual([
       { label: "Docs", href: "/docs" },
       { label: "Blog", href: "/blog" },
@@ -150,9 +161,10 @@ describe("createContentFetcher route resolution", () => {
     const fetcher = createContentFetcher({
       apiBase: "https://api.example.test",
       routes: [{ collection: "page", path: "/:slug" }],
-      fetch: async () => Response.json({
-        data: [{ id: "draft-page", title: "Draft", slug: "draft", status: "draft" }],
-      }),
+      fetch: async () =>
+        Response.json({
+          data: [{ id: "draft-page", title: "Draft", slug: "draft", status: "draft" }],
+        }),
     })
 
     await expect(fetcher.resolvePath("/draft")).resolves.toBeNull()

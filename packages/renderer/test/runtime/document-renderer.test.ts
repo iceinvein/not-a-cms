@@ -83,7 +83,10 @@ describe("renderDocumentContent (async)", () => {
       ]),
     }
 
-    const result = await renderDocumentContent(doc, { apiBase, fetch: throwingFetch as typeof fetch })
+    const result = await renderDocumentContent(doc, {
+      apiBase,
+      fetch: throwingFetch as typeof fetch,
+    })
     expect(result.html).toContain("nac-collection-block")
     expect(result.html).toContain("Posts")
     expect(result.html).not.toContain("nac-collection-card")
@@ -96,7 +99,13 @@ describe("renderDocumentContent (async)", () => {
         return new Response(
           JSON.stringify({
             data: [
-              { id: "p1", title: "Tagged", slug: "tagged", status: "published", tags: ["featured"] },
+              {
+                id: "p1",
+                title: "Tagged",
+                slug: "tagged",
+                status: "published",
+                tags: ["featured"],
+              },
               { id: "p2", title: "Untagged", slug: "untagged", status: "published", tags: [] },
             ],
           }),

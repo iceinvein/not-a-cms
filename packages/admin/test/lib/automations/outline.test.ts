@@ -4,10 +4,20 @@ import { flowToOutline } from "../../../src/lib/automations/outline"
 describe("flowToOutline", () => {
   test("produces WHEN/IF/DO normalized structure", () => {
     const o = flowToOutline({
-      id: "f", name: "x", active: true, created_at: "", updated_at: "",
+      id: "f",
+      name: "x",
+      active: true,
+      created_at: "",
+      updated_at: "",
       trigger: { type: "content.published", collection: "post" },
       steps: [
-        { id: "c", type: "condition", rules: [{ field: "category", operator: "eq", value: "News" }], match: "all", branches: { true: "a1", false: null } },
+        {
+          id: "c",
+          type: "condition",
+          rules: [{ field: "category", operator: "eq", value: "News" }],
+          match: "all",
+          branches: { true: "a1", false: null },
+        },
         { id: "a1", type: "action.webhook", label: "Notify", config: {}, next: "a2" },
         { id: "a2", type: "action.log", config: {}, next: null },
       ],

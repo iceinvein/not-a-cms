@@ -1,5 +1,5 @@
-import type { CollectionDef } from "../types"
 import { canAccessCollection, projectDocumentFields } from "../roles/field-filter"
+import type { CollectionDef } from "../types"
 import { QueryError } from "./service"
 
 export type PopulationCollection = {
@@ -59,7 +59,9 @@ export async function populateDocument<T extends Record<string, unknown>>(
       }
 
       const related = await target.service.findById(value)
-      next[fieldName] = related ? projectDocumentFields(related, target.def.fields, options.role) : null
+      next[fieldName] = related
+        ? projectDocumentFields(related, target.def.fields, options.role)
+        : null
       continue
     }
 
@@ -75,7 +77,10 @@ function normalizePopulateFields(collection: CollectionDef, populate: string[]):
   const unique = new Set<string>()
   for (const fieldName of populate.map((field) => field.trim()).filter(Boolean)) {
     const fieldDef = collection.fields[fieldName]
-    if (!fieldDef) throw new QueryError(`Unknown populate field "${fieldName}" in collection "${collection.name}"`)
+    if (!fieldDef)
+      throw new QueryError(
+        `Unknown populate field "${fieldName}" in collection "${collection.name}"`,
+      )
     if (fieldDef.type !== "relation" && fieldDef.type !== "media") {
       throw new QueryError(`Field "${fieldName}" cannot be populated`)
     }
@@ -86,7 +91,11 @@ function normalizePopulateFields(collection: CollectionDef, populate: string[]):
 
 function idFromValue(value: unknown): string | null {
   if (!value) return null
-  if (typeof value === "object" && "id" in value && typeof (value as { id?: unknown }).id === "string") {
+  if (
+    typeof value === "object" &&
+    "id" in value &&
+    typeof (value as { id?: unknown }).id === "string"
+  ) {
     return (value as { id: string }).id
   }
   return String(value)

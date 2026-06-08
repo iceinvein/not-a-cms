@@ -1,7 +1,7 @@
-import { test, expect } from "bun:test"
+import { expect, test } from "bun:test"
 import { resolve } from "node:path"
 import { loadConfig } from "@not-a-cms/core"
-import { resolveConfigLoadOptions, createServerConfigFromCMSConfig } from "./config"
+import { createServerConfigFromCMSConfig, resolveConfigLoadOptions } from "./config"
 
 test("not-a-cms project config loads and declares its collections", async () => {
   const path = resolve(import.meta.dir, "../../../dogfood-sites/not-a-cms/not-a-cms.config.ts")
@@ -20,8 +20,9 @@ test("studio project config loads with the project collection", async () => {
 })
 
 test("resolveConfigLoadOptions prefers CONFIG_PATH when set", () => {
-  expect(resolveConfigLoadOptions({ CONFIG_PATH: "dogfood-sites/studio/not-a-cms.config.ts" }))
-    .toEqual({ path: "dogfood-sites/studio/not-a-cms.config.ts" })
+  expect(
+    resolveConfigLoadOptions({ CONFIG_PATH: "dogfood-sites/studio/not-a-cms.config.ts" }),
+  ).toEqual({ path: "dogfood-sites/studio/not-a-cms.config.ts" })
 })
 
 test("resolveConfigLoadOptions returns empty options without CONFIG_PATH", () => {
@@ -38,14 +39,15 @@ test("createServerConfigFromCMSConfig threads site identity through to ServerCon
         name: "Atelier",
         url: "https://atelier.studio",
         nav: {
-          links: [{ label: "Work", href: "/work" }, { label: "About", href: "/about", external: false }],
+          links: [
+            { label: "Work", href: "/work" },
+            { label: "About", href: "/about", external: false },
+          ],
           cta: { label: "Start", href: "/contact" },
         },
         footer: {
           tagline: "Craft over noise.",
-          columns: [
-            { heading: "Studio", links: [{ label: "Work", href: "/work" }] },
-          ],
+          columns: [{ heading: "Studio", links: [{ label: "Work", href: "/work" }] }],
           social: [{ label: "GitHub", href: "https://github.com/atelier" }],
           legal: "© 2026 Atelier",
         },

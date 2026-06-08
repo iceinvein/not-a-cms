@@ -1,9 +1,33 @@
 import { describe, expect, test } from "bun:test"
-import { allTags, defaultTagColor, filterByTags, filterUntagged, tagColor, tagPreviewCounts, untaggedCount } from "../../../src/lib/media/tags"
+import {
+  allTags,
+  defaultTagColor,
+  filterByTags,
+  filterUntagged,
+  tagColor,
+  tagPreviewCounts,
+  untaggedCount,
+} from "../../../src/lib/media/tags"
 
 const items = [
-  { id: "a", filename: "hero.jpg", mimetype: "image/jpeg", size: 1, uploadedAt: "", url: "", tags: ["hero", "2024"] },
-  { id: "b", filename: "promo.mp4", mimetype: "video/mp4", size: 1, uploadedAt: "", url: "", tags: ["2024"] },
+  {
+    id: "a",
+    filename: "hero.jpg",
+    mimetype: "image/jpeg",
+    size: 1,
+    uploadedAt: "",
+    url: "",
+    tags: ["hero", "2024"],
+  },
+  {
+    id: "b",
+    filename: "promo.mp4",
+    mimetype: "video/mp4",
+    size: 1,
+    uploadedAt: "",
+    url: "",
+    tags: ["2024"],
+  },
   { id: "c", filename: "spec.pdf", mimetype: "application/pdf", size: 1, uploadedAt: "", url: "" },
 ]
 
@@ -16,7 +40,9 @@ describe("allTags", () => {
   })
 
   test("returns an empty list when no asset is tagged", () => {
-    expect(allTags([{ id: "x", filename: "", mimetype: "", size: 0, uploadedAt: "", url: "" }] as any)).toEqual([])
+    expect(
+      allTags([{ id: "x", filename: "", mimetype: "", size: 0, uploadedAt: "", url: "" }] as any),
+    ).toEqual([])
   })
 })
 

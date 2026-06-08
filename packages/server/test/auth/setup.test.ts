@@ -1,15 +1,21 @@
-import { test, expect, describe, afterEach } from "bun:test"
-import { createAuth, getAuthCapabilities } from "../../src/auth/setup"
-import { bootstrapTables, createDatabase } from "@not-a-cms/core"
+import { afterEach, describe, expect, test } from "bun:test"
 import { unlinkSync } from "node:fs"
+import { bootstrapTables, createDatabase } from "@not-a-cms/core"
+import { createAuth, getAuthCapabilities } from "../../src/auth/setup"
 
 const testDbPath = "test-auth.db"
 
 describe("auth setup", () => {
   afterEach(() => {
-    try { unlinkSync(testDbPath) } catch {}
-    try { unlinkSync(testDbPath + "-wal") } catch {}
-    try { unlinkSync(testDbPath + "-shm") } catch {}
+    try {
+      unlinkSync(testDbPath)
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-wal")
+    } catch {}
+    try {
+      unlinkSync(testDbPath + "-shm")
+    } catch {}
   })
 
   test("createAuth returns an auth instance with handler", () => {
@@ -83,11 +89,16 @@ describe("auth setup", () => {
       },
     })
 
-    const res = await auth.handler(new Request("http://localhost:3000/api/auth/sign-in/magic-link", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", origin: "http://localhost:4322" },
-      body: JSON.stringify({ email: "admin@example.test", callbackURL: "http://localhost:4322/" }),
-    }))
+    const res = await auth.handler(
+      new Request("http://localhost:3000/api/auth/sign-in/magic-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", origin: "http://localhost:4322" },
+        body: JSON.stringify({
+          email: "admin@example.test",
+          callbackURL: "http://localhost:4322/",
+        }),
+      }),
+    )
 
     expect(res.status).toBe(200)
     expect(sent?.url).toContain("callbackURL=http%3A%2F%2Flocalhost%3A4322%2F")
@@ -125,11 +136,13 @@ describe("auth setup", () => {
       },
     })
 
-    const res = await auth.handler(new Request("http://localhost:3000/api/auth/sign-in/social", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", origin: "http://localhost:3000" },
-      body: JSON.stringify({ provider: "github", callbackURL: "/" }),
-    }))
+    const res = await auth.handler(
+      new Request("http://localhost:3000/api/auth/sign-in/social", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", origin: "http://localhost:3000" },
+        body: JSON.stringify({ provider: "github", callbackURL: "/" }),
+      }),
+    )
     const body = await res.json()
 
     expect(res.status).toBe(200)

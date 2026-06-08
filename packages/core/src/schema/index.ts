@@ -1,2 +1,2 @@
-export { field } from "./field";
-export { defineCollection } from "./collection";
+export { defineCollection } from "./collection"
+export { field } from "./field"

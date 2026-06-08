@@ -1,5 +1,5 @@
-import { createYoga } from "graphql-yoga"
 import type { GraphQLSchema } from "graphql"
+import { createYoga } from "graphql-yoga"
 import type { GraphQLContext } from "./schema"
 
 type GraphQLHandlerOptions = {

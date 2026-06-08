@@ -40,15 +40,24 @@ export function flowToReadable(flow: Flow): RuleToken[] {
     tokens.push({ kind: "kw", text: "On" }, { kind: "trigger", text: "webhook received" })
   } else {
     tokens.push({ kind: "kw", text: "When" })
-    tokens.push({ kind: "entity", text: trigger.collection ? humanize(trigger.collection) : "content" })
-    tokens.push({ kind: "kw", text: "is" }, { kind: "trigger", text: TRIGGER_VERB[trigger.type] ?? trigger.type })
+    tokens.push({
+      kind: "entity",
+      text: trigger.collection ? humanize(trigger.collection) : "content",
+    })
+    tokens.push(
+      { kind: "kw", text: "is" },
+      { kind: "trigger", text: TRIGGER_VERB[trigger.type] ?? trigger.type },
+    )
   }
 
   const condition = flow.steps.find((step): step is ConditionStep => step.type === "condition")
   if (condition) {
     const joiner = condition.match === "all" ? " and " : " or "
     const text = condition.rules
-      .map((rule) => `${rule.field} ${OPERATOR_LABEL[rule.operator] ?? rule.operator} ${String(rule.value)}`)
+      .map(
+        (rule) =>
+          `${rule.field} ${OPERATOR_LABEL[rule.operator] ?? rule.operator} ${String(rule.value)}`,
+      )
       .join(joiner)
     tokens.push({ kind: "kw", text: "if" }, { kind: "condition", text: text || "rules match" })
   }

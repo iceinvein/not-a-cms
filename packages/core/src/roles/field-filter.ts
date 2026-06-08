@@ -10,7 +10,11 @@ const defaultCollectionAccess: Record<CollectionAction, string[] | null> = {
   delete: ["admin", "editor"],
 }
 
-export function canAccessCollection(collection: CollectionDef, role: string, action: CollectionAction): boolean {
+export function canAccessCollection(
+  collection: CollectionDef,
+  role: string,
+  action: CollectionAction,
+): boolean {
   const allowedRoles = collection.access?.[action] ?? defaultCollectionAccess[action]
   return !allowedRoles || allowedRoles.includes(role)
 }
@@ -23,7 +27,10 @@ export function canWriteField(fieldDef: FieldDef, role: string): boolean {
   return !fieldDef.access?.write || fieldDef.access.write.includes(role)
 }
 
-export function filterFieldsByRole(fields: Record<string, FieldDef>, role: string): Record<string, FieldDef> {
+export function filterFieldsByRole(
+  fields: Record<string, FieldDef>,
+  role: string,
+): Record<string, FieldDef> {
   const result: Record<string, FieldDef> = {}
   for (const [name, fieldDef] of Object.entries(fields)) {
     // Only read restrictions gate visibility

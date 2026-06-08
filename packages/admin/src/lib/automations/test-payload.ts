@@ -12,7 +12,10 @@ export function defaultPayloadForTrigger(trigger: FlowTrigger): Record<string, u
 }
 
 /** Wrap a real collection document into a content-trigger payload. */
-export function documentToPayload(trigger: FlowTrigger, doc: Record<string, unknown>): Record<string, unknown> {
+export function documentToPayload(
+  trigger: FlowTrigger,
+  doc: Record<string, unknown>,
+): Record<string, unknown> {
   const base: Record<string, unknown> = { event: trigger.type }
   if ("collection" in trigger && trigger.collection) base.collection = trigger.collection
   base.document = doc

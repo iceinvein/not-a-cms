@@ -1,17 +1,21 @@
+import type { APIRoute } from "astro"
 import {
   buildChannelItemLink,
   parseChannelConfig,
+  portableTextToHtml,
   renderRSSFeed,
   resolveChannelConfig,
-  portableTextToHtml,
 } from "../runtime/channel"
 import { createContentFetcher } from "../runtime/content-fetcher"
-import type { APIRoute } from "astro"
 
 export const GET: APIRoute = async () => {
   const apiBase = import.meta.env.PUBLIC_API_BASE || "http://localhost:4321"
   const configured = parseChannelConfig(import.meta.env.NOT_A_CMS_CHANNEL_CONFIG)
-  const siteUrl = import.meta.env.SITE || import.meta.env.PUBLIC_SITE_BASE || configured.site?.url || "http://localhost:3000"
+  const siteUrl =
+    import.meta.env.SITE ||
+    import.meta.env.PUBLIC_SITE_BASE ||
+    configured.site?.url ||
+    "http://localhost:3000"
   const settings = await fetchChannelSettings(apiBase)
   const channelConfig = resolveChannelConfig(
     {

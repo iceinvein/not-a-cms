@@ -2,7 +2,12 @@ import { afterEach, describe, expect, test } from "bun:test"
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { bootstrapTables, createContentService, createDatabase, generateTable } from "@not-a-cms/core"
+import {
+  bootstrapTables,
+  createContentService,
+  createDatabase,
+  generateTable,
+} from "@not-a-cms/core"
 import { exportContentToJSON } from "../src/commands/export"
 
 const tempDirs: string[] = []

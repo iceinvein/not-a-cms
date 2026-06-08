@@ -65,7 +65,11 @@ export function StatsBlockView({ node, updateAttributes }: any) {
           </div>
         ))}
       </div>
-      <button type="button" className="cn-block-action cn-block-cta" onClick={() => update([...items, { value: "", label: "" }])}>
+      <button
+        type="button"
+        className="cn-block-action cn-block-cta"
+        onClick={() => update([...items, { value: "", label: "" }])}
+      >
         + Add stat
       </button>
       <span className="cn-block-label">stats</span>

@@ -14,6 +14,9 @@ type Props = {
   multiline?: boolean
   /** Called when the hole gains focus, so the node-view can mark its block selected. */
   onFocusHole?: () => void
+  /** In static mode, omit the element when empty (default true, matching renderers that
+   * skip empty optional text). Set false for text the renderer always emits. */
+  omitWhenEmpty?: boolean
 }
 
 /**
@@ -69,7 +72,8 @@ export class EditableText extends Component<Props> {
     const Tag = as as keyof JSX.IntrinsicElements
 
     if (!editable) {
-      if (!value) return null
+      const { omitWhenEmpty = true } = this.props
+      if (omitWhenEmpty && !value) return null
       // biome-ignore lint/suspicious/noExplicitAny: dynamic tag name is validated by the caller against the production markup
       return <Tag className={className}>{value}</Tag> as any
     }

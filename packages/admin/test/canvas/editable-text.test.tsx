@@ -34,3 +34,26 @@ describe("EditableText", () => {
     expect(html).toBe("")
   })
 })
+
+describe("EditableText omitWhenEmpty", () => {
+  test("static + omitWhenEmpty=false renders the empty element", () => {
+    const html = renderToString(
+      <EditableText as="span" className="nac-quote-name" value="" editable={false} omitWhenEmpty={false} onChange={() => {}} />,
+    )
+    expect(html).toBe('<span class="nac-quote-name"></span>')
+  })
+
+  test("static + omitWhenEmpty=false with no class renders a bare empty tag", () => {
+    const html = renderToString(
+      <EditableText as="p" value="" editable={false} omitWhenEmpty={false} onChange={() => {}} />,
+    )
+    expect(html).toBe("<p></p>")
+  })
+
+  test("static default still omits empty (omitWhenEmpty defaults true)", () => {
+    const html = renderToString(
+      <EditableText as="p" className="nac-hero-sub" value="" editable={false} onChange={() => {}} />,
+    )
+    expect(html).toBe("")
+  })
+})

@@ -6,8 +6,10 @@ import { renderSectionHtml } from "../../src/components/continuum/canvas/render-
 
 /**
  * Normalize HTML for parity comparison so a React-rendered tree can be compared
- * structurally to the renderer's raw string output. Reconciles the three benign ways the
+ * structurally to the renderer's raw string output. Reconciles the benign ways the
  * two serializers differ:
+ *  - React 19 SSR emits `<link rel="preload" as="image">` hints for `<img>` elements;
+ *    these are rendering-environment artifacts and are stripped before comparison.
  *  - whitespace/newlines between tags (renderer concatenates, React indents),
  *  - self-closing void elements: renderer emits `<img … />` (space + slash), React emits
  *    `<img …/>`; both are normalized to `<img …>`,
@@ -19,6 +21,7 @@ import { renderSectionHtml } from "../../src/components/continuum/canvas/render-
  */
 export function normalizeCanvasHtml(html: string): string {
   return html
+    .replace(/<link\s[^>]*rel="preload"[^>]*>/gi, "")
     .replace(/&#x27;|&#39;|&apos;/g, "'")
     .replace(/ (data-[\w-]+)=""/g, " $1")
     .replace(/\s*\/>/g, ">")

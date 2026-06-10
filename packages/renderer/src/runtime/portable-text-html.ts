@@ -84,7 +84,7 @@ function renderText(children: PTTextNode[] = []): string {
     .join("")
 }
 
-function imageSource(value: unknown): { url: string; id?: string; alt?: string } {
+export function imageSource(value: unknown): { url: string; id?: string; alt?: string } {
   if (typeof value === "string") return { url: value }
   if (value && typeof value === "object") {
     const image = value as {

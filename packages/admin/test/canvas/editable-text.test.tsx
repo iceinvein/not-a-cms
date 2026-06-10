@@ -57,3 +57,32 @@ describe("EditableText omitWhenEmpty", () => {
     expect(html).toBe("")
   })
 })
+
+describe("EditableText domAttributes", () => {
+  test("static mode spreads extra DOM attributes (no class)", () => {
+    const html = renderToString(
+      <EditableText
+        as="span"
+        value="Dana"
+        editable={false}
+        omitWhenEmpty={false}
+        domAttributes={{ "data-author-name": "" }}
+        onChange={() => {}}
+      />,
+    )
+    expect(html).toBe('<span data-author-name="">Dana</span>')
+  })
+
+  test("editable mode keeps the extra attribute alongside contenteditable", () => {
+    const html = renderToString(
+      <EditableText
+        as="span"
+        value="Dana"
+        domAttributes={{ "data-author-name": "" }}
+        onChange={() => {}}
+      />,
+    )
+    expect(html).toContain("data-author-name")
+    expect(html.toLowerCase()).toContain("contenteditable")
+  })
+})

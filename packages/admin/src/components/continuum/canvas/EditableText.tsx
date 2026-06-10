@@ -17,6 +17,8 @@ type Props = {
   /** In static mode, omit the element when empty (default true, matching renderers that
    * skip empty optional text). Set false for text the renderer always emits. */
   omitWhenEmpty?: boolean
+  /** Extra DOM attributes spread onto the element (e.g. data-* markers that are not classes). */
+  domAttributes?: Record<string, string>
 }
 
 /**
@@ -68,20 +70,21 @@ export class EditableText extends Component<Props> {
   }
 
   render(): ReactElement | null {
-    const { as, className, value, placeholder, editable = true, onFocusHole } = this.props
+    const { as, className, value, placeholder, editable = true, onFocusHole, domAttributes } = this.props
     const Tag = as as keyof JSX.IntrinsicElements
 
     if (!editable) {
       const { omitWhenEmpty = true } = this.props
       if (omitWhenEmpty && !value) return null
       // biome-ignore lint/suspicious/noExplicitAny: dynamic tag name is validated by the caller against the production markup
-      return <Tag className={className}>{value}</Tag> as any
+      return <Tag className={className} {...domAttributes}>{value}</Tag> as any
     }
 
     // biome-ignore lint/suspicious/noExplicitAny: dynamic tag narrowed to "div" so JSX resolves a concrete element type; runtime value is whatever the caller passed
     const T = Tag as "div"
     return (
       <T
+        {...domAttributes}
         ref={this.ref as any}
         className={className}
         data-placeholder={placeholder}

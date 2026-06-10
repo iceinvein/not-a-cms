@@ -20,6 +20,7 @@ import { FieldRow, humanizeFieldName } from "../InspectorFields"
 import type { CanvasSelection } from "./selection"
 import { LogosControl } from "./inspector-controls/LogosControl"
 import { TiersControl } from "./inspector-controls/TiersControl"
+import { GalleryImagesControl } from "./inspector-controls/GalleryImagesControl"
 import { ImageInspector } from "./inspector-controls/ImageInspector"
 
 /**
@@ -35,6 +36,7 @@ export type ArrayControlProps = {
 export const CUSTOM_ARRAY_CONTROLS: Record<string, ComponentType<ArrayControlProps>> = {}
 CUSTOM_ARRAY_CONTROLS["logoCloud:logos"] = LogosControl
 CUSTOM_ARRAY_CONTROLS["pricingCards:tiers"] = TiersControl
+CUSTOM_ARRAY_CONTROLS["gallery:images"] = GalleryImagesControl
 
 export type BlockInspectorProps = {
   attrs: Record<string, unknown>

@@ -13,6 +13,7 @@ import { PricingCardsLivingView } from "./living/PricingCardsLiving"
 import { CollectionListLivingView } from "./living/CollectionListLiving"
 import { AuthorLivingView } from "./living/AuthorLiving"
 import { ImageLivingView } from "./living/ImageLiving"
+import { GalleryLivingView } from "./living/GalleryLiving"
 import { SectionPreview } from "./SectionPreview"
 
 /**
@@ -33,6 +34,7 @@ export const LIVING_VIEWS: Record<string, ComponentType<any>> = {
   collectionList: CollectionListLivingView,
   author: AuthorLivingView,
   image: ImageLivingView,
+  gallery: GalleryLivingView,
 }
 
 export const livingBlocks: DefinedBlock[] = blockSpecs.map((spec) =>

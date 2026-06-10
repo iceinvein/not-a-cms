@@ -12,6 +12,8 @@ export type BlockSpec = {
    * listed here; that text is edited inline within the array item by the living view.
    */
   inlineText?: string[]
+  /** URL-backed text fields edited via the Vault media picker in the inspector. */
+  mediaFields?: string[]
 }
 
 export const blockSpecs: BlockSpec[] = [
@@ -20,6 +22,7 @@ export const blockSpecs: BlockSpec[] = [
     label: "Hero",
     group: "sections",
     inlineText: ["eyebrow", "headline", "subheadline"],
+    mediaFields: ["backgroundImage"],
     schema: {
       eyebrow: { type: "text", default: "" },
       headline: { type: "text", default: "" },
@@ -55,6 +58,7 @@ export const blockSpecs: BlockSpec[] = [
     label: "Image",
     group: "fields",
     inlineText: [],
+    mediaFields: ["url"],
     schema: {
       url: { type: "text", default: "" },
       mediaId: { type: "text", default: "" },
@@ -115,6 +119,7 @@ export const blockSpecs: BlockSpec[] = [
     label: "Split media",
     group: "sections",
     inlineText: ["heading", "body"],
+    mediaFields: ["media"],
     schema: {
       media: { type: "text", default: "" },
       side: { type: "select", default: "left", options: ["left", "right"] },
@@ -129,6 +134,7 @@ export const blockSpecs: BlockSpec[] = [
     label: "Testimonial",
     group: "sections",
     inlineText: ["quote", "name", "role"],
+    mediaFields: ["avatar"],
     schema: {
       quote: { type: "text", default: "" },
       name: { type: "text", default: "" },

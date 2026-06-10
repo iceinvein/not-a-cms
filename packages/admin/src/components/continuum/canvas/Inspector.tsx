@@ -1,5 +1,6 @@
 // packages/admin/src/components/continuum/canvas/Inspector.tsx
 import type { BlockFieldDef } from "@not-a-cms/editor"
+import type { ComponentType } from "react"
 
 /** Minimal structural type covering the editor API the Inspector actually calls. */
 type TiptapEditor = {
@@ -14,8 +15,21 @@ type TiptapEditor = {
 }
 import { coerceArrayValue, emptyValueForField } from "../../../lib/content-fields"
 import { blockSpecs } from "../blocks/specs"
+import { MediaPicker } from "../blocks/media-picker"
 import { FieldRow, humanizeFieldName } from "../InspectorFields"
 import type { CanvasSelection } from "./selection"
+
+/**
+ * Per-block custom controls for object-array fields whose per-item settings are richer than
+ * generic add/remove (their item text is edited inline on the canvas; this edits the rest).
+ * Keyed by `${blockName}:${fieldKey}`. Registered by the blocks that need them.
+ */
+export type ArrayControlProps = {
+  value: unknown
+  onChange: (next: unknown[]) => void
+  apiBase: string
+}
+export const CUSTOM_ARRAY_CONTROLS: Record<string, ComponentType<ArrayControlProps>> = {}
 
 type Props = {
   editor: TiptapEditor | null
@@ -64,20 +78,41 @@ export function Inspector({ editor, selected, apiBase = "" }: Props) {
   }
 
   const fields = Object.entries(spec.schema).filter(([key]) => !inline.has(key))
+  const mediaFields = new Set(spec.mediaFields ?? [])
 
   return (
     <aside className="cn-inspector" aria-label="Section settings">
       <p className="cn-inspector-title">{humanizeFieldName(spec.name)}</p>
-      {fields.map(([key, def]) =>
-        def.type === "array" ? (
-          <ArrayStructure
-            key={key}
-            fieldKey={key}
-            def={def}
-            value={attrs[key]}
-            onChange={(next) => setAttr(key, next)}
-          />
-        ) : (
+      {fields.map(([key, def]) => {
+        if (mediaFields.has(key)) {
+          return (
+            <div key={key} className="cn-field">
+              <span className="cn-field-label">{humanizeFieldName(key)}</span>
+              <MediaPicker
+                value={String(attrs[key] ?? "")}
+                chooseLabel={`Choose ${humanizeFieldName(key).toLowerCase()}`}
+                onSelect={(item) => setAttr(key, item.url)}
+                onClear={() => setAttr(key, "")}
+              />
+            </div>
+          )
+        }
+        if (def.type === "array") {
+          const Custom = CUSTOM_ARRAY_CONTROLS[`${spec.name}:${key}`]
+          if (Custom) {
+            return <Custom key={key} value={attrs[key]} onChange={(next) => setAttr(key, next)} apiBase={apiBase} />
+          }
+          return (
+            <ArrayStructure
+              key={key}
+              fieldKey={key}
+              def={def}
+              value={attrs[key]}
+              onChange={(next) => setAttr(key, next)}
+            />
+          )
+        }
+        return (
           <FieldRow
             key={key}
             fieldName={key}
@@ -86,8 +121,8 @@ export function Inspector({ editor, selected, apiBase = "" }: Props) {
             apiBase={apiBase}
             onChange={(value) => setAttr(key, value)}
           />
-        ),
-      )}
+        )
+      })}
     </aside>
   )
 }

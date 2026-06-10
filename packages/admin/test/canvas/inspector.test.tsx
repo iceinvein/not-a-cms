@@ -2,6 +2,7 @@
 import { describe, expect, test } from "bun:test"
 import { renderToString } from "react-dom/server"
 import { Inspector } from "../../src/components/continuum/canvas/Inspector"
+import { blockSpecs } from "../../src/components/continuum/blocks/specs"
 
 // Minimal editor stub: only what Inspector reads/writes.
 function makeEditor(attrsByPos: Record<number, { name: string; attrs: Record<string, unknown> }>) {
@@ -45,5 +46,24 @@ describe("Inspector", () => {
     const editor = makeEditor({})
     const html = renderToString(<Inspector editor={editor} selected={null} apiBase="" />)
     expect(html).toContain("Select a section")
+  })
+})
+
+describe("Inspector media + custom arrays", () => {
+  test("specs declare mediaFields for picker-backed URL fields", () => {
+    const hero = blockSpecs.find((s) => s.name === "hero")
+    expect(hero?.mediaFields).toEqual(["backgroundImage"])
+    const split = blockSpecs.find((s) => s.name === "splitMedia")
+    expect(split?.mediaFields).toEqual(["media"])
+    const testimonial = blockSpecs.find((s) => s.name === "testimonial")
+    expect(testimonial?.mediaFields).toEqual(["avatar"])
+  })
+
+  test("renders a Vault picker control for a mediaField", () => {
+    const editor = makeEditor({
+      3: { name: "splitMedia", attrs: { media: "", side: "left", heading: "", body: "", ctaLabel: "", ctaUrl: "" } },
+    })
+    const html = renderToString(<Inspector editor={editor} selected={{ pos: 3, name: "splitMedia" }} apiBase="" />)
+    expect(html).toContain("cn-media-pick")
   })
 })

@@ -4,6 +4,7 @@ import { blockSpecs } from "../blocks/specs"
 import { CtaLivingView } from "./living/CtaLiving"
 import { FeatureGridLivingView } from "./living/FeatureGridLiving"
 import { HeroLivingView } from "./living/HeroLiving"
+import { StatsLivingView } from "./living/StatsLiving"
 import { SectionPreview } from "./SectionPreview"
 
 /**
@@ -15,6 +16,7 @@ export const LIVING_VIEWS: Record<string, ComponentType<any>> = {
   hero: HeroLivingView,
   cta: CtaLivingView,
   featureGrid: FeatureGridLivingView,
+  stats: StatsLivingView,
 }
 
 export const livingBlocks: DefinedBlock[] = blockSpecs.map((spec) =>

@@ -14,6 +14,7 @@ import { CollectionListLivingView } from "./living/CollectionListLiving"
 import { AuthorLivingView } from "./living/AuthorLiving"
 import { ImageLivingView } from "./living/ImageLiving"
 import { GalleryLivingView } from "./living/GalleryLiving"
+import { SeoLivingView } from "./living/SeoLiving"
 import { SectionPreview } from "./SectionPreview"
 
 /**
@@ -35,6 +36,7 @@ export const LIVING_VIEWS: Record<string, ComponentType<any>> = {
   author: AuthorLivingView,
   image: ImageLivingView,
   gallery: GalleryLivingView,
+  seo: SeoLivingView,
 }
 
 export const livingBlocks: DefinedBlock[] = blockSpecs.map((spec) =>

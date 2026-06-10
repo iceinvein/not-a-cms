@@ -14,6 +14,21 @@ describe("livingBlocks", () => {
   })
 
   test("registers living views for the Phase 2A/2B blocks", () => {
-    expect(Object.keys(LIVING_VIEWS).sort()).toEqual(["author", "collectionList", "cta", "faq", "featureGrid", "gallery", "hero", "image", "logoCloud", "pricingCards", "splitMedia", "stats", "testimonial"])
+    expect(Object.keys(LIVING_VIEWS).sort()).toEqual([
+      "author",
+      "collectionList",
+      "cta",
+      "faq",
+      "featureGrid",
+      "gallery",
+      "hero",
+      "image",
+      "logoCloud",
+      "pricingCards",
+      "seo",
+      "splitMedia",
+      "stats",
+      "testimonial",
+    ])
   })
 })

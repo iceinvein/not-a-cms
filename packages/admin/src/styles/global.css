@@ -2154,7 +2154,8 @@ a.crumb:hover {
   text-decoration: none;
 }
 
-/* Continuum visual mode: Phase 2 inline editing */
+/* Continuum visual mode. Phase 2 added the inline-editing rules below; Phase 3A widened this
+ * grid to three columns (structure tree | stage | inspector). */
 .cn-visual-layout {
   display: grid;
   grid-template-columns: 13rem minmax(0, 1fr) 18rem;
@@ -2411,6 +2412,10 @@ a.crumb:hover {
 }
 .cn-overlay-selected {
   box-shadow: inset 0 0 0 2px var(--accent, #c2613f);
+}
+/* Hover ring: stronger than the base 45% outline, weaker than the solid selection ring. */
+.cn-overlay-hovered:not(.cn-overlay-selected) {
+  box-shadow: inset 0 0 0 1.5px var(--accent, #c2613f);
 }
 .cn-overlay-label {
   position: absolute;

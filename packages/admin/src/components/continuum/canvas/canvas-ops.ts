@@ -18,6 +18,8 @@ export function selectBlockAt(editor: CanvasEditor, pos: number): void {
 
 /** Scroll the DOM for the block at `pos` into view (no-op when layout is unavailable). */
 export function scrollBlockIntoView(editor: CanvasEditor, pos: number): void {
-  const dom = editor.view?.nodeDOM(pos) as { scrollIntoView?: (opts?: unknown) => void } | null
+  const dom = editor.view?.nodeDOM(pos) as {
+    scrollIntoView?: (opts?: ScrollIntoViewOptions) => void
+  } | null
   dom?.scrollIntoView?.({ block: "nearest" })
 }

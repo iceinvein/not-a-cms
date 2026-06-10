@@ -27,3 +27,18 @@ describe("VisualCanvas inspector rail", () => {
     expect(html).toContain("Select a section")
   })
 })
+
+describe("VisualCanvas Phase 3A chrome", () => {
+  test("renders the structure tree, breadcrumb, and overlay layer", () => {
+    const html = renderToString(<VisualCanvas content={[]} apiBase="" />)
+    expect(html).toContain("cn-tree")
+    expect(html).toContain("cn-breadcrumb")
+    expect(html).toContain("cn-overlay")
+    expect(html).toContain("cn-visual-stage")
+  })
+
+  test("the structure tree starts empty until the editor mounts (SSR)", () => {
+    const html = renderToString(<VisualCanvas content={[]} apiBase="" />)
+    expect(html).toContain("No blocks yet")
+  })
+})

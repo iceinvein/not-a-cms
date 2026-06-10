@@ -1,7 +1,7 @@
 // packages/admin/test/canvas/inspector.test.tsx
 import { describe, expect, test } from "bun:test"
 import { renderToString } from "react-dom/server"
-import { Inspector } from "../../src/components/continuum/canvas/Inspector"
+import { Inspector, CUSTOM_BLOCK_INSPECTORS } from "../../src/components/continuum/canvas/Inspector"
 import { blockSpecs } from "../../src/components/continuum/blocks/specs"
 
 // Minimal editor stub: only what Inspector reads/writes.
@@ -46,6 +46,12 @@ describe("Inspector", () => {
     const editor = makeEditor({})
     const html = renderToString(<Inspector editor={editor} selected={null} apiBase="" />)
     expect(html).toContain("Select a section")
+  })
+})
+
+describe("Inspector custom block panels", () => {
+  test("exports a custom block-inspector registry object", () => {
+    expect(typeof CUSTOM_BLOCK_INSPECTORS).toBe("object")
   })
 })
 

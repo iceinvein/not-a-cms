@@ -35,6 +35,14 @@ export const CUSTOM_ARRAY_CONTROLS: Record<string, ComponentType<ArrayControlPro
 CUSTOM_ARRAY_CONTROLS["logoCloud:logos"] = LogosControl
 CUSTOM_ARRAY_CONTROLS["pricingCards:tiers"] = TiersControl
 
+export type BlockInspectorProps = {
+  attrs: Record<string, unknown>
+  setAttrs: (patch: Record<string, unknown>) => void
+  apiBase: string
+}
+/** Whole-block inspector overrides, keyed by block name (e.g. image needs to set url+mediaId+alt together). */
+export const CUSTOM_BLOCK_INSPECTORS: Record<string, ComponentType<BlockInspectorProps>> = {}
+
 type Props = {
   editor: TiptapEditor | null
   selected: CanvasSelection
@@ -79,6 +87,26 @@ export function Inspector({ editor, selected, apiBase = "" }: Props) {
         return true
       })
       .run()
+  }
+
+  const setAttrs = (patch: Record<string, unknown>) => {
+    editor
+      .chain()
+      .command(({ tr }) => {
+        tr.setNodeMarkup(selected.pos, undefined, { ...attrs, ...patch })
+        return true
+      })
+      .run()
+  }
+
+  const CustomPanel = CUSTOM_BLOCK_INSPECTORS[spec.name]
+  if (CustomPanel) {
+    return (
+      <aside className="cn-inspector" aria-label="Section settings">
+        <p className="cn-inspector-title">{humanizeFieldName(spec.name)}</p>
+        <CustomPanel attrs={attrs} setAttrs={setAttrs} apiBase={apiBase} />
+      </aside>
+    )
   }
 
   const fields = Object.entries(spec.schema).filter(([key]) => !inline.has(key))

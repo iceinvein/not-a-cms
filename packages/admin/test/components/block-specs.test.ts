@@ -25,3 +25,28 @@ describe("block specs", () => {
     })
   })
 })
+
+describe("inlineText metadata", () => {
+  test("hero marks its visible text as inline", () => {
+    const hero = blockSpecs.find((s) => s.name === "hero")
+    expect(hero?.inlineText).toEqual(["eyebrow", "headline", "subheadline"])
+  })
+
+  test("cta marks its label as inline", () => {
+    const cta = blockSpecs.find((s) => s.name === "cta")
+    expect(cta?.inlineText).toEqual(["label"])
+  })
+
+  test("featureGrid has no top-level inline text (its text lives in items)", () => {
+    const fg = blockSpecs.find((s) => s.name === "featureGrid")
+    expect(fg?.inlineText ?? []).toEqual([])
+  })
+
+  test("every inlineText key is a real text field on its block", () => {
+    for (const spec of blockSpecs) {
+      for (const key of spec.inlineText ?? []) {
+        expect(spec.schema[key]?.type).toBe("text")
+      }
+    }
+  })
+})

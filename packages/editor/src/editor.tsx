@@ -24,6 +24,8 @@ export type EditorProps = {
   extensions?: Extension[]
   blocks?: DefinedBlock[]
   slashCommands?: SlashCommandItem[]
+  /** Called once with the Tiptap editor instance after creation (for selection/attr access). */
+  onReady?: (editor: NonNullable<ReturnType<typeof useEditor>>) => void
 }
 
 export function Editor({
@@ -35,6 +37,7 @@ export function Editor({
   extensions: extraExtensions = [],
   blocks = [],
   slashCommands = [],
+  onReady,
 }: EditorProps) {
   const collab = useCollaboration(collaboration)
   const collabProviderRef = useRef(collab.provider)
@@ -105,6 +108,10 @@ export function Editor({
     if (!editor || !collaboration) return
     setRemoteCursors(editor, collab.cursors)
   }, [editor, Boolean(collaboration), collab.cursors])
+
+  useEffect(() => {
+    if (editor && onReady) onReady(editor)
+  }, [editor, onReady])
 
   if (!editor) return null
 

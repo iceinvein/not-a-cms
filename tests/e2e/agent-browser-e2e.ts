@@ -5,6 +5,7 @@ import { runAutomationDryRunSmoke } from "./automation-dry-run.spec"
 import { runAutomationLiveStreamSmoke } from "./automation-live-stream.spec"
 import { runMediaPreviewSmoke } from "./media-preview.spec"
 import { runVaultPolishSmoke } from "./vault-polish.spec"
+import { runVisualEditorSmoke } from "./visual-editor.spec"
 
 type AgentResult = {
   stdout: string
@@ -121,13 +122,20 @@ async function main() {
 
     // Scenarios are independent: a failure in one is recorded but does not abort
     // the rest, so one flaky/broken scenario cannot hide the others' results.
-    const scenarios: Array<{ name: string; run: (ctx: E2EContext) => Promise<ScenarioResult> }> = [
-      { name: "Admin content publish smoke", run: runAdminContentSmoke },
-      { name: "Media upload and preview smoke", run: runMediaPreviewSmoke },
-      { name: "Vault polish (Phase F2) smoke", run: runVaultPolishSmoke },
-      { name: "Automation dry-run smoke", run: runAutomationDryRunSmoke },
-      { name: "Automation live run streaming smoke", run: runAutomationLiveStreamSmoke },
-    ]
+    const allScenarios: Array<{ name: string; run: (ctx: E2EContext) => Promise<ScenarioResult> }> =
+      [
+        { name: "Admin content publish smoke", run: runAdminContentSmoke },
+        { name: "Media upload and preview smoke", run: runMediaPreviewSmoke },
+        { name: "Vault polish (Phase F2) smoke", run: runVaultPolishSmoke },
+        { name: "Automation dry-run smoke", run: runAutomationDryRunSmoke },
+        { name: "Automation live run streaming smoke", run: runAutomationLiveStreamSmoke },
+        { name: "Visual editor inline-editing smoke", run: runVisualEditorSmoke },
+      ]
+    // Optional focus filter: E2E_ONLY=<substring> runs only matching scenarios (case-insensitive).
+    const only = process.env.E2E_ONLY?.toLowerCase()
+    const scenarios = only
+      ? allScenarios.filter((s) => s.name.toLowerCase().includes(only))
+      : allScenarios
     const scenarioFailures: string[] = []
     for (const scenario of scenarios) {
       try {

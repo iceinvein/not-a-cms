@@ -19,3 +19,11 @@ describe("VisualCanvas", () => {
     expect(html).not.toContain(":root")
   })
 })
+
+describe("VisualCanvas inspector rail", () => {
+  test("renders the inspector rail with its empty state", () => {
+    const html = renderToString(<VisualCanvas content={[]} apiBase="" />)
+    expect(html).toContain("cn-inspector")
+    expect(html).toContain("Select a section")
+  })
+})

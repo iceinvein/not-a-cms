@@ -35,7 +35,7 @@ function escapeXml(value: string): string {
   return escapeHtml(value).replace(/'/g, "&apos;")
 }
 
-function sanitizeUrl(value: unknown, opts: { allowDataImage?: boolean } = {}): string {
+export function sanitizeUrl(value: unknown, opts: { allowDataImage?: boolean } = {}): string {
   const url = String(value ?? "").trim()
   if (!url) return "#"
   if (url.startsWith("/") || url.startsWith("#") || url.startsWith("./") || url.startsWith("../")) {
@@ -61,7 +61,7 @@ function sanitizeUrl(value: unknown, opts: { allowDataImage?: boolean } = {}): s
  * Make a sanitized URL safe to embed inside a CSS url('...') value by stripping the
  * characters that could close the quote/paren or inject further declarations.
  */
-function cssUrl(value: string): string {
+export function cssUrl(value: string): string {
   return value.replace(/['"()\\;{}]/g, "").trim()
 }
 
@@ -84,7 +84,7 @@ function renderText(children: PTTextNode[] = []): string {
     .join("")
 }
 
-function imageSource(value: unknown): { url: string; id?: string; alt?: string } {
+export function imageSource(value: unknown): { url: string; id?: string; alt?: string } {
   if (typeof value === "string") return { url: value }
   if (value && typeof value === "object") {
     const image = value as {

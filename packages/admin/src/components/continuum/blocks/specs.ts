@@ -5,6 +5,15 @@ export type BlockSpec = {
   label: string
   group?: string
   schema: BlockSchema
+  /**
+   * Top-level text attributes that the Visual-mode living view edits as inline canvas
+   * holes. These are excluded from the inspector (you type them on the page, not in a
+   * form). Text that lives inside an array field (e.g. feature card titles) is not
+   * listed here; that text is edited inline within the array item by the living view.
+   */
+  inlineText?: string[]
+  /** URL-backed text fields edited via the Vault media picker in the inspector. */
+  mediaFields?: string[]
 }
 
 export const blockSpecs: BlockSpec[] = [
@@ -12,6 +21,8 @@ export const blockSpecs: BlockSpec[] = [
     name: "hero",
     label: "Hero",
     group: "sections",
+    inlineText: ["eyebrow", "headline", "subheadline"],
+    mediaFields: ["backgroundImage"],
     schema: {
       eyebrow: { type: "text", default: "" },
       headline: { type: "text", default: "" },
@@ -25,6 +36,7 @@ export const blockSpecs: BlockSpec[] = [
     name: "cta",
     label: "Call to action",
     group: "sections",
+    inlineText: ["label"],
     schema: {
       label: { type: "text", default: "" },
       url: { type: "text", default: "" },
@@ -35,6 +47,7 @@ export const blockSpecs: BlockSpec[] = [
     name: "featureGrid",
     label: "Feature grid",
     group: "sections",
+    inlineText: [],
     schema: {
       items: { type: "array", default: [] },
       columns: { type: "number", default: 3 },
@@ -44,6 +57,8 @@ export const blockSpecs: BlockSpec[] = [
     name: "image",
     label: "Image",
     group: "fields",
+    inlineText: [],
+    mediaFields: ["url"],
     schema: {
       url: { type: "text", default: "" },
       mediaId: { type: "text", default: "" },
@@ -54,6 +69,7 @@ export const blockSpecs: BlockSpec[] = [
     name: "author",
     label: "Author",
     group: "fields",
+    inlineText: ["name", "role"],
     schema: {
       name: { type: "text", default: "" },
       role: { type: "text", default: "" },
@@ -63,6 +79,7 @@ export const blockSpecs: BlockSpec[] = [
     name: "gallery",
     label: "Gallery",
     group: "fields",
+    inlineText: [],
     schema: {
       images: { type: "array", default: [] },
     },
@@ -71,6 +88,7 @@ export const blockSpecs: BlockSpec[] = [
     name: "seo",
     label: "SEO & meta",
     group: "fields",
+    inlineText: [],
     schema: {
       metaTitle: { type: "text", default: "" },
       metaDescription: { type: "text", default: "" },
@@ -80,6 +98,7 @@ export const blockSpecs: BlockSpec[] = [
     name: "stats",
     label: "Stats",
     group: "sections",
+    inlineText: [],
     schema: {
       items: { type: "array", default: [] },
       columns: { type: "number", default: 3 },
@@ -89,6 +108,7 @@ export const blockSpecs: BlockSpec[] = [
     name: "logoCloud",
     label: "Logo cloud",
     group: "sections",
+    inlineText: ["eyebrow"],
     schema: {
       eyebrow: { type: "text", default: "" },
       logos: { type: "array", default: [] },
@@ -98,6 +118,8 @@ export const blockSpecs: BlockSpec[] = [
     name: "splitMedia",
     label: "Split media",
     group: "sections",
+    inlineText: ["heading", "body", "ctaLabel"],
+    mediaFields: ["media"],
     schema: {
       media: { type: "text", default: "" },
       side: { type: "select", default: "left", options: ["left", "right"] },
@@ -111,6 +133,8 @@ export const blockSpecs: BlockSpec[] = [
     name: "testimonial",
     label: "Testimonial",
     group: "sections",
+    inlineText: ["quote", "name", "role"],
+    mediaFields: ["avatar"],
     schema: {
       quote: { type: "text", default: "" },
       name: { type: "text", default: "" },
@@ -122,6 +146,7 @@ export const blockSpecs: BlockSpec[] = [
     name: "faq",
     label: "FAQ",
     group: "sections",
+    inlineText: ["heading"],
     schema: {
       heading: { type: "text", default: "" },
       items: { type: "array", default: [] },
@@ -131,6 +156,7 @@ export const blockSpecs: BlockSpec[] = [
     name: "pricingCards",
     label: "Pricing cards",
     group: "sections",
+    inlineText: ["heading"],
     schema: {
       heading: { type: "text", default: "" },
       tiers: { type: "array", default: [] },
@@ -140,6 +166,7 @@ export const blockSpecs: BlockSpec[] = [
     name: "collectionList",
     label: "Collection list",
     group: "sections",
+    inlineText: ["heading"],
     schema: {
       collection: { type: "text", default: "blog_post" },
       limit: { type: "number", default: 3 },

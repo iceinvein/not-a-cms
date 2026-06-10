@@ -20,6 +20,7 @@ import { FieldRow, humanizeFieldName } from "../InspectorFields"
 import type { CanvasSelection } from "./selection"
 import { LogosControl } from "./inspector-controls/LogosControl"
 import { TiersControl } from "./inspector-controls/TiersControl"
+import { ImageInspector } from "./inspector-controls/ImageInspector"
 
 /**
  * Per-block custom controls for object-array fields whose per-item settings are richer than
@@ -42,6 +43,7 @@ export type BlockInspectorProps = {
 }
 /** Whole-block inspector overrides, keyed by block name (e.g. image needs to set url+mediaId+alt together). */
 export const CUSTOM_BLOCK_INSPECTORS: Record<string, ComponentType<BlockInspectorProps>> = {}
+CUSTOM_BLOCK_INSPECTORS.image = ImageInspector
 
 type Props = {
   editor: TiptapEditor | null

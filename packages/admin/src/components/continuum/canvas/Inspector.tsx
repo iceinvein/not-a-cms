@@ -19,6 +19,7 @@ import { MediaPicker } from "../blocks/media-picker"
 import { FieldRow, humanizeFieldName } from "../InspectorFields"
 import type { CanvasSelection } from "./selection"
 import { LogosControl } from "./inspector-controls/LogosControl"
+import { TiersControl } from "./inspector-controls/TiersControl"
 
 /**
  * Per-block custom controls for object-array fields whose per-item settings are richer than
@@ -32,6 +33,7 @@ export type ArrayControlProps = {
 }
 export const CUSTOM_ARRAY_CONTROLS: Record<string, ComponentType<ArrayControlProps>> = {}
 CUSTOM_ARRAY_CONTROLS["logoCloud:logos"] = LogosControl
+CUSTOM_ARRAY_CONTROLS["pricingCards:tiers"] = TiersControl
 
 type Props = {
   editor: TiptapEditor | null

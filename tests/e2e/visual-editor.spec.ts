@@ -27,11 +27,16 @@ function bodyBlocks(value: unknown): PTBlock[] {
 }
 
 /**
- * Phase 2A live smoke: drive the Continuum Visual mode in a real browser to confirm the
- * inline living-view editing loop works end-to-end (which unit/parity tests cannot prove):
- * brand-styled living views render with editable holes, typing on a headline mutates the
- * model and survives Save (verified by refetching the document through the API), the
- * inspector binds to the focused block, and the Visual/Document toggle is lossless.
+ * Live smoke: drive the Continuum Visual mode in a real browser to confirm what unit/parity
+ * tests cannot prove. Phase 2A: brand-styled living views render with editable holes, typing
+ * on a headline mutates the model and survives Save (verified by refetching through the API),
+ * the inspector binds to the focused block, and the Visual/Document toggle is lossless.
+ * Phase 3A: after the lossless toggle, re-enter Visual mode to verify the targeting/navigation
+ * chrome mounts (structure tree, breadcrumb, overlay) and a tree-row click selects that block
+ * (inspector and breadcrumb follow). The Phase 3A pass runs last so it cannot perturb the
+ * lossless-toggle assertion: a tree click sets a ProseMirror NodeSelection that the later
+ * inline-text clicks do not clear, which would otherwise leave the editor in a node-selected
+ * state the inline-edit/toggle flow is not written for.
  */
 export async function runVisualEditorSmoke(
   ctx: E2EContext,
@@ -162,6 +167,45 @@ export async function runVisualEditorSmoke(
     )
   }
 
+  // --- Phase 3A: targeting & navigation chrome ---
+  // Re-enter Visual mode on the saved document to verify the select/navigate chrome. This runs
+  // after the lossless-toggle assertion above so the tree click below (which leaves a lingering
+  // NodeSelection) cannot perturb that flow.
+  await ctx.agent(["click", ".cn-mode-toggle button:first-child"])
+  await ctx.agent(["wait", "--load", "networkidle"], { allowFailure: true })
+  await ctx.agent(["wait", "800"], { allowFailure: true })
+  for (const [sel, label] of [
+    [".cn-tree", "structure tree"],
+    [".cn-breadcrumb", "breadcrumb"],
+    [".cn-overlay", "overlay"],
+  ] as const) {
+    if ((await ctx.agent(["get", "count", sel])).trim() === "0") {
+      throw new Error(`Visual mode did not mount the ${label} (${sel})`)
+    }
+  }
+  const treeText = (await ctx.agent(["get", "text", ".cn-tree"])).toLowerCase()
+  for (const rowLabel of ["hero", "call to action", "feature grid"]) {
+    if (!treeText.includes(rowLabel)) {
+      throw new Error(`Structure tree missing a row for "${rowLabel}". Got: "${treeText.trim()}"`)
+    }
+  }
+  // Clicking the CTA tree row selects it: the inspector binds to the CTA's "Variant" field
+  // (not the hero-only "Align"), and the breadcrumb reflects the selection. "Call to action"
+  // appears only in the tree row here (the rendered CTA shows its button label).
+  await ctx.agent(["find", "text", "Call to action", "click"])
+  await ctx.agent(["wait", "300"], { allowFailure: true })
+  const treeInspector = (await ctx.agent(["get", "text", ".cn-inspector"])).toLowerCase()
+  if (!treeInspector.includes("variant")) {
+    throw new Error(
+      `Tree click did not bind the inspector to the CTA (expected "Variant"). Got: "${treeInspector.trim()}"`,
+    )
+  }
+  const breadcrumbText = (await ctx.agent(["get", "text", ".cn-breadcrumb"])).toLowerCase()
+  if (!breadcrumbText.includes("call to action")) {
+    throw new Error(`Breadcrumb did not reflect the CTA selection. Got: "${breadcrumbText.trim()}"`)
+  }
+  await ctx.screenshot("visual-editor-03-tree-select.png")
+
   return {
     name: "Visual editor inline-editing smoke",
     details: [
@@ -171,6 +215,8 @@ export async function runVisualEditorSmoke(
       "Inspector bound to the focused hero (Align field present).",
       `Saved and refetched: the hero headline persisted the inline edit (marker ${marker}).`,
       "Toggled back to Document mode losslessly (canvas unmounted).",
+      "Re-entered Visual mode: Phase 3A chrome mounted (tree/breadcrumb/overlay) with rows for hero/cta/featureGrid.",
+      "Clicked the CTA tree row: inspector bound to Variant and the breadcrumb followed the selection.",
     ],
   }
 }

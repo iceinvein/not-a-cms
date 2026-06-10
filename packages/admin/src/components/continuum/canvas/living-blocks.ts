@@ -10,6 +10,7 @@ import { StatsLivingView } from "./living/StatsLiving"
 import { SplitMediaLivingView } from "./living/SplitMediaLiving"
 import { TestimonialLivingView } from "./living/TestimonialLiving"
 import { PricingCardsLivingView } from "./living/PricingCardsLiving"
+import { CollectionListLivingView } from "./living/CollectionListLiving"
 import { SectionPreview } from "./SectionPreview"
 
 /**
@@ -27,6 +28,7 @@ export const LIVING_VIEWS: Record<string, ComponentType<any>> = {
   splitMedia: SplitMediaLivingView,
   testimonial: TestimonialLivingView,
   pricingCards: PricingCardsLivingView,
+  collectionList: CollectionListLivingView,
 }
 
 export const livingBlocks: DefinedBlock[] = blockSpecs.map((spec) =>

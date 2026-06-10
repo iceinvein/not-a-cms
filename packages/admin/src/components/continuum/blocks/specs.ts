@@ -118,7 +118,7 @@ export const blockSpecs: BlockSpec[] = [
     name: "splitMedia",
     label: "Split media",
     group: "sections",
-    inlineText: ["heading", "body"],
+    inlineText: ["heading", "body", "ctaLabel"],
     mediaFields: ["media"],
     schema: {
       media: { type: "text", default: "" },

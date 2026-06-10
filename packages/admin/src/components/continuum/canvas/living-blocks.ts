@@ -6,6 +6,7 @@ import { FeatureGridLivingView } from "./living/FeatureGridLiving"
 import { HeroLivingView } from "./living/HeroLiving"
 import { LogoCloudLivingView } from "./living/LogoCloudLiving"
 import { StatsLivingView } from "./living/StatsLiving"
+import { SplitMediaLivingView } from "./living/SplitMediaLiving"
 import { SectionPreview } from "./SectionPreview"
 
 /**
@@ -19,6 +20,7 @@ export const LIVING_VIEWS: Record<string, ComponentType<any>> = {
   featureGrid: FeatureGridLivingView,
   logoCloud: LogoCloudLivingView,
   stats: StatsLivingView,
+  splitMedia: SplitMediaLivingView,
 }
 
 export const livingBlocks: DefinedBlock[] = blockSpecs.map((spec) =>

@@ -2240,3 +2240,25 @@ a.crumb:hover {
     position: static;
   }
 }
+
+/* Inspector custom array controls (logos, tiers) */
+.cn-inspector-array-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.5rem;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+  border-radius: 8px;
+}
+.cn-inspector-array-heading {
+  font-size: 0.75rem;
+  font-weight: 650;
+  color: var(--muted, #9b958c);
+}
+.cn-inspector-array-subrow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--muted, #9b958c);
+}

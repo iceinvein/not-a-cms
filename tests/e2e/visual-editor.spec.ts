@@ -260,6 +260,61 @@ export async function runVisualEditorSmoke(
     )
   }
 
+  // --- Phase 4A: on-canvas handles ---
+  // Select the hero via its structure-tree row. Its index in the tree equals its index in the
+  // refetched Portable Text order (afterOrder), so this is robust to the 3B reorder outcome. Hero
+  // is used because its variant (data-align) renders on the section in both editable and static
+  // modes, so the canvas reflects the change immediately (the CTA's variant lives on an inner
+  // EditableText button that omits data-variant in edit mode).
+  const heroIndex = afterOrder.indexOf("hero")
+  if (heroIndex < 0) {
+    throw new Error(`hero not found in body order ${JSON.stringify(afterOrder)}`)
+  }
+  await ctx.agent(["click", `.cn-tree li:nth-child(${heroIndex + 1}) .cn-tree-row`])
+  await ctx.agent(["wait", "300"], { allowFailure: true })
+  await ctx.agent(["click", ".cn-gutter-variant"])
+  await ctx.agent(["wait", "200"], { allowFailure: true })
+  await ctx.agent(["click", '.cn-gutter-option[data-value="left"]'])
+  await ctx.agent(["wait", "300"], { allowFailure: true })
+  const heroAlignDom = await ctx.agent(["get", "count", '.nac-hero[data-align="left"]'])
+  if (heroAlignDom.trim() === "0") {
+    throw new Error("Variant control did not set the hero to data-align=left on the canvas")
+  }
+  await ctx.agent(["find", "text", "Save", "click"])
+  await ctx.agent(["wait", "1500"], { allowFailure: true })
+  const afterVariant = bodyBlocks(
+    (await ctx.apiJson<ContentRecord>(`/api/blog_post/${created.id}`)).body,
+  ).find((b) => b.type === "hero")
+  if (String(afterVariant?.align) !== "left") {
+    throw new Error(`Variant change did not persist. hero.align=${String(afterVariant?.align)}`)
+  }
+  await ctx.screenshot("visual-editor-05-variant.png")
+
+  // Spacing: the hero stays selected after the variant change, so its spacing handle is present.
+  // Drag it down to loosen the spacing, then confirm a non-default spacing persisted.
+  const getBox4a = async (sel: string) => {
+    const raw = await ctx.agent(["get", "box", sel], { json: true })
+    return JSON.parse(raw).data as { x: number; y: number; width: number; height: number }
+  }
+  const spacingHandle = await getBox4a(".cn-gutter-spacing")
+  const shx = Math.round(spacingHandle.x + spacingHandle.width / 2)
+  const shy = Math.round(spacingHandle.y + spacingHandle.height / 2)
+  await ctx.agent(["mouse", "move", String(shx), String(shy)])
+  await ctx.agent(["mouse", "down"])
+  await ctx.agent(["mouse", "move", String(shx), String(shy + 70)])
+  await ctx.agent(["mouse", "up"])
+  await ctx.agent(["wait", "300"], { allowFailure: true })
+  await ctx.agent(["find", "text", "Save", "click"])
+  await ctx.agent(["wait", "1500"], { allowFailure: true })
+  const afterSpacing = bodyBlocks(
+    (await ctx.apiJson<ContentRecord>(`/api/blog_post/${created.id}`)).body,
+  ).find((b) => b.type === "hero")
+  const spacingValue = String(afterSpacing?.spacing ?? "normal")
+  if (spacingValue === "normal") {
+    throw new Error(`Spacing drag did not change the hero spacing (still ${spacingValue})`)
+  }
+  await ctx.screenshot("visual-editor-06-spacing.png")
+
   return {
     name: "Visual editor inline-editing smoke",
     details: [
@@ -272,6 +327,8 @@ export async function runVisualEditorSmoke(
       "Re-entered Visual mode: Phase 3A chrome mounted (tree/breadcrumb/overlay) with rows for hero/cta/featureGrid.",
       "Clicked the CTA tree row: inspector bound to Variant and the breadcrumb followed the selection.",
       "Phase 3B: dragged the hero's canvas handle onto the featureGrid block; the Portable Text block order changed (set preserved) and persisted.",
+      "Phase 4A: changed the hero variant from the gutter popover (data-align=left persisted).",
+      "Phase 4A: dragged the hero spacing handle; the spacing changed to a non-default step and persisted.",
     ],
   }
 }

@@ -1,7 +1,8 @@
-import { NodeViewWrapper } from "@tiptap/react"
 import { imageSource, sanitizeUrl } from "@not-a-cms/renderer/web"
-import { useCanvasSelection } from "../selection"
+import { NodeViewWrapper } from "@tiptap/react"
 import { EditableText } from "../EditableText"
+import { useCanvasSelection } from "../selection"
+import { spacingDataAttr } from "../spacing"
 
 type Attrs = Record<string, unknown>
 
@@ -13,10 +14,19 @@ type LivingProps = {
   onFocusHole?: () => void
 }
 
-export function LogoCloudLiving({ attrs, editable = true, selected, setEyebrow, onFocusHole }: LivingProps) {
+export function LogoCloudLiving({
+  attrs,
+  editable = true,
+  selected,
+  setEyebrow,
+  onFocusHole,
+}: LivingProps) {
   const logos = Array.isArray(attrs.logos) ? attrs.logos : []
   return (
-    <section className={`nac-band nac-logo-cloud not-prose${selected ? " cn-selected" : ""}`}>
+    <section
+      className={`nac-band nac-logo-cloud not-prose${selected ? " cn-selected" : ""}`}
+      {...spacingDataAttr(attrs.spacing)}
+    >
       <div className="nac-container">
         <EditableText
           as="p"
@@ -56,7 +66,11 @@ export function LogoCloudLivingView({ node, updateAttributes, selected, getPos }
     if (pos !== null && pos !== undefined) select({ pos, name: node.type.name })
   }
   return (
-    <NodeViewWrapper className="cn-living" contentEditable={false} onPointerDownCapture={markSelected}>
+    <NodeViewWrapper
+      className="cn-living"
+      contentEditable={false}
+      onPointerDownCapture={markSelected}
+    >
       <LogoCloudLiving
         attrs={node.attrs}
         selected={selected}

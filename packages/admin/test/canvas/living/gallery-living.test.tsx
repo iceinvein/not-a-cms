@@ -15,7 +15,9 @@ describe("GalleryLiving", () => {
   })
 
   test("matches the renderer when empty", () => {
-    expectBlockParity(<GalleryLiving attrs={{ images: [] }} editable={false} />, "gallery", { images: [] })
+    expectBlockParity(<GalleryLiving attrs={{ images: [] }} editable={false} />, "gallery", {
+      images: [],
+    })
   })
 
   test("editable mode renders the gallery images", () => {

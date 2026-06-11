@@ -1,6 +1,7 @@
 import { NodeViewWrapper } from "@tiptap/react"
-import { useCanvasSelection } from "../selection"
 import { EditableText } from "../EditableText"
+import { useCanvasSelection } from "../selection"
+import { spacingDataAttr } from "../spacing"
 
 type FaqItem = { question: string; answer: string }
 type Attrs = Record<string, unknown>
@@ -22,13 +23,23 @@ type LivingProps = {
   onFocusHole?: () => void
 }
 
-export function FaqLiving({ attrs, editable = true, selected, setText, setItems, onFocusHole }: LivingProps) {
+export function FaqLiving({
+  attrs,
+  editable = true,
+  selected,
+  setText,
+  setItems,
+  onFocusHole,
+}: LivingProps) {
   const list = items(attrs.items)
   const patch = (index: number, field: keyof FaqItem, value: string) =>
     setItems(list.map((it, i) => (i === index ? { ...it, [field]: value } : it)))
 
   return (
-    <section className={`nac-band nac-faq-block not-prose${selected ? " cn-selected" : ""}`}>
+    <section
+      className={`nac-band nac-faq-block not-prose${selected ? " cn-selected" : ""}`}
+      {...spacingDataAttr(attrs.spacing)}
+    >
       <div className="nac-container">
         <EditableText
           as="h2"
@@ -79,7 +90,11 @@ export function FaqLivingView({ node, updateAttributes, selected, getPos }: any)
     if (pos !== null && pos !== undefined) select({ pos, name: node.type.name })
   }
   return (
-    <NodeViewWrapper className="cn-living" contentEditable={false} onPointerDownCapture={markSelected}>
+    <NodeViewWrapper
+      className="cn-living"
+      contentEditable={false}
+      onPointerDownCapture={markSelected}
+    >
       <FaqLiving
         attrs={node.attrs}
         selected={selected}

@@ -16,7 +16,11 @@ const full = {
 
 describe("CollectionListLiving", () => {
   test("matches the production renderer (shell, no live entries)", () => {
-    expectBlockParity(<CollectionListLiving attrs={full} editable={false} setText={() => {}} />, "collectionList", full)
+    expectBlockParity(
+      <CollectionListLiving attrs={full} editable={false} setText={() => {}} />,
+      "collectionList",
+      full,
+    )
   })
 
   test("editable mode renders the heading hole", () => {

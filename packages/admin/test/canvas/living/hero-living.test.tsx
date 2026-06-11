@@ -20,7 +20,27 @@ describe("HeroLiving", () => {
 
   test("matches the production renderer (with background + overlay)", () => {
     const withBg = { ...full, backgroundImage: "/img/hero.jpg", overlay: true }
-    expectBlockParity(<HeroLiving attrs={withBg} editable={false} setText={() => {}} />, "hero", withBg)
+    expectBlockParity(
+      <HeroLiving attrs={withBg} editable={false} setText={() => {}} />,
+      "hero",
+      withBg,
+    )
+  })
+
+  test("matches the production renderer with non-default spacing", () => {
+    const spacious = { ...full, spacing: "spacious" }
+    expectBlockParity(
+      <HeroLiving attrs={spacious} editable={false} setText={() => {}} />,
+      "hero",
+      spacious,
+    )
+  })
+
+  test("normal spacing emits no data-spacing (default unchanged)", () => {
+    const html = renderToString(
+      <HeroLiving attrs={{ ...full, spacing: "normal" }} editable={false} setText={() => {}} />,
+    )
+    expect(html).not.toContain("data-spacing")
   })
 
   test("editable mode renders contenteditable holes for the text fields", () => {

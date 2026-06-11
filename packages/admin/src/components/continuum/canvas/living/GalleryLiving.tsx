@@ -1,5 +1,5 @@
-import { NodeViewWrapper } from "@tiptap/react"
 import { imageSource, sanitizeUrl } from "@not-a-cms/renderer/web"
+import { NodeViewWrapper } from "@tiptap/react"
 import { useCanvasSelection } from "../selection"
 
 type Attrs = Record<string, unknown>
@@ -37,7 +37,11 @@ export function GalleryLivingView({ node, selected, getPos }: any) {
     if (pos !== null && pos !== undefined) select({ pos, name: node.type.name })
   }
   return (
-    <NodeViewWrapper className="cn-living" contentEditable={false} onPointerDownCapture={markSelected}>
+    <NodeViewWrapper
+      className="cn-living"
+      contentEditable={false}
+      onPointerDownCapture={markSelected}
+    >
       <GalleryLiving attrs={node.attrs} selected={selected} />
     </NodeViewWrapper>
   )

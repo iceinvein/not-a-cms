@@ -20,6 +20,15 @@ describe("StatsLiving", () => {
     )
   })
 
+  test("matches the production renderer with non-default spacing", () => {
+    const spacious = { ...full, spacing: "compact" }
+    expectBlockParity(
+      <StatsLiving attrs={spacious} editable={false} setItems={() => {}} />,
+      "stats",
+      spacious,
+    )
+  })
+
   test("editable mode renders contenteditable holes per stat", () => {
     const html = renderToString(<StatsLiving attrs={full} editable setItems={() => {}} />)
     expect(html.toLowerCase()).toContain("contenteditable") // React 19 serializes the prop as contentEditable="true"

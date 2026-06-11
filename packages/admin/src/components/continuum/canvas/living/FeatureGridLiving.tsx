@@ -2,6 +2,7 @@
 import { NodeViewWrapper } from "@tiptap/react"
 import { EditableText } from "../EditableText"
 import { useCanvasSelection } from "../selection"
+import { spacingDataAttr } from "../spacing"
 
 type FeatureCard = { icon: string; title: string; text: string }
 type Attrs = Record<string, unknown>
@@ -44,7 +45,10 @@ export function FeatureGridLiving({
     setItems(items.map((card, i) => (i === index ? { ...card, [field]: value } : card)))
 
   return (
-    <section className={`nac-band nac-features not-prose${selected ? " cn-selected" : ""}`}>
+    <section
+      className={`nac-band nac-features not-prose${selected ? " cn-selected" : ""}`}
+      {...spacingDataAttr(attrs.spacing)}
+    >
       <div className="nac-container">
         <div className="nac-feature-grid" data-columns={String(columns)}>
           {items.map((card, index) => (

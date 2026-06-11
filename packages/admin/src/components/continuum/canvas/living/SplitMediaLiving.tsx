@@ -1,7 +1,8 @@
-import { NodeViewWrapper } from "@tiptap/react"
 import { imageSource, sanitizeUrl } from "@not-a-cms/renderer/web"
-import { useCanvasSelection } from "../selection"
+import { NodeViewWrapper } from "@tiptap/react"
 import { EditableText } from "../EditableText"
+import { useCanvasSelection } from "../selection"
+import { spacingDataAttr } from "../spacing"
 
 type Attrs = Record<string, unknown>
 
@@ -13,14 +14,23 @@ type LivingProps = {
   onFocusHole?: () => void
 }
 
-export function SplitMediaLiving({ attrs, editable = true, selected, setText, onFocusHole }: LivingProps) {
+export function SplitMediaLiving({
+  attrs,
+  editable = true,
+  selected,
+  setText,
+  onFocusHole,
+}: LivingProps) {
   const side = attrs.side === "right" ? "right" : "left"
   const mediaSrc = imageSource(attrs.media)
   const ctaLabel = String(attrs.ctaLabel ?? "").trim()
   const ctaHref = sanitizeUrl(attrs.ctaUrl)
 
   return (
-    <section className={`nac-band nac-split-block not-prose${selected ? " cn-selected" : ""}`}>
+    <section
+      className={`nac-band nac-split-block not-prose${selected ? " cn-selected" : ""}`}
+      {...spacingDataAttr(attrs.spacing)}
+    >
       <div className="nac-container">
         <div className="nac-split" data-side={side}>
           <div className="nac-split-media">
@@ -81,7 +91,11 @@ export function SplitMediaLivingView({ node, updateAttributes, selected, getPos 
     if (pos !== null && pos !== undefined) select({ pos, name: node.type.name })
   }
   return (
-    <NodeViewWrapper className="cn-living" contentEditable={false} onPointerDownCapture={markSelected}>
+    <NodeViewWrapper
+      className="cn-living"
+      contentEditable={false}
+      onPointerDownCapture={markSelected}
+    >
       <SplitMediaLiving
         attrs={node.attrs}
         selected={selected}

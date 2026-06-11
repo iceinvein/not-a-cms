@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { renderToString } from "react-dom/server"
-import { renderSectionHtml } from "../../../src/components/continuum/canvas/render-section"
 import { SeoLiving } from "../../../src/components/continuum/canvas/living/SeoLiving"
+import { renderSectionHtml } from "../../../src/components/continuum/canvas/render-section"
 
 describe("SeoLiving", () => {
   test("static mode renders nothing, matching the empty production output", () => {
@@ -11,7 +11,9 @@ describe("SeoLiving", () => {
   })
 
   test("editable mode renders a selectable chip", () => {
-    const html = renderToString(<SeoLiving attrs={{ metaTitle: "", metaDescription: "" }} editable />)
+    const html = renderToString(
+      <SeoLiving attrs={{ metaTitle: "", metaDescription: "" }} editable />,
+    )
     expect(html).toContain("cn-seo-chip")
     expect(html).toContain("SEO")
   })

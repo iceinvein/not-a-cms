@@ -13,7 +13,11 @@ const full = {
 
 describe("LogoCloudLiving", () => {
   test("matches the production renderer", () => {
-    expectBlockParity(<LogoCloudLiving attrs={full} editable={false} setEyebrow={() => {}} />, "logoCloud", full)
+    expectBlockParity(
+      <LogoCloudLiving attrs={full} editable={false} setEyebrow={() => {}} />,
+      "logoCloud",
+      full,
+    )
   })
 
   test("editable mode renders the eyebrow as a contenteditable hole", () => {

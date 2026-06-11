@@ -1,6 +1,7 @@
 import { NodeViewWrapper } from "@tiptap/react"
-import { useCanvasSelection } from "../selection"
 import { EditableText } from "../EditableText"
+import { useCanvasSelection } from "../selection"
+import { spacingDataAttr } from "../spacing"
 
 type Attrs = Record<string, unknown>
 
@@ -12,10 +13,21 @@ type LivingProps = {
   onFocusHole?: () => void
 }
 
-export function CollectionListLiving({ attrs, editable = true, selected, setText, onFocusHole }: LivingProps) {
-  const layout = ["grid", "list", "cards"].includes(String(attrs.layout)) ? String(attrs.layout) : "grid"
+export function CollectionListLiving({
+  attrs,
+  editable = true,
+  selected,
+  setText,
+  onFocusHole,
+}: LivingProps) {
+  const layout = ["grid", "list", "cards"].includes(String(attrs.layout))
+    ? String(attrs.layout)
+    : "grid"
   return (
-    <section className={`nac-band nac-collection-block not-prose${selected ? " cn-selected" : ""}`}>
+    <section
+      className={`nac-band nac-collection-block not-prose${selected ? " cn-selected" : ""}`}
+      {...spacingDataAttr(attrs.spacing)}
+    >
       <div className="nac-container">
         <EditableText
           as="h2"
@@ -39,7 +51,11 @@ export function CollectionListLivingView({ node, updateAttributes, selected, get
     if (pos !== null && pos !== undefined) select({ pos, name: node.type.name })
   }
   return (
-    <NodeViewWrapper className="cn-living" contentEditable={false} onPointerDownCapture={markSelected}>
+    <NodeViewWrapper
+      className="cn-living"
+      contentEditable={false}
+      onPointerDownCapture={markSelected}
+    >
       <CollectionListLiving
         attrs={node.attrs}
         selected={selected}

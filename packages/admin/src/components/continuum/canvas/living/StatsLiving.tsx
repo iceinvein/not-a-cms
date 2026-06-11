@@ -1,6 +1,7 @@
 import { NodeViewWrapper } from "@tiptap/react"
 import { EditableText } from "../EditableText"
 import { useCanvasSelection } from "../selection"
+import { spacingDataAttr } from "../spacing"
 
 type Stat = { value: string; label: string }
 type Attrs = Record<string, unknown>
@@ -34,7 +35,10 @@ export function StatsLiving({
     setItems(items.map((s, i) => (i === index ? { ...s, [field]: value } : s)))
 
   return (
-    <section className={`nac-band nac-stats not-prose${selected ? " cn-selected" : ""}`}>
+    <section
+      className={`nac-band nac-stats not-prose${selected ? " cn-selected" : ""}`}
+      {...spacingDataAttr(attrs.spacing)}
+    >
       <div className="nac-container">
         <div className="nac-stat-grid" data-columns={String(columns)}>
           {items.map((stat, index) => (

@@ -30,7 +30,11 @@ export function SeoLivingView({ node, selected, getPos }: any) {
     if (pos !== null && pos !== undefined) select({ pos, name: node.type.name })
   }
   return (
-    <NodeViewWrapper className="cn-living" contentEditable={false} onPointerDownCapture={markSelected}>
+    <NodeViewWrapper
+      className="cn-living"
+      contentEditable={false}
+      onPointerDownCapture={markSelected}
+    >
       <SeoLiving attrs={node.attrs} selected={selected} />
     </NodeViewWrapper>
   )

@@ -14,12 +14,20 @@ const full = {
 
 describe("SplitMediaLiving", () => {
   test("matches the production renderer", () => {
-    expectBlockParity(<SplitMediaLiving attrs={full} editable={false} setText={() => {}} />, "splitMedia", full)
+    expectBlockParity(
+      <SplitMediaLiving attrs={full} editable={false} setText={() => {}} />,
+      "splitMedia",
+      full,
+    )
   })
 
   test("matches the renderer with no media and no cta", () => {
     const bare = { media: "", side: "left", heading: "H", body: "B", ctaLabel: "", ctaUrl: "" }
-    expectBlockParity(<SplitMediaLiving attrs={bare} editable={false} setText={() => {}} />, "splitMedia", bare)
+    expectBlockParity(
+      <SplitMediaLiving attrs={bare} editable={false} setText={() => {}} />,
+      "splitMedia",
+      bare,
+    )
   })
 
   test("editable mode renders contenteditable holes", () => {

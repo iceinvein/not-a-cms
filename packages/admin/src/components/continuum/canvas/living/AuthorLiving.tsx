@@ -1,6 +1,6 @@
 import { NodeViewWrapper } from "@tiptap/react"
-import { useCanvasSelection } from "../selection"
 import { EditableText } from "../EditableText"
+import { useCanvasSelection } from "../selection"
 
 type Attrs = Record<string, unknown>
 
@@ -12,7 +12,13 @@ type LivingProps = {
   onFocusHole?: () => void
 }
 
-export function AuthorLiving({ attrs, editable = true, selected, setText, onFocusHole }: LivingProps) {
+export function AuthorLiving({
+  attrs,
+  editable = true,
+  selected,
+  setText,
+  onFocusHole,
+}: LivingProps) {
   return (
     <div data-author="" className={selected ? "cn-selected" : undefined}>
       <EditableText
@@ -45,7 +51,11 @@ export function AuthorLivingView({ node, updateAttributes, selected, getPos }: a
     if (pos !== null && pos !== undefined) select({ pos, name: node.type.name })
   }
   return (
-    <NodeViewWrapper className="cn-living" contentEditable={false} onPointerDownCapture={markSelected}>
+    <NodeViewWrapper
+      className="cn-living"
+      contentEditable={false}
+      onPointerDownCapture={markSelected}
+    >
       <AuthorLiving
         attrs={node.attrs}
         selected={selected}

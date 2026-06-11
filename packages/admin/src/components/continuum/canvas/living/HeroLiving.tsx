@@ -1,8 +1,10 @@
 // packages/admin/src/components/continuum/canvas/living/HeroLiving.tsx
-import { NodeViewWrapper } from "@tiptap/react"
+
 import { cssUrl, sanitizeUrl } from "@not-a-cms/renderer/web"
-import { useCanvasSelection } from "../selection"
+import { NodeViewWrapper } from "@tiptap/react"
 import { EditableText } from "../EditableText"
+import { useCanvasSelection } from "../selection"
+import { spacingDataAttr } from "../spacing"
 
 type Attrs = Record<string, unknown>
 
@@ -19,7 +21,13 @@ type LivingProps = {
  * Visible text (eyebrow/headline/subheadline) is rendered through EditableText; the
  * background/align/overlay are derived statically and edited in the inspector.
  */
-export function HeroLiving({ attrs, editable = true, selected, setText, onFocusHole }: LivingProps) {
+export function HeroLiving({
+  attrs,
+  editable = true,
+  selected,
+  setText,
+  onFocusHole,
+}: LivingProps) {
   const align = attrs.align === "left" ? "left" : "center"
   const bgRaw = attrs.backgroundImage ? String(attrs.backgroundImage) : ""
   const bgSanitized = bgRaw ? sanitizeUrl(bgRaw, { allowDataImage: true }) : ""
@@ -30,6 +38,7 @@ export function HeroLiving({ attrs, editable = true, selected, setText, onFocusH
   return (
     <section
       className={`nac-band nac-hero not-prose${selected ? " cn-selected" : ""}`}
+      {...spacingDataAttr(attrs.spacing)}
       data-align={align}
       data-has-bg={String(hasBg)}
       data-overlay={String(overlay)}

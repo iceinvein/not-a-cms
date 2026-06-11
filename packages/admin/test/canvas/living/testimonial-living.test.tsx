@@ -7,12 +7,20 @@ const full = { quote: "Great tool", name: "Dana", role: "CTO", avatar: "/a.jpg" 
 
 describe("TestimonialLiving", () => {
   test("matches the production renderer (with avatar + role)", () => {
-    expectBlockParity(<TestimonialLiving attrs={full} editable={false} setText={() => {}} />, "testimonial", full)
+    expectBlockParity(
+      <TestimonialLiving attrs={full} editable={false} setText={() => {}} />,
+      "testimonial",
+      full,
+    )
   })
 
   test("matches the renderer with empty quote/name and no role/avatar", () => {
     const bare = { quote: "", name: "", role: "", avatar: "" }
-    expectBlockParity(<TestimonialLiving attrs={bare} editable={false} setText={() => {}} />, "testimonial", bare)
+    expectBlockParity(
+      <TestimonialLiving attrs={bare} editable={false} setText={() => {}} />,
+      "testimonial",
+      bare,
+    )
   })
 
   test("editable mode renders contenteditable holes", () => {

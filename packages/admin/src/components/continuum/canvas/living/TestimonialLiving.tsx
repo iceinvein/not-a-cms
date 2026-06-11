@@ -1,7 +1,8 @@
-import { NodeViewWrapper } from "@tiptap/react"
 import { sanitizeUrl } from "@not-a-cms/renderer/web"
-import { useCanvasSelection } from "../selection"
+import { NodeViewWrapper } from "@tiptap/react"
 import { EditableText } from "../EditableText"
+import { useCanvasSelection } from "../selection"
+import { spacingDataAttr } from "../spacing"
 
 type Attrs = Record<string, unknown>
 
@@ -13,10 +14,19 @@ type LivingProps = {
   onFocusHole?: () => void
 }
 
-export function TestimonialLiving({ attrs, editable = true, selected, setText, onFocusHole }: LivingProps) {
+export function TestimonialLiving({
+  attrs,
+  editable = true,
+  selected,
+  setText,
+  onFocusHole,
+}: LivingProps) {
   const avatar = String(attrs.avatar ?? "").trim()
   return (
-    <section className={`nac-band nac-testimonial-block not-prose${selected ? " cn-selected" : ""}`}>
+    <section
+      className={`nac-band nac-testimonial-block not-prose${selected ? " cn-selected" : ""}`}
+      {...spacingDataAttr(attrs.spacing)}
+    >
       <div className="nac-container">
         <figure className="nac-testimonial">
           <blockquote className="nac-quote">
@@ -33,7 +43,11 @@ export function TestimonialLiving({ attrs, editable = true, selected, setText, o
           </blockquote>
           <figcaption className="nac-quote-by">
             {avatar ? (
-              <img className="nac-quote-avatar" src={sanitizeUrl(avatar, { allowDataImage: true })} alt="" />
+              <img
+                className="nac-quote-avatar"
+                src={sanitizeUrl(avatar, { allowDataImage: true })}
+                alt=""
+              />
             ) : null}
             <EditableText
               as="span"
@@ -68,7 +82,11 @@ export function TestimonialLivingView({ node, updateAttributes, selected, getPos
     if (pos !== null && pos !== undefined) select({ pos, name: node.type.name })
   }
   return (
-    <NodeViewWrapper className="cn-living" contentEditable={false} onPointerDownCapture={markSelected}>
+    <NodeViewWrapper
+      className="cn-living"
+      contentEditable={false}
+      onPointerDownCapture={markSelected}
+    >
       <TestimonialLiving
         attrs={node.attrs}
         selected={selected}

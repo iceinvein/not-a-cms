@@ -1,8 +1,10 @@
 // packages/admin/src/components/continuum/canvas/living/CtaLiving.tsx
-import { NodeViewWrapper } from "@tiptap/react"
+
 import { sanitizeUrl } from "@not-a-cms/renderer/web"
-import { useCanvasSelection } from "../selection"
+import { NodeViewWrapper } from "@tiptap/react"
 import { EditableText } from "../EditableText"
+import { useCanvasSelection } from "../selection"
+import { spacingDataAttr } from "../spacing"
 
 type Attrs = Record<string, unknown>
 
@@ -22,12 +24,19 @@ type LivingProps = {
  */
 export function CtaLiving({ attrs, editable = true, selected, setText, onFocusHole }: LivingProps) {
   const variant =
-    attrs.variant === "outline" ? "outline" : attrs.variant === "secondary" ? "secondary" : "primary"
+    attrs.variant === "outline"
+      ? "outline"
+      : attrs.variant === "secondary"
+        ? "secondary"
+        : "primary"
   const href = sanitizeUrl(attrs.url)
   const label = String(attrs.label ?? "")
 
   return (
-    <div className={`nac-band nac-cta not-prose${selected ? " cn-selected" : ""}`}>
+    <div
+      className={`nac-band nac-cta not-prose${selected ? " cn-selected" : ""}`}
+      {...spacingDataAttr(attrs.spacing)}
+    >
       <div className="nac-container">
         {editable ? (
           <EditableText
@@ -56,7 +65,11 @@ export function CtaLivingView({ node, updateAttributes, selected, getPos }: any)
     if (pos !== null && pos !== undefined) select({ pos, name: node.type.name })
   }
   return (
-    <NodeViewWrapper className="cn-living" contentEditable={false} onPointerDownCapture={markSelected}>
+    <NodeViewWrapper
+      className="cn-living"
+      contentEditable={false}
+      onPointerDownCapture={markSelected}
+    >
       <CtaLiving
         attrs={node.attrs}
         selected={selected}

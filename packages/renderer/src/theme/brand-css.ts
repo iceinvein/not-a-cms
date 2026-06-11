@@ -573,6 +573,43 @@ h1, h2, h3, h4, h5, h6 {
   position: sticky;
   top: 0;
   z-index: 10;
+  border-bottom: 1px solid var(--border);
+  background: var(--paper);
+}
+
+.nac-header-inner {
+  max-width: 56rem;
+  margin-inline: auto;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nac-wordmark {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ink);
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+  text-decoration: none;
+}
+
+.nac-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.nac-nav-link {
+  font-size: 0.875rem;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.nac-nav-link:hover {
+  color: var(--accent);
 }
 
 /* Mobile nav toggle: hidden by default, shown only below 768px. */
@@ -678,16 +715,99 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* Site footer multi-column layout. */
+/* Site footer layout and typography. */
+.nac-footer {
+  border-top: 1px solid var(--border);
+  margin-top: 4rem;
+}
+
+.nac-footer-inner {
+  max-width: 56rem;
+  margin-inline: auto;
+  padding: 2.5rem 1rem;
+}
+
+.nac-footer-inner--minimal {
+  padding-block: 2rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.nac-footer-tagline {
+  font-size: 0.875rem;
+  color: var(--muted);
+  margin-bottom: 1.5rem;
+}
+
 .nac-footer-columns {
   display: grid;
   gap: 2rem;
+  margin-bottom: 2rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 768px) {
+  .nac-footer-columns {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 640px) {
   .nac-footer-columns {
     grid-template-columns: 1fr 1fr;
   }
+}
+
+.nac-footer-col-heading {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+}
+
+.nac-footer-col-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.nac-footer-link {
+  font-size: 0.875rem;
+  color: var(--body);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.nac-footer-link:hover {
+  color: var(--accent);
+}
+
+.nac-footer-social {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.nac-footer-social-link {
+  font-size: 0.875rem;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.nac-footer-social-link:hover {
+  color: var(--accent);
+}
+
+.nac-footer-legal {
+  font-size: 0.75rem;
+  color: var(--muted);
 }
 
 /* Collection list section block: live-resolved published documents rendered as a card grid. */

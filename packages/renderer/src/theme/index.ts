@@ -2,6 +2,7 @@
 // admin can import theme utilities without pulling node-only renderer modules.
 
 export { brandCss } from "./brand-css"
+export { frameContainerCss } from "./frame-container-css"
 export { defaultTheme, resolveActiveThemeCss } from "./default-theme"
 export {
   type DefinedTheme,

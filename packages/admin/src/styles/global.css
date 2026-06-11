@@ -2683,3 +2683,84 @@ a.crumb:hover {
   font-weight: 600;
   color: var(--ink, #1c1917);
 }
+
+/* Phase 4B: responsive preview frame, width-preset selector, and read-only chrome. */
+
+/* Top strip: breadcrumb on the left, width selector on the right. */
+.cn-visual-topstrip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+/* Width-preset segmented control (Desktop / Tablet / Mobile). */
+.cn-width-selector {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+  border-radius: 8px;
+  background: #fff;
+}
+
+.cn-width-btn {
+  border: 0;
+  background: none;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.8125rem;
+  border-radius: 6px;
+  color: var(--muted, #9b958c);
+  cursor: pointer;
+}
+
+.cn-width-btn.cn-width-on {
+  background: color-mix(in srgb, var(--accent, #c2613f) 14%, transparent);
+  color: var(--ink, #1c1917);
+}
+
+.cn-width-btn:focus-visible {
+  outline: 2px solid var(--accent, #c2613f);
+  outline-offset: 1px;
+}
+
+/* The frame establishes the container context so frameContainerCss @container rules fire
+ * when the frame is narrowed to tablet or mobile width. */
+.cn-visual-frame {
+  container-type: inline-size;
+  margin-inline: auto;
+  width: 100%;
+  transition: width 0.18s ease;
+}
+
+.cn-visual-frame[data-width="tablet"] {
+  width: 834px;
+  max-width: 100%;
+}
+
+.cn-visual-frame[data-width="mobile"] {
+  width: 390px;
+  max-width: 100%;
+}
+
+/* Subtle device-frame treatment for constrained (tablet/mobile) widths. */
+.cn-visual-frame[data-width="tablet"],
+.cn-visual-frame[data-width="mobile"] {
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+  border-radius: 12px;
+  box-shadow: 0 12px 40px color-mix(in srgb, var(--ink, #1c1917) 8%, transparent);
+  overflow: hidden;
+}
+
+/* Read-only chrome is display-only; clicks are neutralized in CanvasChrome. */
+.cn-chrome {
+  user-select: none;
+}
+
+/* Body alignment: the .cn-visual-page inside a constrained frame needs slightly tighter
+ * horizontal padding (1rem vs the base 1.25rem) so it mirrors the public <main>. The
+ * max-width and vertical padding match the base .cn-visual-page rule above; only
+ * padding-inline differs, so the two selectors do not conflict. */
+.cn-visual-frame .cn-visual-page {
+  padding-inline: 1rem;
+}

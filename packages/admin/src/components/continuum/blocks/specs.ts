@@ -14,6 +14,10 @@ export type BlockSpec = {
   inlineText?: string[]
   /** URL-backed text fields edited via the Vault media picker in the inspector. */
   mediaFields?: string[]
+  /** Name of the select field surfaced as the on-canvas variant control, if any. */
+  variantField?: string
+  /** Name of the number field surfaced as the on-canvas column stepper, if any. */
+  columnField?: string
 }
 
 export const blockSpecs: BlockSpec[] = [
@@ -21,6 +25,7 @@ export const blockSpecs: BlockSpec[] = [
     name: "hero",
     label: "Hero",
     group: "sections",
+    variantField: "align",
     inlineText: ["eyebrow", "headline", "subheadline"],
     mediaFields: ["backgroundImage"],
     schema: {
@@ -30,27 +35,44 @@ export const blockSpecs: BlockSpec[] = [
       align: { type: "select", default: "center", options: ["center", "left"] },
       backgroundImage: { type: "text", default: "" },
       overlay: { type: "boolean", default: true },
+      spacing: {
+        type: "select",
+        default: "normal",
+        options: ["none", "compact", "normal", "spacious"],
+      },
     },
   },
   {
     name: "cta",
     label: "Call to action",
     group: "sections",
+    variantField: "variant",
     inlineText: ["label"],
     schema: {
       label: { type: "text", default: "" },
       url: { type: "text", default: "" },
       variant: { type: "select", default: "primary", options: ["primary", "secondary", "outline"] },
+      spacing: {
+        type: "select",
+        default: "normal",
+        options: ["none", "compact", "normal", "spacious"],
+      },
     },
   },
   {
     name: "featureGrid",
     label: "Feature grid",
     group: "sections",
+    columnField: "columns",
     inlineText: [],
     schema: {
       items: { type: "array", default: [] },
       columns: { type: "number", default: 3 },
+      spacing: {
+        type: "select",
+        default: "normal",
+        options: ["none", "compact", "normal", "spacious"],
+      },
     },
   },
   {
@@ -98,10 +120,16 @@ export const blockSpecs: BlockSpec[] = [
     name: "stats",
     label: "Stats",
     group: "sections",
+    columnField: "columns",
     inlineText: [],
     schema: {
       items: { type: "array", default: [] },
       columns: { type: "number", default: 3 },
+      spacing: {
+        type: "select",
+        default: "normal",
+        options: ["none", "compact", "normal", "spacious"],
+      },
     },
   },
   {
@@ -112,12 +140,18 @@ export const blockSpecs: BlockSpec[] = [
     schema: {
       eyebrow: { type: "text", default: "" },
       logos: { type: "array", default: [] },
+      spacing: {
+        type: "select",
+        default: "normal",
+        options: ["none", "compact", "normal", "spacious"],
+      },
     },
   },
   {
     name: "splitMedia",
     label: "Split media",
     group: "sections",
+    variantField: "side",
     inlineText: ["heading", "body", "ctaLabel"],
     mediaFields: ["media"],
     schema: {
@@ -127,6 +161,11 @@ export const blockSpecs: BlockSpec[] = [
       body: { type: "text", default: "" },
       ctaLabel: { type: "text", default: "" },
       ctaUrl: { type: "text", default: "" },
+      spacing: {
+        type: "select",
+        default: "normal",
+        options: ["none", "compact", "normal", "spacious"],
+      },
     },
   },
   {
@@ -140,6 +179,11 @@ export const blockSpecs: BlockSpec[] = [
       name: { type: "text", default: "" },
       role: { type: "text", default: "" },
       avatar: { type: "text", default: "" },
+      spacing: {
+        type: "select",
+        default: "normal",
+        options: ["none", "compact", "normal", "spacious"],
+      },
     },
   },
   {
@@ -150,6 +194,11 @@ export const blockSpecs: BlockSpec[] = [
     schema: {
       heading: { type: "text", default: "" },
       items: { type: "array", default: [] },
+      spacing: {
+        type: "select",
+        default: "normal",
+        options: ["none", "compact", "normal", "spacious"],
+      },
     },
   },
   {
@@ -160,12 +209,18 @@ export const blockSpecs: BlockSpec[] = [
     schema: {
       heading: { type: "text", default: "" },
       tiers: { type: "array", default: [] },
+      spacing: {
+        type: "select",
+        default: "normal",
+        options: ["none", "compact", "normal", "spacious"],
+      },
     },
   },
   {
     name: "collectionList",
     label: "Collection list",
     group: "sections",
+    variantField: "layout",
     inlineText: ["heading"],
     schema: {
       collection: { type: "text", default: "blog_post" },
@@ -176,6 +231,11 @@ export const blockSpecs: BlockSpec[] = [
       showExcerpt: { type: "boolean", default: true },
       showDate: { type: "boolean", default: true },
       heading: { type: "text", default: "" },
+      spacing: {
+        type: "select",
+        default: "normal",
+        options: ["none", "compact", "normal", "spacious"],
+      },
     },
   },
 ]

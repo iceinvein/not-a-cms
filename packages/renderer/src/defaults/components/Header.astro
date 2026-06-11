@@ -1,65 +1,14 @@
 ---
-import type { SiteNav } from "../../runtime/site-chrome"
+import { renderSiteChrome, type SiteNav } from "../../runtime/site-chrome-html"
 
 interface Props {
   siteName?: string
   nav?: SiteNav | null
 }
 const { siteName = "not-a-cms", nav = null } = Astro.props
-const hasNav = !!(nav?.links?.length || nav?.cta)
+const { header } = renderSiteChrome({ siteName, nav, footer: null })
 ---
-<header class="nac-header border-b border-[var(--border)] bg-[var(--paper)]">
-  <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-    <a href="/" class="text-xl font-semibold text-[var(--ink)] [font-family:var(--font-display)] tracking-tight">{siteName}</a>
-    {hasNav && (
-      <>
-        <nav class="nac-nav flex items-center gap-6" id="nac-desktop-nav">
-          {nav?.links?.map(item => (
-            <a
-              href={item.href}
-              class="text-sm text-[var(--muted)] hover:text-[var(--accent)] transition-colors"
-              {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-            >{item.label}</a>
-          ))}
-          {nav?.cta && (
-            <a
-              class="nac-cta-btn"
-              data-variant="primary"
-              href={nav.cta.href}
-            >{nav.cta.label}</a>
-          )}
-        </nav>
-        <button
-          class="nac-nav-toggle"
-          aria-label="Menu"
-          aria-expanded="false"
-          aria-controls="nac-mobile-nav"
-          type="button"
-        >
-          <span class="nac-hamburger-bar"></span>
-          <span class="nac-hamburger-bar"></span>
-          <span class="nac-hamburger-bar"></span>
-        </button>
-        <nav class="nac-mobile-nav" id="nac-mobile-nav" aria-label="Mobile navigation">
-          {nav?.links?.map(item => (
-            <a
-              href={item.href}
-              class="nac-mobile-nav-link"
-              {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-            >{item.label}</a>
-          ))}
-          {nav?.cta && (
-            <a
-              class="nac-cta-btn nac-mobile-cta"
-              data-variant="primary"
-              href={nav.cta.href}
-            >{nav.cta.label}</a>
-          )}
-        </nav>
-      </>
-    )}
-  </div>
-</header>
+<Fragment set:html={header} />
 
 <script is:inline>
 (function () {

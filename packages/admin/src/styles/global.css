@@ -2436,3 +2436,135 @@ a.crumb:hover {
   position: relative;
   z-index: 3;
 }
+
+/* Continuum visual mode: Phase 3B mutation affordances */
+
+/* The `+` inserter button: the only interactive control on the otherwise pass-through overlay. */
+.cn-overlay-insert {
+  position: absolute;
+  left: -0.35rem;
+  transform: translateY(-50%);
+  width: 1.4rem;
+  height: 1.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+  border-radius: 999px;
+  background: #fff;
+  color: var(--accent, #c2613f);
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  z-index: 4;
+}
+.cn-overlay-insert:hover {
+  background: color-mix(in srgb, var(--accent, #c2613f) 10%, #fff);
+}
+
+/* Insertion/placement line spanning the stage at a gap center. */
+.cn-overlay-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent, #c2613f);
+  border-radius: 2px;
+  pointer-events: none;
+  opacity: 0.55;
+}
+.cn-overlay-line-drag {
+  opacity: 1;
+}
+
+/* Per-block drag handle in the left gutter (interactive). */
+.cn-overlay-handle {
+  position: absolute;
+  top: 0.4rem;
+  left: -0.35rem;
+  width: 1.2rem;
+  height: 1.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--muted, #9b958c);
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: grab;
+  pointer-events: auto;
+}
+.cn-overlay-handle:hover {
+  color: var(--ink, #1c1917);
+  background: color-mix(in srgb, var(--ink, #1c1917) 6%, transparent);
+}
+.cn-overlay.cn-dragging,
+.cn-overlay.cn-dragging .cn-overlay-handle {
+  cursor: grabbing;
+}
+
+/* InsertMenu popover, anchored near the chosen gap. */
+.cn-overlay-menu {
+  position: absolute;
+  left: 1.25rem;
+  transform: translateY(-50%);
+  z-index: 5;
+  pointer-events: auto;
+}
+.cn-insert-menu {
+  min-width: 12rem;
+  max-height: 18rem;
+  overflow-y: auto;
+  padding: 0.35rem;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.35);
+}
+.cn-insert-group + .cn-insert-group {
+  margin-top: 0.35rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--border, rgba(0, 0, 0, 0.06));
+}
+.cn-insert-group-label {
+  margin: 0 0 0.15rem;
+  padding: 0 0.4rem;
+  font-size: 0.66rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted, #9b958c);
+}
+.cn-insert-item {
+  display: block;
+  width: 100%;
+  padding: 0.35rem 0.45rem;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  text-align: left;
+  font-size: 0.82rem;
+  color: var(--body, #44403c);
+  cursor: pointer;
+}
+.cn-insert-item:hover {
+  background: color-mix(in srgb, var(--accent, #c2613f) 12%, transparent);
+  color: var(--ink, #1c1917);
+}
+
+/* Tree row drop indicators during a drag-reorder. */
+.cn-tree-row[draggable="true"] {
+  cursor: grab;
+}
+.cn-tree-drop-before {
+  box-shadow: inset 0 2px 0 var(--accent, #c2613f);
+}
+.cn-tree-drop-after {
+  box-shadow: inset 0 -2px 0 var(--accent, #c2613f);
+}

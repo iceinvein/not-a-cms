@@ -1,8 +1,9 @@
 // packages/admin/src/components/continuum/canvas/CanvasOverlay.tsx
 import type { Editor as TiptapEditor } from "@tiptap/react"
+import type React from "react"
 import { type RefObject, useEffect, useRef, useState } from "react"
 import { type BlockTreeNode, gapPosition, topLevelBlocks } from "./block-tree"
-import { insertBlockAt } from "./canvas-ops"
+import { insertBlockAt, moveBlock } from "./canvas-ops"
 import { InsertMenu } from "./InsertMenu"
 import {
   type BlockBox,
@@ -37,6 +38,9 @@ export function CanvasOverlay({ editor, containerRef }: Props) {
   const [hovered, setHovered] = useState<number | null>(null)
   const [hoveredGap, setHoveredGap] = useState<GapZone | null>(null)
   const [menuGap, setMenuGap] = useState<GapZone | null>(null)
+  // Active drag: the index of the block being dragged and the gap it would drop into.
+  const [drag, setDrag] = useState<{ fromIndex: number; targetGap: number | null } | null>(null)
+  const dragRef = useRef<{ fromIndex: number } | null>(null)
   const boxesRef = useRef<BlockBox[]>([])
   const blocksRef = useRef<BlockTreeNode[]>([])
   const gapsRef = useRef<GapZone[]>([])
@@ -97,6 +101,34 @@ export function CanvasOverlay({ editor, containerRef }: Props) {
     }
   }, [editor, containerRef])
 
+  const startDrag = (pos: number, e: React.PointerEvent) => {
+    e.preventDefault()
+    const fromIndex = blocksRef.current.findIndex((b) => b.pos === pos)
+    if (fromIndex < 0 || !containerRef.current) return
+    dragRef.current = { fromIndex }
+    setDrag({ fromIndex, targetGap: null })
+
+    const container = containerRef.current
+    const onDragMove = (ev: PointerEvent) => {
+      const origin = container.getBoundingClientRect()
+      const gap = nearestGap(gapsRef.current, ev.clientY - origin.top, Number.POSITIVE_INFINITY)
+      setDrag((d) => (d ? { ...d, targetGap: gap ? gap.index : null } : d))
+    }
+    const onDragEnd = (ev: PointerEvent) => {
+      window.removeEventListener("pointermove", onDragMove)
+      window.removeEventListener("pointerup", onDragEnd)
+      const start = dragRef.current
+      dragRef.current = null
+      setDrag(null)
+      if (!editor || !start) return
+      const origin = container.getBoundingClientRect()
+      const gap = nearestGap(gapsRef.current, ev.clientY - origin.top, Number.POSITIVE_INFINITY)
+      if (gap) moveBlock(editor as never, blocksRef.current, start.fromIndex, gap.index)
+    }
+    window.addEventListener("pointermove", onDragMove)
+    window.addEventListener("pointerup", onDragEnd)
+  }
+
   const doInsert = (type: string) => {
     if (!editor || !menuGap) return
     insertBlockAt(editor as never, gapPosition(blocksRef.current, menuGap.index), type)
@@ -107,7 +139,10 @@ export function CanvasOverlay({ editor, containerRef }: Props) {
   const plusGap = menuGap ?? hoveredGap
 
   return (
-    <div className="cn-overlay" aria-hidden={menuGap ? undefined : "true"}>
+    <div
+      className={`cn-overlay${drag ? " cn-dragging" : ""}`}
+      aria-hidden={menuGap ? undefined : "true"}
+    >
       {boxes.map((b) => {
         const isSelected = selected?.pos === b.pos
         const isHovered = hovered === b.pos
@@ -119,6 +154,16 @@ export function CanvasOverlay({ editor, containerRef }: Props) {
             style={{ top: b.box.top, left: b.box.left, width: b.box.width, height: b.box.height }}
           >
             {(isSelected || isHovered) && <span className="cn-overlay-label">{b.label}</span>}
+            {(isSelected || isHovered) && (
+              <button
+                type="button"
+                className="cn-overlay-handle"
+                aria-label={`Drag ${b.label}`}
+                onPointerDown={(e) => startDrag(b.pos, e)}
+              >
+                ⠿
+              </button>
+            )}
           </div>
         )
       })}
@@ -133,7 +178,14 @@ export function CanvasOverlay({ editor, containerRef }: Props) {
           +
         </button>
       ) : null}
-      {plusGap ? <div className="cn-overlay-line" style={{ top: plusGap.y }} /> : null}
+      {drag?.targetGap != null ? (
+        <div
+          className="cn-overlay-line cn-overlay-line-drag"
+          style={{ top: gapsRef.current.find((g) => g.index === drag.targetGap)?.y ?? 0 }}
+        />
+      ) : plusGap ? (
+        <div className="cn-overlay-line" style={{ top: plusGap.y }} />
+      ) : null}
       {menuGap ? (
         <div className="cn-overlay-menu" style={{ top: menuGap.y }}>
           <InsertMenu onPick={doInsert} onClose={() => setMenuGap(null)} />

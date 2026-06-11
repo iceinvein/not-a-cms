@@ -2,8 +2,10 @@
 import { describe, expect, test } from "bun:test"
 import {
   activeBlockPos,
+  gapPosition,
   groupForNode,
   labelForNode,
+  planMove,
   topLevelBlocks,
 } from "../../src/components/continuum/canvas/block-tree"
 
@@ -91,5 +93,58 @@ describe("activeBlockPos", () => {
   test("returns null when `from` is outside every block", () => {
     expect(activeBlockPos(blocks, 99)).toBeNull()
     expect(activeBlockPos([], 0)).toBeNull()
+  })
+})
+
+describe("gapPosition", () => {
+  // A(pos0,size2) B(pos2,size3) C(pos5,size1); doc content ends at 6.
+  const blocks = topLevelBlocks(
+    fakeDoc([
+      { name: "hero", size: 2 },
+      { name: "cta", size: 3 },
+      { name: "image", size: 1 },
+    ]),
+  )
+  test("returns the start pos of the block at the gap index", () => {
+    expect(gapPosition(blocks, 0)).toBe(0)
+    expect(gapPosition(blocks, 1)).toBe(2)
+    expect(gapPosition(blocks, 2)).toBe(5)
+  })
+  test("returns the doc-content end for the trailing gap", () => {
+    expect(gapPosition(blocks, 3)).toBe(6)
+  })
+  test("returns 0 for an empty block list", () => {
+    expect(gapPosition([], 0)).toBe(0)
+  })
+})
+
+describe("planMove", () => {
+  const blocks = topLevelBlocks(
+    fakeDoc([
+      { name: "hero", size: 2 },
+      { name: "cta", size: 3 },
+      { name: "image", size: 1 },
+    ]),
+  )
+  test("moving the first block after the second maps the insert past the deletion", () => {
+    // A -> gap 2 (between B and C). Delete [0,2); B,C shift left by 2; insert at 5-2=3 => [B,A,C].
+    expect(planMove(blocks, 0, 2)).toEqual({ delFrom: 0, delTo: 2, insertPos: 3 })
+  })
+  test("moving the last block to the front keeps the insert before the source", () => {
+    // C -> gap 0. Delete [5,6); insert at 0 => [C,A,B].
+    expect(planMove(blocks, 2, 0)).toEqual({ delFrom: 5, delTo: 6, insertPos: 0 })
+  })
+  test("moving the middle block to the end maps past the deletion", () => {
+    // B -> gap 3 (end). Delete [2,5); insert at 6-3=3 => [A,C,B].
+    expect(planMove(blocks, 1, 3)).toEqual({ delFrom: 2, delTo: 5, insertPos: 3 })
+  })
+  test("returns null for no-op gaps (same slot or immediately after)", () => {
+    expect(planMove(blocks, 0, 0)).toBeNull()
+    expect(planMove(blocks, 0, 1)).toBeNull()
+    expect(planMove(blocks, 1, 1)).toBeNull()
+    expect(planMove(blocks, 1, 2)).toBeNull()
+  })
+  test("returns null when fromIndex is out of range", () => {
+    expect(planMove(blocks, 9, 0)).toBeNull()
   })
 })

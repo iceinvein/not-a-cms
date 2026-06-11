@@ -66,3 +66,38 @@ export function activeBlockPos(blocks: BlockTreeNode[], from: number): number | 
   }
   return null
 }
+
+/** ProseMirror position of gap `gapIndex` (0..blocks.length): the start of the block at that
+ *  index, or the end of the last block for the trailing gap. Returns 0 for an empty list. */
+export function gapPosition(blocks: BlockTreeNode[], gapIndex: number): number {
+  if (blocks.length === 0) return 0
+  if (gapIndex >= blocks.length) {
+    const last = blocks[blocks.length - 1]
+    return last.pos + last.size
+  }
+  return blocks[Math.max(0, gapIndex)].pos
+}
+
+export type MovePlan = { delFrom: number; delTo: number; insertPos: number }
+
+/**
+ * Compute the delete range and post-deletion insert position to move the block at `fromIndex`
+ * into gap `toGapIndex` (0..blocks.length). Returns null for a no-op: moving into the block's
+ * own slot (`toGapIndex === fromIndex`) or the gap immediately after it (`fromIndex + 1`).
+ * When the target gap is after the source, the insert position is shifted left by the source's
+ * size because deleting the source first removes that many positions ahead of the target.
+ */
+export function planMove(
+  blocks: BlockTreeNode[],
+  fromIndex: number,
+  toGapIndex: number,
+): MovePlan | null {
+  const source = blocks[fromIndex]
+  if (!source) return null
+  if (toGapIndex === fromIndex || toGapIndex === fromIndex + 1) return null
+  const delFrom = source.pos
+  const delTo = source.pos + source.size
+  const gapPos = gapPosition(blocks, toGapIndex)
+  const insertPos = gapPos > source.pos ? gapPos - source.size : gapPos
+  return { delFrom, delTo, insertPos }
+}

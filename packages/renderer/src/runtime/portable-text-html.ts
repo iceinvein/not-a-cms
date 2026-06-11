@@ -112,6 +112,11 @@ function mediaIdAttribute(id: string | undefined): string {
   return id ? ` data-media-id="${escapeHtml(id)}"` : ""
 }
 
+/** ` data-spacing="<v>"` for a non-default section spacing step, else "". */
+function spacingAttr(value: unknown): string {
+  return value && value !== "normal" ? ` data-spacing="${escapeHtml(String(value))}"` : ""
+}
+
 function formatDate(value: string): string {
   return new Date(value).toLocaleDateString("en-US", {
     month: "long",
@@ -165,7 +170,7 @@ function renderBlock(block: PTBlock, index: number, opts?: RenderOpts): string {
       const hasBg = Boolean(bgUrl)
       const overlay = hasBg && block.overlay !== false
       const style = hasBg ? ` style="background-image:url('${bgUrl}')"` : ""
-      return `<section class="nac-band nac-hero not-prose" data-align="${align}" data-has-bg="${hasBg}" data-overlay="${overlay}"${style}><div class="nac-container">${eyebrow}${headline}${sub}</div></section>`
+      return `<section class="nac-band nac-hero not-prose"${spacingAttr(block.spacing)} data-align="${align}" data-has-bg="${hasBg}" data-overlay="${overlay}"${style}><div class="nac-container">${eyebrow}${headline}${sub}</div></section>`
     }
     case "cta": {
       const variant =
@@ -176,7 +181,7 @@ function renderBlock(block: PTBlock, index: number, opts?: RenderOpts): string {
             : "primary"
       const href = escapeHtml(sanitizeUrl(block.url))
       const label = escapeHtml(String(block.label ?? "Learn more"))
-      return `<div class="nac-band nac-cta not-prose"><div class="nac-container"><a class="nac-cta-btn" data-variant="${variant}" href="${href}">${label}</a></div></div>`
+      return `<div class="nac-band nac-cta not-prose"${spacingAttr(block.spacing)}><div class="nac-container"><a class="nac-cta-btn" data-variant="${variant}" href="${href}">${label}</a></div></div>`
     }
     case "featureGrid": {
       const items = Array.isArray(block.items) ? block.items : []
@@ -196,7 +201,7 @@ function renderBlock(block: PTBlock, index: number, opts?: RenderOpts): string {
           return `<div class="nac-feature">${icon}${title}${text}</div>`
         })
         .join("")
-      return `<section class="nac-band nac-features not-prose"><div class="nac-container"><div class="nac-feature-grid" data-columns="${columns}">${cards}</div></div></section>`
+      return `<section class="nac-band nac-features not-prose"${spacingAttr(block.spacing)}><div class="nac-container"><div class="nac-feature-grid" data-columns="${columns}">${cards}</div></div></section>`
     }
     case "stats": {
       const items = Array.isArray(block.items) ? block.items : []
@@ -213,7 +218,7 @@ function renderBlock(block: PTBlock, index: number, opts?: RenderOpts): string {
           return `<div class="nac-stat">${value}${label}</div>`
         })
         .join("")
-      return `<section class="nac-band nac-stats not-prose"><div class="nac-container"><div class="nac-stat-grid" data-columns="${columns}">${stats}</div></div></section>`
+      return `<section class="nac-band nac-stats not-prose"${spacingAttr(block.spacing)}><div class="nac-container"><div class="nac-stat-grid" data-columns="${columns}">${stats}</div></div></section>`
     }
     case "logoCloud": {
       const logos = Array.isArray(block.logos) ? block.logos : []
@@ -228,7 +233,7 @@ function renderBlock(block: PTBlock, index: number, opts?: RenderOpts): string {
           return `<img class="nac-logo" src="${escapeHtml(sanitizeUrl(src.url, { allowDataImage: true }))}" alt="${alt}"${mediaIdAttribute(src.id)} />`
         })
         .join("")
-      return `<section class="nac-band nac-logo-cloud not-prose"><div class="nac-container">${eyebrow}<div class="nac-logo-row">${logoImgs}</div></div></section>`
+      return `<section class="nac-band nac-logo-cloud not-prose"${spacingAttr(block.spacing)}><div class="nac-container">${eyebrow}<div class="nac-logo-row">${logoImgs}</div></div></section>`
     }
     case "splitMedia": {
       const side = block.side === "right" ? "right" : "left"
@@ -246,7 +251,7 @@ function renderBlock(block: PTBlock, index: number, opts?: RenderOpts): string {
       const cta = ctaLabel
         ? `<a class="nac-cta-btn" data-variant="primary" href="${escapeHtml(sanitizeUrl(block.ctaUrl))}">${escapeHtml(ctaLabel)}</a>`
         : ""
-      return `<section class="nac-band nac-split-block not-prose"><div class="nac-container"><div class="nac-split" data-side="${side}"><div class="nac-split-media">${mediaImg}</div><div class="nac-split-body">${heading}${bodyText}${cta}</div></div></div></section>`
+      return `<section class="nac-band nac-split-block not-prose"${spacingAttr(block.spacing)}><div class="nac-container"><div class="nac-split" data-side="${side}"><div class="nac-split-media">${mediaImg}</div><div class="nac-split-body">${heading}${bodyText}${cta}</div></div></div></section>`
     }
     case "testimonial": {
       const quote = escapeHtml(String(block.quote ?? ""))
@@ -259,7 +264,7 @@ function renderBlock(block: PTBlock, index: number, opts?: RenderOpts): string {
         ? `<img class="nac-quote-avatar" src="${escapeHtml(sanitizeUrl(avatarSrc, { allowDataImage: true }))}" alt="" />`
         : ""
       const figcaption = `<figcaption class="nac-quote-by">${avatarImg}<span class="nac-quote-name">${name}</span>${role}</figcaption>`
-      return `<section class="nac-band nac-testimonial-block not-prose"><div class="nac-container"><figure class="nac-testimonial"><blockquote class="nac-quote"><p>${quote}</p></blockquote>${figcaption}</figure></div></section>`
+      return `<section class="nac-band nac-testimonial-block not-prose"${spacingAttr(block.spacing)}><div class="nac-container"><figure class="nac-testimonial"><blockquote class="nac-quote"><p>${quote}</p></blockquote>${figcaption}</figure></div></section>`
     }
     case "pricingCards": {
       const pricingHeading = block.heading
@@ -295,7 +300,7 @@ function renderBlock(block: PTBlock, index: number, opts?: RenderOpts): string {
           return `<div class="nac-tier" data-highlight="${highlight}"><h3 class="nac-tier-name">${name}</h3><div class="nac-tier-price">${price}${periodSpan}</div><ul class="nac-tier-features">${featureItems}</ul>${cta}</div>`
         })
         .join("")
-      return `<section class="nac-band nac-pricing-cards not-prose"><div class="nac-container">${pricingHeading}<div class="nac-pricing">${tierCards}</div></div></section>`
+      return `<section class="nac-band nac-pricing-cards not-prose"${spacingAttr(block.spacing)}><div class="nac-container">${pricingHeading}<div class="nac-pricing">${tierCards}</div></div></section>`
     }
     case "faq": {
       const faqHeading = block.heading
@@ -310,7 +315,7 @@ function renderBlock(block: PTBlock, index: number, opts?: RenderOpts): string {
           return `<details class="nac-faq-item"><summary class="nac-faq-q">${question}</summary><div class="nac-faq-a">${answer}</div></details>`
         })
         .join("")
-      return `<section class="nac-band nac-faq-block not-prose"><div class="nac-container">${faqHeading}<div class="nac-faq">${details}</div></div></section>`
+      return `<section class="nac-band nac-faq-block not-prose"${spacingAttr(block.spacing)}><div class="nac-container">${faqHeading}<div class="nac-faq">${details}</div></div></section>`
     }
     case "author":
       return `<div data-author><span data-author-name>${escapeHtml(String(block.name ?? ""))}</span>${block.role ? `<span data-author-role>${escapeHtml(String(block.role))}</span>` : ""}</div>`
@@ -361,7 +366,7 @@ function renderBlock(block: PTBlock, index: number, opts?: RenderOpts): string {
         })
         .join("")
 
-      return `<section class="nac-band nac-collection-block not-prose"><div class="nac-container">${heading}<div class="nac-collection" data-layout="${layout}">${cards}</div></div></section>`
+      return `<section class="nac-band nac-collection-block not-prose"${spacingAttr(block.spacing)}><div class="nac-container">${heading}<div class="nac-collection" data-layout="${layout}">${cards}</div></div></section>`
     }
     default:
       return ""

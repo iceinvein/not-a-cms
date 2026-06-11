@@ -56,7 +56,7 @@ export function ColumnStepper({
   onStep: (next: number) => void
 }) {
   return (
-    <div className="cn-gutter-popover cn-gutter-stepper" role="group" aria-label="Columns">
+    <div className="cn-gutter-popover cn-gutter-stepper">
       <button
         type="button"
         className="cn-gutter-step"

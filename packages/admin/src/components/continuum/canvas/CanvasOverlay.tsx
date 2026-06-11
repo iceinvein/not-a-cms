@@ -101,6 +101,28 @@ export function CanvasOverlay({ editor, containerRef }: Props) {
     }
   }, [editor, containerRef])
 
+  // Dismiss the insert menu on Escape or a pointerdown outside the menu/inserter. Registered
+  // only while the menu is open; the opening click's pointerdown has already fired by the time
+  // this effect runs, so it cannot self-close.
+  useEffect(() => {
+    if (!menuGap) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuGap(null)
+    }
+    const onDown = (e: PointerEvent) => {
+      const target = e.target as HTMLElement | null
+      if (!target?.closest(".cn-overlay-menu") && !target?.closest(".cn-overlay-insert")) {
+        setMenuGap(null)
+      }
+    }
+    window.addEventListener("keydown", onKey)
+    window.addEventListener("pointerdown", onDown)
+    return () => {
+      window.removeEventListener("keydown", onKey)
+      window.removeEventListener("pointerdown", onDown)
+    }
+  }, [menuGap])
+
   const startDrag = (pos: number, e: React.PointerEvent) => {
     e.preventDefault()
     const fromIndex = blocksRef.current.findIndex((b) => b.pos === pos)
@@ -158,6 +180,9 @@ export function CanvasOverlay({ editor, containerRef }: Props) {
               <button
                 type="button"
                 className="cn-overlay-handle"
+                // Pointer-only affordance inside the aria-hidden HUD; keyboard users reorder via
+                // the structure tree, so keep it out of the tab order.
+                tabIndex={-1}
                 aria-label={`Drag ${b.label}`}
                 onPointerDown={(e) => startDrag(b.pos, e)}
               >
@@ -171,6 +196,8 @@ export function CanvasOverlay({ editor, containerRef }: Props) {
         <button
           type="button"
           className="cn-overlay-insert"
+          // Pointer-only affordance inside the aria-hidden HUD; kept out of the tab order.
+          tabIndex={-1}
           style={{ top: plusGap.y }}
           aria-label="Insert a block"
           onClick={() => setMenuGap(plusGap)}

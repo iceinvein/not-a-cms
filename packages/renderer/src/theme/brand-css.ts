@@ -49,6 +49,16 @@ h1, h2, h3, h4, h5, h6 {
   margin-left: calc(50% - 50vw);
 }
 
+.nac-band[data-spacing="none"] {
+  padding-block: 0;
+}
+.nac-band[data-spacing="compact"] {
+  padding-block: 2.5rem;
+}
+.nac-band[data-spacing="spacious"] {
+  padding-block: 7rem;
+}
+
 .nac-container {
   max-width: 64rem;
   margin-inline: auto;

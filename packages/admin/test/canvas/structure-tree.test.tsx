@@ -68,3 +68,22 @@ describe("StructureTree", () => {
     expect(html).not.toMatch(/data-pos="0"[^>]*aria-current="true"/)
   })
 })
+
+describe("StructureTree drag affordances", () => {
+  test("rows are draggable and carry their index", () => {
+    const html = renderToString(
+      <StructureTree
+        editor={mockEditor(
+          [
+            { name: "hero", size: 1 },
+            { name: "cta", size: 1 },
+          ],
+          0,
+        )}
+      />,
+    )
+    expect(html).toContain("draggable")
+    expect(html).toContain('data-index="0"')
+    expect(html).toContain('data-index="1"')
+  })
+})

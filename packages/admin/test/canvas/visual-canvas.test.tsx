@@ -42,3 +42,13 @@ describe("VisualCanvas Phase 3A chrome", () => {
     expect(html).toContain("No blocks yet")
   })
 })
+
+describe("VisualCanvas Phase 4B responsive frame", () => {
+  test("renders the responsive frame, width selector, and chrome containers", () => {
+    const html = renderToString(<VisualCanvas content={[]} apiBase="" />)
+    expect(html).toContain("cn-visual-frame")
+    expect(html).toContain("cn-width-selector")
+    expect(html).toContain("cn-chrome-header")
+    expect(html).toContain("cn-chrome-footer")
+  })
+})

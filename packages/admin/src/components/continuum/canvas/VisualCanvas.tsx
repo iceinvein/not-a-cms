@@ -6,17 +6,20 @@
 
 import type { CollabConfig } from "@not-a-cms/editor"
 import { Editor } from "@not-a-cms/editor"
-import { brandCss, resolveActiveThemeCss } from "@not-a-cms/renderer/theme"
+import { renderSiteChrome, resolveSiteChrome } from "@not-a-cms/renderer/site-chrome"
+import { brandCss, frameContainerCss, resolveActiveThemeCss } from "@not-a-cms/renderer/theme"
 import type { Editor as TiptapEditor } from "@tiptap/react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { continuumSlashCommands } from "../blocks"
 import { Breadcrumb } from "./Breadcrumb"
+import { CanvasChrome } from "./CanvasChrome"
 import { CanvasOverlay } from "./CanvasOverlay"
 import { Inspector } from "./Inspector"
 import { livingBlocks } from "./living-blocks"
 import { StructureTree } from "./StructureTree"
 import { scopeThemeVariables } from "./scope-theme"
 import { type CanvasSelection, CanvasSelectionContext } from "./selection"
+import { type FrameWidth, WidthSelector } from "./WidthSelector"
 
 type PortableTextBlock = { type: string; [key: string]: unknown }
 
@@ -32,11 +35,18 @@ const LIVING_NAMES = new Set(livingBlocks.map((b) => b.name))
 /**
  * Visual editing canvas: the same Tiptap Editor and Portable Text body as Document mode,
  * rendered as a brand-styled page with inline-editable living views, a left-rail structure
- * tree, a hover/selection overlay, an ancestry breadcrumb, and a right-rail inspector. Theme
- * variables are fetched from /api/_theme and scoped to `.cn-visual`; brandCss is class-scoped.
+ * tree, a hover/selection overlay, an ancestry breadcrumb, and a right-rail inspector. The
+ * theme and the read-only site chrome (header/footer) are fetched together from /api/_site;
+ * theme variables are scoped to `.cn-visual` and brandCss is class-scoped. The editable body
+ * sits inside a responsive `.cn-visual-frame` (container-query driven) with the real chrome.
  */
 export function VisualCanvas({ content, onChange, apiBase = "", collaboration }: Props) {
   const [theme, setTheme] = useState(() => resolveActiveThemeCss(null))
+  const [chrome, setChrome] = useState<{ header: string; footer: string }>({
+    header: "",
+    footer: "",
+  })
+  const [width, setWidth] = useState<FrameWidth>("desktop")
   const [selected, setSelected] = useState<CanvasSelection>(null)
   const [editor, setEditor] = useState<TiptapEditor | null>(null)
   // Bumped on every transaction so the tree/breadcrumb re-read the live doc and selection.
@@ -45,10 +55,12 @@ export function VisualCanvas({ content, onChange, apiBase = "", collaboration }:
 
   useEffect(() => {
     let active = true
-    fetch(`${apiBase}/api/_theme`)
+    fetch(`${apiBase}/api/_site`)
       .then((res) => (res.ok ? res.json() : null))
-      .then((apiTheme) => {
-        if (active) setTheme(resolveActiveThemeCss(apiTheme))
+      .then((apiSite) => {
+        if (!active) return
+        setTheme(resolveActiveThemeCss(apiSite?.theme ?? null))
+        setChrome(renderSiteChrome(resolveSiteChrome(apiSite)))
       })
       .catch(() => {})
     return () => {
@@ -103,23 +115,31 @@ export function VisualCanvas({ content, onChange, apiBase = "", collaboration }:
       <div className="cn-visual">
         <style>{scopedVariables}</style>
         <style>{brandCss}</style>
+        <style>{frameContainerCss}</style>
         {theme.fontImport ? <link rel="stylesheet" href={theme.fontImport} /> : null}
         {/* Full-width strip above the three-column layout. */}
-        <Breadcrumb editor={editor} />
+        <div className="cn-visual-topstrip">
+          <Breadcrumb editor={editor} />
+          <WidthSelector value={width} onChange={setWidth} />
+        </div>
         <div className="cn-visual-layout">
           <StructureTree editor={editor} />
           <div className="cn-visual-stage" ref={stageRef}>
-            <article className="cn-visual-page prose">
-              <Editor
-                content={content}
-                blocks={livingBlocks}
-                slashCommands={continuumSlashCommands}
-                placeholder="Type / to insert a section, or just start writing..."
-                collaboration={collaboration}
-                onChange={onChange}
-                onReady={handleReady}
-              />
-            </article>
+            <div className="cn-visual-frame" data-width={width}>
+              <CanvasChrome header={chrome.header} footer={chrome.footer}>
+                <article className="cn-visual-page prose">
+                  <Editor
+                    content={content}
+                    blocks={livingBlocks}
+                    slashCommands={continuumSlashCommands}
+                    placeholder="Type / to insert a section, or just start writing..."
+                    collaboration={collaboration}
+                    onChange={onChange}
+                    onReady={handleReady}
+                  />
+                </article>
+              </CanvasChrome>
+            </div>
             <CanvasOverlay editor={editor} containerRef={stageRef} />
           </div>
           <Inspector editor={editor} selected={selected} apiBase={apiBase} />

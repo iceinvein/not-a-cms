@@ -69,3 +69,36 @@ export function moveBlock(
     .run()
   return true
 }
+
+/** A chain that runs a single tr-level command (used for attribute writes). */
+type AttrChain = {
+  command: (
+    fn: (ctx: {
+      tr: { setNodeMarkup: (pos: number, type: undefined, attrs: Record<string, unknown>) => void }
+    }) => boolean,
+  ) => AttrChain
+  run: () => boolean
+}
+
+/** The editor surface attribute writes need. The real Tiptap editor satisfies it. */
+export type AttrEditor = { chain: () => AttrChain }
+
+/**
+ * Write a block's attributes as a single transaction: merge `patch` over `currentAttrs` and apply
+ * them at `pos` via `setNodeMarkup`. One undo step; the living view re-renders from the new attrs.
+ * Shared by the inspector and the on-canvas gutter controls so both write the same node the same way.
+ */
+export function setBlockAttrs(
+  editor: AttrEditor,
+  pos: number,
+  currentAttrs: Record<string, unknown>,
+  patch: Record<string, unknown>,
+): void {
+  editor
+    .chain()
+    .command(({ tr }) => {
+      tr.setNodeMarkup(pos, undefined, { ...currentAttrs, ...patch })
+      return true
+    })
+    .run()
+}

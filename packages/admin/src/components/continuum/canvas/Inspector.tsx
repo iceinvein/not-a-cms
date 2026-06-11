@@ -10,18 +10,26 @@ type TiptapEditor = {
     }
   }
   chain: () => {
-    command: (fn: (opts: { tr: { setNodeMarkup: (pos: number, type: undefined, attrs: Record<string, unknown>) => void } }) => boolean) => { run: () => boolean }
+    command: (
+      fn: (opts: {
+        tr: {
+          setNodeMarkup: (pos: number, type: undefined, attrs: Record<string, unknown>) => void
+        }
+      }) => boolean,
+    ) => { run: () => boolean }
   }
 }
+
 import { coerceArrayValue, emptyValueForField } from "../../../lib/content-fields"
-import { blockSpecs } from "../blocks/specs"
 import { MediaPicker } from "../blocks/media-picker"
+import { blockSpecs } from "../blocks/specs"
 import { FieldRow, humanizeFieldName } from "../InspectorFields"
-import type { CanvasSelection } from "./selection"
-import { LogosControl } from "./inspector-controls/LogosControl"
-import { TiersControl } from "./inspector-controls/TiersControl"
+import { setBlockAttrs } from "./canvas-ops"
 import { GalleryImagesControl } from "./inspector-controls/GalleryImagesControl"
 import { ImageInspector } from "./inspector-controls/ImageInspector"
+import { LogosControl } from "./inspector-controls/LogosControl"
+import { TiersControl } from "./inspector-controls/TiersControl"
+import type { CanvasSelection } from "./selection"
 
 /**
  * Per-block custom controls for object-array fields whose per-item settings are richer than
@@ -83,25 +91,11 @@ export function Inspector({ editor, selected, apiBase = "" }: Props) {
   const attrs = node.attrs as Record<string, unknown>
   const inline = new Set(spec.inlineText ?? [])
 
-  const setAttr = (key: string, value: unknown) => {
-    editor
-      .chain()
-      .command(({ tr }: { tr: { setNodeMarkup: (pos: number, type: undefined, attrs: Record<string, unknown>) => void } }) => {
-        tr.setNodeMarkup(selected.pos, undefined, { ...attrs, [key]: value })
-        return true
-      })
-      .run()
-  }
+  const setAttr = (key: string, value: unknown) =>
+    setBlockAttrs(editor as never, selected.pos, attrs, { [key]: value })
 
-  const setAttrs = (patch: Record<string, unknown>) => {
-    editor
-      .chain()
-      .command(({ tr }) => {
-        tr.setNodeMarkup(selected.pos, undefined, { ...attrs, ...patch })
-        return true
-      })
-      .run()
-  }
+  const setAttrs = (patch: Record<string, unknown>) =>
+    setBlockAttrs(editor as never, selected.pos, attrs, patch)
 
   const CustomPanel = CUSTOM_BLOCK_INSPECTORS[spec.name]
   if (CustomPanel) {
@@ -113,7 +107,9 @@ export function Inspector({ editor, selected, apiBase = "" }: Props) {
     )
   }
 
-  const fields = Object.entries(spec.schema).filter(([key]) => !inline.has(key))
+  const fields = Object.entries(spec.schema).filter(
+    ([key]) => !inline.has(key) && key !== "spacing",
+  )
   const mediaFields = new Set(spec.mediaFields ?? [])
 
   return (
@@ -136,7 +132,14 @@ export function Inspector({ editor, selected, apiBase = "" }: Props) {
         if (def.type === "array") {
           const Custom = CUSTOM_ARRAY_CONTROLS[`${spec.name}:${key}`]
           if (Custom) {
-            return <Custom key={key} value={attrs[key]} onChange={(next) => setAttr(key, next)} apiBase={apiBase} />
+            return (
+              <Custom
+                key={key}
+                value={attrs[key]}
+                onChange={(next) => setAttr(key, next)}
+                apiBase={apiBase}
+              />
+            )
           }
           return (
             <ArrayStructure

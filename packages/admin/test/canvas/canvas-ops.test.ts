@@ -6,6 +6,7 @@ import {
   moveBlock,
   scrollBlockIntoView,
   selectBlockAt,
+  setBlockAttrs,
 } from "../../src/components/continuum/canvas/canvas-ops"
 
 describe("selectBlockAt", () => {
@@ -120,5 +121,34 @@ describe("moveBlock", () => {
     const ok = moveBlock(ed as never, fakeBlocks, 0, 2)
     expect(ok).toBe(false)
     expect(ed.calls).toEqual([])
+  })
+})
+
+describe("setBlockAttrs", () => {
+  test("runs a setNodeMarkup command merging the patch over current attrs", () => {
+    const calls: unknown[][] = []
+    const tr = {
+      setNodeMarkup(pos: number, type: undefined, attrs: Record<string, unknown>) {
+        calls.push(["setNodeMarkup", pos, type, attrs])
+      },
+    }
+    const chain = {
+      command(fn: (ctx: { tr: typeof tr }) => boolean) {
+        fn({ tr })
+        calls.push(["command"])
+        return chain
+      },
+      run() {
+        calls.push(["run"])
+        return true
+      },
+    }
+    const ed = { chain: () => chain }
+    setBlockAttrs(ed as never, 4, { align: "center", overlay: true }, { align: "left" })
+    expect(calls).toEqual([
+      ["setNodeMarkup", 4, undefined, { align: "left", overlay: true }],
+      ["command"],
+      ["run"],
+    ])
   })
 })

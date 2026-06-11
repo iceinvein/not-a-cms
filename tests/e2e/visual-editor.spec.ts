@@ -206,6 +206,60 @@ export async function runVisualEditorSmoke(
   }
   await ctx.screenshot("visual-editor-03-tree-select.png")
 
+  // --- Phase 3B: structural mutation ---
+  // agent-browser's drag synthesizes mouse/pointer events. Those fire the canvas drag handle's
+  // pointer-based reorder, but NOT the structure tree's HTML5 DnD (this build has no native
+  // drag-and-drop synthesis). So the end-to-end reorder is verified through the canvas handle
+  // here; the tree's drag wiring is unit-tested and commits the same moveBlock command.
+  const beforeOrder = bodyBlocks(
+    (await ctx.apiJson<ContentRecord>(`/api/blog_post/${created.id}`)).body,
+  ).map((b) => b.type)
+
+  // Select the hero (first tree row) so its drag handle renders, then drag that handle down onto
+  // the featureGrid block, moving the hero into a middle gap. Dropping over featureGrid (rather
+  // than past the document's trailing paragraph) keeps the hero off the very end, so the editor
+  // does not auto-append a fresh trailing paragraph and the block SET is preserved.
+  await ctx.agent(["click", ".cn-tree li:first-child .cn-tree-row"])
+  await ctx.agent(["wait", "300"], { allowFailure: true })
+  const getBox = async (sel: string) => {
+    const raw = await ctx.agent(["get", "box", sel], { json: true })
+    return JSON.parse(raw).data as { x: number; y: number; width: number; height: number }
+  }
+  const handle = await getBox(".cn-overlay-handle")
+  const target = await getBox(".nac-features")
+  const hx = Math.round(handle.x + handle.width / 2)
+  const hy = Math.round(handle.y + handle.height / 2)
+  const dropY = Math.round(target.y + target.height / 2)
+  // Pointer drag: press on the handle, move toward the target gap (updates the placement line),
+  // then release to commit the moveBlock transaction.
+  await ctx.agent(["mouse", "move", String(hx), String(hy)])
+  await ctx.agent(["mouse", "down"])
+  await ctx.agent(["mouse", "move", String(hx), String(Math.round((hy + dropY) / 2))])
+  await ctx.agent(["mouse", "move", String(hx), String(dropY)])
+  await ctx.agent(["mouse", "up"])
+  await ctx.agent(["wait", "300"], { allowFailure: true })
+
+  // Save so the reorder reaches the model, then refetch.
+  await ctx.agent(["find", "text", "Save", "click"])
+  await ctx.agent(["wait", "1500"], { allowFailure: true })
+  const afterOrder = bodyBlocks(
+    (await ctx.apiJson<ContentRecord>(`/api/blog_post/${created.id}`)).body,
+  ).map((b) => b.type)
+  await ctx.screenshot("visual-editor-04-reorder.png")
+  if (JSON.stringify(afterOrder) === JSON.stringify(beforeOrder)) {
+    throw new Error(
+      `Canvas drag-reorder did not change block order. before=${JSON.stringify(beforeOrder)} after=${JSON.stringify(afterOrder)}`,
+    )
+  }
+  if (
+    afterOrder.length !== beforeOrder.length ||
+    [...afterOrder].sort().join() !== [...beforeOrder].sort().join()
+  ) {
+    throw new Error(
+      `Reorder changed the block SET, not just order. before=${JSON.stringify(beforeOrder)} after=${JSON.stringify(afterOrder)}`,
+    )
+  }
+
   return {
     name: "Visual editor inline-editing smoke",
     details: [
@@ -217,6 +271,7 @@ export async function runVisualEditorSmoke(
       "Toggled back to Document mode losslessly (canvas unmounted).",
       "Re-entered Visual mode: Phase 3A chrome mounted (tree/breadcrumb/overlay) with rows for hero/cta/featureGrid.",
       "Clicked the CTA tree row: inspector bound to Variant and the breadcrumb followed the selection.",
+      "Phase 3B: dragged the hero's canvas handle onto the featureGrid block; the Portable Text block order changed (set preserved) and persisted.",
     ],
   }
 }

@@ -2,8 +2,10 @@
 import type { Editor as TiptapEditor } from "@tiptap/react"
 import type React from "react"
 import { type RefObject, useEffect, useRef, useState } from "react"
+import { blockSpecs } from "../blocks/specs"
+import { BlockControls } from "./BlockControls"
 import { type BlockTreeNode, gapPosition, topLevelBlocks } from "./block-tree"
-import { insertBlockAt, moveBlock } from "./canvas-ops"
+import { insertBlockAt, moveBlock, setBlockAttrs } from "./canvas-ops"
 import { InsertMenu } from "./InsertMenu"
 import {
   type BlockBox,
@@ -41,6 +43,8 @@ export function CanvasOverlay({ editor, containerRef }: Props) {
   // Active drag: the index of the block being dragged and the gap it would drop into.
   const [drag, setDrag] = useState<{ fromIndex: number; targetGap: number | null } | null>(null)
   const dragRef = useRef<{ fromIndex: number } | null>(null)
+  // Holds the active drag's listener-teardown so an unmount mid-drag does not leak window listeners.
+  const dragCleanupRef = useRef<(() => void) | null>(null)
   const boxesRef = useRef<BlockBox[]>([])
   const blocksRef = useRef<BlockTreeNode[]>([])
   const gapsRef = useRef<GapZone[]>([])
@@ -101,6 +105,10 @@ export function CanvasOverlay({ editor, containerRef }: Props) {
     }
   }, [editor, containerRef])
 
+  // Tear down any in-flight drag listeners if the overlay unmounts mid-drag (e.g. toggling to
+  // Document mode while holding a handle), in addition to the normal pointerup teardown.
+  useEffect(() => () => dragCleanupRef.current?.(), [])
+
   // Dismiss the insert menu on Escape or a pointerdown outside the menu/inserter. Registered
   // only while the menu is open; the opening click's pointerdown has already fired by the time
   // this effect runs, so it cannot self-close.
@@ -137,8 +145,8 @@ export function CanvasOverlay({ editor, containerRef }: Props) {
       setDrag((d) => (d ? { ...d, targetGap: gap ? gap.index : null } : d))
     }
     const onDragEnd = (ev: PointerEvent) => {
-      window.removeEventListener("pointermove", onDragMove)
-      window.removeEventListener("pointerup", onDragEnd)
+      dragCleanupRef.current?.()
+      dragCleanupRef.current = null
       const start = dragRef.current
       dragRef.current = null
       setDrag(null)
@@ -147,6 +155,11 @@ export function CanvasOverlay({ editor, containerRef }: Props) {
       const gap = nearestGap(gapsRef.current, ev.clientY - origin.top, Number.POSITIVE_INFINITY)
       if (gap) moveBlock(editor as never, blocksRef.current, start.fromIndex, gap.index)
     }
+    const cleanup = () => {
+      window.removeEventListener("pointermove", onDragMove)
+      window.removeEventListener("pointerup", onDragEnd)
+    }
+    dragCleanupRef.current = cleanup
     window.addEventListener("pointermove", onDragMove)
     window.addEventListener("pointerup", onDragEnd)
   }
@@ -189,6 +202,23 @@ export function CanvasOverlay({ editor, containerRef }: Props) {
                 ⠿
               </button>
             )}
+            {isSelected
+              ? (() => {
+                  const spec = blockSpecs.find((s) => s.name === b.name)
+                  const node = editor?.state.doc.nodeAt(b.pos)
+                  if (!spec || !node) return null
+                  const attrs = node.attrs as Record<string, unknown>
+                  return (
+                    <BlockControls
+                      spec={spec}
+                      attrs={attrs}
+                      commit={(patch) =>
+                        editor && setBlockAttrs(editor as never, b.pos, attrs, patch)
+                      }
+                    />
+                  )
+                })()
+              : null}
           </div>
         )
       })}

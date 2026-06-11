@@ -48,6 +48,8 @@ export async function runVisualEditorSmoke(
   const ctaLabel = "Get started"
   const featureTitle = "Blazing fast"
 
+  await ctx.agent(["set", "viewport", "1700", "1000", "1"], { allowFailure: true })
+
   // Seed a document whose body contains the three Phase 2A living-view blocks.
   const created = await ctx.apiJson<ContentRecord>("/api/blog_post", {
     method: "POST",
@@ -315,6 +317,104 @@ export async function runVisualEditorSmoke(
   }
   await ctx.screenshot("visual-editor-06-spacing.png")
 
+  // ---- Phase 4B: real chrome + responsive frame ----
+  // Widen the viewport so the canvas stage is comfortably wider than the 834px tablet preset,
+  // making the container-query track-count assertions deterministic.
+  await ctx.agent(["set", "viewport", "1700", "1000", "1"], { allowFailure: true })
+  await ctx.agent(["wait", "300"], { allowFailure: true })
+
+  // (a) Chrome renders the real site header and footer inside the frame.
+  const frameCount = (await ctx.agent(["get", "count", ".cn-visual-frame"])).trim()
+  if (frameCount === "0") throw new Error("Phase 4B: .cn-visual-frame not found")
+  if ((await ctx.agent(["get", "count", ".cn-chrome-header .nac-header"])).trim() === "0") {
+    throw new Error("Phase 4B: site header not rendered in canvas")
+  }
+  if ((await ctx.agent(["get", "count", ".cn-chrome-footer .nac-footer"])).trim() === "0") {
+    throw new Error("Phase 4B: site footer not rendered in canvas")
+  }
+  await ctx.screenshot("visual-editor-04b-01-chrome-desktop.png")
+
+  // (b) Container queries fire INSIDE the frame and map frame width -> grid track count.
+  // Widen the viewport so the canvas stage can exceed the tablet preset, then read the frame's
+  // ACTUAL rendered width at each preset and assert the seeded 3-column feature grid's track
+  // count matches the @container rules (collapse to 2 at <=900px, to 1 at <=640px). Robust to
+  // the exact stage width.
+  await ctx.agent(["set", "viewport", "1700", "1000", "1"], { allowFailure: true })
+  await ctx.agent(["wait", "500"], { allowFailure: true })
+  const measureFrame = async () => {
+    const wRaw = (
+      await ctx.agent([
+        "eval",
+        "String(document.querySelector('.cn-visual-frame') ? document.querySelector('.cn-visual-frame').offsetWidth : 0)",
+      ])
+    ).trim()
+    const cRaw = (
+      await ctx.agent([
+        "eval",
+        "(() => { var g = document.querySelector('.nac-feature-grid'); return g ? getComputedStyle(g).gridTemplateColumns : ''; })()",
+      ])
+    ).trim()
+    const w = parseInt(wRaw, 10) || 0
+    const t = cRaw && cRaw !== "none" ? cRaw.trim().split(/\s+/).length : 0
+    return { w, t }
+  }
+  const expectTracks = (w: number) => (w <= 640 ? 1 : w <= 900 ? 2 : 3)
+  await ctx.agent(["click", '.cn-width-selector button[data-width="desktop"]'])
+  await ctx.agent(["wait", "400"], { allowFailure: true })
+  const desk = await measureFrame()
+  if (desk.w <= 640) {
+    throw new Error(`Phase 4B: canvas stage too narrow to exercise container queries (frame=${desk.w}px); widen the e2e viewport`)
+  }
+  if (desk.t !== expectTracks(desk.w)) {
+    throw new Error(`Phase 4B: desktop feature grid tracks=${desk.t} but frame=${desk.w}px expects ${expectTracks(desk.w)}`)
+  }
+  await ctx.agent(["click", '.cn-width-selector button[data-width="mobile"]'])
+  await ctx.agent(["wait", "400"], { allowFailure: true })
+  const mob = await measureFrame()
+  await ctx.screenshot("visual-editor-04b-02-mobile.png")
+  if (mob.w > 640) {
+    throw new Error(`Phase 4B: mobile frame unexpectedly wide (${mob.w}px)`)
+  }
+  if (mob.t !== 1) {
+    throw new Error(`Phase 4B: container query did not collapse the feature grid at mobile (tracks=${mob.t}, frame=${mob.w}px)`)
+  }
+  if (desk.t <= mob.t) {
+    throw new Error(`Phase 4B: feature grid did not reflow across frame widths (desktop=${desk.t}@${desk.w}px vs mobile=${mob.t}@${mob.w}px)`)
+  }
+
+  // (c) Chrome nav responsiveness + inertness, only when the dev site has a nav configured
+  // (the default e2e site may have none, in which case renderSiteChrome emits a bare wordmark).
+  const hasNav = (await ctx.agent(["get", "count", ".cn-chrome-header .nac-nav"])).trim() !== "0"
+  if (hasNav) {
+    const navDisplay = (
+      await ctx.agent(["eval", "getComputedStyle(document.querySelector('.cn-chrome-header .nac-nav')).display"])
+    ).trim()
+    if (!navDisplay.includes("none")) {
+      throw new Error(`Phase 4B: desktop nav still shown at mobile width (display=${navDisplay})`)
+    }
+    await ctx.agent(["click", ".cn-chrome-header .nac-nav-toggle"])
+    await ctx.agent(["wait", "200"], { allowFailure: true })
+    if ((await ctx.agent(["get", "count", ".cn-chrome-header .nac-header[data-open]"])).trim() === "0") {
+      throw new Error("Phase 4B: hamburger did not open the mobile nav")
+    }
+    const urlBefore = (await ctx.agent(["eval", "location.pathname"])).trim()
+    await ctx.agent(["click", ".cn-chrome-header .nac-mobile-nav a"], { allowFailure: true })
+    await ctx.agent(["wait", "300"], { allowFailure: true })
+    if ((await ctx.agent(["eval", "location.pathname"])).trim() !== urlBefore) {
+      throw new Error("Phase 4B: chrome nav link navigated away from the editor")
+    }
+  }
+
+  // (d) The body is still editable inside the frame (back at the desktop preset).
+  await ctx.agent(["click", '.cn-width-selector button[data-width="desktop"]'])
+  await ctx.agent(["wait", "300"], { allowFailure: true })
+  const framedMarker = `framed-${stamp}`
+  await ctx.agent(["click", ".nac-hero-headline"])
+  await ctx.agent(["type", ".nac-hero-headline", framedMarker])
+  await ctx.agent(["wait", "300"], { allowFailure: true })
+  if (!(await ctx.agent(["get", "text", ".nac-hero-headline"])).includes(framedMarker)) {
+    throw new Error("Phase 4B: body not editable inside the frame")
+  }
   return {
     name: "Visual editor inline-editing smoke",
     details: [
@@ -329,6 +429,7 @@ export async function runVisualEditorSmoke(
       "Phase 3B: dragged the hero's canvas handle onto the featureGrid block; the Portable Text block order changed (set preserved) and persisted.",
       "Phase 4A: changed the hero variant from the gutter popover (data-align=left persisted).",
       "Phase 4A: dragged the hero spacing handle; the spacing changed to a non-default step and persisted.",
+      "Phase 4B: chrome renders, mobile width fires container queries, links inert, hamburger toggles, body editable",
     ],
   }
 }

@@ -1,4 +1,6 @@
 // packages/admin/src/components/continuum/canvas/CanvasOverlay.tsx
+
+import type { CursorState } from "@not-a-cms/editor"
 import type { Editor as TiptapEditor } from "@tiptap/react"
 import type React from "react"
 import { type RefObject, useEffect, useRef, useState } from "react"
@@ -15,12 +17,17 @@ import {
   type GapZone,
   nearestGap,
 } from "./overlay-geometry"
+import { remoteSelectionBoxes } from "./presence"
+import { RemoteSelections } from "./RemoteSelections"
 import { useCanvasSelection } from "./selection"
 
 type Props = {
   editor: TiptapEditor | null
   /** The positioned stage the boxes are measured against (wraps the editor + this overlay). */
   containerRef: RefObject<HTMLDivElement | null>
+  /** Remote collaborator cursors (Phase 4C). Each is drawn as a colored outline on the section its
+   *  head falls inside. Omitted/empty when collaboration is off. */
+  cursors?: CursorState[]
 }
 
 /** How close (px) the pointer must be to a gap center for the `+` inserter to appear. */
@@ -35,7 +42,7 @@ const GAP_HOVER_THRESHOLD = 22
  * are derived from a stage pointermove listener plus pure hit tests, so typing is never blocked.
  * Positioning is verified with agent-browser; the geometry is unit-tested in overlay-geometry.
  */
-export function CanvasOverlay({ editor, containerRef }: Props) {
+export function CanvasOverlay({ editor, containerRef, cursors }: Props) {
   const [boxes, setBoxes] = useState<BlockBox[]>([])
   const [hovered, setHovered] = useState<number | null>(null)
   const [hoveredGap, setHoveredGap] = useState<GapZone | null>(null)
@@ -173,6 +180,10 @@ export function CanvasOverlay({ editor, containerRef }: Props) {
   // The `+` shows at the menu's gap while the menu is open, otherwise at the hovered gap.
   const plusGap = menuGap ?? hoveredGap
 
+  // Remote presence (Phase 4C): map each remote cursor's head to the box of its section. blocksRef
+  // and boxes are updated together in recompute(), so they correspond on every render.
+  const remoteSelections = remoteSelectionBoxes(cursors ?? [], blocksRef.current, boxes)
+
   return (
     <div
       className={`cn-overlay${drag ? " cn-dragging" : ""}`}
@@ -222,6 +233,7 @@ export function CanvasOverlay({ editor, containerRef }: Props) {
           </div>
         )
       })}
+      <RemoteSelections selections={remoteSelections} />
       {plusGap ? (
         <button
           type="button"

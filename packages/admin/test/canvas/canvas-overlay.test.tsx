@@ -13,4 +13,20 @@ describe("CanvasOverlay", () => {
     // Effects do not run under SSR, so no boxes are present yet.
     expect(html).not.toContain("cn-overlay-box")
   })
+
+  test("accepts a cursors prop and stays crash-free under SSR (no boxes computed yet)", () => {
+    const cursors = [{ clientId: "a", user: { name: "Ada", color: "#3b82f6" }, anchor: 1, head: 1 }]
+    let html = ""
+    expect(() => {
+      html = renderToString(
+        <CanvasOverlay
+          editor={null}
+          containerRef={createRef<HTMLDivElement>()}
+          cursors={cursors}
+        />,
+      )
+    }).not.toThrow()
+    expect(html).toContain("cn-overlay")
+    expect(html).not.toContain("cn-overlay-remote")
+  })
 })

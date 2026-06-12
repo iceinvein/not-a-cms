@@ -5,7 +5,12 @@ import type { RemoteSelection } from "../../src/components/continuum/canvas/pres
 import { RemoteSelections } from "../../src/components/continuum/canvas/RemoteSelections"
 
 const selections: RemoteSelection[] = [
-  { clientId: "a", color: "#3b82f6", name: "Ada", box: { top: 10, left: 20, width: 600, height: 200 } },
+  {
+    clientId: "a",
+    color: "#3b82f6",
+    name: "Ada",
+    box: { top: 10, left: 20, width: 600, height: 200 },
+  },
 ]
 
 describe("RemoteSelections", () => {

@@ -52,3 +52,22 @@ describe("VisualCanvas Phase 4B responsive frame", () => {
     expect(html).toContain("cn-chrome-footer")
   })
 })
+
+describe("VisualCanvas Phase 4C presence", () => {
+  test("renders the top strip with no avatars when no collaborators are present", () => {
+    const html = renderToString(
+      <VisualCanvas
+        content={[]}
+        apiBase=""
+        collaboration={{
+          serverUrl: "ws://localhost:4321/collab",
+          documentId: "content:blog_post:doc-1:body",
+          user: { name: "Local", color: "#c9956b" },
+        }}
+      />,
+    )
+    expect(html).toContain("cn-visual-topstrip")
+    // No collaborators under SSR (the Editor's callbacks never fire), so the avatar group is absent.
+    expect(html).not.toContain("cn-presence-avatars")
+  })
+})

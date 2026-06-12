@@ -4,7 +4,7 @@
 // node selection (a NodeSelection has a `.node`; text/all selections do not) instead of
 // importing `NodeSelection`.
 
-import type { CollabConfig } from "@not-a-cms/editor"
+import type { CollabConfig, CollabPresenceUser, CursorState } from "@not-a-cms/editor"
 import { Editor } from "@not-a-cms/editor"
 import { renderSiteChrome, resolveSiteChrome } from "@not-a-cms/renderer/site-chrome"
 import { brandCss, frameContainerCss, resolveActiveThemeCss } from "@not-a-cms/renderer/theme"
@@ -16,6 +16,7 @@ import { CanvasChrome } from "./CanvasChrome"
 import { CanvasOverlay } from "./CanvasOverlay"
 import { Inspector } from "./Inspector"
 import { livingBlocks } from "./living-blocks"
+import { PresenceAvatars } from "./PresenceAvatars"
 import { StructureTree } from "./StructureTree"
 import { scopeThemeVariables } from "./scope-theme"
 import { type CanvasSelection, CanvasSelectionContext } from "./selection"
@@ -49,6 +50,8 @@ export function VisualCanvas({ content, onChange, apiBase = "", collaboration }:
   const [width, setWidth] = useState<FrameWidth>("desktop")
   const [selected, setSelected] = useState<CanvasSelection>(null)
   const [editor, setEditor] = useState<TiptapEditor | null>(null)
+  const [collaborators, setCollaborators] = useState<CollabPresenceUser[]>([])
+  const [remoteCursors, setRemoteCursors] = useState<CursorState[]>([])
   // Bumped on every transaction so the tree/breadcrumb re-read the live doc and selection.
   const [, setRevision] = useState(0)
   const stageRef = useRef<HTMLDivElement>(null)
@@ -120,7 +123,10 @@ export function VisualCanvas({ content, onChange, apiBase = "", collaboration }:
         {/* Full-width strip above the three-column layout. */}
         <div className="cn-visual-topstrip">
           <Breadcrumb editor={editor} />
-          <WidthSelector value={width} onChange={setWidth} />
+          <div className="cn-visual-topstrip-right">
+            <PresenceAvatars users={collaborators} />
+            <WidthSelector value={width} onChange={setWidth} />
+          </div>
         </div>
         <div className="cn-visual-layout">
           <StructureTree editor={editor} />
@@ -134,13 +140,16 @@ export function VisualCanvas({ content, onChange, apiBase = "", collaboration }:
                     slashCommands={continuumSlashCommands}
                     placeholder="Type / to insert a section, or just start writing..."
                     collaboration={collaboration}
+                    presence="headless"
+                    onPresenceChange={setCollaborators}
+                    onRemoteCursorsChange={setRemoteCursors}
                     onChange={onChange}
                     onReady={handleReady}
                   />
                 </article>
               </CanvasChrome>
             </div>
-            <CanvasOverlay editor={editor} containerRef={stageRef} />
+            <CanvasOverlay editor={editor} containerRef={stageRef} cursors={remoteCursors} />
           </div>
           <Inspector editor={editor} selected={selected} apiBase={apiBase} />
         </div>

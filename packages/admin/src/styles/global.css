@@ -2796,30 +2796,30 @@ a.crumb:hover {
 
 /* The frame establishes the container context so frameContainerCss @container rules fire
  * when the frame is narrowed to tablet or mobile width. */
+/* Scale-to-fit preview viewport. Sized (in JS) to the scaled frame dimensions and centered, so
+   the frame can be laid out at its true device width and visually scaled down to fit a narrow
+   editor stage without leaving an empty gap below it. Clips the unscaled layout overflow. */
+.cn-visual-frame-viewport {
+  margin-inline: auto;
+  overflow: hidden;
+}
+
+/* The page renders at its true device width (set inline) so its container queries reflow as the
+   real device; the visual scale (also inline) shrinks it to fit. transform-origin top-left keeps
+   the scaled box flush with the viewport's top-left. Preset switching snaps instantly (a device
+   preview, not an animation): tweening the scale while the layout width jumps does not track. */
 .cn-visual-frame {
   container-type: inline-size;
-  margin-inline: auto;
-  width: 100%;
-  transition: width 0.18s ease;
+  transform-origin: top left;
 }
 
-.cn-visual-frame[data-width="tablet"] {
-  width: 834px;
-  max-width: 100%;
-}
-
-.cn-visual-frame[data-width="mobile"] {
-  width: 390px;
-  max-width: 100%;
-}
-
-/* Subtle device-frame treatment for constrained (tablet/mobile) widths. */
-.cn-visual-frame[data-width="tablet"],
-.cn-visual-frame[data-width="mobile"] {
+/* Subtle device-frame bezel for the constrained (tablet/mobile) presets. On the viewport, not the
+   frame, so the border stays crisp (1px) rather than being shrunk by the frame's scale. */
+.cn-visual-frame-viewport[data-width="tablet"],
+.cn-visual-frame-viewport[data-width="mobile"] {
   border: 1px solid var(--border, rgba(0, 0, 0, 0.08));
   border-radius: 12px;
   box-shadow: 0 12px 40px color-mix(in srgb, var(--ink, #1c1917) 8%, transparent);
-  overflow: hidden;
 }
 
 /* Read-only chrome is display-only; clicks are neutralized in CanvasChrome. */

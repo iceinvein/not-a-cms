@@ -9,11 +9,12 @@ import { Editor } from "@not-a-cms/editor"
 import { renderSiteChrome, resolveSiteChrome } from "@not-a-cms/renderer/site-chrome"
 import { brandCss, frameContainerCss, resolveActiveThemeCss } from "@not-a-cms/renderer/theme"
 import type { Editor as TiptapEditor } from "@tiptap/react"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { continuumSlashCommands } from "../blocks"
 import { Breadcrumb } from "./Breadcrumb"
 import { CanvasChrome } from "./CanvasChrome"
 import { CanvasOverlay } from "./CanvasOverlay"
+import { frameLayout } from "./frame-scale"
 import { Inspector } from "./Inspector"
 import { livingBlocks } from "./living-blocks"
 import { PresenceAvatars } from "./PresenceAvatars"
@@ -32,6 +33,10 @@ type Props = {
 }
 
 const LIVING_NAMES = new Set(livingBlocks.map((b) => b.name))
+
+// Measure layout before paint on the client (avoids a first-frame flash of the unscaled frame),
+// but fall back to useEffect under SSR where useLayoutEffect would warn and there is no DOM anyway.
+const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect
 
 /**
  * Visual editing canvas: the same Tiptap Editor and Portable Text body as Document mode,
@@ -55,6 +60,30 @@ export function VisualCanvas({ content, onChange, apiBase = "", collaboration }:
   // Bumped on every transaction so the tree/breadcrumb re-read the live doc and selection.
   const [, setRevision] = useState(0)
   const stageRef = useRef<HTMLDivElement>(null)
+  const frameRef = useRef<HTMLDivElement>(null)
+  // The available stage width and the frame's natural (unscaled) height drive the scale-to-fit
+  // preview: the frame is laid out at its true device width and visually scaled to fit the stage.
+  const [stageWidth, setStageWidth] = useState(0)
+  const [frameHeight, setFrameHeight] = useState(0)
+
+  // Track the stage width and the frame's natural height. `offsetHeight` is the pre-transform
+  // layout height, so it is unaffected by the scale we apply. Both feed the scale-to-fit math
+  // below; neither write changes the value the other reads, so there is no observer feedback loop.
+  useIsomorphicLayoutEffect(() => {
+    const stage = stageRef.current
+    const frame = frameRef.current
+    if (!stage || !frame) return
+    const measure = () => {
+      setStageWidth(stage.clientWidth)
+      setFrameHeight(frame.offsetHeight)
+    }
+    measure()
+    if (typeof ResizeObserver === "undefined") return
+    const ro = new ResizeObserver(measure)
+    ro.observe(stage)
+    ro.observe(frame)
+    return () => ro.disconnect()
+  }, [])
 
   useEffect(() => {
     let active = true
@@ -113,6 +142,14 @@ export function VisualCanvas({ content, onChange, apiBase = "", collaboration }:
 
   const scopedVariables = scopeThemeVariables(theme.variables, ".cn-visual")
 
+  // Scale-to-fit preview: render the frame at its true device width so its `@container` queries
+  // reflow as the real device, then visually scale it to fit the stage. The viewport wrapper is
+  // sized to the scaled dimensions (and centered) so the page below it is not pushed down by the
+  // unscaled layout height.
+  const { layoutWidth, scale } = frameLayout(stageWidth, width)
+  const visualWidth = Math.round(layoutWidth * scale)
+  const visualHeight = Math.round(frameHeight * scale)
+
   return (
     <CanvasSelectionContext.Provider value={selectionValue}>
       <div className="cn-visual">
@@ -131,23 +168,37 @@ export function VisualCanvas({ content, onChange, apiBase = "", collaboration }:
         <div className="cn-visual-layout">
           <StructureTree editor={editor} />
           <div className="cn-visual-stage" ref={stageRef}>
-            <div className="cn-visual-frame" data-width={width}>
-              <CanvasChrome header={chrome.header} footer={chrome.footer}>
-                <article className="cn-visual-page prose">
-                  <Editor
-                    content={content}
-                    blocks={livingBlocks}
-                    slashCommands={continuumSlashCommands}
-                    placeholder="Type / to insert a section, or just start writing..."
-                    collaboration={collaboration}
-                    presence="headless"
-                    onPresenceChange={setCollaborators}
-                    onRemoteCursorsChange={setRemoteCursors}
-                    onChange={onChange}
-                    onReady={handleReady}
-                  />
-                </article>
-              </CanvasChrome>
+            <div
+              className="cn-visual-frame-viewport"
+              data-width={width}
+              style={{
+                width: visualWidth > 0 ? visualWidth : undefined,
+                height: visualHeight > 0 ? visualHeight : undefined,
+              }}
+            >
+              <div
+                className="cn-visual-frame"
+                data-width={width}
+                ref={frameRef}
+                style={{ width: layoutWidth, transform: `scale(${scale})` }}
+              >
+                <CanvasChrome header={chrome.header} footer={chrome.footer}>
+                  <article className="cn-visual-page prose">
+                    <Editor
+                      content={content}
+                      blocks={livingBlocks}
+                      slashCommands={continuumSlashCommands}
+                      placeholder="Type / to insert a section, or just start writing..."
+                      collaboration={collaboration}
+                      presence="headless"
+                      onPresenceChange={setCollaborators}
+                      onRemoteCursorsChange={setRemoteCursors}
+                      onChange={onChange}
+                      onReady={handleReady}
+                    />
+                  </article>
+                </CanvasChrome>
+              </div>
             </div>
             <CanvasOverlay editor={editor} containerRef={stageRef} cursors={remoteCursors} />
           </div>

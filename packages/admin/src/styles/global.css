@@ -1170,6 +1170,23 @@ a.crumb:hover {
   margin: 0 auto;
 }
 
+/* Visual mode uses the full editor width. The Visual canvas is itself a live preview,
+   so the ChannelMirror is not rendered (see Continuum.tsx); the editor collapses to a
+   single column, the document sheet's width cap is lifted, and the side padding is
+   trimmed so the three-column canvas (tree + stage + inspector) has room. Without this,
+   the ChannelMirror side-column plus the 820px sheet cap starve the canvas stage. */
+.cn-root[data-mode="visual"] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.cn-root[data-mode="visual"] .cn-sheet {
+  max-width: none;
+}
+
+.cn-root[data-mode="visual"] .cn-canvas {
+  padding: 32px clamp(16px, 2vw, 32px);
+}
+
 .cn-sheet-head {
   display: flex;
   align-items: center;

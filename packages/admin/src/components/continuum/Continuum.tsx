@@ -161,7 +161,7 @@ function ContinuumInner({
   const statusLabel = String(data.status ?? "draft").replace(/_/g, " ")
 
   return (
-    <div className="cn-root" data-site-base={siteBase}>
+    <div className="cn-root" data-site-base={siteBase} data-mode={editorMode}>
       <main className="cn-canvas">
         <section className="cn-sheet" aria-label={`${collectionLabel} document`}>
           <div className="cn-sheet-head">
@@ -247,12 +247,16 @@ function ContinuumInner({
         </section>
       </main>
 
-      <ChannelMirror
-        apiBase={apiBase}
-        blocks={bodyBlocks}
-        title={title || "Untitled"}
-        byline={byline}
-      />
+      {/* Visual mode is itself a live, brand-styled preview, so the ChannelMirror is
+          redundant there and is hidden to give the canvas the full editor width. */}
+      {editorMode === "document" ? (
+        <ChannelMirror
+          apiBase={apiBase}
+          blocks={bodyBlocks}
+          title={title || "Untitled"}
+          byline={byline}
+        />
+      ) : null}
 
       <div className="cn-status">
         <span className="cn-status-state">{saving ? "Saving..." : error || statusLabel}</span>

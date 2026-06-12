@@ -341,21 +341,26 @@ export async function runVisualEditorSmoke(
   // the exact stage width.
   await ctx.agent(["set", "viewport", "1700", "1000", "1"], { allowFailure: true })
   await ctx.agent(["wait", "500"], { allowFailure: true })
+  // agent-browser's `eval` wraps string results in literal double quotes (e.g. `"1280"`), which
+  // breaks parseInt. Strip surrounding quotes before parsing. The frame now renders at its true
+  // device width (scale-to-fit preview), so offsetWidth is the device width the container queries
+  // see, which is exactly what we want to map to a track count.
+  const unquote = (raw: string) => raw.trim().replace(/^"|"$/g, "")
   const measureFrame = async () => {
-    const wRaw = (
+    const wRaw = unquote(
       await ctx.agent([
         "eval",
         "String(document.querySelector('.cn-visual-frame') ? document.querySelector('.cn-visual-frame').offsetWidth : 0)",
-      ])
-    ).trim()
-    const cRaw = (
+      ]),
+    )
+    const cRaw = unquote(
       await ctx.agent([
         "eval",
         "(() => { var g = document.querySelector('.nac-feature-grid'); return g ? getComputedStyle(g).gridTemplateColumns : ''; })()",
-      ])
-    ).trim()
+      ]),
+    )
     const w = parseInt(wRaw, 10) || 0
-    const t = cRaw && cRaw !== "none" ? cRaw.trim().split(/\s+/).length : 0
+    const t = cRaw && cRaw !== "none" ? cRaw.split(/\s+/).length : 0
     return { w, t }
   }
   const expectTracks = (w: number) => (w <= 640 ? 1 : w <= 900 ? 2 : 3)

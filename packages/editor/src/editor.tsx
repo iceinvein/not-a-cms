@@ -6,7 +6,12 @@ import StarterKit from "@tiptap/starter-kit"
 import { useEffect, useMemo, useRef } from "react"
 import type { DefinedBlock } from "./blocks"
 import { CalloutExtension } from "./blocks/callout"
-import { type CollabConfig, useCollaboration } from "./collaboration/provider"
+import {
+  type CollabConfig,
+  type CollabPresenceUser,
+  type CursorState,
+  useCollaboration,
+} from "./collaboration/provider"
 import { RemoteCursors, setRemoteCursors } from "./collaboration/remote-cursors"
 import { DEFAULT_COMMANDS, type SlashCommandItem, SlashExtension } from "./extensions/slash-command"
 import { BubbleToolbar } from "./menus/bubble-menu"
@@ -26,6 +31,14 @@ export type EditorProps = {
   slashCommands?: SlashCommandItem[]
   /** Called once with the Tiptap editor instance after creation (for selection/attr access). */
   onReady?: (editor: NonNullable<ReturnType<typeof useEditor>>) => void
+  /** How collaborator presence is surfaced. "inline" (default) renders the built-in avatar strip
+   *  and inline remote cursors. "headless" renders neither (an outer surface draws presence) but
+   *  still fires the callbacks below and keeps broadcasting the local selection. */
+  presence?: "inline" | "headless"
+  /** Fired whenever the set of online collaborators changes. */
+  onPresenceChange?: (users: CollabPresenceUser[]) => void
+  /** Fired whenever remote cursor positions change. */
+  onRemoteCursorsChange?: (cursors: CursorState[]) => void
 }
 
 export function Editor({
@@ -38,6 +51,9 @@ export function Editor({
   blocks = [],
   slashCommands = [],
   onReady,
+  presence = "inline",
+  onPresenceChange,
+  onRemoteCursorsChange,
 }: EditorProps) {
   const collab = useCollaboration(collaboration)
   const collabProviderRef = useRef(collab.provider)
@@ -106,8 +122,21 @@ export function Editor({
   // biome-ignore lint/correctness/useExhaustiveDependencies: keyed on collaboration's truthiness plus the live cursor map; the collaboration object identity is intentionally not a trigger
   useEffect(() => {
     if (!editor || !collaboration) return
+    // Headless mode does not paint incoming remote carets/selections; the canvas draws presence
+    // at the section level instead. The local selection is still broadcast (RemoteCursors stays).
+    if (presence === "headless") return
     setRemoteCursors(editor, collab.cursors)
-  }, [editor, Boolean(collaboration), collab.cursors])
+  }, [editor, Boolean(collaboration), collab.cursors, presence])
+
+  useEffect(() => {
+    if (!collaboration) return
+    onPresenceChange?.(collab.users)
+  }, [collaboration, onPresenceChange, collab.users])
+
+  useEffect(() => {
+    if (!collaboration) return
+    onRemoteCursorsChange?.(collab.cursors)
+  }, [collaboration, onRemoteCursorsChange, collab.cursors])
 
   useEffect(() => {
     if (editor && onReady) onReady(editor)
@@ -118,7 +147,7 @@ export function Editor({
   return (
     <div className="not-a-cms-editor" style={{ position: "relative" }}>
       <style>{remoteCursorStyles}</style>
-      {collaboration && collab.users.length > 0 && (
+      {presence !== "headless" && collaboration && collab.users.length > 0 && (
         <div
           className="not-a-cms-collaborators"
           style={{

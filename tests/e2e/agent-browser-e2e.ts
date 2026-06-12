@@ -5,7 +5,7 @@ import { runAutomationDryRunSmoke } from "./automation-dry-run.spec"
 import { runAutomationLiveStreamSmoke } from "./automation-live-stream.spec"
 import { runMediaPreviewSmoke } from "./media-preview.spec"
 import { runVaultPolishSmoke } from "./vault-polish.spec"
-import { runVisualEditorSmoke } from "./visual-editor.spec"
+import { runVisualEditorSmoke, runVisualPresenceSmoke } from "./visual-editor.spec"
 
 type AgentResult = {
   stdout: string
@@ -130,6 +130,7 @@ async function main() {
         { name: "Automation dry-run smoke", run: runAutomationDryRunSmoke },
         { name: "Automation live run streaming smoke", run: runAutomationLiveStreamSmoke },
         { name: "Visual editor inline-editing smoke", run: runVisualEditorSmoke },
+        { name: "Visual editor presence smoke", run: runVisualPresenceSmoke },
       ]
     // Optional focus filter: E2E_ONLY=<substring> runs only matching scenarios (case-insensitive).
     const only = process.env.E2E_ONLY?.toLowerCase()

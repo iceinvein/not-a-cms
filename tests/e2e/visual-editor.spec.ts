@@ -363,10 +363,14 @@ export async function runVisualEditorSmoke(
   await ctx.agent(["wait", "400"], { allowFailure: true })
   const desk = await measureFrame()
   if (desk.w <= 640) {
-    throw new Error(`Phase 4B: canvas stage too narrow to exercise container queries (frame=${desk.w}px); widen the e2e viewport`)
+    throw new Error(
+      `Phase 4B: canvas stage too narrow to exercise container queries (frame=${desk.w}px); widen the e2e viewport`,
+    )
   }
   if (desk.t !== expectTracks(desk.w)) {
-    throw new Error(`Phase 4B: desktop feature grid tracks=${desk.t} but frame=${desk.w}px expects ${expectTracks(desk.w)}`)
+    throw new Error(
+      `Phase 4B: desktop feature grid tracks=${desk.t} but frame=${desk.w}px expects ${expectTracks(desk.w)}`,
+    )
   }
   await ctx.agent(["click", '.cn-width-selector button[data-width="mobile"]'])
   await ctx.agent(["wait", "400"], { allowFailure: true })
@@ -376,10 +380,14 @@ export async function runVisualEditorSmoke(
     throw new Error(`Phase 4B: mobile frame unexpectedly wide (${mob.w}px)`)
   }
   if (mob.t !== 1) {
-    throw new Error(`Phase 4B: container query did not collapse the feature grid at mobile (tracks=${mob.t}, frame=${mob.w}px)`)
+    throw new Error(
+      `Phase 4B: container query did not collapse the feature grid at mobile (tracks=${mob.t}, frame=${mob.w}px)`,
+    )
   }
   if (desk.t <= mob.t) {
-    throw new Error(`Phase 4B: feature grid did not reflow across frame widths (desktop=${desk.t}@${desk.w}px vs mobile=${mob.t}@${mob.w}px)`)
+    throw new Error(
+      `Phase 4B: feature grid did not reflow across frame widths (desktop=${desk.t}@${desk.w}px vs mobile=${mob.t}@${mob.w}px)`,
+    )
   }
 
   // (c) Chrome nav responsiveness + inertness, only when the dev site has a nav configured
@@ -387,14 +395,19 @@ export async function runVisualEditorSmoke(
   const hasNav = (await ctx.agent(["get", "count", ".cn-chrome-header .nac-nav"])).trim() !== "0"
   if (hasNav) {
     const navDisplay = (
-      await ctx.agent(["eval", "getComputedStyle(document.querySelector('.cn-chrome-header .nac-nav')).display"])
+      await ctx.agent([
+        "eval",
+        "getComputedStyle(document.querySelector('.cn-chrome-header .nac-nav')).display",
+      ])
     ).trim()
     if (!navDisplay.includes("none")) {
       throw new Error(`Phase 4B: desktop nav still shown at mobile width (display=${navDisplay})`)
     }
     await ctx.agent(["click", ".cn-chrome-header .nac-nav-toggle"])
     await ctx.agent(["wait", "200"], { allowFailure: true })
-    if ((await ctx.agent(["get", "count", ".cn-chrome-header .nac-header[data-open]"])).trim() === "0") {
+    if (
+      (await ctx.agent(["get", "count", ".cn-chrome-header .nac-header[data-open]"])).trim() === "0"
+    ) {
       throw new Error("Phase 4B: hamburger did not open the mobile nav")
     }
     const urlBefore = (await ctx.agent(["eval", "location.pathname"])).trim()
@@ -431,5 +444,113 @@ export async function runVisualEditorSmoke(
       "Phase 4A: dragged the hero spacing handle; the spacing changed to a non-default step and persisted.",
       "Phase 4B: chrome renders, mobile width fires container queries, links inert, hamburger toggles, body editable",
     ],
+  }
+}
+
+/**
+ * Phase 4C presence smoke: collaboration only turns on for documents that start empty
+ * (shouldEnableContinuumCollaboration requires initialBlockCount === 0), so this seeds an empty
+ * blog_post, opens it in Visual mode, then opens a SECOND WebSocket from the page that acts as a
+ * remote collaborator over the real /collab protocol. It asserts the collaborator's avatar appears
+ * in the top strip, a colored section outline appears, and that neither the inline remote caret nor
+ * the built-in dark collaborator strip leaks into the visual canvas (headless presence).
+ */
+export async function runVisualPresenceSmoke(
+  ctx: E2EContext,
+): Promise<{ name: string; details: string[] }> {
+  const stamp = Date.now()
+  const slug = `visual-presence-e2e-${stamp}`
+  const title = `Visual Presence E2E ${stamp}`
+
+  await ctx.agent(["set", "viewport", "1700", "1000", "1"], { allowFailure: true })
+
+  // Seed an EMPTY body so Continuum enables collaboration (initial block count 0).
+  const created = await ctx.apiJson<ContentRecord>("/api/blog_post", {
+    method: "POST",
+    body: JSON.stringify({
+      title,
+      slug,
+      excerpt: "Visual presence smoke",
+      status: "draft",
+      tags: ["e2e", "visual-presence"],
+      body: [],
+    }),
+  })
+
+  await ctx.agent(["open", `${ctx.adminBase}/content/blog_post/${created.id}`])
+  await ctx.agent(["wait", "--load", "networkidle"], { allowFailure: true })
+  await ctx.agent(["wait", "800"], { allowFailure: true })
+
+  // Into Visual mode (first toggle button).
+  await ctx.agent(["click", ".cn-mode-toggle button:first-child"])
+  await ctx.agent(["wait", "--load", "networkidle"], { allowFailure: true })
+  await ctx.agent(["wait", "1200"], { allowFailure: true })
+  if ((await ctx.agent(["get", "count", ".cn-visual"])).trim() === "0") {
+    throw new Error("Phase 4C: Visual mode did not mount the canvas")
+  }
+
+  // Open a synthetic remote collaborator on the same collab doc and send presence + cursor frames.
+  const wsBase = ctx.apiBase.replace(/^http/, "ws")
+  const docId = `content:blog_post:${created.id}:body`
+  const wsUrl = `${wsBase}/collab?doc=${encodeURIComponent(docId)}`
+  const remoteUser = { name: "Remote Tester", color: "#3b82f6" }
+  const openRemote = `(() => {
+    const ws = new WebSocket(${JSON.stringify(wsUrl)});
+    window.__e2eRemote = ws;
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ type: "presence", clientId: "e2e-remote", user: ${JSON.stringify(remoteUser)}, status: "online" }));
+      ws.send(JSON.stringify({ type: "cursor", clientId: "e2e-remote", user: ${JSON.stringify(remoteUser)}, anchor: 1, head: 1 }));
+    };
+    return "opened";
+  })()`
+  await ctx.agent(["eval", openRemote])
+  await ctx.agent(["wait", "1500"], { allowFailure: true })
+  await ctx.screenshot("visual-editor-04c-presence.png")
+
+  try {
+    // (a) The collaborator avatar appears in the top strip.
+    if (
+      (await ctx.agent(["get", "count", ".cn-presence-avatars .cn-presence-avatar"])).trim() === "0"
+    ) {
+      throw new Error("Phase 4C: collaborator avatar did not appear in the top strip")
+    }
+    if (!(await ctx.agent(["get", "html", ".cn-presence-avatars"])).includes("Remote Tester")) {
+      throw new Error("Phase 4C: collaborator avatar is missing the collaborator name")
+    }
+
+    // (b) A colored section outline appears for the remote selection (scoped to the canvas).
+    if ((await ctx.agent(["get", "count", ".cn-visual .cn-overlay-remote"])).trim() === "0") {
+      throw new Error("Phase 4C: remote selection outline did not appear")
+    }
+
+    // (c) Headless presence: no inline remote caret and no built-in dark strip inside the canvas.
+    if ((await ctx.agent(["get", "count", ".cn-visual .nacms-remote-caret"])).trim() !== "0") {
+      throw new Error("Phase 4C: inline remote caret leaked into the visual canvas")
+    }
+    if ((await ctx.agent(["get", "count", ".cn-visual .not-a-cms-collaborators"])).trim() !== "0") {
+      throw new Error("Phase 4C: built-in collaborator strip leaked into the visual canvas")
+    }
+
+    return {
+      name: "Visual editor presence smoke",
+      details: [
+        `Seeded empty blog_post ${created.id} so Continuum enabled collaboration.`,
+        "Opened a synthetic remote collaborator over the real /collab protocol from the page.",
+        "Collaborator avatar rendered in the canvas top strip with the collaborator name.",
+        "A colored section outline rendered for the remote selection.",
+        "Headless presence held: no inline remote caret and no built-in collaborator strip in the canvas.",
+      ],
+    }
+  } finally {
+    // Always close the synthetic collaborator, even if an assertion above threw, so it cannot keep
+    // broadcasting presence into later scenarios that share this browser session. Closing happens
+    // after the assertions so the avatar/outline are still present while they are checked.
+    await ctx.agent(
+      [
+        "eval",
+        "(() => { if (window.__e2eRemote) window.__e2eRemote.close(); return 'closed'; })()",
+      ],
+      { allowFailure: true },
+    )
   }
 }

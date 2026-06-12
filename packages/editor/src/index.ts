@@ -12,8 +12,10 @@ export {
 } from "./blocks"
 export { CalloutExtension } from "./blocks/callout"
 // Collaboration
+export { readableTextColor, safeCssColor } from "./collaboration/color"
 export {
   type CollabConfig,
+  type CollabPresenceUser,
   type CollabUser,
   type CursorState,
   useCollaboration,

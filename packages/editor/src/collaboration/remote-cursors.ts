@@ -1,6 +1,7 @@
 import { type Editor, Extension } from "@tiptap/core"
 import { Plugin, PluginKey } from "@tiptap/pm/state"
 import { Decoration, DecorationSet, type EditorView } from "@tiptap/pm/view"
+import { readableTextColor, safeCssColor } from "./color"
 import type { CursorState } from "./provider"
 
 type RemoteCursorsOptions = {
@@ -139,34 +140,4 @@ function createSelectionEmitter(view: EditorView, options: RemoteCursorsOptions)
 
 function clampPosition(position: number, documentSize: number): number {
   return Math.max(0, Math.min(position, documentSize))
-}
-
-function safeCssColor(color: string): string {
-  const value = color.trim()
-  if (/^#[0-9a-f]{3,8}$/i.test(value)) return value
-  if (/^rgba?\([\d\s.,%]+\)$/i.test(value)) return value
-  if (/^hsla?\([\d\s.,%]+\)$/i.test(value)) return value
-  return "#38bdf8"
-}
-
-function readableTextColor(color: string): string {
-  const hex = expandHex(color)
-  if (!hex) return "#fafafa"
-
-  const red = Number.parseInt(hex.slice(0, 2), 16)
-  const green = Number.parseInt(hex.slice(2, 4), 16)
-  const blue = Number.parseInt(hex.slice(4, 6), 16)
-  const luminance = (0.299 * red + 0.587 * green + 0.114 * blue) / 255
-  return luminance > 0.62 ? "#0a0a0c" : "#fafafa"
-}
-
-function expandHex(color: string): string | null {
-  const match = color.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i)
-  if (!match) return null
-  const value = match[1]!
-  if (value.length === 6) return value
-  return value
-    .split("")
-    .map((char) => char + char)
-    .join("")
 }

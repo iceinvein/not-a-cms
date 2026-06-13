@@ -1,4 +1,4 @@
-import { adminApiFetch, joinAdminApiUrl } from "./api"
+import { AdminApiError, adminApiFetch, joinAdminApiUrl } from "./api"
 
 export type RoleDefinition = {
   key: string
@@ -57,7 +57,7 @@ export type AuditQuery = {
 
 export async function listRoles(apiBase: string): Promise<RoleDefinition[]> {
   const res = await adminApiFetch(apiBase, "/api/_roles")
-  if (!res.ok) throw new Error("Failed to load roles")
+  if (!res.ok) throw new AdminApiError(res.status, "Failed to load roles")
   const body = await res.json()
   return body.data ?? []
 }
@@ -71,7 +71,7 @@ export async function saveRoles(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ roles }),
   })
-  if (!res.ok) throw new Error("Failed to save roles")
+  if (!res.ok) throw new AdminApiError(res.status, "Failed to save roles")
   const body = await res.json()
   return body.data ?? roles
 }
@@ -86,14 +86,14 @@ export async function listAuditEvents(
   }
   const path = `/api/_audit${params.size > 0 ? `?${params.toString()}` : ""}`
   const res = await fetch(joinAdminApiUrl(apiBase, path), { credentials: "include" })
-  if (!res.ok) throw new Error("Failed to load audit events")
+  if (!res.ok) throw new AdminApiError(res.status, "Failed to load audit events")
   const body = await res.json()
   return body.data ?? []
 }
 
 export async function listTeamMembers(apiBase: string): Promise<TeamMember[]> {
   const res = await adminApiFetch(apiBase, "/api/_users")
-  if (!res.ok) throw new Error("Failed to load team members")
+  if (!res.ok) throw new AdminApiError(res.status, "Failed to load team members")
   const body = await res.json()
   return body.data ?? []
 }
@@ -108,13 +108,13 @@ export async function updateTeamMemberRole(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   })
-  if (!res.ok) throw new Error("Failed to update team member")
+  if (!res.ok) throw new AdminApiError(res.status, "Failed to update team member")
   return res.json()
 }
 
 export async function listInvites(apiBase: string): Promise<PendingInvite[]> {
   const res = await adminApiFetch(apiBase, "/api/_invites")
-  if (!res.ok) throw new Error("Failed to load invites")
+  if (!res.ok) throw new AdminApiError(res.status, "Failed to load invites")
   const body = await res.json()
   return body.data ?? []
 }
@@ -125,7 +125,7 @@ export async function createInvite(apiBase: string, input: InviteInput): Promise
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   })
-  if (!res.ok) throw new Error("Failed to create invite")
+  if (!res.ok) throw new AdminApiError(res.status, "Failed to create invite")
   return res.json()
 }
 
@@ -133,7 +133,7 @@ export async function revokeInvite(apiBase: string, inviteId: string): Promise<b
   const res = await adminApiFetch(apiBase, `/api/_invites/${encodeURIComponent(inviteId)}`, {
     method: "DELETE",
   })
-  if (!res.ok) throw new Error("Failed to revoke invite")
+  if (!res.ok) throw new AdminApiError(res.status, "Failed to revoke invite")
   const body = await res.json()
   return Boolean(body.revoked)
 }

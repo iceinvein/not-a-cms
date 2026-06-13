@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { adminApiFetch, messageForAdminResponse } from "../lib/api"
-import { EmptyState, ErrorState, LoadingState } from "./AdminState"
+import { EmptyState, ErrorState, ForbiddenState, LoadingState } from "./AdminState"
 
 type Webhook = {
   id: string
@@ -36,6 +36,7 @@ export function WebhookManager({ apiBase = "" }: Props) {
   const [formCollection, setFormCollection] = useState("")
   const [formSecret, setFormSecret] = useState("")
   const [error, setError] = useState("")
+  const [forbidden, setForbidden] = useState(false)
   const [logsByWebhook, setLogsByWebhook] = useState<Record<string, WebhookDelivery[]>>({})
   const [replayingLogId, setReplayingLogId] = useState("")
 
@@ -53,6 +54,8 @@ export function WebhookManager({ apiBase = "" }: Props) {
         const hooks = data.data || []
         setWebhooks(hooks)
         fetchLogs(hooks)
+      } else if (res.status === 403) {
+        setForbidden(true)
       } else {
         setError(messageForAdminResponse(res, "Could not load webhooks."))
       }
@@ -139,6 +142,9 @@ export function WebhookManager({ apiBase = "" }: Props) {
 
   if (loading)
     return <LoadingState title="Loading webhooks" description="Fetching delivery endpoints." />
+
+  if (forbidden)
+    return <ForbiddenState description="Webhook configuration is limited to administrators." />
 
   return (
     <div className="space-y-8">

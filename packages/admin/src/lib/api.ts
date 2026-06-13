@@ -40,6 +40,22 @@ export function messageForAdminResponse(
   return fallback
 }
 
+/** Error thrown by admin API client helpers that preserves the HTTP status. */
+export class AdminApiError extends Error {
+  constructor(
+    readonly status: number,
+    message: string,
+  ) {
+    super(message)
+    this.name = "AdminApiError"
+  }
+}
+
+/** True when an error is a 403 (forbidden / insufficient role) from the admin API. */
+export function isForbiddenError(error: unknown): boolean {
+  return error instanceof AdminApiError && error.status === 403
+}
+
 export function createAdminFetchInit(options: AdminApiFetchOptions = {}): RequestInit | undefined {
   if (!options.cookie) return undefined
   return { headers: { cookie: options.cookie } }

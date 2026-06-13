@@ -14,7 +14,8 @@ import {
   type TeamMember,
   updateTeamMemberRole,
 } from "../lib/access"
-import { EmptyState, ErrorState, LoadingState } from "./AdminState"
+import { isForbiddenError } from "../lib/api"
+import { EmptyState, ErrorState, ForbiddenState, LoadingState } from "./AdminState"
 
 type Props = {
   apiBase?: string
@@ -31,6 +32,7 @@ export function AccessSettings({ apiBase = "" }: Props) {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState("")
+  const [forbidden, setForbidden] = useState(false)
   const [inviteEmail, setInviteEmail] = useState("")
   const [inviteRole, setInviteRole] = useState("")
   const [inviteToken, setInviteToken] = useState("")
@@ -54,8 +56,10 @@ export function AccessSettings({ apiBase = "" }: Props) {
         setAuditEvents(nextEvents)
         setInviteRole((current) => current || nextRoles[0]?.key || "")
       })
-      .catch(() => {
-        if (!cancelled) setError("Could not load access settings.")
+      .catch((err) => {
+        if (cancelled) return
+        if (isForbiddenError(err)) setForbidden(true)
+        else setError("Could not load access settings.")
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -157,6 +161,20 @@ export function AccessSettings({ apiBase = "" }: Props) {
     } finally {
       setRevokingInvite(null)
     }
+  }
+
+  if (forbidden) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h2 className="text-base font-semibold text-[#fafafa]">Access Control</h2>
+          <p className="text-sm text-[#71717a]">
+            Manage role labels used by schema field permissions.
+          </p>
+        </div>
+        <ForbiddenState description="Access control is limited to administrators." />
+      </div>
+    )
   }
 
   return (

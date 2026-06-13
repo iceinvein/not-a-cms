@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { adminApiFetch, messageForAdminResponse } from "../../lib/api"
 import { flowToReadable, type RuleToken } from "../../lib/automations/readable"
-import { EmptyState, ErrorState, LoadingState } from "../AdminState"
+import { EmptyState, ErrorState, ForbiddenState, LoadingState } from "../AdminState"
 import type { Flow } from "./flow-types"
 import { RuleEditor } from "./RuleEditor"
 
@@ -38,11 +38,16 @@ export function Rules({ apiBase = "", initialFlows, initialSelectedId }: Props) 
   const [loading, setLoading] = useState(!initialFlows)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState("")
+  const [forbidden, setForbidden] = useState(false)
 
   const fetchFlows = async () => {
     setError("")
     try {
       const res = await adminApiFetch(apiBase, "/api/_flows")
+      if (res.status === 403) {
+        setForbidden(true)
+        return
+      }
       if (!res.ok) {
         setError(messageForAdminResponse(res, "Could not load rules."))
         return
@@ -97,6 +102,9 @@ export function Rules({ apiBase = "", initialFlows, initialSelectedId }: Props) 
 
   if (loading)
     return <LoadingState title="Loading rules" description="Fetching automation definitions." />
+
+  if (forbidden)
+    return <ForbiddenState description="Automation rules are limited to administrators." />
 
   const selectedFlow = flows.find((flow) => flow.id === selectedId) ?? null
 

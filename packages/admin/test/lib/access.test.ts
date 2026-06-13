@@ -10,6 +10,7 @@ import {
   saveRoles,
   updateTeamMemberRole,
 } from "../../src/lib/access"
+import { AdminApiError, isForbiddenError } from "../../src/lib/api"
 
 const originalFetch = globalThis.fetch
 
@@ -127,5 +128,33 @@ describe("admin access API client", () => {
     })
     expect(calls[2]?.url).toBe("https://cms.example.test/api/_invites/invite-1")
     expect(calls[2]?.init?.method).toBe("DELETE")
+  })
+
+  test("rejects with a forbidden AdminApiError when a loader returns 403", async () => {
+    globalThis.fetch = (async (_url: string | URL | Request, _init?: RequestInit) =>
+      Response.json({ error: "Forbidden" }, { status: 403 })) as typeof fetch
+
+    const error = await listRoles("https://cms.example.test").then(
+      () => null,
+      (err) => err,
+    )
+
+    expect(error).toBeInstanceOf(AdminApiError)
+    expect((error as AdminApiError).status).toBe(403)
+    expect(isForbiddenError(error)).toBe(true)
+  })
+
+  test("preserves non-403 status on loader failures so they are not treated as forbidden", async () => {
+    globalThis.fetch = (async (_url: string | URL | Request, _init?: RequestInit) =>
+      Response.json({ error: "Server error" }, { status: 500 })) as typeof fetch
+
+    const error = await listTeamMembers("https://cms.example.test").then(
+      () => null,
+      (err) => err,
+    )
+
+    expect(error).toBeInstanceOf(AdminApiError)
+    expect((error as AdminApiError).status).toBe(500)
+    expect(isForbiddenError(error)).toBe(false)
   })
 })

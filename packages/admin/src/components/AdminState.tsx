@@ -1,8 +1,15 @@
-import { AlertCircle, CircleDashed, Inbox } from "lucide-react"
+import { AlertCircle, CircleDashed, Inbox, Lock } from "lucide-react"
 import type { ReactNode } from "react"
 
 type StateProps = {
   title: string
+  description?: string
+  action?: ReactNode
+  compact?: boolean
+}
+
+type ForbiddenStateProps = {
+  title?: string
   description?: string
   action?: ReactNode
   compact?: boolean
@@ -51,6 +58,29 @@ export function ErrorState({ title, description, action, compact = false }: Stat
           {action && <div className="mt-4">{action}</div>}
         </div>
       </div>
+    </div>
+  )
+}
+
+/**
+ * Neutral "you need a higher role" notice. Distinct from ErrorState: a missing
+ * permission is an expected outcome for non-admins, not a failure, so it reads
+ * calm rather than alarming (no red danger styling).
+ */
+export function ForbiddenState({
+  title = "Admin access required",
+  description = "This area is limited to administrators. Ask an administrator to grant you access.",
+  action,
+  compact = false,
+}: ForbiddenStateProps) {
+  return (
+    <div
+      className={`${tone.neutral} rounded-lg border ${compact ? "px-4 py-5" : "p-8"} text-center`}
+    >
+      <Lock className="mx-auto mb-3 h-5 w-5 text-[#71717a]" />
+      <p className="text-sm font-medium text-[#fafafa]">{title}</p>
+      {description && <p className="mx-auto mt-1 max-w-md text-sm text-[#71717a]">{description}</p>}
+      {action && <div className="mt-5">{action}</div>}
     </div>
   )
 }

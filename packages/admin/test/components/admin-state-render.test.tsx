@@ -1,6 +1,11 @@
 import { describe, expect, test } from "bun:test"
 import { renderToString } from "react-dom/server"
-import { EmptyState, ErrorState, LoadingState } from "../../src/components/AdminState"
+import {
+  EmptyState,
+  ErrorState,
+  ForbiddenState,
+  LoadingState,
+} from "../../src/components/AdminState"
 
 describe("AdminState", () => {
   test("renders consistent loading, empty, and error states", () => {
@@ -28,5 +33,27 @@ describe("AdminState", () => {
     expect(empty).toContain("Upload")
     expect(error).toContain("Permission needed")
     expect(error).toContain("Try again")
+  })
+
+  test("ForbiddenState renders default admin-only copy in a neutral (non-error) tone", () => {
+    const html = renderToString(<ForbiddenState />)
+
+    expect(html).toContain("Admin access required")
+    expect(html).toContain("administrator")
+    // Neutral tone: must not use the red danger styling reserved for real errors.
+    expect(html).not.toContain("239,68,68")
+    expect(html).not.toContain("#ef4444")
+  })
+
+  test("ForbiddenState accepts custom description and an action", () => {
+    const html = renderToString(
+      <ForbiddenState
+        description="Webhook configuration is limited to administrators."
+        action={<button type="button">Back to dashboard</button>}
+      />,
+    )
+
+    expect(html).toContain("Webhook configuration is limited to administrators.")
+    expect(html).toContain("Back to dashboard")
   })
 })

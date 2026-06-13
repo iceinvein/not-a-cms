@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { adminApiFetch, messageForAdminResponse } from "../lib/api"
+import { confirmDelete } from "../lib/confirm-copy"
 import { EmptyState, ErrorState, ForbiddenState, LoadingState } from "./AdminState"
 
 type Webhook = {
@@ -101,19 +102,42 @@ export function WebhookManager({ apiBase = "" }: Props) {
     setLogsByWebhook(Object.fromEntries(entries))
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Delete this webhook?")) return
-    await adminApiFetch(apiBase, `/api/_webhooks/${id}`, { method: "DELETE" })
-    fetchWebhooks()
+  const handleDelete = async (hook: Webhook) => {
+    if (!confirm(confirmDelete({ name: hook.url }))) return
+    setError("")
+    try {
+      const res = await adminApiFetch(apiBase, `/api/_webhooks/${hook.id}`, { method: "DELETE" })
+      if (!res.ok) {
+        setError(messageForAdminResponse(res, "Could not delete the webhook."))
+        return
+      }
+      fetchWebhooks()
+    } catch {
+      setError("Could not reach the server.")
+    }
   }
 
   const handleToggle = async (hook: Webhook) => {
-    await adminApiFetch(apiBase, `/api/_webhooks/${hook.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ active: !hook.active }),
-    })
-    fetchWebhooks()
+    setError("")
+    try {
+      const res = await adminApiFetch(apiBase, `/api/_webhooks/${hook.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active: !hook.active }),
+      })
+      if (!res.ok) {
+        setError(
+          messageForAdminResponse(
+            res,
+            hook.active ? "Could not deactivate the webhook." : "Could not activate the webhook.",
+          ),
+        )
+        return
+      }
+      fetchWebhooks()
+    } catch {
+      setError("Could not reach the server.")
+    }
   }
 
   const handleReplay = async (hook: Webhook, log: WebhookDelivery) => {
@@ -298,8 +322,8 @@ export function WebhookManager({ apiBase = "" }: Props) {
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleDelete(hook.id)}
-                    className="text-xs text-[#52525b] hover:text-[#ef4444] transition-colors"
+                    onClick={() => handleDelete(hook)}
+                    className="text-xs text-[#ef4444] hover:text-[#f87171] transition-colors"
                   >
                     Delete
                   </button>

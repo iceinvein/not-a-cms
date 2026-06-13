@@ -255,7 +255,7 @@ export function AccessSettings({ apiBase = "" }: Props) {
                   onClick={() => removeRole(index)}
                   disabled={role.system}
                   aria-label={`Remove ${role.label || role.key}`}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[rgba(255,255,255,0.1)] text-[#a1a1aa] hover:text-[#ef4444] disabled:opacity-30 disabled:hover:text-[#a1a1aa]"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[rgba(255,255,255,0.1)] text-[#ef4444] hover:text-[#f87171] hover:border-[rgba(239,68,68,0.3)] disabled:text-[#52525b] disabled:opacity-40 disabled:hover:text-[#52525b] disabled:hover:border-[rgba(255,255,255,0.1)]"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>

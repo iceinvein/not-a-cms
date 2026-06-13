@@ -2,6 +2,7 @@ import { Archive, CheckCircle2, Download, Send, Trash2, X } from "lucide-react"
 import type { ReactNode } from "react"
 import { useEffect, useMemo, useState } from "react"
 import { adminApiFetch, messageForAdminResponse } from "../lib/api"
+import { confirmDelete } from "../lib/confirm-copy"
 import { EmptyState, ErrorState } from "./AdminState"
 import { ContentListSkeleton } from "./LoadingSkeleton"
 import { SearchBar } from "./SearchBar"
@@ -131,12 +132,7 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
 
   const handleBulkDelete = async () => {
     if (selectedIds.length === 0) return
-    if (
-      !confirm(
-        `Delete ${selectedIds.length} selected ${selectedIds.length === 1 ? "item" : "items"}?`,
-      )
-    )
-      return
+    if (!confirm(confirmDelete({ count: selectedIds.length, noun: "item" }))) return
     setBulkBusy("delete")
     setError("")
     try {
@@ -174,8 +170,8 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this item?")) return
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(confirmDelete({ name }))) return
     try {
       await adminApiFetch(apiBase, `/api/${collection}/${id}`, { method: "DELETE" })
       setItems((prev) => prev.filter((item) => item.id !== id))
@@ -409,8 +405,8 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
                     </a>
                     <button
                       type="button"
-                      onClick={() => handleDelete(item.id)}
-                      className="text-sm text-[#52525b] hover:text-[#ef4444] transition-colors"
+                      onClick={() => handleDelete(item.id, String(item.title || item.id))}
+                      className="text-sm text-[#ef4444] hover:text-[#f87171] transition-colors"
                     >
                       Delete
                     </button>

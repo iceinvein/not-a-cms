@@ -493,6 +493,116 @@ a.crumb:hover {
   letter-spacing: 0.06em;
 }
 
+/* Confirmation dialog (Base UI AlertDialog) — gates high-stakes actions: publish,
+   archive, destructive deletes. Mirrors the command-palette popover material. */
+.confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(8, 8, 10, 0.6);
+  backdrop-filter: blur(2px);
+  transition: opacity var(--motion-fast) var(--motion-ease);
+}
+.confirm-backdrop[data-starting-style],
+.confirm-backdrop[data-ending-style] {
+  opacity: 0;
+}
+.confirm-viewport {
+  position: fixed;
+  inset: 0;
+  z-index: 61;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.confirm-popup {
+  width: 420px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 22px;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: rgba(24, 24, 27, 0.96);
+  box-shadow: 0 32px 90px -20px rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(24px) saturate(1.2);
+  outline: none;
+  transition:
+    opacity var(--motion-fast) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+}
+.confirm-popup[data-starting-style],
+.confirm-popup[data-ending-style] {
+  opacity: 0;
+  transform: translateY(8px) scale(0.97);
+}
+.confirm-title {
+  margin: 0;
+  color: var(--text-primary);
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 480;
+  letter-spacing: -0.01em;
+}
+.confirm-body {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+.confirm-cancel,
+.confirm-go {
+  border-radius: 7px;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 14px;
+  transition:
+    color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease);
+}
+.confirm-cancel {
+  border: 1px solid var(--border-hover);
+  background: transparent;
+  color: var(--text-secondary);
+}
+.confirm-cancel:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+.confirm-go {
+  border: 1px solid transparent;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+.confirm-go:hover {
+  background: var(--accent-hover);
+}
+.confirm-go-danger {
+  background: var(--status-error);
+  color: #fff;
+}
+.confirm-go-danger:hover {
+  background: #f87171;
+}
+.confirm-cancel:disabled,
+.confirm-go:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 /* ProseMirror / Tiptap editor dark theme */
 .ProseMirror:focus {
   outline: none;

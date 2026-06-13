@@ -1,14 +1,18 @@
 import type { CollabUser } from "@not-a-cms/editor"
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react"
+import { adminApiFetch } from "../../lib/api"
 import { buildCollaborationConfig, defaultCollabUser } from "../../lib/collaboration"
 import type { AdminFieldDef } from "../../lib/content-fields"
 import { portableTextValue } from "../../lib/portable-text-value"
 import { ErrorBoundary } from "../ErrorBoundary"
 import { ToastProvider, useToast } from "../Toast"
+import { ConfirmDialog } from "../ui/ConfirmDialog"
 import { continuumBlocks, continuumSlashCommands } from "./blocks"
 import { ChannelMirror } from "./ChannelMirror"
 import { VisualCanvas } from "./canvas/VisualCanvas"
 import { FieldsPanel } from "./FieldsPanel"
+import { liveUrlForDocument, type SiteRoute } from "./live-url"
+import { type ConfirmContent, publishActionConfirm } from "./publish-confirm"
 import { useDocument, type WorkflowAction } from "./use-document"
 
 const Editor = lazy(() =>
@@ -70,6 +74,11 @@ function ContinuumInner({
 }: Props) {
   const { addToast } = useToast()
   const [editorMode, setEditorMode] = useState<"document" | "visual">("document")
+  const [routes, setRoutes] = useState<SiteRoute[] | null>(null)
+  const [confirm, setConfirm] = useState<{
+    action: WorkflowAction
+    content: ConfirmContent
+  } | null>(null)
   const { data, updateField, save, saving, loading, error } = useDocument({
     collection,
     fields,
@@ -77,6 +86,21 @@ function ContinuumInner({
     documentId,
     initialData,
   })
+
+  // The site's public route table, used to build the "View live" link after publishing.
+  // Best-effort: if it can't load, publishing simply omits the link rather than guessing.
+  useEffect(() => {
+    let cancelled = false
+    adminApiFetch(apiBase, "/api/_site")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((site) => {
+        if (!cancelled) setRoutes(Array.isArray(site?.routes) ? site.routes : null)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [apiBase])
   const titleField = titleFieldName(fields)
   const bodyField = richTextFieldName(fields)
   const parsedBodyBlocks = bodyField ? (portableTextValue(data[bodyField]) ?? []) : []
@@ -132,16 +156,50 @@ function ContinuumInner({
     bodyBlocks.length,
   ])
 
+  const title = String(data[titleField] ?? "")
+
   const handleSave = async (action: WorkflowAction) => {
     try {
-      await save(action)
-      addToast(workflowToast(action), "success")
+      const result = await save(action)
+      const liveUrl =
+        action === "publish"
+          ? liveUrlForDocument({ routes, collection, doc: result ?? data, siteBase })
+          : null
+      addToast(
+        workflowToast(action),
+        "success",
+        liveUrl ? { label: "View live", href: liveUrl } : undefined,
+      )
     } catch (err: any) {
       addToast(err.message || "Failed to save", "error")
     }
   }
 
-  const title = String(data[titleField] ?? "")
+  // Publish and Archive change what the public site shows, so they confirm the consequence
+  // first (publishActionConfirm names it). Save and Review stay frictionless (null content).
+  const requestAction = (action: WorkflowAction) => {
+    const content = publishActionConfirm(action, title)
+    if (content) {
+      setConfirm({ action, content })
+    } else {
+      void handleSave(action)
+    }
+  }
+
+  // ⌘↵ / Ctrl+↵ opens the guarded publish flow, matching the keyboard hint on the button.
+  // It only opens the confirm (publish always has confirm content); the actual save runs
+  // from the dialog with the current handleSave, so the effect needs only saving + title.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === "Enter" && !saving) {
+        event.preventDefault()
+        const content = publishActionConfirm("publish", title)
+        if (content) setConfirm({ action: "publish", content })
+      }
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [saving, title])
   const titleRef = useRef<HTMLTextAreaElement>(null)
   // Auto-grow the title so long titles wrap instead of clipping at the canvas edge.
   // Declared before the loading guard so hook order stays stable across renders.
@@ -280,11 +338,28 @@ function ContinuumInner({
           className="cn-status-publish"
           type="button"
           disabled={saving}
-          onClick={() => handleSave("publish")}
+          onClick={() => requestAction("publish")}
         >
           <kbd>⌘↵</kbd> publish
         </button>
       </div>
+
+      <ConfirmDialog
+        open={confirm !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirm(null)
+        }}
+        heading={confirm?.content.heading ?? ""}
+        body={confirm?.content.body ?? ""}
+        confirmLabel={confirm?.content.confirmLabel ?? "Confirm"}
+        tone={confirm?.content.tone}
+        busy={saving}
+        onConfirm={() => {
+          const action = confirm?.action
+          setConfirm(null)
+          if (action) void handleSave(action)
+        }}
+      />
     </div>
   )
 }

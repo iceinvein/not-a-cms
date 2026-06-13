@@ -553,7 +553,7 @@ export function Vault({
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#c9956b] px-4 py-2 text-sm font-medium text-[#0a0a0c] transition-colors hover:bg-[#d4a57c] disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#c6ff3d] px-4 py-2 text-sm font-medium text-[#0a0a0c] transition-colors hover:bg-[#d4ff6e] disabled:opacity-50"
           >
             <Upload className="h-4 w-4" />
             {uploading ? "Uploading..." : "Upload"}
@@ -639,7 +639,7 @@ export function Vault({
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="inline-flex items-center gap-2 rounded-lg bg-[#c9956b] px-4 py-2 text-sm font-medium text-[#0a0a0c] hover:bg-[#d4a57c]"
+                    className="inline-flex items-center gap-2 rounded-lg bg-[#c6ff3d] px-4 py-2 text-sm font-medium text-[#0a0a0c] hover:bg-[#d4ff6e]"
                   >
                     <Upload className="h-4 w-4" />
                     Upload
@@ -751,7 +751,7 @@ function TagFilterBar({
   const chip = (active: boolean) =>
     `inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
       active
-        ? "border-[#c9956b] bg-[rgba(201,149,107,0.12)] text-[#fafafa]"
+        ? "border-[#c6ff3d] bg-[rgba(198,255,61,0.12)] text-[#fafafa]"
         : "border-[rgba(255,255,255,0.1)] text-[#d4d4d8] hover:bg-[rgba(255,255,255,0.04)]"
     }`
   const noFilter = activeTags.length === 0 && !showUntagged
@@ -772,7 +772,7 @@ function TagFilterBar({
             onClick={() => onSetMode("and")}
             aria-pressed={mode === "and"}
             title="Match all selected tags"
-            className={`px-2.5 py-1 ${mode === "and" ? "bg-[rgba(201,149,107,0.18)] text-[#fafafa]" : "text-[#d4d4d8] hover:bg-[rgba(255,255,255,0.04)]"}`}
+            className={`px-2.5 py-1 ${mode === "and" ? "bg-[rgba(198,255,61,0.18)] text-[#fafafa]" : "text-[#d4d4d8] hover:bg-[rgba(255,255,255,0.04)]"}`}
           >
             AND
           </button>
@@ -781,7 +781,7 @@ function TagFilterBar({
             onClick={() => onSetMode("or")}
             aria-pressed={mode === "or"}
             title="Match any selected tag"
-            className={`px-2.5 py-1 ${mode === "or" ? "bg-[rgba(201,149,107,0.18)] text-[#fafafa]" : "text-[#d4d4d8] hover:bg-[rgba(255,255,255,0.04)]"}`}
+            className={`px-2.5 py-1 ${mode === "or" ? "bg-[rgba(198,255,61,0.18)] text-[#fafafa]" : "text-[#d4d4d8] hover:bg-[rgba(255,255,255,0.04)]"}`}
           >
             OR
           </button>
@@ -877,7 +877,7 @@ function Breadcrumb({
             type="button"
             onClick={onToggleRecursive}
             aria-pressed={recursive}
-            className={`ml-2 text-xs ${recursive ? "text-[#c9956b]" : "text-[#71717a] hover:text-[#fafafa]"}`}
+            className={`ml-2 text-xs ${recursive ? "text-[#c6ff3d]" : "text-[#71717a] hover:text-[#fafafa]"}`}
           >
             {recursive ? "Subfolders: on" : "Include subfolders"}
           </button>
@@ -941,7 +941,7 @@ function FolderStylePanel({
               type="button"
               aria-label={`Set folder icon ${key}`}
               onClick={() => onSetIcon(folder.id, key)}
-              className={`rounded-md p-1 ${folder.icon === key ? "bg-[rgba(201,149,107,0.18)] text-[#fafafa]" : "text-[#d4d4d8] hover:bg-[rgba(255,255,255,0.04)]"}`}
+              className={`rounded-md p-1 ${folder.icon === key ? "bg-[rgba(198,255,61,0.18)] text-[#fafafa]" : "text-[#d4d4d8] hover:bg-[rgba(255,255,255,0.04)]"}`}
             >
               <Glyph className="h-4 w-4" />
             </button>
@@ -957,7 +957,7 @@ function FolderStylePanel({
               <label key={role.key} className="flex items-center gap-1 text-xs text-[#d4d4d8]">
                 <input
                   type="checkbox"
-                  className="h-3.5 w-3.5 accent-[#c9956b]"
+                  className="h-3.5 w-3.5 accent-[#c6ff3d]"
                   checked={restricted.includes(role.key)}
                   onChange={() => toggleRole(role.key)}
                 />
@@ -974,7 +974,7 @@ function FolderStylePanel({
 }
 
 const FOLDER_SWATCHES = [
-  "#c9956b",
+  "#c6ff3d",
   "#6b9bc9",
   "#8bbf7a",
   "#c97a8b",
@@ -1006,18 +1006,18 @@ function BulkActionBar({
   onClear: () => void
 }) {
   return (
-    <div className="sticky top-2 z-20 flex flex-wrap items-center gap-2 rounded-lg border border-[rgba(201,149,107,0.35)] bg-[#18181b] px-3 py-2">
+    <div className="sticky top-2 z-20 flex flex-wrap items-center gap-2 rounded-lg border border-[rgba(198,255,61,0.35)] bg-[#18181b] px-3 py-2">
       <span className="text-sm font-medium text-[#fafafa]">{count} selected</span>
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder="Tag..."
-        className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-1.5 text-sm text-[#fafafa] outline-none placeholder:text-[#52525b] focus:border-[#c9956b]"
+        className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-1.5 text-sm text-[#fafafa] outline-none placeholder:text-[#52525b] focus:border-[#c6ff3d]"
       />
       <button
         type="button"
         onClick={onAdd}
-        className="rounded-lg bg-[#c9956b] px-3 py-1.5 text-sm font-medium text-[#0a0a0c] hover:bg-[#d4a57c]"
+        className="rounded-lg bg-[#c6ff3d] px-3 py-1.5 text-sm font-medium text-[#0a0a0c] hover:bg-[#d4ff6e]"
       >
         Add
       </button>
@@ -1035,7 +1035,7 @@ function BulkActionBar({
           onMove(value === "__unsorted" ? null : value)
           event.currentTarget.value = "__placeholder"
         }}
-        className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#18181b] px-2 py-1.5 text-sm text-[#fafafa] outline-none focus:border-[#c9956b]"
+        className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#18181b] px-2 py-1.5 text-sm text-[#fafafa] outline-none focus:border-[#c6ff3d]"
         aria-label="Move selected to folder"
       >
         <option value="__placeholder" disabled>
@@ -1116,7 +1116,7 @@ function ClusterSection({
               <label className="absolute left-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-md border border-[rgba(255,255,255,0.2)] bg-[#0a0a0c]/70 opacity-0 transition-opacity hover:opacity-100 has-[:checked]:opacity-100 group-hover/cell:opacity-100">
                 <input
                   type="checkbox"
-                  className="h-3.5 w-3.5 accent-[#c9956b]"
+                  className="h-3.5 w-3.5 accent-[#c6ff3d]"
                   checked={checkedIds.includes(item.id)}
                   onChange={() => {}}
                   onClick={(event) => onToggleChecked(item.id, event.shiftKey)}
@@ -1126,7 +1126,7 @@ function ClusterSection({
               <button
                 type="button"
                 onClick={() => onSelect(item.id)}
-                className={`block w-full overflow-hidden rounded-lg border bg-[#18181b] text-left transition-all hover:border-[rgba(201,149,107,0.45)] ${selectedId === item.id ? "border-[#c9956b]" : "border-[rgba(255,255,255,0.06)]"}`}
+                className={`block w-full overflow-hidden rounded-lg border bg-[#18181b] text-left transition-all hover:border-[rgba(198,255,61,0.45)] ${selectedId === item.id ? "border-[#c6ff3d]" : "border-[rgba(255,255,255,0.06)]"}`}
               >
                 <div className="relative aspect-square bg-[rgba(255,255,255,0.03)]">
                   {item.mimetype.startsWith("image/") ? (
@@ -1247,7 +1247,7 @@ function DetailPanel({
                 <li key={`${reference.collection}-${reference.documentId}-${reference.field}`}>
                   <a
                     href={`/content/${encodeURIComponent(reference.collection)}/${encodeURIComponent(reference.documentId)}`}
-                    className="block rounded-lg border border-[rgba(255,255,255,0.06)] px-3 py-2 text-sm text-[#d4d4d8] hover:border-[rgba(201,149,107,0.35)] hover:bg-[rgba(255,255,255,0.03)]"
+                    className="block rounded-lg border border-[rgba(255,255,255,0.06)] px-3 py-2 text-sm text-[#d4d4d8] hover:border-[rgba(198,255,61,0.35)] hover:bg-[rgba(255,255,255,0.03)]"
                   >
                     <span className="block truncate text-[#fafafa]">{reference.label}</span>
                     <span className="text-xs text-[#71717a]">
@@ -1271,7 +1271,7 @@ function DetailPanel({
             onChange={(event) =>
               onMove(item.id, event.target.value === "__unsorted" ? null : event.target.value)
             }
-            className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#18181b] px-3 py-2 text-sm normal-case tracking-normal text-[#fafafa] outline-none focus:border-[#c9956b]"
+            className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#18181b] px-3 py-2 text-sm normal-case tracking-normal text-[#fafafa] outline-none focus:border-[#c6ff3d]"
             aria-label="Move asset to folder"
           >
             <option value="__unsorted">Unsorted</option>
@@ -1290,7 +1290,7 @@ function DetailPanel({
             type="button"
             onClick={onSave}
             disabled={saving}
-            className="inline-flex items-center justify-center rounded-lg bg-[#c9956b] px-4 py-2 text-sm font-medium text-[#0a0a0c] hover:bg-[#d4a57c] disabled:opacity-50"
+            className="inline-flex items-center justify-center rounded-lg bg-[#c6ff3d] px-4 py-2 text-sm font-medium text-[#0a0a0c] hover:bg-[#d4ff6e] disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save"}
           </button>
@@ -1379,7 +1379,7 @@ function TagsField({
         }}
         onBlur={addTag}
         placeholder="Add a tag..."
-        className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm text-[#fafafa] outline-none placeholder:text-[#52525b] focus:border-[#c9956b]"
+        className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm text-[#fafafa] outline-none placeholder:text-[#52525b] focus:border-[#c6ff3d]"
       />
     </div>
   )
@@ -1401,7 +1401,7 @@ function MetadataFields({
           onChange={(event) =>
             setMetadata((current) => ({ ...current, title: event.target.value }))
           }
-          className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm normal-case tracking-normal text-[#fafafa] outline-none placeholder:text-[#52525b] focus:border-[#c9956b]"
+          className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm normal-case tracking-normal text-[#fafafa] outline-none placeholder:text-[#52525b] focus:border-[#c6ff3d]"
         />
       </label>
       <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#71717a]">
@@ -1409,7 +1409,7 @@ function MetadataFields({
         <input
           value={metadata.alt}
           onChange={(event) => setMetadata((current) => ({ ...current, alt: event.target.value }))}
-          className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm normal-case tracking-normal text-[#fafafa] outline-none placeholder:text-[#52525b] focus:border-[#c9956b]"
+          className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm normal-case tracking-normal text-[#fafafa] outline-none placeholder:text-[#52525b] focus:border-[#c6ff3d]"
         />
       </label>
       <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#71717a]">
@@ -1420,7 +1420,7 @@ function MetadataFields({
             setMetadata((current) => ({ ...current, caption: event.target.value }))
           }
           rows={3}
-          className="resize-none rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm normal-case tracking-normal text-[#fafafa] outline-none placeholder:text-[#52525b] focus:border-[#c9956b]"
+          className="resize-none rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm normal-case tracking-normal text-[#fafafa] outline-none placeholder:text-[#52525b] focus:border-[#c6ff3d]"
         />
       </label>
       <div className="grid grid-cols-2 gap-3">
@@ -1435,7 +1435,7 @@ function MetadataFields({
             onChange={(event) =>
               setMetadata((current) => ({ ...current, focalX: event.target.value }))
             }
-            className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm normal-case tracking-normal text-[#fafafa] outline-none focus:border-[#c9956b]"
+            className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm normal-case tracking-normal text-[#fafafa] outline-none focus:border-[#c6ff3d]"
           />
         </label>
         <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#71717a]">
@@ -1449,7 +1449,7 @@ function MetadataFields({
             onChange={(event) =>
               setMetadata((current) => ({ ...current, focalY: event.target.value }))
             }
-            className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm normal-case tracking-normal text-[#fafafa] outline-none focus:border-[#c9956b]"
+            className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm normal-case tracking-normal text-[#fafafa] outline-none focus:border-[#c6ff3d]"
           />
         </label>
       </div>
@@ -1458,7 +1458,7 @@ function MetadataFields({
 }
 
 function clusterIcon(key: Cluster["key"]) {
-  const className = "h-4 w-4 text-[#c9956b]"
+  const className = "h-4 w-4 text-[#71717a]"
   if (key === "images") return <ImageIcon className={className} />
   if (key === "video") return <Video className={className} />
   return <FileText className={className} />

@@ -18,7 +18,7 @@ type Props = {
 
 const ACTIONS: Array<keyof CollectionAccessSettings> = ["read", "create", "update", "delete"]
 const inputClass =
-  "w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c9956b] focus:outline-none"
+  "w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c6ff3d] focus:outline-none"
 
 function labelAction(action: keyof CollectionAccessSettings) {
   return action.charAt(0).toUpperCase() + action.slice(1)
@@ -128,7 +128,7 @@ export function CollectionSettings({
           type="button"
           onClick={handleSave}
           disabled={saving || loading || !active}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4a57c] disabled:opacity-50 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-[#c6ff3d] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4ff6e] disabled:opacity-50 transition-colors"
         >
           <Save className="h-4 w-4" />
           {saving ? "Saving..." : saved ? "Saved" : "Save Collection"}
@@ -206,7 +206,7 @@ export function CollectionSettings({
                 <select
                   value={active.settings.editorLayout ?? "default"}
                   onChange={(event) => updateActiveSettings({ editorLayout: event.target.value })}
-                  className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-[#18181b] text-[#fafafa] focus:border-[#c9956b] focus:outline-none"
+                  className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-[#18181b] text-[#fafafa] focus:border-[#c6ff3d] focus:outline-none"
                 >
                   <option value="default">Default</option>
                   <option value="sidebar">Sidebar</option>

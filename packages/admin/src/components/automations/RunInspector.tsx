@@ -59,7 +59,7 @@ export function RunInspector({ run }: { run: FlowRunDetail }) {
           max={max}
           value={Math.min(cursor, max)}
           onChange={(event) => setCursor(Number(event.target.value))}
-          className="w-full accent-[#c9956b]"
+          className="w-full accent-[#c6ff3d]"
         />
         <div className="relative mt-3 h-5 rounded-full bg-[#0a0a0c]">
           {timeline.steps.map((step) => (
@@ -94,7 +94,7 @@ export function RunInspector({ run }: { run: FlowRunDetail }) {
               </div>
               <div className="flex items-center gap-2">
                 {step.simulated && (
-                  <span className="inline-flex items-center rounded-full border border-[rgba(201,149,107,0.4)] bg-[rgba(201,149,107,0.12)] px-2 py-0.5 text-xs text-[#d4a57c]">
+                  <span className="inline-flex items-center rounded-full border border-[rgba(198,255,61,0.4)] bg-[rgba(198,255,61,0.12)] px-2 py-0.5 text-xs text-[#d4ff6e]">
                     Simulated
                   </span>
                 )}
@@ -104,7 +104,7 @@ export function RunInspector({ run }: { run: FlowRunDetail }) {
                 </span>
               </div>
             </div>
-            {step.summary && <p className="mb-2 text-xs text-[#d4a57c]">{step.summary}</p>}
+            {step.summary && <p className="mb-2 text-xs text-[#a1a1aa]">{step.summary}</p>}
             {step.branchTaken && (
               <p className="mb-2 text-xs text-[#f59e0b]">Branch: {step.branchTaken}</p>
             )}

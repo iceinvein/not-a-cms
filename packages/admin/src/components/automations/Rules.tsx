@@ -14,7 +14,7 @@ type Props = {
 function tokenClass(kind: RuleToken["kind"]): string {
   switch (kind) {
     case "trigger":
-      return "rounded-full bg-[rgba(201,149,107,0.14)] px-2 py-0.5 font-medium text-[#d4a57c]"
+      return "rounded-full bg-[rgba(198,255,61,0.14)] px-2 py-0.5 font-medium text-[#d4ff6e]"
     case "entity":
       return "font-semibold text-[#fafafa]"
     case "condition":
@@ -112,7 +112,7 @@ export function Rules({ apiBase = "", initialFlows, initialSelectedId }: Props) 
           type="button"
           onClick={createRule}
           disabled={creating}
-          className="rounded-lg bg-[#c9956b] px-3 py-2 text-sm font-medium text-[#0a0a0c] transition-colors hover:bg-[#d4a57c] disabled:opacity-50"
+          className="rounded-lg bg-[#c6ff3d] px-3 py-2 text-sm font-medium text-[#0a0a0c] transition-colors hover:bg-[#d4ff6e] disabled:opacity-50"
         >
           {creating ? "Creating..." : "+ New rule"}
         </button>

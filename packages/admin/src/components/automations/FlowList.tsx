@@ -96,7 +96,7 @@ export function FlowList({ apiBase = "" }: Props) {
           type="button"
           onClick={handleCreate}
           disabled={creating}
-          className="px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4a57c] disabled:opacity-50 transition-colors"
+          className="px-4 py-2 bg-[#c6ff3d] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4ff6e] disabled:opacity-50 transition-colors"
         >
           {creating ? "Creating..." : "+ New Flow"}
         </button>
@@ -130,7 +130,7 @@ export function FlowList({ apiBase = "" }: Props) {
               <div>
                 <a
                   href={`/automations/${flow.id}`}
-                  className="text-sm font-medium text-[#fafafa] hover:text-[#c9956b] transition-colors"
+                  className="text-sm font-medium text-[#fafafa] hover:text-[#c6ff3d] transition-colors"
                 >
                   {flow.name}
                 </a>

@@ -98,7 +98,7 @@ function normalizeSteps(steps: FlowStep[]): FlowStep[] {
 function sectionButtonClass(active: boolean): string {
   return `text-left rounded-lg border px-3 py-2 transition-colors ${
     active
-      ? "border-[rgba(201,149,107,0.55)] bg-[rgba(201,149,107,0.1)]"
+      ? "border-[rgba(198,255,61,0.55)] bg-[rgba(198,255,61,0.1)]"
       : "border-[rgba(255,255,255,0.06)] bg-[#111113] hover:border-[rgba(255,255,255,0.12)]"
   }`
 }
@@ -232,7 +232,7 @@ export function RuleEditor({ flow, apiBase = "", onSaved }: Props) {
               <button
                 type="button"
                 onClick={addCondition}
-                className="text-xs font-medium text-[#c9956b] hover:text-[#d4a57c]"
+                className="text-xs font-medium text-[#c6ff3d] hover:text-[#d4ff6e]"
               >
                 {condition ? "Edit" : "Add condition"}
               </button>

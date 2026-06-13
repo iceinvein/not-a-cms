@@ -69,9 +69,9 @@ const RSS_PREVIEW_CSS = `
   .nac-rss-title { margin: 0 0 8px; color: #171311; font-size: 34px; line-height: 1.05; }
   .nac-rss-byline { margin: 0 0 18px; color: #6f5b4d; font-family: system-ui, -apple-system, sans-serif; font-size: 13px; }
   .nac-rss p { font-size: 17px; line-height: 1.6; }
-  .nac-rss a { color: #c9956b; }
+  .nac-rss a { color: #c6ff3d; }
   .nac-rss img { max-width: 100%; border-radius: 8px; }
-  .nac-rss [data-callout] { border-left: 3px solid #c9956b; background: rgba(201, 149, 107, 0.12); padding: 10px 12px; }
+  .nac-rss [data-callout] { border-left: 3px solid #c6ff3d; background: rgba(198, 255, 61, 0.12); padding: 10px 12px; }
   .nac-rss [data-author], .nac-rss [data-gallery] { border: 1px solid rgba(33, 27, 23, 0.12); border-radius: 8px; padding: 12px; }
 `
 

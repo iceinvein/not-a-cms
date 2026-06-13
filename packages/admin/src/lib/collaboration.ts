@@ -20,7 +20,10 @@ export function collabServerUrl(apiBase: string): string {
 export function defaultCollabUser(): CollabUser {
   return {
     name: "Editor",
-    color: "#c9956b",
+    // A mid-luminance blue: the cursor and selection must stay legible on both
+    // the dark shell and the light visual canvas, where the bright lime accent
+    // would wash out. Matches --presence-1.
+    color: "#6ea8fe",
   }
 }
 

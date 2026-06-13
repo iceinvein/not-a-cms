@@ -189,7 +189,7 @@ export function RunDetail({ flowId, runId, apiBase = "", steps, onRetry }: Props
             type="button"
             onClick={handleRetry}
             disabled={retrying}
-            className="ml-auto px-3 py-1.5 bg-[#c9956b] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4a57c] disabled:opacity-50 transition-colors"
+            className="ml-auto px-3 py-1.5 bg-[#c6ff3d] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4ff6e] disabled:opacity-50 transition-colors"
           >
             {retrying ? "Retrying..." : "Retry Run"}
           </button>

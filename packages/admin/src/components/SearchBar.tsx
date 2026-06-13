@@ -50,7 +50,7 @@ export function SearchBar({ onSearch, placeholder = "Search..." }: Props) {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder}
-        className="w-full pl-10 pr-4 py-2 bg-transparent border border-[rgba(255,255,255,0.1)] rounded-lg text-sm text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:ring-0 focus:border-[#c9956b]"
+        className="w-full pl-10 pr-4 py-2 bg-transparent border border-[rgba(255,255,255,0.1)] rounded-lg text-sm text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:ring-0 focus:border-[#c6ff3d]"
       />
       {value && (
         <button

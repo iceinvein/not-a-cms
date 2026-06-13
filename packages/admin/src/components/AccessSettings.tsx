@@ -172,7 +172,7 @@ export function AccessSettings({ apiBase = "" }: Props) {
           type="button"
           onClick={handleSave}
           disabled={saving || loading}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4a57c] disabled:opacity-50 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-[#c6ff3d] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4ff6e] disabled:opacity-50 transition-colors"
         >
           <Save className="h-4 w-4" />
           {saving ? "Saving..." : saved ? "Saved" : "Save Roles"}
@@ -184,7 +184,7 @@ export function AccessSettings({ apiBase = "" }: Props) {
       <section className="bg-[#18181b] rounded-lg border border-[rgba(255,255,255,0.06)]">
         <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.06)] px-5 py-4">
           <div className="flex items-center gap-2 text-sm font-medium text-[#fafafa]">
-            <Shield className="h-4 w-4 text-[#c9956b]" />
+            <Shield className="h-4 w-4 text-[#71717a]" />
             Roles
           </div>
           <button
@@ -218,19 +218,19 @@ export function AccessSettings({ apiBase = "" }: Props) {
                   disabled={role.system}
                   onChange={(event) => updateRole(index, { key: event.target.value })}
                   placeholder="role_key"
-                  className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] disabled:text-[#71717a] focus:border-[#c9956b] focus:outline-none"
+                  className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] disabled:text-[#71717a] focus:border-[#c6ff3d] focus:outline-none"
                 />
                 <input
                   value={role.label}
                   onChange={(event) => updateRole(index, { label: event.target.value })}
                   placeholder="Label"
-                  className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c9956b] focus:outline-none"
+                  className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c6ff3d] focus:outline-none"
                 />
                 <input
                   value={role.description ?? ""}
                   onChange={(event) => updateRole(index, { description: event.target.value })}
                   placeholder="Description"
-                  className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c9956b] focus:outline-none"
+                  className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c6ff3d] focus:outline-none"
                 />
                 <button
                   type="button"
@@ -249,7 +249,7 @@ export function AccessSettings({ apiBase = "" }: Props) {
 
       <section className="bg-[#18181b] rounded-lg border border-[rgba(255,255,255,0.06)]">
         <div className="flex items-center gap-2 border-b border-[rgba(255,255,255,0.06)] px-5 py-4 text-sm font-medium text-[#fafafa]">
-          <UserPlus className="h-4 w-4 text-[#c9956b]" />
+          <UserPlus className="h-4 w-4 text-[#71717a]" />
           Invites
         </div>
         <div className="space-y-4 p-5">
@@ -264,7 +264,7 @@ export function AccessSettings({ apiBase = "" }: Props) {
                 value={inviteEmail}
                 onChange={(event) => setInviteEmail(event.target.value)}
                 placeholder="editor@example.com"
-                className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c9956b] focus:outline-none"
+                className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c6ff3d] focus:outline-none"
               />
             </label>
             <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#71717a]">
@@ -273,7 +273,7 @@ export function AccessSettings({ apiBase = "" }: Props) {
                 value={inviteRole}
                 onChange={(event) => setInviteRole(event.target.value)}
                 disabled={roles.length === 0}
-                className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-[#18181b] text-[#fafafa] disabled:opacity-50 focus:border-[#c9956b] focus:outline-none"
+                className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-[#18181b] text-[#fafafa] disabled:opacity-50 focus:border-[#c6ff3d] focus:outline-none"
               >
                 {roles.map((role) => (
                   <option key={role.key} value={role.key}>
@@ -285,7 +285,7 @@ export function AccessSettings({ apiBase = "" }: Props) {
             <button
               type="submit"
               disabled={loading || inviting || !inviteEmail || roles.length === 0}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4a57c] disabled:opacity-50 transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#c6ff3d] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4ff6e] disabled:opacity-50 transition-colors"
             >
               <Send className="h-4 w-4" />
               {inviting ? "Sending..." : "Send Invite"}
@@ -358,7 +358,7 @@ export function AccessSettings({ apiBase = "" }: Props) {
 
       <section className="bg-[#18181b] rounded-lg border border-[rgba(255,255,255,0.06)]">
         <div className="flex items-center gap-2 border-b border-[rgba(255,255,255,0.06)] px-5 py-4 text-sm font-medium text-[#fafafa]">
-          <Users className="h-4 w-4 text-[#c9956b]" />
+          <Users className="h-4 w-4 text-[#71717a]" />
           Team Members
         </div>
         <div className="divide-y divide-[rgba(255,255,255,0.06)]">
@@ -395,7 +395,7 @@ export function AccessSettings({ apiBase = "" }: Props) {
                 <select
                   value={member.role}
                   onChange={(event) => changeMemberRole(member, event.target.value)}
-                  className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-[#18181b] text-[#fafafa] focus:border-[#c9956b] focus:outline-none"
+                  className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-[#18181b] text-[#fafafa] focus:border-[#c6ff3d] focus:outline-none"
                 >
                   {roles.map((role) => (
                     <option key={role.key} value={role.key}>
@@ -411,7 +411,7 @@ export function AccessSettings({ apiBase = "" }: Props) {
 
       <section className="bg-[#18181b] rounded-lg border border-[rgba(255,255,255,0.06)]">
         <div className="flex items-center gap-2 border-b border-[rgba(255,255,255,0.06)] px-5 py-4 text-sm font-medium text-[#fafafa]">
-          <History className="h-4 w-4 text-[#c9956b]" />
+          <History className="h-4 w-4 text-[#71717a]" />
           Audit Trail
         </div>
         <div className="divide-y divide-[rgba(255,255,255,0.06)]">

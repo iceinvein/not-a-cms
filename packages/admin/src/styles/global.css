@@ -24,37 +24,45 @@
   --text-muted: #71717a;
   --text-subtle: #52525b;
 
-  --accent: #c9956b;
-  --accent-hover: #d4a57c;
+  --accent: #c6ff3d;
+  --accent-hover: #d4ff6e;
   --accent-text: #0a0a0c;
-  --accent-subtle: rgba(201, 149, 107, 0.1);
-  --accent-muted: rgba(201, 149, 107, 0.2);
+  --accent-subtle: rgba(198, 255, 61, 0.1);
+  --accent-muted: rgba(198, 255, 61, 0.2);
 
   --status-success: #22c55e;
   --status-warning: #f59e0b;
   --status-error: #ef4444;
 
-  /* type system */
+  /* type system. Fraunces (a high-contrast old-style display serif with an
+     optical-size axis) carries titles and editor prose; Inter handles UI,
+     JetBrains Mono the labels and metadata. */
   --font-ui: "Inter Variable", "Inter", system-ui, -apple-system, sans-serif;
-  --font-serif: "Newsreader Variable", "Newsreader", Georgia, serif;
+  --font-serif: "Fraunces Variable", "Fraunces", Georgia, serif;
   --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
 
   /* motion */
   --motion-fast: 120ms;
   --motion-ease: cubic-bezier(0.2, 0, 0, 1);
 
-  /* presence palette (assigned per collaborator in the Continuum plan) */
-  --presence-1: #7aa2c9;
-  --presence-2: #c97a9e;
-  --presence-3: #9ec97a;
-  --presence-4: #c9b27a;
-  --presence-5: #a98ec9;
+  /* presence palette (assigned per collaborator in the Continuum plan). Spread
+     across the wheel and held at a mid luminance so each cursor reads on both
+     the dark shell and the light visual canvas, and none collide with the lime
+     accent (a yellow-green is deliberately absent). */
+  --presence-1: #6ea8fe;
+  --presence-2: #f472b6;
+  --presence-3: #a78bfa;
+  --presence-4: #fb923c;
+  --presence-5: #2dd4bf;
 }
 
 body {
   background: var(--bg-app);
   color: var(--text-secondary);
   font-family: var(--font-ui);
+  /* Fraunces carries an optical-size axis; let the browser map it to the
+     rendered size so titles get the display cut and prose the text cut. */
+  font-optical-sizing: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -91,7 +99,7 @@ body {
 }
 
 ::selection {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(198, 255, 61, 0.24);
   color: #fafafa;
 }
 
@@ -369,7 +377,7 @@ a.crumb:hover {
   padding: 12px 14px;
   border: 1px solid var(--accent-muted);
   border-radius: 8px;
-  background: rgba(201, 149, 107, 0.08);
+  background: rgba(198, 255, 61, 0.08);
 }
 
 .cmd-answer-label {
@@ -1156,7 +1164,7 @@ a.crumb:hover {
   margin: -8px -32px -32px;
   padding-bottom: 58px;
   background:
-    radial-gradient(circle at 25% 0, rgba(201, 149, 107, 0.08), transparent 34%), var(--bg-app);
+    radial-gradient(circle at 25% 0, rgba(198, 255, 61, 0.08), transparent 34%), var(--bg-app);
 }
 
 .cn-canvas {
@@ -1235,6 +1243,8 @@ a.crumb:hover {
   color: var(--text-primary);
   font-family: var(--font-serif);
   font-size: 58px;
+  font-weight: 480;
+  letter-spacing: -0.015em;
   line-height: 1.05;
   outline: none;
   padding: 0 0 28px;

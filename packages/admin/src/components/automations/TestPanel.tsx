@@ -167,7 +167,7 @@ export function TestPanel({ flow, apiBase = "", onClose }: Props) {
             type="button"
             onClick={runTest}
             disabled={running}
-            className="rounded-lg bg-[#c9956b] px-3 py-2 text-sm font-medium text-[#0a0a0c] transition-colors hover:bg-[#d4a57c] disabled:opacity-50"
+            className="rounded-lg bg-[#c6ff3d] px-3 py-2 text-sm font-medium text-[#0a0a0c] transition-colors hover:bg-[#d4ff6e] disabled:opacity-50"
           >
             {running ? "Running..." : "Run test"}
           </button>

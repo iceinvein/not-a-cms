@@ -142,7 +142,7 @@ export function DashboardStats({ apiBase = "", initialMetrics }: Props) {
             <a
               key={collection.name}
               href={`/content/${collection.name}`}
-              className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b] p-5 transition-colors hover:border-[rgba(201,149,107,0.24)]"
+              className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b] p-5 transition-colors hover:border-[rgba(198,255,61,0.24)]"
             >
               <div className="mb-4 flex items-center justify-between gap-3">
                 <span className="text-sm font-medium text-[#fafafa]">{collection.label}</span>
@@ -163,7 +163,7 @@ export function DashboardStats({ apiBase = "", initialMetrics }: Props) {
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b] p-5">
           <div className="mb-4 flex items-center gap-2">
-            <PenLine className="h-4 w-4 text-[#c9956b]" />
+            <PenLine className="h-4 w-4 text-[#71717a]" />
             <h3 className="text-sm font-medium text-[#fafafa]">Needs review</h3>
           </div>
           {needsReview.length === 0 ? (
@@ -177,7 +177,7 @@ export function DashboardStats({ apiBase = "", initialMetrics }: Props) {
                   className="flex items-center justify-between gap-3 py-3 text-sm"
                 >
                   <span className="text-[#a1a1aa]">{collection.label}</span>
-                  <span className="rounded-full bg-[rgba(201,149,107,0.12)] px-2 py-0.5 text-xs text-[#c9956b]">
+                  <span className="rounded-full bg-[rgba(198,255,61,0.12)] px-2 py-0.5 text-xs text-[#c6ff3d]">
                     {collection.inReview}
                   </span>
                 </a>
@@ -192,7 +192,7 @@ export function DashboardStats({ apiBase = "", initialMetrics }: Props) {
             <h3 className="text-sm font-medium text-[#fafafa]">Media</h3>
           </div>
           <p className="text-2xl font-semibold text-[#fafafa]">{metrics.media.total} assets</p>
-          <a href="/media" className="mt-3 inline-flex text-sm text-[#c9956b] hover:text-[#d4a57c]">
+          <a href="/media" className="mt-3 inline-flex text-sm text-[#c6ff3d] hover:text-[#d4ff6e]">
             Open library
           </a>
         </div>

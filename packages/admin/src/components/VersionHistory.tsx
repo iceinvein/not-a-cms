@@ -131,7 +131,7 @@ export function VersionHistory({ collection, documentId, apiBase = "", onRestore
                       <p className="text-[11px] text-[#71717a] line-through">
                         {formatValue(change.before)}
                       </p>
-                      <p className="text-[11px] text-[#c9956b]">{formatValue(change.after)}</p>
+                      <p className="text-[11px] text-[#fafafa]">{formatValue(change.after)}</p>
                     </div>
                   ))
                 )}

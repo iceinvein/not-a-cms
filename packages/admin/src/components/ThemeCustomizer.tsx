@@ -73,7 +73,7 @@ export function ThemeCustomizer({ apiBase = "" }: Props) {
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4a57c] disabled:opacity-50 transition-colors"
+          className="px-4 py-2 bg-[#c6ff3d] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4ff6e] disabled:opacity-50 transition-colors"
         >
           {saving ? "Saving..." : saved ? "Saved!" : "Save Changes"}
         </button>
@@ -103,7 +103,7 @@ export function ThemeCustomizer({ apiBase = "" }: Props) {
               type="text"
               value={settings["theme.primaryColor"]}
               onChange={(e) => update("theme.primaryColor", e.target.value)}
-              className="flex-1 px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c9956b] focus:outline-none focus:ring-0"
+              className="flex-1 px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c6ff3d] focus:outline-none focus:ring-0"
             />
           </div>
         </div>
@@ -119,7 +119,7 @@ export function ThemeCustomizer({ apiBase = "" }: Props) {
             id="theme-font-family"
             value={settings["theme.fontFamily"]}
             onChange={(e) => update("theme.fontFamily", e.target.value)}
-            className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-[#18181b] text-[#fafafa] focus:border-[#c9956b] focus:outline-none focus:ring-0"
+            className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-[#18181b] text-[#fafafa] focus:border-[#c6ff3d] focus:outline-none focus:ring-0"
           >
             <option value="system-ui, -apple-system, sans-serif">System (Default)</option>
             <option value="Georgia, serif">Georgia (Serif)</option>
@@ -140,7 +140,7 @@ export function ThemeCustomizer({ apiBase = "" }: Props) {
             id="theme-header-style"
             value={settings["theme.headerStyle"]}
             onChange={(e) => update("theme.headerStyle", e.target.value)}
-            className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-[#18181b] text-[#fafafa] focus:border-[#c9956b] focus:outline-none focus:ring-0"
+            className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-[#18181b] text-[#fafafa] focus:border-[#c6ff3d] focus:outline-none focus:ring-0"
           >
             <option value="simple">Simple</option>
             <option value="centered">Centered</option>
@@ -159,7 +159,7 @@ export function ThemeCustomizer({ apiBase = "" }: Props) {
             id="theme-max-width"
             value={settings["theme.maxWidth"]}
             onChange={(e) => update("theme.maxWidth", e.target.value)}
-            className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-[#18181b] text-[#fafafa] focus:border-[#c9956b] focus:outline-none focus:ring-0"
+            className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-[#18181b] text-[#fafafa] focus:border-[#c6ff3d] focus:outline-none focus:ring-0"
           >
             <option value="2xl">Narrow (2xl)</option>
             <option value="4xl">Medium (4xl)</option>

@@ -146,7 +146,7 @@ export function WebhookManager({ apiBase = "" }: Props) {
         <button
           type="button"
           onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4a57c] transition-colors"
+          className="px-4 py-2 bg-[#c6ff3d] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4ff6e] transition-colors"
         >
           + Add Webhook
         </button>
@@ -180,7 +180,7 @@ export function WebhookManager({ apiBase = "" }: Props) {
               value={formUrl}
               onChange={(e) => setFormUrl(e.target.value)}
               placeholder="https://example.com/webhook"
-              className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c9956b] focus:outline-none focus:ring-0"
+              className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c6ff3d] focus:outline-none focus:ring-0"
             />
           </div>
           <div>
@@ -195,7 +195,7 @@ export function WebhookManager({ apiBase = "" }: Props) {
                       if (e.target.checked) setFormEvents([...formEvents, evt])
                       else setFormEvents(formEvents.filter((e2) => e2 !== evt))
                     }}
-                    className="accent-[#c9956b]"
+                    className="accent-[#c6ff3d]"
                   />
                   {evt}
                 </label>
@@ -215,7 +215,7 @@ export function WebhookManager({ apiBase = "" }: Props) {
               value={formCollection}
               onChange={(e) => setFormCollection(e.target.value)}
               placeholder="blog_post"
-              className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c9956b] focus:outline-none focus:ring-0"
+              className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c6ff3d] focus:outline-none focus:ring-0"
             />
           </div>
           <div>
@@ -231,7 +231,7 @@ export function WebhookManager({ apiBase = "" }: Props) {
               value={formSecret}
               onChange={(e) => setFormSecret(e.target.value)}
               placeholder="webhook-secret"
-              className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c9956b] focus:outline-none focus:ring-0"
+              className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c6ff3d] focus:outline-none focus:ring-0"
             />
           </div>
           <div className="flex gap-2 pt-2">
@@ -239,7 +239,7 @@ export function WebhookManager({ apiBase = "" }: Props) {
               type="button"
               onClick={handleCreate}
               disabled={!formUrl}
-              className="px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4a57c] disabled:opacity-50 transition-colors"
+              className="px-4 py-2 bg-[#c6ff3d] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4ff6e] disabled:opacity-50 transition-colors"
             >
               Create
             </button>

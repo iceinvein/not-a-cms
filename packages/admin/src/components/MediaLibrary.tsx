@@ -137,7 +137,7 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4a57c] disabled:opacity-50 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-[#c6ff3d] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4ff6e] disabled:opacity-50 transition-colors"
         >
           {uploading ? "Uploading..." : "+ Upload Files"}
         </button>
@@ -171,7 +171,7 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4a57c] transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[#c6ff3d] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4ff6e] transition-colors"
             >
               Upload files
             </button>
@@ -185,7 +185,7 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
                 key={item.id}
                 type="button"
                 onClick={() => setSelectedId(item.id)}
-                className={`bg-[#18181b] rounded-xl border overflow-hidden text-left hover:border-[rgba(201,149,107,0.2)] transition-all group ${selectedId === item.id ? "border-[#c9956b]" : "border-[rgba(255,255,255,0.06)]"}`}
+                className={`bg-[#18181b] rounded-xl border overflow-hidden text-left hover:border-[rgba(198,255,61,0.2)] transition-all group ${selectedId === item.id ? "border-[#c6ff3d]" : "border-[rgba(255,255,255,0.06)]"}`}
               >
                 <div className="aspect-square bg-[rgba(255,255,255,0.03)] flex items-center justify-center overflow-hidden">
                   {item.mimetype.startsWith("image/") ? (
@@ -240,7 +240,7 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
                     onChange={(event) =>
                       setMetadata((current) => ({ ...current, title: event.target.value }))
                     }
-                    className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c9956b] focus:outline-none"
+                    className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c6ff3d] focus:outline-none"
                   />
                 </label>
                 <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#71717a]">
@@ -250,7 +250,7 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
                     onChange={(event) =>
                       setMetadata((current) => ({ ...current, alt: event.target.value }))
                     }
-                    className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c9956b] focus:outline-none"
+                    className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c6ff3d] focus:outline-none"
                   />
                 </label>
                 <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#71717a]">
@@ -261,7 +261,7 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
                       setMetadata((current) => ({ ...current, caption: event.target.value }))
                     }
                     rows={3}
-                    className="resize-none px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c9956b] focus:outline-none"
+                    className="resize-none px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c6ff3d] focus:outline-none"
                   />
                 </label>
 
@@ -277,7 +277,7 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
                       onChange={(event) =>
                         setMetadata((current) => ({ ...current, focalX: event.target.value }))
                       }
-                      className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] focus:border-[#c9956b] focus:outline-none"
+                      className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] focus:border-[#c6ff3d] focus:outline-none"
                     />
                   </label>
                   <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#71717a]">
@@ -291,7 +291,7 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
                       onChange={(event) =>
                         setMetadata((current) => ({ ...current, focalY: event.target.value }))
                       }
-                      className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] focus:border-[#c9956b] focus:outline-none"
+                      className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] focus:border-[#c6ff3d] focus:outline-none"
                     />
                   </label>
                 </div>
@@ -301,7 +301,7 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
                     type="button"
                     onClick={handleSaveMetadata}
                     disabled={saving}
-                    className="inline-flex items-center justify-center px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4a57c] disabled:opacity-50 transition-colors"
+                    className="inline-flex items-center justify-center px-4 py-2 bg-[#c6ff3d] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4ff6e] disabled:opacity-50 transition-colors"
                   >
                     {saving ? "Saving..." : "Save Metadata"}
                   </button>

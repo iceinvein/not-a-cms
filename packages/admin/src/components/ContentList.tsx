@@ -343,7 +343,7 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
             action={
               <a
                 href={`/content/${collection}/new`}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-md text-sm font-medium hover:bg-[#d4a57c] transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#c6ff3d] text-[#0a0a0c] rounded-md text-sm font-medium hover:bg-[#d4ff6e] transition-colors"
               >
                 + Create your first one
               </a>
@@ -385,7 +385,7 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
                   <td className="px-6 py-4">
                     <a
                       href={`/content/${collection}/${item.id}`}
-                      className="text-sm font-medium text-[#fafafa] hover:text-[#c9956b] transition-colors"
+                      className="text-sm font-medium text-[#fafafa] hover:text-[#c6ff3d] transition-colors"
                     >
                       {String(item.title || item.id)}
                     </a>
@@ -403,7 +403,7 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
                   <td className="px-6 py-4 text-right">
                     <a
                       href={`/content/${collection}/${item.id}`}
-                      className="text-sm text-[#71717a] hover:text-[#c9956b] mr-3 transition-colors"
+                      className="text-sm text-[#71717a] hover:text-[#c6ff3d] mr-3 transition-colors"
                     >
                       Edit
                     </a>

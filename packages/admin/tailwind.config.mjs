@@ -7,7 +7,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ["Inter Variable", "Inter", ...defaultTheme.fontFamily.sans],
-        serif: ["Newsreader Variable", "Newsreader", ...defaultTheme.fontFamily.serif],
+        serif: ["Fraunces Variable", "Fraunces", ...defaultTheme.fontFamily.serif],
         mono: ["JetBrains Mono Variable", "JetBrains Mono", ...defaultTheme.fontFamily.mono],
       },
     },

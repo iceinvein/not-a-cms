@@ -11,7 +11,7 @@ import {
 } from "../../lib/media"
 
 const PALETTE = [
-  "#c9956b",
+  "#c6ff3d",
   "#6b9bc9",
   "#8bbf7a",
   "#c97a8b",
@@ -126,7 +126,7 @@ export function TagManager({
                               if (value && value !== tag.name)
                                 void wrap(() => renameMediaTag(apiBase, tag.name, value))
                             }}
-                            className="min-w-0 flex-1 rounded-lg border border-transparent bg-transparent px-2 py-1 text-sm text-[#fafafa] outline-none focus:border-[#c9956b]"
+                            className="min-w-0 flex-1 rounded-lg border border-transparent bg-transparent px-2 py-1 text-sm text-[#fafafa] outline-none focus:border-[#c6ff3d]"
                             aria-label={`Rename ${tag.name}`}
                           />
                         </label>
@@ -182,7 +182,7 @@ export function TagManager({
                                 setMediaTagDescription(apiBase, tag.name, value || null),
                               )
                           }}
-                          className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-2 py-1 text-sm text-[#d4d4d8] outline-none placeholder:text-[#52525b] focus:border-[#c9956b]"
+                          className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-2 py-1 text-sm text-[#d4d4d8] outline-none placeholder:text-[#52525b] focus:border-[#c6ff3d]"
                           aria-label={`Description for ${tag.name}`}
                         />
                         <input
@@ -194,7 +194,7 @@ export function TagManager({
                             if (value !== (tag.group ?? ""))
                               void wrap(() => setMediaTagGroup(apiBase, tag.name, value || null))
                           }}
-                          className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-2 py-1 text-sm text-[#d4d4d8] outline-none placeholder:text-[#52525b] focus:border-[#c9956b]"
+                          className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-2 py-1 text-sm text-[#d4d4d8] outline-none placeholder:text-[#52525b] focus:border-[#c6ff3d]"
                           aria-label={`Group for ${tag.name}`}
                         />
                         <select
@@ -212,7 +212,7 @@ export function TagManager({
                               void wrap(() => mergeMediaTag(apiBase, tag.name, target))
                             }
                           }}
-                          className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#18181b] px-2 py-1 text-sm text-[#d4d4d8] outline-none focus:border-[#c9956b]"
+                          className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#18181b] px-2 py-1 text-sm text-[#d4d4d8] outline-none focus:border-[#c6ff3d]"
                           aria-label={`Merge ${tag.name} into another tag`}
                         >
                           <option value="__placeholder" disabled>

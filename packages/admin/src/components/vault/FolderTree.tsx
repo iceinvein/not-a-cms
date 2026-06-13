@@ -55,14 +55,14 @@ export function FolderTree({
   const dropProps = (folderId: string | null) => ({
     onDragOver: (event: React.DragEvent) => {
       event.preventDefault()
-      event.currentTarget.classList.add("ring-1", "ring-[#c9956b]")
+      event.currentTarget.classList.add("ring-1", "ring-[#c6ff3d]")
     },
     onDragLeave: (event: React.DragEvent) => {
-      event.currentTarget.classList.remove("ring-1", "ring-[#c9956b]")
+      event.currentTarget.classList.remove("ring-1", "ring-[#c6ff3d]")
     },
     onDrop: (event: React.DragEvent) => {
       event.preventDefault()
-      event.currentTarget.classList.remove("ring-1", "ring-[#c9956b]")
+      event.currentTarget.classList.remove("ring-1", "ring-[#c6ff3d]")
       onDropAssets(folderId)
     },
   })
@@ -81,7 +81,7 @@ export function FolderTree({
           style={{ paddingLeft: 8 + depth * 14 }}
           className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors ${
             active === node.id
-              ? "bg-[rgba(201,149,107,0.14)] text-[#fafafa]"
+              ? "bg-[rgba(198,255,61,0.14)] text-[#fafafa]"
               : "text-[#d4d4d8] hover:bg-[rgba(255,255,255,0.04)]"
           }`}
         >
@@ -128,11 +128,11 @@ export function FolderTree({
       {...(drop !== false ? dropProps(drop) : {})}
       className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors ${
         active === value
-          ? "bg-[rgba(201,149,107,0.14)] text-[#fafafa]"
+          ? "bg-[rgba(198,255,61,0.14)] text-[#fafafa]"
           : "text-[#d4d4d8] hover:bg-[rgba(255,255,255,0.04)]"
       }`}
     >
-      <FolderIcon className="h-4 w-4 shrink-0 text-[#c9956b]" />
+      <FolderIcon className="h-4 w-4 shrink-0 text-[#71717a]" />
       <span className="truncate">{label}</span>
     </button>
   )

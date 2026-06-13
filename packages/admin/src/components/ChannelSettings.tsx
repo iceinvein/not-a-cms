@@ -36,7 +36,7 @@ const DEFAULTS: ChannelSettingsMap = {
 }
 
 const inputClass =
-  "w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c9956b] focus:outline-none"
+  "w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c6ff3d] focus:outline-none"
 
 export function ChannelSettings({ apiBase = "", initialSettings }: Props) {
   const [settings, setSettings] = useState<ChannelSettingsMap>({ ...DEFAULTS, ...initialSettings })
@@ -109,7 +109,7 @@ export function ChannelSettings({ apiBase = "", initialSettings }: Props) {
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-[#c9956b] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4a57c] disabled:opacity-50 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-[#c6ff3d] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4ff6e] disabled:opacity-50 transition-colors"
         >
           <Save className="h-4 w-4" />
           {saving ? "Saving..." : saved ? "Saved" : "Save Channels"}
@@ -121,7 +121,7 @@ export function ChannelSettings({ apiBase = "", initialSettings }: Props) {
       <div className="grid gap-5 lg:grid-cols-2">
         <div className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b] p-5 space-y-4">
           <div className="flex items-center gap-2">
-            <Rss className="h-4 w-4 text-[#c9956b]" />
+            <Rss className="h-4 w-4 text-[#71717a]" />
             <h3 className="text-sm font-medium text-[#fafafa]">RSS</h3>
           </div>
           <TextField
@@ -155,7 +155,7 @@ export function ChannelSettings({ apiBase = "", initialSettings }: Props) {
 
         <div className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b] p-5 space-y-4">
           <div className="flex items-center gap-2">
-            <Mail className="h-4 w-4 text-[#c9956b]" />
+            <Mail className="h-4 w-4 text-[#71717a]" />
             <h3 className="text-sm font-medium text-[#fafafa]">Email</h3>
           </div>
           <TextField

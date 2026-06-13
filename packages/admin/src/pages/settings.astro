@@ -9,10 +9,15 @@ import { getAdminApiBase } from "../lib/api"
 const apiBase = getAdminApiBase()
 ---
 <AdminLayout title="Settings">
+  <p class="text-sm text-[#52525b] mb-8">Appearance, publishing channels, collections, and team access.</p>
+  {/* Each section is a client:load island, which Astro wraps in a
+      display:contents <astro-island>; space-y margins land on a box-less
+      element and are ignored. Wrapping each island in a real block element
+      gives the section gap something to apply to. */}
   <div class="space-y-12">
-    <ThemeCustomizer client:load apiBase={apiBase} />
-    <ChannelSettings client:load apiBase={apiBase} />
-    <CollectionSettings client:load apiBase={apiBase} />
-    <AccessSettings client:load apiBase={apiBase} />
+    <div><ThemeCustomizer client:load apiBase={apiBase} /></div>
+    <div><ChannelSettings client:load apiBase={apiBase} /></div>
+    <div><CollectionSettings client:load apiBase={apiBase} /></div>
+    <div><AccessSettings client:load apiBase={apiBase} /></div>
   </div>
 </AdminLayout>

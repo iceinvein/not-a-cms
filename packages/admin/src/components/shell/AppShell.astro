@@ -5,6 +5,10 @@ interface Props {
   title: string
   currentPath: string
   collections?: CrumbCollection[]
+  // Pages that render their own branded hero (the Desk, the Vault) pass this to
+  // suppress the generic route-title h1, which would otherwise stack a second
+  // heading 8px above the hero. The route still appears in the spine breadcrumb.
+  hideTitle?: boolean
   extensionNavItems?: Array<{
     label: string
     href: string
@@ -13,7 +17,13 @@ interface Props {
   }>
 }
 
-const { title, currentPath, collections = [], extensionNavItems = [] } = Astro.props
+const {
+  title,
+  currentPath,
+  collections = [],
+  hideTitle = false,
+  extensionNavItems = [],
+} = Astro.props
 const crumbs = breadcrumbFromPath(currentPath, collections)
 
 function isActive(href: string) {
@@ -144,9 +154,11 @@ const bottomExt = extensionNavItems.filter((i) => i.section === "bottom")
     </aside>
 
     <main class="workspace">
-      <div class="workspace-head">
-        <h1 class="workspace-title">{title}</h1>
-      </div>
+      {!hideTitle && (
+        <div class="workspace-head">
+          <h1 class="workspace-title">{title}</h1>
+        </div>
+      )}
       <div class="workspace-body">
         <slot />
       </div>

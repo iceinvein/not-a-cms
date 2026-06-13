@@ -7,7 +7,7 @@ import { fetchCollections } from "../lib/schema"
 const collections = await fetchCollections({ cookie: Astro.request.headers.get("cookie") || "" })
 const apiBase = getAdminApiBase()
 ---
-<AdminLayout title="Home">
+<AdminLayout title="Home" hideTitle>
   <div class="space-y-12">
     <Desk client:load apiBase={apiBase} />
 

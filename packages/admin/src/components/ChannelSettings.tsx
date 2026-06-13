@@ -97,8 +97,8 @@ export function ChannelSettings({ apiBase = "", initialSettings }: Props) {
     )
 
   return (
-    <section className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <section className="space-y-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-base font-semibold text-[#fafafa]">Channel Settings</h2>
           <p className="text-sm text-[#71717a]">

@@ -169,7 +169,7 @@ export function Desk({
       <header className="desk-header">
         <div>
           <p className="desk-kicker">The Desk</p>
-          <h2>{userName ? `${userName}'s publishing desk` : "Publishing desk"}</h2>
+          <h1>{userName ? `${userName}'s publishing desk` : "Publishing desk"}</h1>
         </div>
         {/* biome-ignore lint/a11y/useSemanticElements: this groups a stat readout (count + unit) under one label, not form controls; a <fieldset> would carry UA-default styling and the wrong semantics. */}
         <div className="desk-summary" role="group" aria-label="Scheduled content count">

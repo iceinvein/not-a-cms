@@ -8,6 +8,7 @@ import "../styles/global.css"
 
 interface Props {
   title: string
+  hideTitle?: boolean
   extensionNavItems?: Array<{
     label: string
     href: string
@@ -16,7 +17,7 @@ interface Props {
   }>
 }
 
-const { title, extensionNavItems = [] } = Astro.props
+const { title, hideTitle = false, extensionNavItems = [] } = Astro.props
 const currentPath = Astro.url.pathname
 const cookie = Astro.request.headers.get("cookie") || ""
 
@@ -77,6 +78,7 @@ const siteBase = import.meta.env.PUBLIC_SITE_BASE || "http://localhost:3000"
     title={title}
     currentPath={currentPath}
     collections={collections}
+    hideTitle={hideTitle}
     extensionNavItems={extensionNavItems}
   >
     <slot />

@@ -103,11 +103,13 @@ body {
   color: #fafafa;
 }
 
-/* App shell (Command Deck frame) */
+/* App shell (Command Deck frame). The shell is pinned to the viewport height so
+   the workspace becomes the scroll container; the spine and the rail stay fixed
+   in view on long pages instead of scrolling away with the document. */
 .shell-root {
   display: grid;
   grid-template-rows: 48px 1fr;
-  min-height: 100vh;
+  height: 100dvh;
 }
 .spine {
   display: flex;
@@ -222,6 +224,12 @@ a.crumb:hover {
   padding: 0 32px 32px;
 }
 
+/* Pages that suppress the route title (hideTitle) render their own hero as the
+   first body child; give it the same top breathing room the head would have. */
+.workspace > .workspace-body:first-child {
+  padding-top: 32px;
+}
+
 /* Collapsed rail, applied pre-paint via the head script to avoid flash. */
 .rail-collapsed .shell-body {
   grid-template-columns: 52px 1fr;
@@ -262,6 +270,10 @@ a.crumb:hover {
 
   .workspace-body {
     padding: 0 18px 28px;
+  }
+
+  .workspace > .workspace-body:first-child {
+    padding-top: 24px;
   }
 }
 
@@ -1639,7 +1651,7 @@ a.crumb:hover {
   padding: 4px 0 2px;
 }
 
-.desk-header h2 {
+.desk-header h1 {
   color: var(--text-primary);
   font-size: 26px;
   font-weight: 650;

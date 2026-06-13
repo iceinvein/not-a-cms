@@ -10,6 +10,7 @@ import { ConfirmDialog } from "../ui/ConfirmDialog"
 import { continuumBlocks, continuumSlashCommands } from "./blocks"
 import { ChannelMirror } from "./ChannelMirror"
 import { VisualCanvas } from "./canvas/VisualCanvas"
+import { saveState, saveStateLabel } from "./dirty-state"
 import { FieldsPanel } from "./FieldsPanel"
 import { liveUrlForDocument, type SiteRoute } from "./live-url"
 import { type ConfirmContent, publishActionConfirm } from "./publish-confirm"
@@ -79,7 +80,7 @@ function ContinuumInner({
     action: WorkflowAction
     content: ConfirmContent
   } | null>(null)
-  const { data, updateField, save, saving, loading, error } = useDocument({
+  const { data, updateField, save, saving, loading, error, dirty } = useDocument({
     collection,
     fields,
     apiBase,
@@ -200,6 +201,19 @@ function ContinuumInner({
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
   }, [saving, title])
+
+  // Guard against losing unsaved edits on reload, tab close, or navigating away (admin
+  // nav and command-palette jumps are full page loads, so this catches them too).
+  useEffect(() => {
+    if (!dirty) return
+    const onBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault()
+      event.returnValue = ""
+    }
+    window.addEventListener("beforeunload", onBeforeUnload)
+    return () => window.removeEventListener("beforeunload", onBeforeUnload)
+  }, [dirty])
+
   const titleRef = useRef<HTMLTextAreaElement>(null)
   // Auto-grow the title so long titles wrap instead of clipping at the canvas edge.
   // Declared before the loading guard so hook order stays stable across renders.
@@ -217,6 +231,7 @@ function ContinuumInner({
 
   const byline = String((data.author as any)?.name ?? data.author ?? "")
   const statusLabel = String(data.status ?? "draft").replace(/_/g, " ")
+  const saveStatus = saveState({ saving, dirty, error })
 
   return (
     <div className="cn-root" data-site-base={siteBase} data-mode={editorMode}>
@@ -317,7 +332,12 @@ function ContinuumInner({
       ) : null}
 
       <div className="cn-status">
-        <span className="cn-status-state">{saving ? "Saving..." : error || statusLabel}</span>
+        <div className="cn-status-meta">
+          <span className="cn-status-state">{statusLabel}</span>
+          <span className={`cn-status-save cn-status-save-${saveStatus}`} aria-live="polite">
+            {saveStateLabel(saveStatus)}
+          </span>
+        </div>
         <button
           className="cn-status-btn"
           type="button"

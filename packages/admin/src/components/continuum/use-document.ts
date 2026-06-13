@@ -2,6 +2,18 @@ import { useCallback, useEffect, useState } from "react"
 import { adminApiFetch } from "../../lib/api"
 import type { AdminFieldDef } from "../../lib/content-fields"
 import { buildPayload } from "../../lib/content-payload"
+import { documentSnapshot, isDirty } from "./dirty-state"
+
+function computeInitialData(
+  fields: Record<string, AdminFieldDef>,
+  initialData?: Record<string, unknown>,
+): Record<string, unknown> {
+  const defaults: Record<string, unknown> = {}
+  for (const [name, def] of Object.entries(fields)) {
+    if (def.default !== undefined) defaults[name] = def.default
+  }
+  return { ...defaults, ...initialData }
+}
 
 export type WorkflowAction = "save_draft" | "submit_review" | "publish" | "archive"
 
@@ -26,16 +38,19 @@ export function useDocument(opts: {
 }) {
   const { collection, fields, apiBase, documentId, initialData } = opts
 
-  const [data, setData] = useState<Record<string, unknown>>(() => {
-    const defaults: Record<string, unknown> = {}
-    for (const [name, def] of Object.entries(fields)) {
-      if (def.default !== undefined) defaults[name] = def.default
-    }
-    return { ...defaults, ...initialData }
-  })
+  const [data, setData] = useState<Record<string, unknown>>(() =>
+    computeInitialData(fields, initialData),
+  )
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(Boolean(documentId && !initialData))
   const [error, setError] = useState<string | null>(null)
+  // Baseline snapshot of the last-persisted state. Null until an existing document loads,
+  // so a document still being fetched is never reported as having unsaved changes.
+  const [savedSnapshot, setSavedSnapshot] = useState<string | null>(() =>
+    documentId && !initialData
+      ? null
+      : documentSnapshot(computeInitialData(fields, initialData), fields),
+  )
 
   useEffect(() => {
     if (!documentId || initialData) return
@@ -52,7 +67,10 @@ export function useDocument(opts: {
     adminApiFetch(apiBase, path)
       .then((res) => (res.ok ? res.json() : null))
       .then((doc) => {
-        if (doc) setData(doc)
+        if (doc) {
+          setData(doc)
+          setSavedSnapshot(documentSnapshot(doc, fields))
+        }
       })
       .catch(() => {})
       .finally(() => setLoading(false))
@@ -102,6 +120,7 @@ export function useDocument(opts: {
         }
 
         setData(result)
+        setSavedSnapshot(documentSnapshot(result, fields))
         return result
       } catch (err: any) {
         setError(err.message)
@@ -113,5 +132,7 @@ export function useDocument(opts: {
     [apiBase, collection, documentId, data, fields],
   )
 
-  return { data, setData, updateField, save, saving, loading, error }
+  const dirty = isDirty(savedSnapshot, documentSnapshot(data, fields))
+
+  return { data, setData, updateField, save, saving, loading, error, dirty }
 }

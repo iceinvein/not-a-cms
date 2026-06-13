@@ -1689,12 +1689,40 @@ a.crumb:hover {
   padding: 10px 18px;
 }
 
-.cn-status-state {
+.cn-status-meta {
   margin-right: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.cn-status-state {
   color: var(--text-muted);
   font-family: var(--font-mono);
   font-size: 11px;
   text-transform: uppercase;
+}
+
+/* Save-state indicator: quiet when saved, muted while saving, warning when there are
+   unsaved edits, error on failure. Pairs with the beforeunload guard. */
+.cn-status-save {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.cn-status-save-saved {
+  color: var(--text-subtle);
+}
+.cn-status-save-saving {
+  color: var(--text-muted);
+}
+.cn-status-save-unsaved {
+  color: var(--status-warning);
+}
+.cn-status-save-error {
+  color: var(--status-error);
 }
 
 .cn-status-btn,

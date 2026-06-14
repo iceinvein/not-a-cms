@@ -22,7 +22,7 @@ describe("Desk Live-now", () => {
         ]}
       />,
     )
-    expect(html).toContain("Live now")
+    expect(html).toContain("Presence")
     expect(html).toContain("Sam")
     expect(html).toContain("Launch week")
   })

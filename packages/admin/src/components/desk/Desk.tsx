@@ -168,7 +168,6 @@ export function Desk({
     <div className="desk">
       <header className="desk-header">
         <div>
-          <p className="desk-kicker">The Desk</p>
           <h1>{userName ? `${userName}'s publishing desk` : "Publishing desk"}</h1>
         </div>
         {/* biome-ignore lint/a11y/useSemanticElements: this groups a stat readout (count + unit) under one label, not form controls; a <fieldset> would carry UA-default styling and the wrong semantics. */}
@@ -194,7 +193,6 @@ function HorizonBand({ horizon }: { horizon: Horizon }) {
     <section className="desk-panel desk-horizon" aria-labelledby="desk-horizon-title">
       <div className="desk-panel-head">
         <div>
-          <p className="desk-kicker">Publishing horizon</p>
           <h3 id="desk-horizon-title">Scheduled work</h3>
         </div>
         <Icon name="calendar" size={18} className="desk-head-icon" />
@@ -243,7 +241,6 @@ function NeedsYou({ items }: { items: NeedsYouItem[] }) {
     <section className="desk-panel desk-needs" aria-labelledby="desk-needs-title">
       <div className="desk-panel-head">
         <div>
-          <p className="desk-kicker">Triage</p>
           <h3 id="desk-needs-title">Needs you</h3>
         </div>
         <span className="desk-count">{items.length}</span>
@@ -281,7 +278,6 @@ function LiveNow({ rows }: { rows: LiveRow[] }) {
     <section className="desk-panel desk-live" aria-labelledby="desk-live-title">
       <div className="desk-panel-head">
         <div>
-          <p className="desk-kicker">Live now</p>
           <h3 id="desk-live-title">Presence</h3>
         </div>
         <Icon name="radio" size={18} className="desk-head-icon" />

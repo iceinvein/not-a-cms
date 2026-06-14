@@ -6,8 +6,20 @@ import type { PulseEvent } from "../../../src/lib/pulse/types"
 const NOW = Date.parse("2026-06-14T12:00:00.000Z")
 
 const events: PulseEvent[] = [
-  { id: "a", type: "publish", actor: "Maya", summary: "published Pricing page", at: "2026-06-14T11:59:58.000Z" },
-  { id: "b", type: "edit", actor: "James", summary: "is editing Launch announcement", at: "2026-06-14T11:49:00.000Z" },
+  {
+    id: "a",
+    type: "publish",
+    actor: "Maya",
+    summary: "published Pricing page",
+    at: "2026-06-14T11:59:58.000Z",
+  },
+  {
+    id: "b",
+    type: "edit",
+    actor: "James",
+    summary: "is editing Launch announcement",
+    at: "2026-06-14T11:49:00.000Z",
+  },
   { id: "c", type: "alert", summary: "Automation Sync CDN failed", at: "2026-06-14T11:57:00.000Z" },
 ]
 

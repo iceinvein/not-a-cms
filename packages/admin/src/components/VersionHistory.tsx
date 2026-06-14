@@ -82,11 +82,11 @@ export function VersionHistory({ collection, documentId, apiBase = "", onRestore
   }
 
   if (loading) {
-    return <p className="text-xs text-[#52525b] py-2">Loading history...</p>
+    return <p className="text-xs text-[#838389] py-2">Loading history...</p>
   }
 
   if (versions.length === 0) {
-    return <p className="text-xs text-[#52525b] py-2">No version history yet</p>
+    return <p className="text-xs text-[#838389] py-2">No version history yet</p>
   }
 
   return (
@@ -106,19 +106,19 @@ export function VersionHistory({ collection, documentId, apiBase = "", onRestore
                 className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${
                   v.action === "publish"
                     ? "bg-[rgba(34,197,94,0.1)] text-[#22c55e]"
-                    : "bg-[rgba(255,255,255,0.05)] text-[#71717a]"
+                    : "bg-[rgba(255,255,255,0.05)] text-[#909099]"
                 }`}
               >
                 {v.action}
               </span>
             </div>
-            <span className="text-xs text-[#52525b]">{formatDate(v.created_at)}</span>
+            <span className="text-xs text-[#838389]">{formatDate(v.created_at)}</span>
           </button>
           {expanded === v.id && (
             <div className="px-3 pb-2 border-t border-[rgba(255,255,255,0.06)] space-y-2">
               <div className="pt-2 space-y-1">
                 {(changes[v.id] ?? []).length === 0 ? (
-                  <p className="text-xs text-[#52525b]">
+                  <p className="text-xs text-[#838389]">
                     No field changes from the current version.
                   </p>
                 ) : (
@@ -128,7 +128,7 @@ export function VersionHistory({ collection, documentId, apiBase = "", onRestore
                       className="rounded-md bg-[rgba(255,255,255,0.03)] px-2 py-1"
                     >
                       <p className="text-xs font-medium text-[#a1a1aa]">{change.field}</p>
-                      <p className="text-[11px] text-[#71717a] line-through">
+                      <p className="text-[11px] text-[#909099] line-through">
                         {formatValue(change.before)}
                       </p>
                       <p className="text-[11px] text-[#fafafa]">{formatValue(change.after)}</p>

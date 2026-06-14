@@ -133,7 +133,7 @@ export function FlowEditor({ flowId, apiBase = "" }: Props) {
           type="text"
           value={localName}
           onChange={(e) => setLocalName(e.target.value)}
-          className="flex-1 text-base font-semibold text-[#fafafa] border-none outline-none bg-transparent placeholder:text-[#52525b]"
+          className="flex-1 text-base font-semibold text-[#fafafa] border-none outline-none bg-transparent placeholder:text-[#838389]"
           placeholder="Flow name"
         />
 
@@ -144,7 +144,7 @@ export function FlowEditor({ flowId, apiBase = "" }: Props) {
             className={`text-xs px-3 py-1 rounded-full font-medium transition-colors ${
               localActive
                 ? "bg-[rgba(34,197,94,0.1)] text-[#22c55e]"
-                : "bg-[rgba(255,255,255,0.05)] text-[#71717a]"
+                : "bg-[rgba(255,255,255,0.05)] text-[#909099]"
             }`}
           >
             {localActive ? "Active" : "Inactive"}
@@ -159,7 +159,7 @@ export function FlowEditor({ flowId, apiBase = "" }: Props) {
             className={`px-3 py-1.5 text-sm transition-colors ${
               tab === "editor"
                 ? "bg-[#fafafa] text-[#0a0a0c]"
-                : "text-[#71717a] hover:bg-[rgba(255,255,255,0.05)]"
+                : "text-[#909099] hover:bg-[rgba(255,255,255,0.05)]"
             }`}
           >
             Editor
@@ -170,7 +170,7 @@ export function FlowEditor({ flowId, apiBase = "" }: Props) {
             className={`px-3 py-1.5 text-sm transition-colors ${
               tab === "runs"
                 ? "bg-[#fafafa] text-[#0a0a0c]"
-                : "text-[#71717a] hover:bg-[rgba(255,255,255,0.05)]"
+                : "text-[#909099] hover:bg-[rgba(255,255,255,0.05)]"
             }`}
           >
             Runs
@@ -186,7 +186,7 @@ export function FlowEditor({ flowId, apiBase = "" }: Props) {
           {saving ? "Saving…" : "Save"}
         </button>
 
-        {savedAt && <span className="text-xs text-[#52525b]">Saved at {savedAt}</span>}
+        {savedAt && <span className="text-xs text-[#838389]">Saved at {savedAt}</span>}
       </div>
 
       {/* Main content */}

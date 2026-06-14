@@ -103,7 +103,7 @@ export function ThemeCustomizer({ apiBase = "" }: Props) {
               type="text"
               value={settings["theme.primaryColor"]}
               onChange={(e) => update("theme.primaryColor", e.target.value)}
-              className="flex-1 px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c6ff3d] focus:outline-none focus:ring-0"
+              className="flex-1 px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#838389] focus:border-[#c6ff3d] focus:outline-none focus:ring-0"
             />
           </div>
         </div>

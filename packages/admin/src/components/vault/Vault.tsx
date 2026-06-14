@@ -527,7 +527,7 @@ export function Vault({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-serif text-3xl text-[#fafafa]">The Vault</h1>
-          <p className="text-sm text-[#71717a]">
+          <p className="text-sm text-[#909099]">
             {items.length} assets clustered by type and usage.
           </p>
         </div>
@@ -795,7 +795,7 @@ function TagFilterBar({
           aria-pressed={showUntagged}
         >
           Untagged
-          <span className="text-[#71717a]">{untaggedCount}</span>
+          <span className="text-[#909099]">{untaggedCount}</span>
         </button>
       )}
       {tags.map(({ tag, count }) => {
@@ -813,7 +813,7 @@ function TagFilterBar({
               style={{ backgroundColor: tagColor(tag, colors) }}
             />
             #{tag}
-            <span className="text-[#71717a]">{count}</span>
+            <span className="text-[#909099]">{count}</span>
           </button>
         )
       })}
@@ -840,7 +840,7 @@ function Breadcrumb({
 
   return (
     <nav
-      className="flex flex-wrap items-center gap-1 text-sm text-[#71717a]"
+      className="flex flex-wrap items-center gap-1 text-sm text-[#909099]"
       aria-label="Breadcrumb"
     >
       <button type="button" onClick={() => onSelect("all")} className="hover:text-[#fafafa]">
@@ -877,7 +877,7 @@ function Breadcrumb({
             type="button"
             onClick={onToggleRecursive}
             aria-pressed={recursive}
-            className={`ml-2 text-xs ${recursive ? "text-[#c6ff3d]" : "text-[#71717a] hover:text-[#fafafa]"}`}
+            className={`ml-2 text-xs ${recursive ? "text-[#c6ff3d]" : "text-[#909099] hover:text-[#fafafa]"}`}
           >
             {recursive ? "Subfolders: on" : "Include subfolders"}
           </button>
@@ -912,7 +912,7 @@ function FolderStylePanel({
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b] px-3 py-2">
       <div className="flex items-center gap-1.5">
-        <span className="text-xs text-[#71717a]">Color</span>
+        <span className="text-xs text-[#909099]">Color</span>
         {FOLDER_SWATCHES.map((color) => (
           <button
             key={color}
@@ -926,13 +926,13 @@ function FolderStylePanel({
         <button
           type="button"
           onClick={() => onSetColor(folder.id, null)}
-          className="text-xs text-[#71717a] hover:text-[#fafafa]"
+          className="text-xs text-[#909099] hover:text-[#fafafa]"
         >
           Reset
         </button>
       </div>
       <div className="flex items-center gap-1.5">
-        <span className="text-xs text-[#71717a]">Icon</span>
+        <span className="text-xs text-[#909099]">Icon</span>
         {FOLDER_ICON_KEYS.map((key) => {
           const Glyph = FOLDER_ICONS[key]
           return (
@@ -950,7 +950,7 @@ function FolderStylePanel({
       </div>
       {viewerRole === "admin" && availableRoles.length > 0 && (
         <div className="flex items-center gap-2">
-          <span className="text-xs text-[#71717a]">Permissions</span>
+          <span className="text-xs text-[#909099]">Permissions</span>
           {availableRoles
             .filter((role) => role.key !== "admin")
             .map((role) => (
@@ -964,7 +964,7 @@ function FolderStylePanel({
                 {role.label}
               </label>
             ))}
-          <span className="text-[11px] text-[#52525b]">
+          <span className="text-[11px] text-[#838389]">
             {restricted.length === 0 ? "All roles" : "Restricted"}
           </span>
         </div>
@@ -1012,7 +1012,7 @@ function BulkActionBar({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder="Tag..."
-        className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-1.5 text-sm text-[#fafafa] outline-none placeholder:text-[#52525b] focus:border-[#c6ff3d]"
+        className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-1.5 text-sm text-[#fafafa] outline-none placeholder:text-[#838389] focus:border-[#c6ff3d]"
       />
       <button
         type="button"
@@ -1059,7 +1059,7 @@ function BulkActionBar({
       <button
         type="button"
         onClick={onClear}
-        className="text-sm text-[#71717a] hover:text-[#fafafa]"
+        className="text-sm text-[#909099] hover:text-[#fafafa]"
       >
         Clear
       </button>
@@ -1093,10 +1093,10 @@ function ClusterSection({
             {cluster.label}
           </h2>
         </div>
-        <span className="text-xs text-[#71717a]">{cluster.items.length} assets</span>
+        <span className="text-xs text-[#909099]">{cluster.items.length} assets</span>
       </div>
       {cluster.items.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-[rgba(255,255,255,0.08)] px-4 py-6 text-sm text-[#71717a]">
+        <p className="rounded-lg border border-dashed border-[rgba(255,255,255,0.08)] px-4 py-6 text-sm text-[#909099]">
           No assets in this cluster.
         </p>
       ) : (
@@ -1136,7 +1136,7 @@ function ClusterSection({
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-[#71717a]">
+                    <div className="flex h-full w-full items-center justify-center text-[#909099]">
                       {item.mimetype.startsWith("video/") ? (
                         <Video className="h-9 w-9" />
                       ) : (
@@ -1152,7 +1152,7 @@ function ClusterSection({
                   <p className="truncate text-xs font-medium text-[#fafafa]">
                     {item.title || item.filename}
                   </p>
-                  <p className="text-xs text-[#71717a]">{formatSize(item.size)}</p>
+                  <p className="text-xs text-[#909099]">{formatSize(item.size)}</p>
                 </div>
               </button>
             </div>
@@ -1215,7 +1215,7 @@ function DetailPanel({
               className="max-h-72 w-full object-contain"
             />
           ) : (
-            <div className="flex aspect-video items-center justify-center text-[#71717a]">
+            <div className="flex aspect-video items-center justify-center text-[#909099]">
               {item.mimetype.startsWith("video/") ? (
                 <Video className="h-12 w-12" />
               ) : (
@@ -1227,7 +1227,7 @@ function DetailPanel({
 
         <div>
           <p className="truncate text-sm font-medium text-[#fafafa]">{item.filename}</p>
-          <p className="text-xs text-[#71717a]">
+          <p className="text-xs text-[#909099]">
             {[
               formatSize(item.size),
               item.width && item.height ? `${item.width}x${item.height}` : null,
@@ -1250,7 +1250,7 @@ function DetailPanel({
                     className="block rounded-lg border border-[rgba(255,255,255,0.06)] px-3 py-2 text-sm text-[#d4d4d8] hover:border-[rgba(198,255,61,0.35)] hover:bg-[rgba(255,255,255,0.03)]"
                   >
                     <span className="block truncate text-[#fafafa]">{reference.label}</span>
-                    <span className="text-xs text-[#71717a]">
+                    <span className="text-xs text-[#909099]">
                       {reference.collection} / {reference.field}
                     </span>
                   </a>
@@ -1258,13 +1258,13 @@ function DetailPanel({
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-[#71717a]">No content references this asset.</p>
+            <p className="text-sm text-[#909099]">No content references this asset.</p>
           )}
         </section>
 
         <TagsField metadata={metadata} setMetadata={setMetadata} tagColors={tagColors} />
 
-        <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#71717a]">
+        <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#909099]">
           Folder
           <select
             value={item.folderId ?? "__unsorted"}
@@ -1345,7 +1345,7 @@ function TagsField({
 
   return (
     <div className="space-y-2">
-      <h3 className="text-xs font-medium uppercase tracking-[0.08em] text-[#71717a]">Tags</h3>
+      <h3 className="text-xs font-medium uppercase tracking-[0.08em] text-[#909099]">Tags</h3>
       <div className="flex flex-wrap gap-1.5">
         {metadata.tags.map((tag) => (
           <span
@@ -1360,7 +1360,7 @@ function TagsField({
             <button
               type="button"
               onClick={() => removeTag(tag)}
-              className="text-[#71717a] hover:text-[#f87171]"
+              className="text-[#909099] hover:text-[#f87171]"
               aria-label={`Remove tag ${tag}`}
             >
               <X className="h-3 w-3" />
@@ -1379,7 +1379,7 @@ function TagsField({
         }}
         onBlur={addTag}
         placeholder="Add a tag..."
-        className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm text-[#fafafa] outline-none placeholder:text-[#52525b] focus:border-[#c6ff3d]"
+        className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm text-[#fafafa] outline-none placeholder:text-[#838389] focus:border-[#c6ff3d]"
       />
     </div>
   )
@@ -1394,25 +1394,25 @@ function MetadataFields({
 }) {
   return (
     <div className="space-y-3">
-      <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#71717a]">
+      <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#909099]">
         Title
         <input
           value={metadata.title}
           onChange={(event) =>
             setMetadata((current) => ({ ...current, title: event.target.value }))
           }
-          className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm normal-case tracking-normal text-[#fafafa] outline-none placeholder:text-[#52525b] focus:border-[#c6ff3d]"
+          className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm normal-case tracking-normal text-[#fafafa] outline-none placeholder:text-[#838389] focus:border-[#c6ff3d]"
         />
       </label>
-      <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#71717a]">
+      <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#909099]">
         Alt text
         <input
           value={metadata.alt}
           onChange={(event) => setMetadata((current) => ({ ...current, alt: event.target.value }))}
-          className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm normal-case tracking-normal text-[#fafafa] outline-none placeholder:text-[#52525b] focus:border-[#c6ff3d]"
+          className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm normal-case tracking-normal text-[#fafafa] outline-none placeholder:text-[#838389] focus:border-[#c6ff3d]"
         />
       </label>
-      <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#71717a]">
+      <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#909099]">
         Caption
         <textarea
           value={metadata.caption}
@@ -1420,11 +1420,11 @@ function MetadataFields({
             setMetadata((current) => ({ ...current, caption: event.target.value }))
           }
           rows={3}
-          className="resize-none rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm normal-case tracking-normal text-[#fafafa] outline-none placeholder:text-[#52525b] focus:border-[#c6ff3d]"
+          className="resize-none rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm normal-case tracking-normal text-[#fafafa] outline-none placeholder:text-[#838389] focus:border-[#c6ff3d]"
         />
       </label>
       <div className="grid grid-cols-2 gap-3">
-        <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#71717a]">
+        <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#909099]">
           Focal X
           <input
             type="number"
@@ -1438,7 +1438,7 @@ function MetadataFields({
             className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-3 py-2 text-sm normal-case tracking-normal text-[#fafafa] outline-none focus:border-[#c6ff3d]"
           />
         </label>
-        <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#71717a]">
+        <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#909099]">
           Focal Y
           <input
             type="number"
@@ -1458,7 +1458,7 @@ function MetadataFields({
 }
 
 function clusterIcon(key: Cluster["key"]) {
-  const className = "h-4 w-4 text-[#71717a]"
+  const className = "h-4 w-4 text-[#909099]"
   if (key === "images") return <ImageIcon className={className} />
   if (key === "video") return <Video className={className} />
   return <FileText className={className} />

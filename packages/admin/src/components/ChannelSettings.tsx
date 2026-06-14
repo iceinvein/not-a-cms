@@ -36,7 +36,7 @@ const DEFAULTS: ChannelSettingsMap = {
 }
 
 const inputClass =
-  "w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c6ff3d] focus:outline-none"
+  "w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#838389] focus:border-[#c6ff3d] focus:outline-none"
 
 export function ChannelSettings({ apiBase = "", initialSettings }: Props) {
   const [settings, setSettings] = useState<ChannelSettingsMap>({ ...DEFAULTS, ...initialSettings })
@@ -101,7 +101,7 @@ export function ChannelSettings({ apiBase = "", initialSettings }: Props) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-base font-semibold text-[#fafafa]">Channel Settings</h2>
-          <p className="text-sm text-[#71717a]">
+          <p className="text-sm text-[#909099]">
             Configure the public RSS feed and default email rendering metadata.
           </p>
         </div>
@@ -121,7 +121,7 @@ export function ChannelSettings({ apiBase = "", initialSettings }: Props) {
       <div className="grid gap-5 lg:grid-cols-2">
         <div className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b] p-5 space-y-4">
           <div className="flex items-center gap-2">
-            <Rss className="h-4 w-4 text-[#71717a]" />
+            <Rss className="h-4 w-4 text-[#909099]" />
             <h3 className="text-sm font-medium text-[#fafafa]">RSS</h3>
           </div>
           <TextField
@@ -155,7 +155,7 @@ export function ChannelSettings({ apiBase = "", initialSettings }: Props) {
 
         <div className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b] p-5 space-y-4">
           <div className="flex items-center gap-2">
-            <Mail className="h-4 w-4 text-[#71717a]" />
+            <Mail className="h-4 w-4 text-[#909099]" />
             <h3 className="text-sm font-medium text-[#fafafa]">Email</h3>
           </div>
           <TextField
@@ -194,7 +194,7 @@ export function ChannelSettings({ apiBase = "", initialSettings }: Props) {
 function TextField(props: { label: string; value: string; onChange: (value: string) => void }) {
   return (
     <label className="block space-y-1">
-      <span className="text-xs font-medium text-[#71717a]">{props.label}</span>
+      <span className="text-xs font-medium text-[#909099]">{props.label}</span>
       <input
         value={props.value}
         onChange={(event) => props.onChange(event.target.value)}

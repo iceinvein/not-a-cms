@@ -149,7 +149,7 @@ export function Console({
       <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#18181b]">
         <div className="border-b border-[rgba(255,255,255,0.06)] p-4">
           <p className="text-sm font-medium text-[#fafafa]">Run feed</p>
-          <p className="text-xs text-[#71717a]">
+          <p className="text-xs text-[#909099]">
             {flowId ? `Flow ${flowId}` : "Recent runs across flows"}
           </p>
         </div>
@@ -183,10 +183,10 @@ export function Console({
                     <span className={`h-2 w-2 rounded-full ${statusDot(run.status)}`} />
                     {run.status}
                   </span>
-                  <span className="text-xs text-[#71717a]">{runDuration(run)}</span>
+                  <span className="text-xs text-[#909099]">{runDuration(run)}</span>
                 </div>
                 <p className="truncate font-mono text-xs text-[#a1a1aa]">{run.flow_id}</p>
-                <p className="mt-1 text-xs text-[#71717a]">{run.trigger_event}</p>
+                <p className="mt-1 text-xs text-[#909099]">{run.trigger_event}</p>
               </button>
             ))}
           </div>

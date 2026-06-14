@@ -27,7 +27,7 @@ function tokenClass(kind: RuleToken["kind"]): string {
 }
 
 function statusDot(active: boolean): string {
-  return `inline-block h-2 w-2 rounded-full ${active ? "bg-[#22c55e]" : "bg-[#52525b]"}`
+  return `inline-block h-2 w-2 rounded-full ${active ? "bg-[#22c55e]" : "bg-[#838389]"}`
 }
 
 export function Rules({ apiBase = "", initialFlows, initialSelectedId }: Props) {
@@ -164,7 +164,7 @@ export function Rules({ apiBase = "", initialFlows, initialSelectedId }: Props) 
                 >
                   <div className="mb-2 flex items-center justify-between gap-3">
                     <span className="truncate text-sm font-medium text-[#fafafa]">{flow.name}</span>
-                    <span className="flex items-center gap-2 text-xs text-[#71717a]">
+                    <span className="flex items-center gap-2 text-xs text-[#909099]">
                       <span className={statusDot(flow.active)} />
                       {flow.active ? "Active" : "Inactive"}
                     </span>

@@ -117,14 +117,14 @@ export function TestPanel({ flow, apiBase = "", onClose }: Props) {
         <div className="mb-4 flex items-center justify-between">
           <div>
             <p className="text-base font-semibold text-[#fafafa]">Test rule</p>
-            <p className="text-xs text-[#71717a]">
+            <p className="text-xs text-[#909099]">
               Simulated: no webhooks, emails, or content writes are performed.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-sm text-[#71717a] hover:text-[#fafafa]"
+            className="text-sm text-[#909099] hover:text-[#fafafa]"
           >
             Close
           </button>

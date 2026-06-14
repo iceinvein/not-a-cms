@@ -135,19 +135,19 @@ export function FlowList({ apiBase = "" }: Props) {
                   {flow.name}
                 </a>
                 <div className="flex gap-2 mt-1 items-center flex-wrap">
-                  <span className="text-xs bg-[rgba(255,255,255,0.05)] text-[#71717a] px-2 py-0.5 rounded-full">
+                  <span className="text-xs bg-[rgba(255,255,255,0.05)] text-[#909099] px-2 py-0.5 rounded-full">
                     {triggerBadgeLabel(flow.trigger)}
                   </span>
-                  <span className="text-xs bg-[rgba(255,255,255,0.05)] text-[#71717a] px-2 py-0.5 rounded-full">
+                  <span className="text-xs bg-[rgba(255,255,255,0.05)] text-[#909099] px-2 py-0.5 rounded-full">
                     {flow.steps?.length ?? 0} steps
                   </span>
                   {flow.description && (
-                    <span className="text-xs text-[#52525b]">{flow.description}</span>
+                    <span className="text-xs text-[#838389]">{flow.description}</span>
                   )}
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-xs text-[#52525b]">
+                <span className="text-xs text-[#838389]">
                   {new Date(flow.updated_at).toLocaleDateString()}
                 </span>
                 <button
@@ -156,7 +156,7 @@ export function FlowList({ apiBase = "" }: Props) {
                   className={`text-xs px-2 py-1 rounded-full font-medium transition-colors ${
                     flow.active
                       ? "bg-[rgba(34,197,94,0.1)] text-[#22c55e]"
-                      : "bg-[rgba(255,255,255,0.05)] text-[#71717a]"
+                      : "bg-[rgba(255,255,255,0.05)] text-[#909099]"
                   }`}
                 >
                   {flow.active ? "Active" : "Inactive"}
@@ -164,7 +164,7 @@ export function FlowList({ apiBase = "" }: Props) {
                 <button
                   type="button"
                   onClick={() => handleDelete(flow)}
-                  className="text-xs text-[#52525b] hover:text-[#ef4444] transition-colors"
+                  className="text-xs text-[#838389] hover:text-[#ef4444] transition-colors"
                 >
                   Delete
                 </button>

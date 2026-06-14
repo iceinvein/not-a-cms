@@ -16,7 +16,7 @@ function statusBadge(status: string) {
   const base = "inline-block text-xs px-2 py-0.5 rounded-full font-medium"
   if (status === "completed") return `${base} bg-[rgba(34,197,94,0.1)] text-[#22c55e]`
   if (status === "failed") return `${base} bg-[rgba(239,68,68,0.1)] text-[#ef4444]`
-  return `${base} bg-[rgba(255,255,255,0.05)] text-[#71717a]`
+  return `${base} bg-[rgba(255,255,255,0.05)] text-[#909099]`
 }
 
 function formatDuration(started: string, finished?: string): string {
@@ -42,7 +42,7 @@ function tryParseJson(raw?: string): unknown {
 
 function JsonViewer({ value }: { value: unknown }) {
   if (value === undefined || value === null)
-    return <span className="text-[#52525b] text-xs">—</span>
+    return <span className="text-[#838389] text-xs">—</span>
   return (
     <pre className="text-xs bg-[#0a0a0c] border border-[rgba(255,255,255,0.06)] rounded-lg p-2 overflow-auto max-h-48 whitespace-pre-wrap break-all text-[#a1a1aa]">
       {typeof value === "string" ? value : JSON.stringify(value, null, 2)}
@@ -57,7 +57,7 @@ function StepDetailPanel({ runStep, steps }: { runStep: FlowRunStep; steps: Flow
     <div className="flex flex-col gap-4">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="text-xs text-[#71717a] font-mono">{runStep.step_id}</p>
+          <p className="text-xs text-[#909099] font-mono">{runStep.step_id}</p>
           {stepDef && <p className="text-sm font-medium text-[#fafafa] mt-0.5">{stepDef.type}</p>}
         </div>
         <span className={statusBadge(runStep.status)}>{runStep.status}</span>
@@ -65,7 +65,7 @@ function StepDetailPanel({ runStep, steps }: { runStep: FlowRunStep; steps: Flow
 
       {runStep.branch_taken && (
         <div>
-          <p className="text-xs font-medium text-[#71717a] mb-1">Branch taken</p>
+          <p className="text-xs font-medium text-[#909099] mb-1">Branch taken</p>
           <span className="text-xs px-2 py-0.5 rounded-full bg-[rgba(245,158,11,0.1)] text-[#f59e0b] font-medium">
             {runStep.branch_taken}
           </span>
@@ -73,19 +73,19 @@ function StepDetailPanel({ runStep, steps }: { runStep: FlowRunStep; steps: Flow
       )}
 
       <div>
-        <p className="text-xs font-medium text-[#71717a] mb-1">Duration</p>
+        <p className="text-xs font-medium text-[#909099] mb-1">Duration</p>
         <p className="text-sm text-[#fafafa]">
           {stepDurationMs(runStep.started_at, runStep.finished_at)}
         </p>
       </div>
 
       <div>
-        <p className="text-xs font-medium text-[#71717a] mb-1">Input</p>
+        <p className="text-xs font-medium text-[#909099] mb-1">Input</p>
         <JsonViewer value={tryParseJson(runStep.input)} />
       </div>
 
       <div>
-        <p className="text-xs font-medium text-[#71717a] mb-1">Output</p>
+        <p className="text-xs font-medium text-[#909099] mb-1">Output</p>
         <JsonViewer value={tryParseJson(runStep.output)} />
       </div>
 
@@ -165,23 +165,23 @@ export function RunDetail({ flowId, runId, apiBase = "", steps, onRetry }: Props
       {/* Run info bar */}
       <div className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] px-4 py-3 flex flex-wrap items-center gap-4">
         <div>
-          <p className="text-xs text-[#71717a]">Started</p>
+          <p className="text-xs text-[#909099]">Started</p>
           <p className="text-sm font-medium text-[#fafafa]">
             {new Date(run.started_at).toLocaleString()}
           </p>
         </div>
         <div>
-          <p className="text-xs text-[#71717a]">Trigger event</p>
+          <p className="text-xs text-[#909099]">Trigger event</p>
           <p className="text-sm font-mono text-[#a1a1aa]">{run.trigger_event}</p>
         </div>
         <div>
-          <p className="text-xs text-[#71717a]">Duration</p>
+          <p className="text-xs text-[#909099]">Duration</p>
           <p className="text-sm text-[#fafafa]">
             {formatDuration(run.started_at, run.finished_at)}
           </p>
         </div>
         <div>
-          <p className="text-xs text-[#71717a] mb-0.5">Status</p>
+          <p className="text-xs text-[#909099] mb-0.5">Status</p>
           <span className={statusBadge(run.status)}>{run.status}</span>
         </div>
         {run.status === "failed" && (
@@ -228,7 +228,7 @@ export function RunDetail({ flowId, runId, apiBase = "", steps, onRetry }: Props
           {selectedRunStep ? (
             <StepDetailPanel runStep={selectedRunStep} steps={steps} />
           ) : (
-            <p className="text-sm text-[#52525b] text-center py-8">
+            <p className="text-sm text-[#838389] text-center py-8">
               Click a step to see its execution data.
             </p>
           )}

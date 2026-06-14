@@ -5,7 +5,7 @@ import type { FlowRun, FlowRunDetail } from "./flow-types"
 export function statusDot(status: FlowRun["status"] | TimelineStep["status"]): string {
   if (status === "completed") return "bg-[#22c55e]"
   if (status === "failed") return "bg-[#ef4444]"
-  if (status === "skipped") return "bg-[#71717a]"
+  if (status === "skipped") return "bg-[#909099]"
   return "bg-[#f59e0b]"
 }
 
@@ -32,7 +32,7 @@ export function RunInspector({ run }: { run: FlowRunDetail }) {
     <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#18181b] p-4">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs text-[#71717a]">Selected run</p>
+          <p className="text-xs text-[#909099]">Selected run</p>
           <p className="font-mono text-sm text-[#fafafa]">{run.id}</p>
           <p className="mt-1 text-sm text-[#a1a1aa]">{run.trigger_event}</p>
         </div>
@@ -47,7 +47,7 @@ export function RunInspector({ run }: { run: FlowRunDetail }) {
           <label htmlFor={`scrub-${run.id}`} className="text-xs font-medium text-[#a1a1aa]">
             scrub timeline
           </label>
-          <span className="font-mono text-xs text-[#71717a]">
+          <span className="font-mono text-xs text-[#909099]">
             {formatMs(cursor)} / {formatMs(timeline.totalMs)}
           </span>
         </div>
@@ -88,7 +88,7 @@ export function RunInspector({ run }: { run: FlowRunDetail }) {
             <div className="mb-2 flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="truncate font-mono text-sm text-[#fafafa]">{step.stepId}</p>
-                <p className="text-xs text-[#71717a]">
+                <p className="text-xs text-[#909099]">
                   {formatMs(step.durationMs)} after +{formatMs(step.offsetMs)}
                 </p>
               </div>

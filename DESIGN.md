@@ -58,8 +58,13 @@ surface). The accent is a signal, never decoration.
 | --- | --- | --- |
 | `--text-primary` | `#fafafa` | Headings, primary content |
 | `--text-secondary` | `#a1a1aa` | Body, descriptions |
-| `--text-muted` | `#71717a` | Labels, icons, metadata |
-| `--text-subtle` | `#52525b` | Placeholders, separators |
+| `--text-muted` | `#909099` | Labels, icons, metadata |
+| `--text-subtle` | `#838389` | Placeholders, separators |
+
+The four steps descend in contrast but every one clears WCAG AA (>= 4.5:1) on
+the app, sidebar, and surface backgrounds, so even the dimmest label stays
+legible: secondary ~6.9:1, muted ~5.3:1, subtle ~4.7:1 on `--bg-surface`. The
+ramp is enforced by `contrast.test.ts`; darkening these values must keep AA.
 
 ### Accent (electric lime signal)
 

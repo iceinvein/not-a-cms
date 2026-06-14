@@ -192,13 +192,13 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
 
   const statusBadge = (status?: string) => {
     const colors: Record<string, string> = {
-      draft: "bg-[rgba(255,255,255,0.05)] text-[#71717a]",
+      draft: "bg-[rgba(255,255,255,0.05)] text-[#909099]",
       published: "bg-[rgba(34,197,94,0.1)] text-[#22c55e]",
       archived: "bg-[rgba(245,158,11,0.1)] text-[#f59e0b]",
       in_review: "bg-[rgba(255,255,255,0.08)] text-[#a1a1aa]",
       scheduled: "bg-[rgba(245,158,11,0.1)] text-[#f59e0b]",
     }
-    return colors[status || ""] || "bg-[rgba(255,255,255,0.05)] text-[#71717a]"
+    return colors[status || ""] || "bg-[rgba(255,255,255,0.05)] text-[#909099]"
   }
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
@@ -209,7 +209,7 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
 
   const sortableHeader = (field: string, label: string, align: "left" | "right" = "left") => (
     <th
-      className={`${align === "right" ? "text-right" : "text-left"} px-6 py-3 text-xs font-medium text-[#52525b] uppercase tracking-wider`}
+      className={`${align === "right" ? "text-right" : "text-left"} px-6 py-3 text-xs font-medium text-[#838389] uppercase tracking-wider`}
     >
       <button
         type="button"
@@ -265,7 +265,7 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
           onSearch={handleSearch}
           placeholder={`Search ${collectionLabel.toLowerCase()}...`}
         />
-        <p className="text-sm text-[#71717a]">
+        <p className="text-sm text-[#909099]">
           {total === 0
             ? "0 items"
             : `${offset + 1}-${Math.min(offset + items.length, total)} of ${total}`}
@@ -278,7 +278,7 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
             <button
               type="button"
               onClick={() => setSelectedIds([])}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[#71717a] hover:bg-[rgba(255,255,255,0.06)] hover:text-[#fafafa]"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[#909099] hover:bg-[rgba(255,255,255,0.06)] hover:text-[#fafafa]"
               title="Clear selection"
             >
               <X className="h-4 w-4" />
@@ -327,8 +327,8 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
       {items.length === 0 ? (
         searchTerm ? (
           <div className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] p-12 text-center">
-            <p className="text-[#71717a] mb-1">No results for "{searchTerm}"</p>
-            <p className="text-sm text-[#52525b]">
+            <p className="text-[#909099] mb-1">No results for "{searchTerm}"</p>
+            <p className="text-sm text-[#838389]">
               Try a different search term or clear the filter.
             </p>
           </div>
@@ -362,7 +362,7 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
                 {sortableHeader("title", "Title")}
                 {sortableHeader("status", "Status")}
                 {sortableHeader("updated_at", "Updated")}
-                <th className="text-right px-6 py-3 text-xs font-medium text-[#52525b] uppercase tracking-wider">
+                <th className="text-right px-6 py-3 text-xs font-medium text-[#838389] uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -393,13 +393,13 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
                       {String(item.status || "draft")}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-[#52525b]">
+                  <td className="px-6 py-4 text-sm text-[#838389]">
                     {formatDate(item.updated_at as string)}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <a
                       href={`/content/${collection}/${item.id}`}
-                      className="text-sm text-[#71717a] hover:text-[#c6ff3d] mr-3 transition-colors"
+                      className="text-sm text-[#909099] hover:text-[#c6ff3d] mr-3 transition-colors"
                     >
                       Edit
                     </a>
@@ -416,7 +416,7 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
             </tbody>
           </table>
           <div className="flex items-center justify-between border-t border-[rgba(255,255,255,0.06)] px-6 py-3">
-            <p className="text-sm text-[#71717a]">
+            <p className="text-sm text-[#909099]">
               Page {currentPage} of {totalPages}
               {selectedItems.length > 0 ? ` · ${selectedItems.length} selected on this page` : ""}
             </p>

@@ -18,7 +18,7 @@ type Props = {
 }
 
 const inputClass =
-  "w-full border border-[rgba(255,255,255,0.1)] rounded-lg px-3 py-2 text-sm bg-[#18181b] text-[#fafafa] placeholder:text-[#52525b] focus:border-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-0"
+  "w-full border border-[rgba(255,255,255,0.1)] rounded-lg px-3 py-2 text-sm bg-[#18181b] text-[#fafafa] placeholder:text-[#838389] focus:border-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-0"
 const labelClass = "block text-xs font-medium text-[#a1a1aa] mb-1"
 const sectionClass = "flex flex-col gap-3"
 
@@ -132,7 +132,7 @@ function TriggerConfig({
                 type="button"
                 key={preset.value}
                 onClick={() => onUpdateTrigger({ type: "schedule.cron", cron: preset.value })}
-                className="text-xs px-2 py-1 rounded bg-[rgba(255,255,255,0.05)] text-[#71717a] hover:bg-[rgba(255,255,255,0.08)] transition-colors"
+                className="text-xs px-2 py-1 rounded bg-[rgba(255,255,255,0.05)] text-[#909099] hover:bg-[rgba(255,255,255,0.08)] transition-colors"
               >
                 {preset.label}
               </button>
@@ -190,7 +190,7 @@ function ConditionConfig({
       <div className="flex flex-col gap-2">
         <p className={labelClass}>Rules</p>
         {step.rules.length === 0 && (
-          <p className="text-xs text-[#52525b] italic">No rules yet. Add one below.</p>
+          <p className="text-xs text-[#838389] italic">No rules yet. Add one below.</p>
         )}
         {step.rules.map((rule, i) => (
           <div
@@ -204,12 +204,12 @@ function ConditionConfig({
                 value={rule.field}
                 onChange={(e) => updateRule(i, { field: e.target.value })}
                 placeholder="Field path"
-                className="flex-1 border border-[rgba(255,255,255,0.1)] rounded px-2 py-1 text-xs bg-[#18181b] text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[rgba(255,255,255,0.2)]"
+                className="flex-1 border border-[rgba(255,255,255,0.1)] rounded px-2 py-1 text-xs bg-[#18181b] text-[#fafafa] placeholder:text-[#838389] focus:outline-none focus:border-[rgba(255,255,255,0.2)]"
               />
               <button
                 type="button"
                 onClick={() => removeRule(i)}
-                className="text-[#52525b] hover:text-[#ef4444] text-xs"
+                className="text-[#838389] hover:text-[#ef4444] text-xs"
               >
                 Remove
               </button>
@@ -230,7 +230,7 @@ function ConditionConfig({
               value={String(rule.value)}
               onChange={(e) => updateRule(i, { value: e.target.value })}
               placeholder="Value"
-              className="border border-[rgba(255,255,255,0.1)] rounded px-2 py-1 text-xs bg-[#18181b] text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[rgba(255,255,255,0.2)]"
+              className="border border-[rgba(255,255,255,0.1)] rounded px-2 py-1 text-xs bg-[#18181b] text-[#fafafa] placeholder:text-[#838389] focus:outline-none focus:border-[rgba(255,255,255,0.2)]"
             />
           </div>
         ))}
@@ -466,7 +466,7 @@ function ActionConfig({
         </div>
       )}
 
-      <p className="text-xs text-[#52525b] italic">
+      <p className="text-xs text-[#838389] italic">
         Use {"{{payload.field.path}}"} to reference trigger data.
       </p>
     </div>
@@ -507,7 +507,7 @@ export function StepConfigurator({
           <button
             type="button"
             onClick={onClose}
-            className="text-[#52525b] hover:text-[#a1a1aa] text-sm"
+            className="text-[#838389] hover:text-[#a1a1aa] text-sm"
           >
             ✕
           </button>
@@ -521,7 +521,7 @@ export function StepConfigurator({
       ) : selectedStep ? (
         <ActionConfig step={selectedStep as ActionStep} onUpdateStep={onUpdateStep} />
       ) : (
-        <p className="text-sm text-[#52525b] text-center py-4">
+        <p className="text-sm text-[#838389] text-center py-4">
           Select a step to configure it, or click the trigger to change it.
         </p>
       )}

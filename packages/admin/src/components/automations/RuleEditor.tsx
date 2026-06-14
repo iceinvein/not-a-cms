@@ -185,7 +185,7 @@ export function RuleEditor({ flow, apiBase = "", onSaved }: Props) {
           <input
             value={draft.name}
             onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))}
-            className="min-w-[220px] flex-1 bg-transparent text-base font-semibold text-[#fafafa] outline-none placeholder:text-[#52525b]"
+            className="min-w-[220px] flex-1 bg-transparent text-base font-semibold text-[#fafafa] outline-none placeholder:text-[#838389]"
             placeholder="Rule name"
           />
           <button
@@ -214,7 +214,7 @@ export function RuleEditor({ flow, apiBase = "", onSaved }: Props) {
             className={`${sectionButtonClass(selected?.type === "trigger")} w-full`}
           >
             <div className="flex items-center gap-3">
-              <span className="w-12 text-xs font-semibold text-[#71717a]">WHEN</span>
+              <span className="w-12 text-xs font-semibold text-[#909099]">WHEN</span>
               <span className="text-sm text-[#fafafa]">{outline.when.label}</span>
             </div>
           </button>
@@ -222,7 +222,7 @@ export function RuleEditor({ flow, apiBase = "", onSaved }: Props) {
           <div className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#111113] p-3">
             <div className="mb-2 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <span className="w-12 text-xs font-semibold text-[#71717a]">IF</span>
+                <span className="w-12 text-xs font-semibold text-[#909099]">IF</span>
                 <span className="text-sm text-[#fafafa]">
                   {condition
                     ? `${outline.match === "any" ? "Any" : "All"} rules match`
@@ -259,7 +259,7 @@ export function RuleEditor({ flow, apiBase = "", onSaved }: Props) {
           <div className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#111113] p-3">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <span className="w-12 text-xs font-semibold text-[#71717a]">DO</span>
+                <span className="w-12 text-xs font-semibold text-[#909099]">DO</span>
                 <span className="text-sm text-[#fafafa]">
                   {actions.length
                     ? `${actions.length} action${actions.length === 1 ? "" : "s"}`
@@ -290,14 +290,14 @@ export function RuleEditor({ flow, apiBase = "", onSaved }: Props) {
                     className={`${sectionButtonClass(selected?.type === "action" && selected.id === action.id)} min-w-0 flex-1`}
                   >
                     <span className="flex items-center gap-2 text-sm text-[#fafafa]">
-                      <span className="text-xs text-[#71717a]">{index + 1}</span>
+                      <span className="text-xs text-[#909099]">{index + 1}</span>
                       <span className="truncate">{actionLabel(action)}</span>
                     </span>
                   </button>
                   <button
                     type="button"
                     onClick={() => removeStep(action.id)}
-                    className="text-xs text-[#52525b] hover:text-[#ef4444]"
+                    className="text-xs text-[#838389] hover:text-[#ef4444]"
                   >
                     Remove
                   </button>

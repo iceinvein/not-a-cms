@@ -75,7 +75,7 @@ export function TagManager({
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <h2 className="font-serif text-xl text-[#fafafa]">Manage tags</h2>
-            <p className="text-sm text-[#71717a]">
+            <p className="text-sm text-[#909099]">
               Rename, recolor, describe, group, merge, or remove tags.
             </p>
           </div>
@@ -83,7 +83,7 @@ export function TagManager({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="rounded-lg p-1 text-[#71717a] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#fafafa]"
+            className="rounded-lg p-1 text-[#909099] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#fafafa]"
           >
             <X className="h-5 w-5" />
           </button>
@@ -96,14 +96,14 @@ export function TagManager({
         )}
 
         {tags.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-[rgba(255,255,255,0.08)] px-4 py-6 text-sm text-[#71717a]">
+          <p className="rounded-lg border border-dashed border-[rgba(255,255,255,0.08)] px-4 py-6 text-sm text-[#909099]">
             No tags yet.
           </p>
         ) : (
           <div className="max-h-[70vh] space-y-4 overflow-auto pr-1">
             {groups.map(({ group, tags: groupTagList }) => (
               <section key={group} className="space-y-2">
-                <h3 className="text-xs font-semibold uppercase tracking-[0.08em] text-[#71717a]">
+                <h3 className="text-xs font-semibold uppercase tracking-[0.08em] text-[#909099]">
                   {group}
                 </h3>
                 <ul className="space-y-2">
@@ -131,7 +131,7 @@ export function TagManager({
                           />
                         </label>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-[#71717a]">{tag.count} assets</span>
+                          <span className="text-xs text-[#909099]">{tag.count} assets</span>
                           <div
                             className="flex flex-wrap gap-1"
                             role="toolbar"
@@ -182,7 +182,7 @@ export function TagManager({
                                 setMediaTagDescription(apiBase, tag.name, value || null),
                               )
                           }}
-                          className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-2 py-1 text-sm text-[#d4d4d8] outline-none placeholder:text-[#52525b] focus:border-[#c6ff3d]"
+                          className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-2 py-1 text-sm text-[#d4d4d8] outline-none placeholder:text-[#838389] focus:border-[#c6ff3d]"
                           aria-label={`Description for ${tag.name}`}
                         />
                         <input
@@ -194,7 +194,7 @@ export function TagManager({
                             if (value !== (tag.group ?? ""))
                               void wrap(() => setMediaTagGroup(apiBase, tag.name, value || null))
                           }}
-                          className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-2 py-1 text-sm text-[#d4d4d8] outline-none placeholder:text-[#52525b] focus:border-[#c6ff3d]"
+                          className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-transparent px-2 py-1 text-sm text-[#d4d4d8] outline-none placeholder:text-[#838389] focus:border-[#c6ff3d]"
                           aria-label={`Group for ${tag.name}`}
                         />
                         <select

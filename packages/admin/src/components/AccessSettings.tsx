@@ -168,7 +168,7 @@ export function AccessSettings({ apiBase = "" }: Props) {
       <div className="space-y-8">
         <div>
           <h2 className="text-base font-semibold text-[#fafafa]">Access Control</h2>
-          <p className="text-sm text-[#71717a]">
+          <p className="text-sm text-[#909099]">
             Manage role labels used by schema field permissions.
           </p>
         </div>
@@ -182,7 +182,7 @@ export function AccessSettings({ apiBase = "" }: Props) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-base font-semibold text-[#fafafa]">Access Control</h2>
-          <p className="text-sm text-[#71717a]">
+          <p className="text-sm text-[#909099]">
             Manage role labels used by schema field permissions.
           </p>
         </div>
@@ -202,7 +202,7 @@ export function AccessSettings({ apiBase = "" }: Props) {
       <section className="bg-[#18181b] rounded-lg border border-[rgba(255,255,255,0.06)]">
         <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.06)] px-5 py-4">
           <div className="flex items-center gap-2 text-sm font-medium text-[#fafafa]">
-            <Shield className="h-4 w-4 text-[#71717a]" />
+            <Shield className="h-4 w-4 text-[#909099]" />
             Roles
           </div>
           <button
@@ -236,26 +236,26 @@ export function AccessSettings({ apiBase = "" }: Props) {
                   disabled={role.system}
                   onChange={(event) => updateRole(index, { key: event.target.value })}
                   placeholder="role_key"
-                  className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] disabled:text-[#71717a] focus:border-[#c6ff3d] focus:outline-none"
+                  className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#838389] disabled:text-[#909099] focus:border-[#c6ff3d] focus:outline-none"
                 />
                 <input
                   value={role.label}
                   onChange={(event) => updateRole(index, { label: event.target.value })}
                   placeholder="Label"
-                  className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c6ff3d] focus:outline-none"
+                  className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#838389] focus:border-[#c6ff3d] focus:outline-none"
                 />
                 <input
                   value={role.description ?? ""}
                   onChange={(event) => updateRole(index, { description: event.target.value })}
                   placeholder="Description"
-                  className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c6ff3d] focus:outline-none"
+                  className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#838389] focus:border-[#c6ff3d] focus:outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => removeRole(index)}
                   disabled={role.system}
                   aria-label={`Remove ${role.label || role.key}`}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[rgba(255,255,255,0.1)] text-[#ef4444] hover:text-[#f87171] hover:border-[rgba(239,68,68,0.3)] disabled:text-[#52525b] disabled:opacity-40 disabled:hover:text-[#52525b] disabled:hover:border-[rgba(255,255,255,0.1)]"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[rgba(255,255,255,0.1)] text-[#ef4444] hover:text-[#f87171] hover:border-[rgba(239,68,68,0.3)] disabled:text-[#838389] disabled:opacity-40 disabled:hover:text-[#838389] disabled:hover:border-[rgba(255,255,255,0.1)]"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -267,7 +267,7 @@ export function AccessSettings({ apiBase = "" }: Props) {
 
       <section className="bg-[#18181b] rounded-lg border border-[rgba(255,255,255,0.06)]">
         <div className="flex items-center gap-2 border-b border-[rgba(255,255,255,0.06)] px-5 py-4 text-sm font-medium text-[#fafafa]">
-          <UserPlus className="h-4 w-4 text-[#71717a]" />
+          <UserPlus className="h-4 w-4 text-[#909099]" />
           Invites
         </div>
         <div className="space-y-4 p-5">
@@ -275,17 +275,17 @@ export function AccessSettings({ apiBase = "" }: Props) {
             onSubmit={handleInvite}
             className="grid gap-3 md:grid-cols-[minmax(180px,1fr)_minmax(140px,220px)_auto] md:items-end"
           >
-            <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#71717a]">
+            <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#909099]">
               Email
               <input
                 type="email"
                 value={inviteEmail}
                 onChange={(event) => setInviteEmail(event.target.value)}
                 placeholder="editor@example.com"
-                className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c6ff3d] focus:outline-none"
+                className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] placeholder:text-[#838389] focus:border-[#c6ff3d] focus:outline-none"
               />
             </label>
-            <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#71717a]">
+            <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#909099]">
               Role
               <select
                 value={inviteRole}
@@ -352,10 +352,10 @@ export function AccessSettings({ apiBase = "" }: Props) {
                 >
                   <div>
                     <p className="text-sm font-medium text-[#fafafa]">{invite.email}</p>
-                    <p className="text-xs text-[#71717a]">Created {formatDate(invite.createdAt)}</p>
+                    <p className="text-xs text-[#909099]">Created {formatDate(invite.createdAt)}</p>
                   </div>
                   <p className="text-sm text-[#d4d4d8]">{roleLabel(roles, invite.role)}</p>
-                  <time className="text-xs text-[#71717a]">
+                  <time className="text-xs text-[#909099]">
                     Expires {formatDate(invite.expiresAt)}
                   </time>
                   <button
@@ -376,7 +376,7 @@ export function AccessSettings({ apiBase = "" }: Props) {
 
       <section className="bg-[#18181b] rounded-lg border border-[rgba(255,255,255,0.06)]">
         <div className="flex items-center gap-2 border-b border-[rgba(255,255,255,0.06)] px-5 py-4 text-sm font-medium text-[#fafafa]">
-          <Users className="h-4 w-4 text-[#71717a]" />
+          <Users className="h-4 w-4 text-[#909099]" />
           Team Members
         </div>
         <div className="divide-y divide-[rgba(255,255,255,0.06)]">
@@ -406,7 +406,7 @@ export function AccessSettings({ apiBase = "" }: Props) {
                   <p className="text-sm font-medium text-[#fafafa]">
                     {member.email || member.userId}
                   </p>
-                  <p className="text-xs text-[#71717a]">
+                  <p className="text-xs text-[#909099]">
                     {member.active ? "Active" : "Inactive"} / {member.userId}
                   </p>
                 </div>
@@ -429,7 +429,7 @@ export function AccessSettings({ apiBase = "" }: Props) {
 
       <section className="bg-[#18181b] rounded-lg border border-[rgba(255,255,255,0.06)]">
         <div className="flex items-center gap-2 border-b border-[rgba(255,255,255,0.06)] px-5 py-4 text-sm font-medium text-[#fafafa]">
-          <History className="h-4 w-4 text-[#71717a]" />
+          <History className="h-4 w-4 text-[#909099]" />
           Audit Trail
         </div>
         <div className="divide-y divide-[rgba(255,255,255,0.06)]">
@@ -459,13 +459,13 @@ export function AccessSettings({ apiBase = "" }: Props) {
                   <p className="text-sm font-medium text-[#fafafa]">
                     {event.summary || event.action}
                   </p>
-                  <p className="text-xs text-[#71717a]">
+                  <p className="text-xs text-[#909099]">
                     {[event.collection, event.documentId, event.actorRole]
                       .filter(Boolean)
                       .join(" / ")}
                   </p>
                 </div>
-                <time className="text-xs text-[#71717a]">{formatDate(event.createdAt)}</time>
+                <time className="text-xs text-[#909099]">{formatDate(event.createdAt)}</time>
               </div>
             ))
           )}

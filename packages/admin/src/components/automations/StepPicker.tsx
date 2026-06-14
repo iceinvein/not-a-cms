@@ -74,20 +74,20 @@ export function StepPicker({ onSelect, onCancel }: Props) {
       onMouseDown={(e) => e.stopPropagation()}
     >
       <div className="p-3 border-b border-[rgba(255,255,255,0.06)] flex items-center justify-between">
-        <span className="text-xs font-semibold text-[#71717a] uppercase tracking-wide">
+        <span className="text-xs font-semibold text-[#909099] uppercase tracking-wide">
           Add step
         </span>
         <button
           type="button"
           onClick={onCancel}
-          className="text-[#52525b] hover:text-[#a1a1aa] text-sm leading-none"
+          className="text-[#838389] hover:text-[#a1a1aa] text-sm leading-none"
         >
           ✕
         </button>
       </div>
 
       <div className="p-2" style={{ maxHeight: "260px", overflowY: "auto" }}>
-        <p className="text-xs font-semibold text-[#52525b] uppercase tracking-wide px-2 py-1">
+        <p className="text-xs font-semibold text-[#838389] uppercase tracking-wide px-2 py-1">
           Logic
         </p>
         {logic.map((opt) => (
@@ -98,11 +98,11 @@ export function StepPicker({ onSelect, onCancel }: Props) {
             className="w-full text-left px-3 py-2 rounded-lg border border-transparent hover:border-[rgba(245,158,11,0.25)] hover:bg-[rgba(245,158,11,0.05)] transition-colors"
           >
             <p className="text-sm font-medium text-[#e4e4e7]">{opt.label}</p>
-            <p className="text-xs text-[#71717a]">{opt.description}</p>
+            <p className="text-xs text-[#909099]">{opt.description}</p>
           </button>
         ))}
 
-        <p className="text-xs font-semibold text-[#52525b] uppercase tracking-wide px-2 py-1 mt-2">
+        <p className="text-xs font-semibold text-[#838389] uppercase tracking-wide px-2 py-1 mt-2">
           Actions
         </p>
         {actions.map((opt) => (
@@ -113,7 +113,7 @@ export function StepPicker({ onSelect, onCancel }: Props) {
             className="w-full text-left px-3 py-2 rounded-lg border border-transparent hover:border-[rgba(255,255,255,0.12)] hover:bg-[rgba(255,255,255,0.03)] transition-colors"
           >
             <p className="text-sm font-medium text-[#e4e4e7]">{opt.label}</p>
-            <p className="text-xs text-[#71717a]">{opt.description}</p>
+            <p className="text-xs text-[#909099]">{opt.description}</p>
           </button>
         ))}
       </div>

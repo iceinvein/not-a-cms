@@ -16,7 +16,7 @@ function statusBadge(status: string) {
   const base = "inline-block text-xs px-2 py-0.5 rounded-full font-medium"
   if (status === "completed") return `${base} bg-[rgba(34,197,94,0.1)] text-[#22c55e]`
   if (status === "failed") return `${base} bg-[rgba(239,68,68,0.1)] text-[#ef4444]`
-  return `${base} bg-[rgba(255,255,255,0.05)] text-[#71717a]`
+  return `${base} bg-[rgba(255,255,255,0.05)] text-[#909099]`
 }
 
 function formatDuration(started: string, finished?: string): string {
@@ -89,7 +89,7 @@ export function RunList({ flowId, apiBase = "", steps }: Props) {
         <>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[rgba(255,255,255,0.06)] text-xs font-semibold text-[#71717a] uppercase tracking-wide">
+              <tr className="border-b border-[rgba(255,255,255,0.06)] text-xs font-semibold text-[#909099] uppercase tracking-wide">
                 <th className="text-left px-4 py-3">Timestamp</th>
                 <th className="text-left px-4 py-3">Trigger event</th>
                 <th className="text-left px-4 py-3">Status</th>
@@ -106,13 +106,13 @@ export function RunList({ flowId, apiBase = "", steps }: Props) {
                   <td className="px-4 py-3 text-[#a1a1aa] whitespace-nowrap">
                     {formatTimestamp(run.started_at)}
                   </td>
-                  <td className="px-4 py-3 text-[#71717a] font-mono text-xs">
+                  <td className="px-4 py-3 text-[#909099] font-mono text-xs">
                     {run.trigger_event}
                   </td>
                   <td className="px-4 py-3">
                     <span className={statusBadge(run.status)}>{run.status}</span>
                   </td>
-                  <td className="px-4 py-3 text-[#71717a]">
+                  <td className="px-4 py-3 text-[#909099]">
                     {formatDuration(run.started_at, run.finished_at)}
                   </td>
                 </tr>
@@ -125,18 +125,18 @@ export function RunList({ flowId, apiBase = "", steps }: Props) {
               type="button"
               disabled={offset === 0}
               onClick={() => setOffset((o) => Math.max(0, o - PAGE_SIZE))}
-              className="text-sm text-[#71717a] hover:text-[#fafafa] disabled:opacity-30 disabled:cursor-not-allowed"
+              className="text-sm text-[#909099] hover:text-[#fafafa] disabled:opacity-30 disabled:cursor-not-allowed"
             >
               ← Previous
             </button>
-            <span className="text-xs text-[#52525b]">
+            <span className="text-xs text-[#838389]">
               Showing {offset + 1}–{offset + runs.length}
             </span>
             <button
               type="button"
               disabled={!hasMore}
               onClick={() => setOffset((o) => o + PAGE_SIZE)}
-              className="text-sm text-[#71717a] hover:text-[#fafafa] disabled:opacity-30 disabled:cursor-not-allowed"
+              className="text-sm text-[#909099] hover:text-[#fafafa] disabled:opacity-30 disabled:cursor-not-allowed"
             >
               Next →
             </button>

@@ -100,7 +100,7 @@ export function LoginForm({ apiBase = "", initialAuthConfig = DEFAULT_AUTH_CONFI
     return (
       <div className="text-center py-4">
         <h3 className="text-lg font-medium text-[#fafafa]">Check your email</h3>
-        <p className="text-sm text-[#71717a] mt-2">
+        <p className="text-sm text-[#909099] mt-2">
           We sent a magic link to <strong>{email}</strong>
         </p>
         <button
@@ -109,7 +109,7 @@ export function LoginForm({ apiBase = "", initialAuthConfig = DEFAULT_AUTH_CONFI
             setSent(false)
             setEmail("")
           }}
-          className="text-sm text-[#71717a] hover:text-[#a1a1aa] mt-4"
+          className="text-sm text-[#909099] hover:text-[#a1a1aa] mt-4"
         >
           Use a different email
         </button>
@@ -135,7 +135,7 @@ export function LoginForm({ apiBase = "", initialAuthConfig = DEFAULT_AUTH_CONFI
             </button>
           ))}
           {authConfig.magicLink && (
-            <div className="flex items-center gap-3 py-2 text-xs uppercase tracking-[0.12em] text-[#52525b]">
+            <div className="flex items-center gap-3 py-2 text-xs uppercase tracking-[0.12em] text-[#838389]">
               <span className="h-px flex-1 bg-[rgba(255,255,255,0.08)]" />
               <span>Email</span>
               <span className="h-px flex-1 bg-[rgba(255,255,255,0.08)]" />
@@ -157,7 +157,7 @@ export function LoginForm({ apiBase = "", initialAuthConfig = DEFAULT_AUTH_CONFI
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full px-3 py-2 bg-transparent border border-[rgba(255,255,255,0.1)] rounded-lg text-sm text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:ring-0 focus:border-[rgba(255,255,255,0.2)]"
+              className="w-full px-3 py-2 bg-transparent border border-[rgba(255,255,255,0.1)] rounded-lg text-sm text-[#fafafa] placeholder:text-[#838389] focus:outline-none focus:ring-0 focus:border-[rgba(255,255,255,0.2)]"
             />
           </div>
           {error && <p className="text-sm text-[#ef4444] mb-4">{error}</p>}

@@ -90,7 +90,7 @@ export function FolderTree({
             {node.name}
           </span>
           {node.roles && node.roles.length > 0 && (
-            <Lock className="ml-1 h-3 w-3 shrink-0 text-[#71717a]" aria-label="Restricted" />
+            <Lock className="ml-1 h-3 w-3 shrink-0 text-[#909099]" aria-label="Restricted" />
           )}
         </button>
         <span className="absolute right-1 hidden gap-0.5 group-hover/folder:flex">
@@ -98,7 +98,7 @@ export function FolderTree({
             type="button"
             aria-label={`Move ${node.name} up`}
             onClick={() => onReorder(node.id, "up")}
-            className="text-[#71717a] hover:text-[#fafafa]"
+            className="text-[#909099] hover:text-[#fafafa]"
           >
             <ChevronUp className="h-3.5 w-3.5" />
           </button>
@@ -106,7 +106,7 @@ export function FolderTree({
             type="button"
             aria-label={`Move ${node.name} down`}
             onClick={() => onReorder(node.id, "down")}
-            className="text-[#71717a] hover:text-[#fafafa]"
+            className="text-[#909099] hover:text-[#fafafa]"
           >
             <ChevronDown className="h-3.5 w-3.5" />
           </button>
@@ -132,7 +132,7 @@ export function FolderTree({
           : "text-[#d4d4d8] hover:bg-[rgba(255,255,255,0.04)]"
       }`}
     >
-      <FolderIcon className="h-4 w-4 shrink-0 text-[#71717a]" />
+      <FolderIcon className="h-4 w-4 shrink-0 text-[#909099]" />
       <span className="truncate">{label}</span>
     </button>
   )
@@ -143,14 +143,14 @@ export function FolderTree({
   return (
     <nav className="space-y-1" aria-label="Folders">
       <div className="flex items-center justify-between px-2 pb-1">
-        <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#71717a]">
+        <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#909099]">
           Folders
         </span>
         <button
           type="button"
           onClick={() => onCreate(null)}
           aria-label="New folder"
-          className="text-[#71717a] hover:text-[#fafafa]"
+          className="text-[#909099] hover:text-[#fafafa]"
         >
           <FolderPlus className="h-4 w-4" />
         </button>

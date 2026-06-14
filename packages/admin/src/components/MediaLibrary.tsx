@@ -149,7 +149,7 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
           onChange={handleUpload}
           className="hidden"
         />
-        <span className="text-sm text-[#52525b]">{items.length} files</span>
+        <span className="text-sm text-[#838389]">{items.length} files</span>
       </div>
       <input
         ref={replaceInputRef}
@@ -202,7 +202,7 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
                   <p className="text-xs font-medium text-[#fafafa] truncate">
                     {item.title || item.filename}
                   </p>
-                  <p className="text-xs text-[#52525b]">{formatSize(item.size)}</p>
+                  <p className="text-xs text-[#838389]">{formatSize(item.size)}</p>
                 </div>
               </button>
             ))}
@@ -221,7 +221,7 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
                   <p className="text-sm font-medium text-[#fafafa] truncate">
                     {selectedItem.filename}
                   </p>
-                  <p className="text-xs text-[#71717a]">
+                  <p className="text-xs text-[#909099]">
                     {[
                       formatSize(selectedItem.size),
                       selectedItem.width && selectedItem.height
@@ -233,27 +233,27 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
                   </p>
                 </div>
 
-                <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#71717a]">
+                <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#909099]">
                   Title
                   <input
                     value={metadata.title}
                     onChange={(event) =>
                       setMetadata((current) => ({ ...current, title: event.target.value }))
                     }
-                    className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c6ff3d] focus:outline-none"
+                    className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] placeholder:text-[#838389] focus:border-[#c6ff3d] focus:outline-none"
                   />
                 </label>
-                <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#71717a]">
+                <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#909099]">
                   Alt text
                   <input
                     value={metadata.alt}
                     onChange={(event) =>
                       setMetadata((current) => ({ ...current, alt: event.target.value }))
                     }
-                    className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c6ff3d] focus:outline-none"
+                    className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] placeholder:text-[#838389] focus:border-[#c6ff3d] focus:outline-none"
                   />
                 </label>
-                <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#71717a]">
+                <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#909099]">
                   Caption
                   <textarea
                     value={metadata.caption}
@@ -261,12 +261,12 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
                       setMetadata((current) => ({ ...current, caption: event.target.value }))
                     }
                     rows={3}
-                    className="resize-none px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c6ff3d] focus:outline-none"
+                    className="resize-none px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] placeholder:text-[#838389] focus:border-[#c6ff3d] focus:outline-none"
                   />
                 </label>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#71717a]">
+                  <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#909099]">
                     Focal X
                     <input
                       type="number"
@@ -280,7 +280,7 @@ export function MediaLibrary({ apiBase = "" }: { apiBase?: string }) {
                       className="px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm normal-case tracking-normal bg-transparent text-[#fafafa] focus:border-[#c6ff3d] focus:outline-none"
                     />
                   </label>
-                  <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#71717a]">
+                  <label className="grid gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-[#909099]">
                     Focal Y
                     <input
                       type="number"

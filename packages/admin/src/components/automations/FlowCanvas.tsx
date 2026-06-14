@@ -138,7 +138,7 @@ export function FlowCanvas({
           <button
             type="button"
             onClick={() => setPickerIndex(pickerIndex === 0 ? null : 0)}
-            className="w-7 h-7 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)] text-[#71717a] hover:bg-[rgba(255,255,255,0.08)] hover:text-[#a1a1aa] hover:border-[rgba(255,255,255,0.15)] text-sm flex items-center justify-center transition-colors"
+            className="w-7 h-7 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)] text-[#909099] hover:bg-[rgba(255,255,255,0.08)] hover:text-[#a1a1aa] hover:border-[rgba(255,255,255,0.15)] text-sm flex items-center justify-center transition-colors"
           >
             +
           </button>
@@ -181,7 +181,7 @@ export function FlowCanvas({
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-[#52525b] mb-0.5">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[#838389] mb-0.5">
                     {isCondition ? "Condition" : "Action"}
                   </p>
                   <p className="font-medium text-[#e4e4e7]">{stepLabel(step)}</p>
@@ -193,7 +193,7 @@ export function FlowCanvas({
                         ? "bg-[rgba(34,197,94,0.1)] text-[#22c55e]"
                         : runStep.status === "failed"
                           ? "bg-[rgba(239,68,68,0.1)] text-[#ef4444]"
-                          : "bg-[rgba(255,255,255,0.05)] text-[#71717a]"
+                          : "bg-[rgba(255,255,255,0.05)] text-[#909099]"
                     }`}
                   >
                     {runStep.status}
@@ -210,7 +210,7 @@ export function FlowCanvas({
                 <button
                   type="button"
                   onClick={() => onRemoveStep(step.id)}
-                  className="text-xs text-[#52525b] hover:text-[#ef4444] transition-colors"
+                  className="text-xs text-[#838389] hover:text-[#ef4444] transition-colors"
                 >
                   Remove
                 </button>
@@ -225,7 +225,7 @@ export function FlowCanvas({
                   <button
                     type="button"
                     onClick={() => setPickerIndex(pickerIndex === index + 1 ? null : index + 1)}
-                    className="w-7 h-7 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)] text-[#71717a] hover:bg-[rgba(255,255,255,0.08)] hover:text-[#a1a1aa] hover:border-[rgba(255,255,255,0.15)] text-sm flex items-center justify-center transition-colors"
+                    className="w-7 h-7 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)] text-[#909099] hover:bg-[rgba(255,255,255,0.08)] hover:text-[#a1a1aa] hover:border-[rgba(255,255,255,0.15)] text-sm flex items-center justify-center transition-colors"
                   >
                     +
                   </button>
@@ -246,9 +246,9 @@ export function FlowCanvas({
       {/* Empty state hint */}
       {steps.length === 0 && !readOnly && (
         <div className="text-center max-w-[240px] mx-auto py-2">
-          <p className="text-sm text-[#52525b]">
+          <p className="text-sm text-[#838389]">
             Click the trigger to configure when this flow runs, then use{" "}
-            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)] text-xs text-[#71717a]">
+            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)] text-xs text-[#909099]">
               +
             </span>{" "}
             to add steps.
@@ -257,7 +257,7 @@ export function FlowCanvas({
       )}
 
       {/* End node */}
-      <div className="px-4 py-1.5 rounded-full bg-[rgba(255,255,255,0.05)] text-xs text-[#52525b] font-medium">
+      <div className="px-4 py-1.5 rounded-full bg-[rgba(255,255,255,0.05)] text-xs text-[#838389] font-medium">
         End
       </div>
     </div>

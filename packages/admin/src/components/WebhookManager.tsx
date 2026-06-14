@@ -210,7 +210,7 @@ export function WebhookManager({ apiBase = "" }: Props) {
               value={formUrl}
               onChange={(e) => setFormUrl(e.target.value)}
               placeholder="https://example.com/webhook"
-              className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c6ff3d] focus:outline-none focus:ring-0"
+              className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#838389] focus:border-[#c6ff3d] focus:outline-none focus:ring-0"
             />
           </div>
           <div>
@@ -245,7 +245,7 @@ export function WebhookManager({ apiBase = "" }: Props) {
               value={formCollection}
               onChange={(e) => setFormCollection(e.target.value)}
               placeholder="blog_post"
-              className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c6ff3d] focus:outline-none focus:ring-0"
+              className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#838389] focus:border-[#c6ff3d] focus:outline-none focus:ring-0"
             />
           </div>
           <div>
@@ -261,7 +261,7 @@ export function WebhookManager({ apiBase = "" }: Props) {
               value={formSecret}
               onChange={(e) => setFormSecret(e.target.value)}
               placeholder="webhook-secret"
-              className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c6ff3d] focus:outline-none focus:ring-0"
+              className="w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#838389] focus:border-[#c6ff3d] focus:outline-none focus:ring-0"
             />
           </div>
           <div className="flex gap-2 pt-2">
@@ -300,7 +300,7 @@ export function WebhookManager({ apiBase = "" }: Props) {
                     {hook.events.map((evt) => (
                       <span
                         key={evt}
-                        className="text-xs bg-[rgba(255,255,255,0.05)] text-[#71717a] px-2 py-0.5 rounded-full"
+                        className="text-xs bg-[rgba(255,255,255,0.05)] text-[#909099] px-2 py-0.5 rounded-full"
                       >
                         {evt}
                       </span>
@@ -316,7 +316,7 @@ export function WebhookManager({ apiBase = "" }: Props) {
                   <button
                     type="button"
                     onClick={() => handleToggle(hook)}
-                    className={`text-xs px-2 py-1 rounded-full ${hook.active ? "bg-[rgba(34,197,94,0.1)] text-[#22c55e]" : "bg-[rgba(255,255,255,0.05)] text-[#71717a]"}`}
+                    className={`text-xs px-2 py-1 rounded-full ${hook.active ? "bg-[rgba(34,197,94,0.1)] text-[#22c55e]" : "bg-[rgba(255,255,255,0.05)] text-[#909099]"}`}
                   >
                     {hook.active ? "Active" : "Inactive"}
                   </button>
@@ -331,11 +331,11 @@ export function WebhookManager({ apiBase = "" }: Props) {
               </div>
 
               <div className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#0a0a0c] overflow-hidden">
-                <div className="px-3 py-2 border-b border-[rgba(255,255,255,0.06)] text-xs font-semibold uppercase tracking-wide text-[#71717a]">
+                <div className="px-3 py-2 border-b border-[rgba(255,255,255,0.06)] text-xs font-semibold uppercase tracking-wide text-[#909099]">
                   Delivery log
                 </div>
                 {(logsByWebhook[hook.id] ?? []).length === 0 ? (
-                  <p className="px-3 py-4 text-sm text-[#52525b]">No deliveries yet.</p>
+                  <p className="px-3 py-4 text-sm text-[#838389]">No deliveries yet.</p>
                 ) : (
                   <div className="divide-y divide-[rgba(255,255,255,0.06)]">
                     {(logsByWebhook[hook.id] ?? []).slice(0, 5).map((log) => (
@@ -353,7 +353,7 @@ export function WebhookManager({ apiBase = "" }: Props) {
                           {log.status || "error"}
                         </span>
                         <div className="min-w-0">
-                          <p className="text-xs text-[#71717a]">
+                          <p className="text-xs text-[#909099]">
                             {log.event} · {new Date(log.created_at).toLocaleString()}
                           </p>
                           {log.response_body && (

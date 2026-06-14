@@ -18,7 +18,7 @@ type Props = {
 
 const ACTIONS: Array<keyof CollectionAccessSettings> = ["read", "create", "update", "delete"]
 const inputClass =
-  "w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#52525b] focus:border-[#c6ff3d] focus:outline-none"
+  "w-full px-3 py-2 border border-[rgba(255,255,255,0.1)] rounded-lg text-sm bg-transparent text-[#fafafa] placeholder:text-[#838389] focus:border-[#c6ff3d] focus:outline-none"
 
 function labelAction(action: keyof CollectionAccessSettings) {
   return action.charAt(0).toUpperCase() + action.slice(1)
@@ -120,7 +120,7 @@ export function CollectionSettings({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-base font-semibold text-[#fafafa]">Collection Settings</h2>
-          <p className="text-sm text-[#71717a]">
+          <p className="text-sm text-[#909099]">
             Configure labels, access, preview paths, search, and editor layout.
           </p>
         </div>
@@ -153,7 +153,7 @@ export function CollectionSettings({
                 key={collection.name}
                 type="button"
                 onClick={() => setActiveName(collection.name)}
-                className={`rounded-t-lg px-4 py-2 text-sm font-medium transition-colors ${collection.name === active?.name ? "bg-[#0a0a0c] text-[#fafafa]" : "text-[#71717a] hover:text-[#a1a1aa]"}`}
+                className={`rounded-t-lg px-4 py-2 text-sm font-medium transition-colors ${collection.name === active?.name ? "bg-[#0a0a0c] text-[#fafafa]" : "text-[#909099] hover:text-[#a1a1aa]"}`}
               >
                 {collection.labels.plural}
               </button>
@@ -166,7 +166,7 @@ export function CollectionSettings({
             <div className="space-y-6">
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="space-y-1">
-                  <span className="text-xs font-medium text-[#71717a]">Singular label</span>
+                  <span className="text-xs font-medium text-[#909099]">Singular label</span>
                   <input
                     value={active.settings.labels?.singular ?? active.labels.singular}
                     onChange={(event) =>
@@ -178,7 +178,7 @@ export function CollectionSettings({
                   />
                 </label>
                 <label className="space-y-1">
-                  <span className="text-xs font-medium text-[#71717a]">Plural label</span>
+                  <span className="text-xs font-medium text-[#909099]">Plural label</span>
                   <input
                     value={active.settings.labels?.plural ?? active.labels.plural}
                     onChange={(event) =>
@@ -192,7 +192,7 @@ export function CollectionSettings({
               </div>
 
               <label className="block space-y-1">
-                <span className="text-xs font-medium text-[#71717a]">Preview path</span>
+                <span className="text-xs font-medium text-[#909099]">Preview path</span>
                 <input
                   value={active.settings.previewPath ?? ""}
                   onChange={(event) => updateActiveSettings({ previewPath: event.target.value })}
@@ -202,7 +202,7 @@ export function CollectionSettings({
               </label>
 
               <label className="block space-y-1">
-                <span className="text-xs font-medium text-[#71717a]">Editor layout</span>
+                <span className="text-xs font-medium text-[#909099]">Editor layout</span>
                 <select
                   value={active.settings.editorLayout ?? "default"}
                   onChange={(event) => updateActiveSettings({ editorLayout: event.target.value })}
@@ -260,7 +260,7 @@ export function CollectionSettings({
                         checked={(active.settings.searchFields ?? []).includes(name)}
                         onChange={(event) => updateSearchField(name, event.target.checked)}
                       />
-                      {name} <span className="text-xs text-[#52525b]">{def.type}</span>
+                      {name} <span className="text-xs text-[#838389]">{def.type}</span>
                     </label>
                   ))}
                 </div>
@@ -273,7 +273,7 @@ export function CollectionSettings({
                 {fieldEntries.map(([name, def]) => (
                   <div key={name} className="flex items-center justify-between gap-3 py-2">
                     <span className="text-sm text-[#a1a1aa]">{name}</span>
-                    <span className="text-xs text-[#52525b]">{def.type}</span>
+                    <span className="text-xs text-[#838389]">{def.type}</span>
                   </div>
                 ))}
               </div>

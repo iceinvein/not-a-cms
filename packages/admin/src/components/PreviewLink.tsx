@@ -90,7 +90,7 @@ export function PreviewLink({
             type="button"
             onClick={() => handleGenerate(true)}
             disabled={loading !== null}
-            className="py-1.5 text-xs font-medium text-[#71717a] border border-[rgba(255,255,255,0.06)] rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
+            className="py-1.5 text-xs font-medium text-[#909099] border border-[rgba(255,255,255,0.06)] rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
           >
             {loading === "regenerate" ? "Regenerating..." : "Regenerate"}
           </button>
@@ -98,12 +98,12 @@ export function PreviewLink({
             type="button"
             onClick={handleRevoke}
             disabled={loading !== null}
-            className="py-1.5 text-xs font-medium text-[#71717a] border border-[rgba(255,255,255,0.06)] rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
+            className="py-1.5 text-xs font-medium text-[#909099] border border-[rgba(255,255,255,0.06)] rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
           >
             {loading === "revoke" ? "Revoking..." : "Revoke"}
           </button>
         </div>
-        {message && <p className="text-xs text-[#71717a]">{message}</p>}
+        {message && <p className="text-xs text-[#909099]">{message}</p>}
       </div>
     )
   }
@@ -115,7 +115,7 @@ export function PreviewLink({
           type="text"
           readOnly
           value={previewUrl}
-          className="flex-1 px-2 py-1.5 text-xs border border-[rgba(255,255,255,0.06)] rounded-lg bg-[rgba(255,255,255,0.05)] text-[#71717a] truncate"
+          className="flex-1 px-2 py-1.5 text-xs border border-[rgba(255,255,255,0.06)] rounded-lg bg-[rgba(255,255,255,0.05)] text-[#909099] truncate"
         />
         <button
           type="button"
@@ -151,7 +151,7 @@ export function PreviewLink({
           {loading === "revoke" ? "Revoking..." : "Revoke"}
         </button>
       </div>
-      {message && <p className="text-xs text-[#71717a]">{message}</p>}
+      {message && <p className="text-xs text-[#909099]">{message}</p>}
     </div>
   )
 }

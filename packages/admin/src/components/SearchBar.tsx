@@ -32,7 +32,7 @@ export function SearchBar({ onSearch, placeholder = "Search..." }: Props) {
   return (
     <div className="relative">
       <svg
-        className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#52525b]"
+        className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#838389]"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -50,7 +50,7 @@ export function SearchBar({ onSearch, placeholder = "Search..." }: Props) {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder}
-        className="w-full pl-10 pr-4 py-2 bg-transparent border border-[rgba(255,255,255,0.1)] rounded-lg text-sm text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:ring-0 focus:border-[#c6ff3d]"
+        className="w-full pl-10 pr-4 py-2 bg-transparent border border-[rgba(255,255,255,0.1)] rounded-lg text-sm text-[#fafafa] placeholder:text-[#838389] focus:outline-none focus:ring-0 focus:border-[#c6ff3d]"
       />
       {value && (
         <button
@@ -59,7 +59,7 @@ export function SearchBar({ onSearch, placeholder = "Search..." }: Props) {
             setValue("")
             onSearch("")
           }}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#52525b] hover:text-[#a1a1aa]"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#838389] hover:text-[#a1a1aa]"
         >
           <svg
             className="w-4 h-4"

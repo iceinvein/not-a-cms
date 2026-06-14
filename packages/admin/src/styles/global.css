@@ -21,8 +21,8 @@
 
   --text-primary: #fafafa;
   --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
-  --text-subtle: #52525b;
+  --text-muted: #909099;
+  --text-subtle: #838389;
 
   --accent: #c6ff3d;
   --accent-hover: #d4ff6e;
@@ -685,7 +685,7 @@ a.crumb:hover {
 }
 
 .ProseMirror li::marker {
-  color: #52525b;
+  color: #838389;
 }
 
 /* ============================================================

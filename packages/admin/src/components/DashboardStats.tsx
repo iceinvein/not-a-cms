@@ -130,10 +130,10 @@ export function DashboardStats({ apiBase = "", initialMetrics }: Props) {
     <div className="space-y-8">
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-medium uppercase tracking-wider text-[#71717a]">
+          <h2 className="text-sm font-medium uppercase tracking-wider text-[#909099]">
             Content Health
           </h2>
-          <p className="text-sm text-[#71717a]">
+          <p className="text-sm text-[#909099]">
             {metrics.totals?.content ?? totalContent(metrics.collections)} total content items
           </p>
         </div>
@@ -146,10 +146,10 @@ export function DashboardStats({ apiBase = "", initialMetrics }: Props) {
             >
               <div className="mb-4 flex items-center justify-between gap-3">
                 <span className="text-sm font-medium text-[#fafafa]">{collection.label}</span>
-                <FileText className="h-4 w-4 text-[#71717a]" />
+                <FileText className="h-4 w-4 text-[#909099]" />
               </div>
               <p className="text-2xl font-semibold text-[#fafafa]">{collection.total} total</p>
-              <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-[#71717a]">
+              <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-[#909099]">
                 <span>{collection.drafts} drafts</span>
                 <span>{collection.inReview} in review</span>
                 <span>{collection.published} published</span>
@@ -163,11 +163,11 @@ export function DashboardStats({ apiBase = "", initialMetrics }: Props) {
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b] p-5">
           <div className="mb-4 flex items-center gap-2">
-            <PenLine className="h-4 w-4 text-[#71717a]" />
+            <PenLine className="h-4 w-4 text-[#909099]" />
             <h3 className="text-sm font-medium text-[#fafafa]">Needs review</h3>
           </div>
           {needsReview.length === 0 ? (
-            <p className="text-sm text-[#71717a]">No content is waiting for review.</p>
+            <p className="text-sm text-[#909099]">No content is waiting for review.</p>
           ) : (
             <div className="divide-y divide-[rgba(255,255,255,0.06)]">
               {needsReview.map((collection) => (
@@ -188,7 +188,7 @@ export function DashboardStats({ apiBase = "", initialMetrics }: Props) {
 
         <div className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b] p-5">
           <div className="mb-4 flex items-center gap-2">
-            <Image className="h-4 w-4 text-[#71717a]" />
+            <Image className="h-4 w-4 text-[#909099]" />
             <h3 className="text-sm font-medium text-[#fafafa]">Media</h3>
           </div>
           <p className="text-2xl font-semibold text-[#fafafa]">{metrics.media.total} assets</p>
@@ -200,17 +200,17 @@ export function DashboardStats({ apiBase = "", initialMetrics }: Props) {
 
       <section className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#18181b] p-5">
         <div className="mb-4 flex items-center gap-2">
-          <Clock3 className="h-4 w-4 text-[#71717a]" />
+          <Clock3 className="h-4 w-4 text-[#909099]" />
           <h3 className="text-sm font-medium text-[#fafafa]">Recent activity</h3>
         </div>
         {metrics.recentAudit.length === 0 ? (
-          <p className="text-sm text-[#71717a]">No recent activity yet.</p>
+          <p className="text-sm text-[#909099]">No recent activity yet.</p>
         ) : (
           <div className="divide-y divide-[rgba(255,255,255,0.06)]">
             {metrics.recentAudit.map((event) => (
               <div key={event.id} className="py-3">
                 <p className="text-sm text-[#a1a1aa]">{event.summary || event.action}</p>
-                <p className="mt-1 text-xs text-[#52525b]">
+                <p className="mt-1 text-xs text-[#838389]">
                   {event.collection || "system"} · {formatDate(event.createdAt)}
                 </p>
               </div>

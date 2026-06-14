@@ -24,10 +24,10 @@ export function LoadingState({ title, description, compact = false }: StateProps
   return (
     <div className={`${tone.neutral} rounded-lg border ${compact ? "px-4 py-3" : "p-6"} text-sm`}>
       <div className="flex items-start gap-3">
-        <CircleDashed className="mt-0.5 h-4 w-4 animate-spin text-[#71717a]" />
+        <CircleDashed className="mt-0.5 h-4 w-4 animate-spin text-[#909099]" />
         <div>
           <p className="font-medium text-[#fafafa]">{title}</p>
-          {description && <p className="mt-1 text-[#71717a]">{description}</p>}
+          {description && <p className="mt-1 text-[#909099]">{description}</p>}
         </div>
       </div>
     </div>
@@ -39,9 +39,9 @@ export function EmptyState({ title, description, action, compact = false }: Stat
     <div
       className={`${tone.neutral} rounded-lg border ${compact ? "px-4 py-5" : "p-8"} text-center`}
     >
-      <Inbox className="mx-auto mb-3 h-5 w-5 text-[#71717a]" />
+      <Inbox className="mx-auto mb-3 h-5 w-5 text-[#909099]" />
       <p className="text-sm font-medium text-[#fafafa]">{title}</p>
-      {description && <p className="mx-auto mt-1 max-w-md text-sm text-[#71717a]">{description}</p>}
+      {description && <p className="mx-auto mt-1 max-w-md text-sm text-[#909099]">{description}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>
   )
@@ -77,9 +77,9 @@ export function ForbiddenState({
     <div
       className={`${tone.neutral} rounded-lg border ${compact ? "px-4 py-5" : "p-8"} text-center`}
     >
-      <Lock className="mx-auto mb-3 h-5 w-5 text-[#71717a]" />
+      <Lock className="mx-auto mb-3 h-5 w-5 text-[#909099]" />
       <p className="text-sm font-medium text-[#fafafa]">{title}</p>
-      {description && <p className="mx-auto mt-1 max-w-md text-sm text-[#71717a]">{description}</p>}
+      {description && <p className="mx-auto mt-1 max-w-md text-sm text-[#909099]">{description}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>
   )

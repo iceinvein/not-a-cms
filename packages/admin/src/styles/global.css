@@ -2992,3 +2992,177 @@ a.crumb:hover {
 .cn-visual-frame .cn-visual-page {
   padding-inline: 1rem;
 }
+
+/* ── The Pulse: living-layer motion language ──────────────────────────────
+   Reusable primitives for the admin's living layer. Motion only ever means
+   "happening now" or "recently changed". All animations are auto-disabled
+   under prefers-reduced-motion by the global reset at the top of this file. */
+:root {
+  --pulse-glow: var(--accent);
+  --pulse-beat-idle: 2200ms;
+  --pulse-beat-steady: 1500ms;
+  --pulse-beat-brisk: 1000ms;
+}
+
+@keyframes pulse-beat {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(0.55); opacity: 0.45; }
+}
+@keyframes pulse-breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+/* Heartbeat */
+.pulse-heartbeat {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--pulse-glow);
+  box-shadow: 0 0 9px var(--pulse-glow);
+  animation: pulse-beat var(--pulse-beat, 1500ms) ease-in-out infinite;
+}
+
+/* Sparkline */
+.pulse-sparkline {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.pulse-sparkline polyline {
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+.pulse-delta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent);
+}
+
+/* Presence */
+.pulse-presence {
+  display: inline-flex;
+}
+.pulse-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  margin-left: -5px;
+  border: 1.5px solid var(--bg-sidebar);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.pulse-avatar-more {
+  background: var(--bg-surface-hover);
+  color: var(--text-secondary);
+}
+
+/* Status as signal */
+.pulse-signal {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 5px;
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+}
+.pulse-signal-in_review {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f5b942;
+  animation: pulse-soft 2.4s ease-in-out infinite;
+}
+.pulse-signal-scheduled {
+  background: rgba(110, 168, 254, 0.12);
+  color: #8fc0ff;
+}
+.pulse-signal-expiring {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f5b942;
+  animation: pulse-soft 2.4s ease-in-out infinite;
+}
+.pulse-signal-failed {
+  background: rgba(239, 68, 68, 0.14);
+  color: #ff8585;
+  animation: pulse-soft 1.8s ease-in-out infinite;
+}
+.pulse-signal-dormant {
+  opacity: 0.6;
+}
+
+/* Freshness row */
+.pulse-row {
+  position: relative;
+}
+.pulse-fresh::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--pulse-glow);
+  opacity: var(--pulse-freshness, 0);
+  box-shadow: 0 0 10px var(--pulse-glow);
+  animation: pulse-breathe 2.6s ease-in-out infinite;
+}
+.pulse-dormant {
+  opacity: 0.5;
+}
+
+/* The Wire */
+.pulse-wire {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.pulse-wire-item {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border-default);
+  font-size: 13px;
+}
+.pulse-wire-text {
+  flex: 1;
+  color: var(--text-secondary);
+}
+.pulse-wire-text b {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.pulse-wire-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-subtle);
+}
+.pulse-wire-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  position: relative;
+  top: 5px;
+  flex-shrink: 0;
+}
+.pulse-wire-dot-publish { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+.pulse-wire-dot-edit { background: var(--presence-1); }
+.pulse-wire-dot-run { background: var(--presence-3); }
+.pulse-wire-dot-alert { background: var(--status-error); box-shadow: 0 0 6px var(--status-error); }

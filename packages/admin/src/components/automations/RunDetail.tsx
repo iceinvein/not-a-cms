@@ -20,14 +20,14 @@ function statusBadge(status: string) {
 }
 
 function formatDuration(started: string, finished?: string): string {
-  if (!finished) return "—"
+  if (!finished) return "–"
   const ms = new Date(finished).getTime() - new Date(started).getTime()
   if (ms < 1000) return `${ms}ms`
   return `${(ms / 1000).toFixed(1)}s`
 }
 
 function stepDurationMs(started: string, finished?: string): string {
-  if (!finished) return "—"
+  if (!finished) return "–"
   return `${new Date(finished).getTime() - new Date(started).getTime()}ms`
 }
 
@@ -42,7 +42,7 @@ function tryParseJson(raw?: string): unknown {
 
 function JsonViewer({ value }: { value: unknown }) {
   if (value === undefined || value === null)
-    return <span className="text-[#838389] text-xs">—</span>
+    return <span className="text-[#838389] text-xs">–</span>
   return (
     <pre className="text-xs bg-[#0a0a0c] border border-[rgba(255,255,255,0.06)] rounded-lg p-2 overflow-auto max-h-48 whitespace-pre-wrap break-all text-[#a1a1aa]">
       {typeof value === "string" ? value : JSON.stringify(value, null, 2)}

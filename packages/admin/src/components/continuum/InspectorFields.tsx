@@ -87,9 +87,9 @@ export function FieldControl({
           id={id}
           value={String(value ?? "")}
           onValueChange={(next) => onChange(next)}
-          placeholder="—"
+          placeholder="–"
           options={[
-            { value: "", label: "—" },
+            { value: "", label: "–" },
             ...(def.options ?? []).map((opt) => ({ value: opt, label: humanizeFieldName(opt) })),
           ]}
         />
@@ -214,9 +214,9 @@ function RelationField({
       id={id}
       value={mediaId(value)}
       onValueChange={(next) => onChange(next === "" ? null : next)}
-      placeholder="—"
+      placeholder="–"
       options={[
-        { value: "", label: "—" },
+        { value: "", label: "–" },
         ...options.map((opt) => ({ value: opt.id, label: opt.label })),
       ]}
     />

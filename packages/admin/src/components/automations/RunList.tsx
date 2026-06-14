@@ -20,7 +20,7 @@ function statusBadge(status: string) {
 }
 
 function formatDuration(started: string, finished?: string): string {
-  if (!finished) return "—"
+  if (!finished) return "–"
   const ms = new Date(finished).getTime() - new Date(started).getTime()
   if (ms < 1000) return `${ms}ms`
   return `${(ms / 1000).toFixed(1)}s`

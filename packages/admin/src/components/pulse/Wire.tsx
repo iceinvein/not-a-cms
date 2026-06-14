@@ -11,8 +11,12 @@ export function Wire({
   max?: number
 }) {
   const shown = events.slice(0, max)
+  // Rate-limited announcement of newly-arrived events is the responsibility of the
+  // surface that composes the Wire (a dedicated polite status region), not this
+  // presentational list. Keeping aria-live here would re-announce the full list on
+  // every tick as relative timestamps change, flooding screen readers.
   return (
-    <ul className="pulse-wire" aria-label="Live activity" aria-live="polite">
+    <ul className="pulse-wire" aria-label="Live activity">
       {shown.map((e) => (
         <li key={e.id} className={`pulse-wire-item pulse-wire-${e.type}`}>
           <span className={`pulse-wire-dot pulse-wire-dot-${e.type}`} aria-hidden="true" />

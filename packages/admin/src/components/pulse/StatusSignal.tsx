@@ -35,7 +35,9 @@ function signalText(kind: StatusKind, at?: string, now?: number): string {
     return `live in ${countdown(at, now)}`
   }
   if (kind === "expiring" && at != null && now != null) {
-    const days = Math.max(0, Math.ceil((Date.parse(at) - now) / 86_400_000))
+    const remainingMs = Date.parse(at) - now
+    if (remainingMs < 0) return "expired"
+    const days = Math.ceil(remainingMs / 86_400_000)
     return `expires ${days}d`
   }
   return BASE_LABEL[kind]

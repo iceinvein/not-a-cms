@@ -20,11 +20,11 @@ describe("StatusSignal", () => {
     expect(html).toContain("expires 3d")
   })
 
-  test("expiring with a past timestamp clamps to 0d", () => {
+  test("expiring with a past timestamp shows expired", () => {
     const html = renderToString(
       <StatusSignal kind="expiring" at="2026-06-13T12:00:00.000Z" now={NOW} />,
     )
-    expect(html).toContain("expires 0d")
+    expect(html).toContain("expired")
   })
 
   test("in_review shows its label and gets its signal class", () => {

@@ -30,7 +30,8 @@ describe("Wire", () => {
     expect(html).toContain("published Pricing page")
     expect(html).toContain("11m") // James edit, 11 minutes ago
     expect(html).toContain("pulse-wire-dot-alert")
-    expect(html).toContain('aria-live="polite"')
+    expect(html).toContain('aria-label="Live activity"')
+    expect(html).not.toContain("aria-live")
   })
 
   test("caps the number of items shown", () => {

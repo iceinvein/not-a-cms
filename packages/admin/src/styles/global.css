@@ -1803,7 +1803,6 @@ a.crumb:hover {
   line-height: 1.15;
 }
 
-
 .desk-summary {
   align-items: baseline;
   border: 1px solid var(--border-default);
@@ -3005,16 +3004,33 @@ a.crumb:hover {
 }
 
 @keyframes pulse-beat {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(0.55); opacity: 0.45; }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.55);
+    opacity: 0.45;
+  }
 }
 @keyframes pulse-breathe {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  0%,
+  100% {
+    opacity: var(--pulse-freshness, 0);
+  }
+  50% {
+    opacity: calc(var(--pulse-freshness, 0) * 0.4);
+  }
 }
 @keyframes pulse-soft {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.55; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
 }
 
 /* Heartbeat */
@@ -3106,6 +3122,14 @@ a.crumb:hover {
 .pulse-signal-dormant {
   opacity: 0.6;
 }
+.pulse-signal-published {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+.pulse-signal-draft {
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+}
 
 /* Freshness row */
 .pulse-row {
@@ -3162,7 +3186,17 @@ a.crumb:hover {
   top: 5px;
   flex-shrink: 0;
 }
-.pulse-wire-dot-publish { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
-.pulse-wire-dot-edit { background: var(--presence-1); }
-.pulse-wire-dot-run { background: var(--presence-3); }
-.pulse-wire-dot-alert { background: var(--status-error); box-shadow: 0 0 6px var(--status-error); }
+.pulse-wire-dot-publish {
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+}
+.pulse-wire-dot-edit {
+  background: var(--presence-1);
+}
+.pulse-wire-dot-run {
+  background: var(--presence-3);
+}
+.pulse-wire-dot-alert {
+  background: var(--status-error);
+  box-shadow: 0 0 6px var(--status-error);
+}

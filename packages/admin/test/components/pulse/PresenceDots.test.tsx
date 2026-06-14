@@ -16,7 +16,7 @@ describe("PresenceDots", () => {
     const html = renderToString(<PresenceDots people={people} max={4} />)
     expect(html).toContain(">M<")
     expect(html).toContain(">J<")
-    expect(html).toContain(">+<!-- -->2<")
+    expect(html).toContain(">+2<")
     expect(html).toContain('aria-label="6 people here"')
   })
 

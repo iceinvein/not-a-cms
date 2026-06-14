@@ -20,6 +20,7 @@ describe("FreshnessRow", () => {
         <span>Old promo</span>
       </FreshnessRow>,
     )
+    // trailing space targets the class name; without it this matches "--pulse-freshness" in the style attr
     expect(neutral).not.toContain("pulse-fresh ")
 
     const dormant = renderToString(

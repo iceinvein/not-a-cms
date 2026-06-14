@@ -10,6 +10,11 @@ describe("Sparkline", () => {
     expect(html).toContain('aria-hidden="true"')
   })
 
+  test("single point renders without division by zero", () => {
+    const html = renderToString(<Sparkline points={[42]} />)
+    expect(html).toContain('points="0,18"')
+  })
+
   test("renders nothing breakable for an empty series", () => {
     const html = renderToString(<Sparkline points={[]} />)
     expect(html).toContain("<svg")

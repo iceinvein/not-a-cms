@@ -177,7 +177,7 @@ export function LoginForm({ apiBase = "", initialAuthConfig = DEFAULT_AUTH_CONFI
             type="submit"
             disabled={loading}
             aria-busy={loading}
-            className="w-full py-2 px-4 bg-[#fafafa] text-[#0a0a0c] rounded-md text-sm font-medium hover:bg-[#e4e4e7] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full py-2 px-4 bg-[#c6ff3d] text-[#0a0a0c] rounded-md text-sm font-medium hover:bg-[#d4ff6e] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? "Sending..." : "Send magic link"}
           </button>

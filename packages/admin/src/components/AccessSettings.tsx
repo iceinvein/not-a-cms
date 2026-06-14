@@ -1,4 +1,15 @@
-import { Copy, History, Plus, Save, Send, Shield, Trash2, UserPlus, Users } from "lucide-react"
+import {
+  Check,
+  Copy,
+  History,
+  Plus,
+  Save,
+  Send,
+  Shield,
+  Trash2,
+  UserPlus,
+  Users,
+} from "lucide-react"
 import { useEffect, useState } from "react"
 import {
   type AuditEvent,
@@ -38,6 +49,17 @@ export function AccessSettings({ apiBase = "" }: Props) {
   const [inviteToken, setInviteToken] = useState("")
   const [inviting, setInviting] = useState(false)
   const [revokingInvite, setRevokingInvite] = useState<string | null>(null)
+  const [tokenCopied, setTokenCopied] = useState(false)
+
+  const copyToken = async () => {
+    try {
+      await navigator.clipboard?.writeText(inviteToken)
+      setTokenCopied(true)
+      setTimeout(() => setTokenCopied(false), 2000)
+    } catch {
+      setError("Couldn't copy the token. Select and copy it manually.")
+    }
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -318,11 +340,11 @@ export function AccessSettings({ apiBase = "" }: Props) {
               </div>
               <button
                 type="button"
-                onClick={() => navigator.clipboard?.writeText(inviteToken)}
+                onClick={copyToken}
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#365f3f] px-3 py-2 text-xs font-medium text-[#d7f5dc] hover:bg-[rgba(255,255,255,0.04)]"
               >
-                <Copy className="h-3.5 w-3.5" />
-                Copy
+                {tokenCopied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                {tokenCopied ? "Copied!" : "Copy"}
               </button>
             </div>
           )}

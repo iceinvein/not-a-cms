@@ -67,13 +67,18 @@ export function ThemeCustomizer({ apiBase = "" }: Props) {
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <h2 className="text-base font-semibold text-[#fafafa]">Theme Settings</h2>
+      <div className="flex justify-between items-start gap-4">
+        <div>
+          <h2 className="text-base font-semibold text-[#fafafa]">Site theme</h2>
+          <p className="text-sm text-[#838389] mt-0.5">
+            How your published site looks to visitors. This doesn't change the admin.
+          </p>
+        </div>
         <button
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="px-4 py-2 bg-[#c6ff3d] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4ff6e] disabled:opacity-50 transition-colors"
+          className="px-4 py-2 bg-[#c6ff3d] text-[#0a0a0c] rounded-lg text-sm font-medium hover:bg-[#d4ff6e] disabled:opacity-50 transition-colors flex-none"
         >
           {saving ? "Saving..." : saved ? "Saved!" : "Save Changes"}
         </button>

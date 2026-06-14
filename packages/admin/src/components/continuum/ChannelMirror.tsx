@@ -189,13 +189,12 @@ export function ChannelMirror({
     <div className="cn-mirror">
       <div className="cn-mirror-head">
         <span className="cn-mirror-title">Channel mirror · live</span>
-        <div className="cn-mirror-tabs" role="tablist">
+        <div className="cn-mirror-tabs">
           {(["web", "email", "rss"] as Channel[]).map((candidate) => (
             <button
               key={candidate}
               type="button"
-              role="tab"
-              aria-selected={channel === candidate}
+              aria-pressed={channel === candidate}
               className={channel === candidate ? "cn-tab cn-tab-on" : "cn-tab"}
               onClick={() => setChannel(candidate)}
             >

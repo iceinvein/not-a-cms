@@ -1,6 +1,11 @@
 export function ContentListSkeleton() {
   return (
-    <div className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] overflow-hidden">
+    <div
+      role="status"
+      aria-busy="true"
+      aria-label="Loading content"
+      className="bg-[#18181b] rounded-xl border border-[rgba(255,255,255,0.06)] overflow-hidden"
+    >
       <div className="border-b border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.05)] px-6 py-3 flex gap-6">
         <div className="h-3 w-16 bg-[rgba(255,255,255,0.06)] rounded animate-pulse" />
         <div className="h-3 w-12 bg-[rgba(255,255,255,0.06)] rounded animate-pulse" />
@@ -22,7 +27,7 @@ export function ContentListSkeleton() {
 
 export function ContentEditorSkeleton() {
   return (
-    <div className="flex gap-8">
+    <div role="status" aria-busy="true" aria-label="Loading editor" className="flex gap-8">
       <div className="flex-1 space-y-6">
         <div>
           <div className="h-4 w-12 bg-[rgba(255,255,255,0.06)] rounded animate-pulse mb-2" />

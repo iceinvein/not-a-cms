@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { adminApiFetch } from "../lib/api"
 
 export type AuthMethodConfig = {
@@ -25,6 +25,13 @@ export function LoginForm({ apiBase = "", initialAuthConfig = DEFAULT_AUTH_CONFI
   const [oauthLoading, setOauthLoading] = useState("")
   const [error, setError] = useState("")
   const [authConfig, setAuthConfig] = useState<AuthMethodConfig>(initialAuthConfig)
+  const sentRef = useRef<HTMLDivElement>(null)
+
+  // Move focus to the confirmation when the magic link is sent, so screen-reader users
+  // hear that it worked (the form is replaced, so without this the change is silent).
+  useEffect(() => {
+    if (sent) sentRef.current?.focus()
+  }, [sent])
 
   useEffect(() => {
     let cancelled = false
@@ -98,7 +105,7 @@ export function LoginForm({ apiBase = "", initialAuthConfig = DEFAULT_AUTH_CONFI
 
   if (sent) {
     return (
-      <div className="text-center py-4">
+      <div className="text-center py-4" ref={sentRef} tabIndex={-1} role="status">
         <h3 className="text-lg font-medium text-[#fafafa]">Check your email</h3>
         <p className="text-sm text-[#909099] mt-2">
           We sent a magic link to <strong>{email}</strong>
@@ -154,16 +161,22 @@ export function LoginForm({ apiBase = "", initialAuthConfig = DEFAULT_AUTH_CONFI
               id="email"
               type="email"
               required
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               className="w-full px-3 py-2 bg-transparent border border-[rgba(255,255,255,0.1)] rounded-lg text-sm text-[#fafafa] placeholder:text-[#838389] focus:outline-none focus:ring-0 focus:border-[rgba(255,255,255,0.2)]"
             />
           </div>
-          {error && <p className="text-sm text-[#ef4444] mb-4">{error}</p>}
+          {error && (
+            <p className="text-sm text-[#ef4444] mb-4" role="alert">
+              {error}
+            </p>
+          )}
           <button
             type="submit"
             disabled={loading}
+            aria-busy={loading}
             className="w-full py-2 px-4 bg-[#fafafa] text-[#0a0a0c] rounded-md text-sm font-medium hover:bg-[#e4e4e7] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? "Sending..." : "Send magic link"}
@@ -171,7 +184,11 @@ export function LoginForm({ apiBase = "", initialAuthConfig = DEFAULT_AUTH_CONFI
         </form>
       )}
 
-      {!authConfig.magicLink && error && <p className="text-sm text-[#ef4444]">{error}</p>}
+      {!authConfig.magicLink && error && (
+        <p className="text-sm text-[#ef4444]" role="alert">
+          {error}
+        </p>
+      )}
     </div>
   )
 }

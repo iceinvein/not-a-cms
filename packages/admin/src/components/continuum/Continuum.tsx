@@ -244,11 +244,10 @@ function ContinuumInner({
             </div>
             <div className="cn-sheet-head-right">
               {bodyField ? (
-                <div className="cn-mode-toggle" role="tablist" aria-label="Editor mode">
+                <div className="cn-mode-toggle">
                   <button
                     type="button"
-                    role="tab"
-                    aria-selected={editorMode === "visual"}
+                    aria-pressed={editorMode === "visual"}
                     className={editorMode === "visual" ? "cn-mode-btn cn-mode-on" : "cn-mode-btn"}
                     onClick={() => setEditorMode("visual")}
                   >
@@ -256,8 +255,7 @@ function ContinuumInner({
                   </button>
                   <button
                     type="button"
-                    role="tab"
-                    aria-selected={editorMode === "document"}
+                    aria-pressed={editorMode === "document"}
                     className={editorMode === "document" ? "cn-mode-btn cn-mode-on" : "cn-mode-btn"}
                     onClick={() => setEditorMode("document")}
                   >

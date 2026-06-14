@@ -1259,7 +1259,9 @@ a.crumb:hover {
   border: 1px solid var(--border-default);
   border-radius: 8px;
   background: #fdfcf8;
-  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.25);
+  /* Tighter, grounded shadow: a wide soft 70px blur reads as a generative default.
+     A shorter offset with negative spread keeps the "paper on a desk" depth crisp. */
+  box-shadow: 0 16px 36px -16px rgba(0, 0, 0, 0.5);
 }
 
 .cn-mirror-web-frame {
@@ -1285,8 +1287,10 @@ a.crumb:hover {
   min-height: calc(100vh - 48px);
   margin: -8px -32px -32px;
   padding-bottom: 58px;
+  /* A faint neutral top glow for depth. The accent stays reserved for actions, selection,
+     and state, so the editor canvas no longer carries a decorative lime wash. */
   background:
-    radial-gradient(circle at 25% 0, rgba(198, 255, 61, 0.08), transparent 34%), var(--bg-app);
+    radial-gradient(circle at 25% 0, rgba(255, 255, 255, 0.02), transparent 34%), var(--bg-app);
 }
 
 .cn-canvas {

@@ -3232,3 +3232,9 @@ a.crumb:hover {
   font-size: 11px;
   color: var(--text-subtle);
 }
+/* The Wire list nudges its dot down to align with the first line of multi-line
+   text; in the single-line, vertically-centered ticker that offset misaligns it,
+   so reset it here. */
+.pulse-wire-ticker .pulse-wire-dot {
+  top: 0;
+}

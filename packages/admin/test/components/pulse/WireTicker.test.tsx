@@ -31,7 +31,13 @@ describe("WireTicker", () => {
   test("renders a bold actor when present", () => {
     const html = renderToString(
       <WireTicker
-        event={{ id: "1", type: "edit", actor: "Maya", summary: "is editing Pricing", at: "2026-06-15T11:59:00.000Z" }}
+        event={{
+          id: "1",
+          type: "edit",
+          actor: "Maya",
+          summary: "is editing Pricing",
+          at: "2026-06-15T11:59:00.000Z",
+        }}
         now={NOW}
       />,
     )
@@ -41,7 +47,10 @@ describe("WireTicker", () => {
 
   test("omits the time element when the timestamp is unparseable", () => {
     const html = renderToString(
-      <WireTicker event={{ id: "1", type: "edit", summary: "Updated page", at: "not-a-date" }} now={NOW} />,
+      <WireTicker
+        event={{ id: "1", type: "edit", summary: "Updated page", at: "not-a-date" }}
+        now={NOW}
+      />,
     )
     expect(html).toContain("Updated page")
     expect(html).not.toContain("pulse-wire-time")

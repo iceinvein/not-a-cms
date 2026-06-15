@@ -80,6 +80,11 @@ export function PulseSpine({ apiBase = "" }: { apiBase?: string }) {
   }, [])
 
   return (
-    <PulseSpineView eventsPerMin={eventsPerMin} latestEvent={latestEvent} people={people} now={now} />
+    <PulseSpineView
+      eventsPerMin={eventsPerMin}
+      latestEvent={latestEvent}
+      people={people}
+      now={now}
+    />
   )
 }

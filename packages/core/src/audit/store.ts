@@ -48,6 +48,8 @@ type AuditRow = {
 }
 
 export function createAuditLogStore(db: AppDatabase) {
+  const listeners = new Set<(event: AuditEvent) => void>()
+
   function record(input: AuditEventInput): AuditEvent {
     const id = crypto.randomUUID()
     const createdAt = new Date().toISOString()
@@ -66,7 +68,7 @@ export function createAuditLogStore(db: AppDatabase) {
       ${createdAt}
     )`)
 
-    return {
+    const event: AuditEvent = {
       id,
       action: input.action,
       actorId: input.actorId ?? null,
@@ -78,6 +80,16 @@ export function createAuditLogStore(db: AppDatabase) {
       after: input.after ?? null,
       createdAt,
     }
+    // Fan the event out to live subscribers (the Pulse feed). A misbehaving
+    // listener must never break the write or block siblings.
+    for (const fn of listeners) {
+      try {
+        fn(event)
+      } catch {
+        // swallow
+      }
+    }
+    return event
   }
 
   function list(options: AuditListOptions = {}): AuditEvent[] {
@@ -108,7 +120,14 @@ export function createAuditLogStore(db: AppDatabase) {
     ) as AuditRow[]
   }
 
-  return { record, list }
+  function subscribe(fn: (event: AuditEvent) => void): () => void {
+    listeners.add(fn)
+    return () => {
+      listeners.delete(fn)
+    }
+  }
+
+  return { record, list, subscribe }
 }
 
 function serialize(value: unknown): string | null {

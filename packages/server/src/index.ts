@@ -48,6 +48,7 @@ import {
   type StorageConfig,
 } from "./media/storage"
 import { createPreviewHandler } from "./preview/handler"
+import { createPulseHandler } from "./pulse/handler"
 import { createRestHandler } from "./rest/handler"
 import { createSchemaHandler } from "./schema/handler"
 import { appRouter } from "./trpc/router"
@@ -265,6 +266,7 @@ export function createServer(config: ServerConfig): CreatedServer {
 
   const roleService = createRoleService(settingsService)
   const auditLogStore = createAuditLogStore(db)
+  const pulseHandler = createPulseHandler(auditLogStore, runEvents)
   const userRoleStore = createUserRoleStore(db)
   const inviteStore = createInviteStore(db)
   const previewTokenService = createPreviewTokenService(db)
@@ -720,6 +722,17 @@ export function createServer(config: ServerConfig): CreatedServer {
         return withCors(
           Response.json({ items: await buildExpiring(collections, new Date(), windowDays) }),
         )
+      }
+
+      // Live activity feed (SSE): content mutations + automation runs + heartbeat.
+      if (url.pathname === "/api/_pulse") {
+        if (req.method !== "GET") {
+          return withCors(Response.json({ error: "Method not allowed" }, { status: 405 }))
+        }
+        const unauthorized = await requireAuthorized()
+        if (unauthorized) return withCors(unauthorized)
+        const res = await pulseHandler(req)
+        if (res) return withCors(res)
       }
 
       // Live presence

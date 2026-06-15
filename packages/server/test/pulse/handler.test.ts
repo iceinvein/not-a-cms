@@ -111,4 +111,30 @@ describe("GET /api/_pulse", () => {
     const res = await handler(new Request("http://localhost/api/_other"))
     expect(res).toBeNull()
   })
+
+  test("tears down subscriptions on cancel without throwing on later events", async () => {
+    const { audit, runEvents, handler } = setup()
+    const res = await handler(new Request("http://localhost/api/_pulse"))
+    const reader = res!.body!.getReader()
+    await readFrames(reader, 1) // initial heartbeat
+    await reader.cancel() // triggers stream cancel -> cleanup
+    // After teardown, further activity must not throw: subscriptions are removed
+    // and any stray enqueue is guarded.
+    expect(() =>
+      audit.record({ action: "content.updated", collection: "page", documentId: "home" }),
+    ).not.toThrow()
+    expect(() =>
+      runEvents.publish({
+        type: "run.completed",
+        run: {
+          id: "r2",
+          flow_id: "f1",
+          trigger_event: "content.created",
+          status: "completed",
+          started_at: "2026-06-15T12:00:00.000Z",
+          finished_at: "2026-06-15T12:00:01.000Z",
+        },
+      } as RunEvent),
+    ).not.toThrow()
+  })
 })

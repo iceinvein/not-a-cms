@@ -8,6 +8,7 @@ export function WireTicker({ event, now }: { event: PulseEvent | null; now: numb
   if (!event) {
     return <span className="pulse-wire-ticker pulse-wire-ticker-idle">All quiet</span>
   }
+  const when = relativeTime(event.at, now)
   return (
     <span className="pulse-wire-ticker" title={event.summary}>
       <span className={`pulse-wire-dot pulse-wire-dot-${event.type}`} aria-hidden="true" />
@@ -15,7 +16,7 @@ export function WireTicker({ event, now }: { event: PulseEvent | null; now: numb
         {event.actor ? <b>{event.actor} </b> : null}
         {event.summary}
       </span>
-      <span className="pulse-wire-time">{relativeTime(event.at, now)}</span>
+      {when ? <span className="pulse-wire-time">{when}</span> : null}
     </span>
   )
 }

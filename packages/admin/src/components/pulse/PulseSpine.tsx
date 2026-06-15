@@ -34,15 +34,26 @@ export function PulseSpine({ apiBase = "" }: { apiBase?: string }) {
     }
     const onPulse = (event: Event) => {
       try {
-        const data = JSON.parse((event as MessageEvent).data) as PulseEvent
-        setLatestEvent(data)
-        setNow(Date.now())
+        const data = JSON.parse((event as MessageEvent).data)
+        if (
+          data &&
+          typeof data.type === "string" &&
+          typeof data.summary === "string" &&
+          typeof data.at === "string"
+        ) {
+          setLatestEvent(data as PulseEvent)
+          setNow(Date.now())
+        }
       } catch {
         /* ignore a malformed frame */
       }
     }
     source.addEventListener("heartbeat", onHeartbeat)
     source.addEventListener("pulse", onPulse)
+    source.onerror = () => {
+      // On a permanent drop, let the heartbeat go idle rather than show a stale rate.
+      if (source && source.readyState === EventSource.CLOSED) setEventsPerMin(null)
+    }
     return () => {
       source?.removeEventListener("heartbeat", onHeartbeat)
       source?.removeEventListener("pulse", onPulse)

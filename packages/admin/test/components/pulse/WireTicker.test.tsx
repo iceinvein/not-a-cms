@@ -41,6 +41,7 @@ describe("WireTicker", () => {
         now={NOW}
       />,
     )
+    expect(html).toContain("<b>Maya")
     expect(html).toContain("Maya")
     expect(html).toContain("is editing Pricing")
   })

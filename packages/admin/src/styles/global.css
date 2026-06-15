@@ -3200,3 +3200,35 @@ a.crumb:hover {
   background: var(--status-error);
   box-shadow: 0 0 6px var(--status-error);
 }
+
+/* Pulse spine: the living strip in the app-shell header. */
+.pulse-spine {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.pulse-wire-ticker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 280px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.pulse-wire-ticker-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pulse-wire-ticker-text b {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+.pulse-wire-ticker-idle {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-subtle);
+}

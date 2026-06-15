@@ -1,5 +1,6 @@
 ---
 import { breadcrumbFromPath, type CrumbCollection } from "../../lib/breadcrumb"
+import { PulseSpine } from "../pulse/PulseSpine"
 
 interface Props {
   title: string
@@ -15,6 +16,7 @@ interface Props {
     section?: "main" | "bottom"
     icon?: string
   }>
+  apiBase: string
 }
 
 const {
@@ -23,6 +25,7 @@ const {
   collections = [],
   hideTitle = false,
   extensionNavItems = [],
+  apiBase,
 } = Astro.props
 const crumbs = breadcrumbFromPath(currentPath, collections)
 
@@ -72,7 +75,7 @@ const bottomExt = extensionNavItems.filter((i) => i.section === "bottom")
     </nav>
 
     <div class="spine-spacer"></div>
-    <div id="presence-slot" class="presence-slot"></div>
+    <PulseSpine client:load apiBase={apiBase} />
   </header>
 
   <div class="shell-body">

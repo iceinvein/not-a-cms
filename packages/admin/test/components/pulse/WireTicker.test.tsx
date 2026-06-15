@@ -8,7 +8,12 @@ describe("WireTicker", () => {
   test("renders the latest event's summary, relative time, and type dot", () => {
     const html = renderToString(
       <WireTicker
-        event={{ id: "1", type: "alert", summary: "Automation run failed", at: "2026-06-15T11:57:00.000Z" }}
+        event={{
+          id: "1",
+          type: "alert",
+          summary: "Automation run failed",
+          at: "2026-06-15T11:57:00.000Z",
+        }}
         now={NOW}
       />,
     )

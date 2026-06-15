@@ -9,7 +9,13 @@ describe("PulseSpineView", () => {
     const html = renderToString(
       <PulseSpineView
         eventsPerMin={6}
-        latestEvent={{ id: "1", type: "publish", actor: null, summary: "Published page", at: "2026-06-15T11:59:58.000Z" }}
+        latestEvent={{
+          id: "1",
+          type: "publish",
+          actor: null,
+          summary: "Published page",
+          at: "2026-06-15T11:59:58.000Z",
+        }}
         people={[{ id: "Maya", name: "Maya", color: "#6ea8fe" }]}
         now={NOW}
       />,

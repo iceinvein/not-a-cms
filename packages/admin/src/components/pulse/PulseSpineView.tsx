@@ -20,7 +20,10 @@ export function PulseSpineView({
 }) {
   return (
     <div className="pulse-spine">
-      <Heartbeat level={activityLevel(eventsPerMin ?? 0)} eventsPerMin={eventsPerMin ?? undefined} />
+      <Heartbeat
+        level={activityLevel(eventsPerMin ?? 0)}
+        eventsPerMin={eventsPerMin ?? undefined}
+      />
       <WireTicker event={latestEvent} now={now} />
       {people.length > 0 ? <PresenceDots people={people} /> : null}
     </div>

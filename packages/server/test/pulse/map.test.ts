@@ -54,13 +54,19 @@ describe("runToPulse", () => {
   }
 
   test("a completed ok run maps to type 'run'", () => {
-    const out = runToPulse({ type: "run.completed", run: { ...baseRun, status: "completed" } } as RunEvent)
+    const out = runToPulse({
+      type: "run.completed",
+      run: { ...baseRun, status: "completed" },
+    } as RunEvent)
     expect(out?.type).toBe("run")
     expect(out?.at).toBe("2026-06-15T12:00:00.000Z")
   })
 
   test("a failed run maps to type 'alert'", () => {
-    const out = runToPulse({ type: "run.completed", run: { ...baseRun, status: "failed" } } as RunEvent)
+    const out = runToPulse({
+      type: "run.completed",
+      run: { ...baseRun, status: "failed" },
+    } as RunEvent)
     expect(out?.type).toBe("alert")
     expect(out?.summary).toBe("Automation run failed")
   })

@@ -18,7 +18,7 @@ export type PulseFeedEvent = {
 export function auditToPulse(e: AuditEvent): PulseFeedEvent {
   return {
     id: e.id,
-    type: e.action.includes("publish") ? "publish" : "edit",
+    type: e.action.endsWith(".publish") ? "publish" : "edit",
     actor: null,
     summary: e.summary ?? summarize(e.action, e.collection),
     href: e.collection && e.documentId ? `/content/${e.collection}/${e.documentId}` : null,
@@ -55,6 +55,7 @@ function summarize(action: string, collection: string | null): string {
     case "content.version.restored":
       return `Restored ${c}`
     default:
+      if (action.endsWith(".publish")) return `Published ${c}`
       if (action.startsWith("content.workflow.")) return `Updated ${c} workflow`
       if (action.startsWith("content.bulk.")) return `Bulk-updated ${c}`
       return `Updated ${c}`

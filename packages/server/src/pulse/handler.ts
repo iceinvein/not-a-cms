@@ -53,7 +53,14 @@ export function createPulseHandler(auditLog: AuditLogStore, runEvents: RunEventB
           try {
             controller.enqueue(encoder.encode(chunk))
           } catch {
-            /* controller closed */
+            // Controller closed (client gone without a clean abort): self-heal so
+            // the subscriptions and intervals cannot leak and keep firing.
+            cleanup()
+            try {
+              controller.close()
+            } catch {
+              /* already closed */
+            }
           }
         }
         const sendEvent = (name: string, data: unknown) => {

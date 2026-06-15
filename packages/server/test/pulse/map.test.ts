@@ -42,6 +42,22 @@ describe("auditToPulse", () => {
   test("no href when collection or document is missing", () => {
     expect(auditToPulse(auditEvent({ documentId: null })).href).toBeNull()
   })
+
+  test("unpublish is an edit, not a publish", () => {
+    expect(auditToPulse(auditEvent({ action: "content.workflow.unpublish" })).type).toBe("edit")
+  })
+
+  test("bulk workflow publish is still a publish", () => {
+    expect(auditToPulse(auditEvent({ action: "content.bulk.workflow.publish" })).type).toBe(
+      "publish",
+    )
+  })
+
+  test("derives a 'Published' summary for a summary-less publish", () => {
+    expect(
+      auditToPulse(auditEvent({ action: "content.workflow.publish", summary: null })).summary,
+    ).toBe("Published page")
+  })
 })
 
 describe("runToPulse", () => {

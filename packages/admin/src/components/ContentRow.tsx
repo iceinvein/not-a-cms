@@ -72,7 +72,7 @@ export function ContentRow({
         {published && views && views.total > 0 ? (
           <Sparkline points={views.series} delta={`+${views.today} today`} />
         ) : (
-          <span className="pulse-list-empty">&mdash;</span>
+          <span className="pulse-list-empty">&ndash;</span>
         )}
       </td>
       <td className="px-6 py-4 text-sm text-[#838389]">{formatDate(item.updated_at)}</td>

@@ -249,10 +249,6 @@ export function bootstrapTables(db: AppDatabase, collections: CollectionDef[]) {
   )
 
   db.run(
-    sql`${sql.raw(`CREATE INDEX IF NOT EXISTS idx_pageviews_doc ON _pageviews(collection, document_id, day)`)}`,
-  )
-
-  db.run(
     sql`${sql.raw(`CREATE TABLE IF NOT EXISTS _user_roles (
     user_id TEXT PRIMARY KEY,
     email TEXT,

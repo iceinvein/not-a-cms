@@ -63,8 +63,11 @@ export function createPageviewStore(db: AppDatabase) {
     documentIds: string[],
     opts: PageviewOptions = {},
   ): Record<string, PageviewSummary> {
+    // Resolve `now` once so a batch spanning midnight buckets every doc into the
+    // same day rather than splitting across two.
+    const resolved: PageviewOptions = { days: opts.days, now: opts.now ?? new Date() }
     const result: Record<string, PageviewSummary> = {}
-    for (const id of documentIds) result[id] = summary(collection, id, opts)
+    for (const id of documentIds) result[id] = summary(collection, id, resolved)
     return result
   }
 

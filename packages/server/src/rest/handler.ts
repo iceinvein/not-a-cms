@@ -408,7 +408,11 @@ export function createRestHandler(
             return json({ error: "Not found" }, 404)
           }
           if (!authed && docs[0].status === "published") {
-            options.pageviews?.record(collectionName, String(docs[0].id))
+            try {
+              options.pageviews?.record(collectionName, String(docs[0].id))
+            } catch {
+              // Pageview counting is best-effort; never let it break content delivery.
+            }
           }
           const [doc] = await populateDocuments(docs, entry.def, {
             populate,
@@ -649,7 +653,11 @@ export function createRestHandler(
           return json({ error: "Not found" }, 404)
         }
         if (!authed && doc.status === "published") {
-          options.pageviews?.record(collectionName, String(doc.id))
+          try {
+            options.pageviews?.record(collectionName, String(doc.id))
+          } catch {
+            // Pageview counting is best-effort; never let it break content delivery.
+          }
         }
         const [populated] = await populateForRequest([doc], role)
         return json(project(populated, role))

@@ -20,7 +20,12 @@ describe("ContentRow", () => {
     const html = render(
       <ContentRow
         collection="page"
-        item={{ id: "home", title: "Home", status: "published", updated_at: "2026-06-16T11:30:00.000Z" }}
+        item={{
+          id: "home",
+          title: "Home",
+          status: "published",
+          updated_at: "2026-06-16T11:30:00.000Z",
+        }}
         presence={[]}
         views={{ total: 200, today: 18, series: [1, 2, 3, 4, 5, 6, 7] }}
         now={NOW}
@@ -40,7 +45,13 @@ describe("ContentRow", () => {
     const scheduled = render(
       <ContentRow
         collection="page"
-        item={{ id: "s", title: "Launch", status: "scheduled", updated_at: "2026-06-16T11:00:00.000Z", publishedAt: "2026-06-16T14:14:09.000Z" }}
+        item={{
+          id: "s",
+          title: "Launch",
+          status: "scheduled",
+          updated_at: "2026-06-16T11:00:00.000Z",
+          publishedAt: "2026-06-16T14:14:09.000Z",
+        }}
         presence={[]}
         views={null}
         now={NOW}
@@ -54,7 +65,12 @@ describe("ContentRow", () => {
     const dormant = render(
       <ContentRow
         collection="page"
-        item={{ id: "old", title: "Old", status: "published", updated_at: "2026-04-01T00:00:00.000Z" }}
+        item={{
+          id: "old",
+          title: "Old",
+          status: "published",
+          updated_at: "2026-04-01T00:00:00.000Z",
+        }}
         presence={[]}
         views={null}
         now={NOW}
@@ -70,7 +86,12 @@ describe("ContentRow", () => {
     const html = render(
       <ContentRow
         collection="page"
-        item={{ id: "home", title: "Home", status: "draft", updated_at: "2026-06-16T11:59:00.000Z" }}
+        item={{
+          id: "home",
+          title: "Home",
+          status: "draft",
+          updated_at: "2026-06-16T11:59:00.000Z",
+        }}
         presence={[{ id: "Maya", name: "Maya", color: "#6ea8fe" }]}
         views={null}
         now={NOW}

@@ -37,7 +37,12 @@ describe("presenceByDocument", () => {
         { name: "Maya", color: "#6ea8fe" },
       ],
     },
-    { collection: "page", documentId: "about", title: "About", users: [{ name: "Jo", color: "#f472b6" }] },
+    {
+      collection: "page",
+      documentId: "about",
+      title: "About",
+      users: [{ name: "Jo", color: "#f472b6" }],
+    },
     { collection: "post", documentId: "x", title: "X", users: [{ name: "Al", color: "#a78bfa" }] },
   ]
 

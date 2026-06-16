@@ -40,7 +40,9 @@ export function ContentRow({
   const published = item.status === "published"
 
   return (
-    <tr className={`pulse-list-row${dormant ? " pulse-dormant" : ""} hover:bg-[rgba(255,255,255,0.02)] transition-colors`}>
+    <tr
+      className={`pulse-list-row${dormant ? " pulse-dormant" : ""} hover:bg-[rgba(255,255,255,0.02)] transition-colors`}
+    >
       <td
         className={`px-4 py-4 pulse-row${fresh ? " pulse-fresh" : ""}`}
         style={{ ["--pulse-freshness" as never]: intensity.toFixed(3) }}
@@ -97,5 +99,9 @@ function formatDate(value: unknown): string {
   if (typeof value !== "string" || !value) return ""
   const ms = Date.parse(value)
   if (Number.isNaN(ms)) return ""
-  return new Date(ms).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+  return new Date(ms).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })
 }

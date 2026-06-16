@@ -51,4 +51,14 @@ describe("pageview store", () => {
     expect(map.home.total).toBe(1)
     expect(map.about.total).toBe(0)
   })
+
+  test("a non-finite or non-positive days window falls back to the 14-day default", () => {
+    const store = freshStore()
+    store.record("page", "home", NOW)
+    const nan = store.summary("page", "home", { days: Number.NaN, now: NOW })
+    expect(nan.series.length).toBe(14)
+    expect(nan.today).toBe(1)
+    const zero = store.summary("page", "home", { days: 0, now: NOW })
+    expect(zero.series.length).toBe(14)
+  })
 })

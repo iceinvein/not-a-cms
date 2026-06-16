@@ -32,7 +32,10 @@ export function createPageviewStore(db: AppDatabase) {
     documentId: string,
     opts: PageviewOptions = {},
   ): PageviewSummary {
-    const days = opts.days ?? 14
+    // Defend against a non-finite/non-positive window so a bad caller can never
+    // produce an Invalid Date below; fall back to the 14-day default.
+    const requested = opts.days ?? 14
+    const days = Number.isFinite(requested) && requested >= 1 ? Math.floor(requested) : 14
     const now = opts.now ?? new Date()
     const start = new Date(now.getTime() - (days - 1) * DAY_MS)
     const startDay = dayKey(start)

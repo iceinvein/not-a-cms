@@ -742,6 +742,11 @@ export function createServer(config: ServerConfig): CreatedServer {
           return withCors(Response.json({ error: "collection is required" }, { status: 400 }))
         }
         const days = url.searchParams.has("days") ? Number(url.searchParams.get("days")) : undefined
+        if (days !== undefined && (!Number.isFinite(days) || days < 1)) {
+          return withCors(
+            Response.json({ error: "days must be a positive integer" }, { status: 400 }),
+          )
+        }
         const idsParam = url.searchParams.get("ids")
         if (idsParam) {
           const ids = idsParam

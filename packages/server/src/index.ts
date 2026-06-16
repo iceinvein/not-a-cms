@@ -12,6 +12,7 @@ import {
   createFlowEngine,
   createFlowStore,
   createInviteStore,
+  createPageviewStore,
   createPreviewTokenService,
   createRoleService,
   createRunEventBus,
@@ -141,6 +142,7 @@ export type CreatedServer = {
   settingsService: ReturnType<typeof createSettingsService>
   roleService: ReturnType<typeof createRoleService>
   auditLogStore: ReturnType<typeof createAuditLogStore>
+  pageviewStore: ReturnType<typeof createPageviewStore>
   userRoleStore: ReturnType<typeof createUserRoleStore>
   inviteStore: ReturnType<typeof createInviteStore>
   componentRegistry: ReturnType<typeof createComponentRegistry>
@@ -266,6 +268,7 @@ export function createServer(config: ServerConfig): CreatedServer {
 
   const roleService = createRoleService(settingsService)
   const auditLogStore = createAuditLogStore(db)
+  const pageviewStore = createPageviewStore(db)
   const pulseHandler = createPulseHandler(auditLogStore, runEvents)
   const userRoleStore = createUserRoleStore(db)
   const inviteStore = createInviteStore(db)
@@ -328,6 +331,9 @@ export function createServer(config: ServerConfig): CreatedServer {
       getActor: async (req) => await getSession(req),
       getRole: async (req) => (await getSession(req))?.role ?? null,
       auditLog: auditLogStore,
+      pageviews: {
+        record: (collection, documentId) => pageviewStore.record(collection, documentId),
+      },
       media: {
         get: (id) => {
           const record = storage.get(id)
@@ -724,6 +730,37 @@ export function createServer(config: ServerConfig): CreatedServer {
         )
       }
 
+      // Pageview aggregates for Momentum (single doc or a batch via ?ids=a,b,c).
+      if (url.pathname === "/api/_pageviews") {
+        if (req.method !== "GET") {
+          return withCors(Response.json({ error: "Method not allowed" }, { status: 405 }))
+        }
+        const unauthorized = await requireAuthorized()
+        if (unauthorized) return withCors(unauthorized)
+        const collection = url.searchParams.get("collection")
+        if (!collection) {
+          return withCors(Response.json({ error: "collection is required" }, { status: 400 }))
+        }
+        const days = url.searchParams.has("days") ? Number(url.searchParams.get("days")) : undefined
+        const idsParam = url.searchParams.get("ids")
+        if (idsParam) {
+          const ids = idsParam
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+          return withCors(
+            Response.json({ summaries: pageviewStore.summaries(collection, ids, { days }) }),
+          )
+        }
+        const documentId = url.searchParams.get("documentId")
+        if (!documentId) {
+          return withCors(
+            Response.json({ error: "documentId or ids is required" }, { status: 400 }),
+          )
+        }
+        return withCors(Response.json(pageviewStore.summary(collection, documentId, { days })))
+      }
+
       // Live activity feed (SSE): content mutations + automation runs + heartbeat.
       if (url.pathname === "/api/_pulse") {
         if (req.method !== "GET") {
@@ -894,6 +931,7 @@ export function createServer(config: ServerConfig): CreatedServer {
     settingsService,
     roleService,
     auditLogStore,
+    pageviewStore,
     userRoleStore,
     inviteStore,
     componentRegistry,

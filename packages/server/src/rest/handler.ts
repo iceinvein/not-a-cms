@@ -42,6 +42,9 @@ type RestHandlerOptions = {
   auditLog?: {
     record: (event: AuditEventInput) => unknown
   }
+  pageviews?: {
+    record: (collection: string, documentId: string) => unknown
+  }
   media?: {
     get: (id: string) => Record<string, unknown> | null | Promise<Record<string, unknown> | null>
   }
@@ -397,11 +400,15 @@ export function createRestHandler(
           const forbidden = await requireCollectionAccess(req, entry, "read")
           if (forbidden) return forbidden
           const role = await getRole(req)
+          const authed = await isAuthed(req)
           const populate = parsePopulate(url)
           const docs = await service.findMany({ where: { slug }, limit: 1 })
           if (docs.length === 0) return json({ error: "Not found" }, 404)
-          if (publishedOnlyFor(await isAuthed(req), entry) && docs[0].status !== "published") {
+          if (publishedOnlyFor(authed, entry) && docs[0].status !== "published") {
             return json({ error: "Not found" }, 404)
+          }
+          if (!authed && docs[0].status === "published") {
+            options.pageviews?.record(collectionName, String(docs[0].id))
           }
           const [doc] = await populateDocuments(docs, entry.def, {
             populate,
@@ -633,12 +640,16 @@ export function createRestHandler(
         const forbidden = await requireCollectionAccess(req, entry, "read")
         if (forbidden) return forbidden
         const role = await getRole(req)
+        const authed = await isAuthed(req)
         const doc = await service.findById(id)
         if (!doc) {
           return json({ error: "Not found" }, 404)
         }
-        if (publishedOnlyFor(await isAuthed(req), entry) && doc.status !== "published") {
+        if (publishedOnlyFor(authed, entry) && doc.status !== "published") {
           return json({ error: "Not found" }, 404)
+        }
+        if (!authed && doc.status === "published") {
+          options.pageviews?.record(collectionName, String(doc.id))
         }
         const [populated] = await populateForRequest([doc], role)
         return json(project(populated, role))

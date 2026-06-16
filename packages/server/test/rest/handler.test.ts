@@ -1049,4 +1049,111 @@ describe("REST API handler", () => {
     const res = await handler(req)
     expect(res).toBeNull()
   })
+
+  // --- Pageview counting -------------------------------------------------
+  async function publishPage(title: string): Promise<string> {
+    const created = await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, slug: title.toLowerCase().replace(/\s+/g, "-") }),
+      }),
+    )
+    const { id } = await created!.json()
+    await authorizedHandler(
+      new Request(`http://localhost/api/page/${id}/workflow`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "publish" }),
+      }),
+    )
+    return id
+  }
+
+  test("an unauthenticated GET of a published doc records one pageview", async () => {
+    const views: Array<{ collection: string; documentId: string }> = []
+    const publicHandler = createRestHandler(
+      collections,
+      versioning,
+      undefined,
+      undefined,
+      undefined,
+      {
+        pageviews: { record: (collection, documentId) => views.push({ collection, documentId }) },
+      },
+    )
+    const id = await publishPage("Pricing")
+
+    const res = await publicHandler(new Request(`http://localhost/api/page/${id}`))
+    expect(res?.status).toBe(200)
+    expect(views).toEqual([{ collection: "page", documentId: id }])
+  })
+
+  test("an authenticated (admin) GET does NOT record a pageview", async () => {
+    const views: Array<{ collection: string; documentId: string }> = []
+    const adminWithViews = createRestHandler(
+      collections,
+      versioning,
+      undefined,
+      undefined,
+      undefined,
+      {
+        authorize: () => true,
+        getRole: () => "admin",
+        getActor: () => ({ userId: "admin-user", role: "admin" }),
+        auditLog: { record: (e) => auditEvents.push(e) },
+        pageviews: { record: (collection, documentId) => views.push({ collection, documentId }) },
+      },
+    )
+    const id = await publishPage("Internal")
+
+    await adminWithViews(new Request(`http://localhost/api/page/${id}`))
+    expect(views).toEqual([])
+  })
+
+  test("an unauthenticated GET of a draft is a 404 and records nothing", async () => {
+    const views: Array<{ collection: string; documentId: string }> = []
+    const publicHandler = createRestHandler(
+      collections,
+      versioning,
+      undefined,
+      undefined,
+      undefined,
+      {
+        pageviews: { record: (collection, documentId) => views.push({ collection, documentId }) },
+      },
+    )
+    // create a draft (no publish workflow)
+    const created = await authorizedHandler(
+      new Request("http://localhost/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Secret Draft", slug: "secret-draft" }),
+      }),
+    )
+    const { id } = await created!.json()
+
+    const res = await publicHandler(new Request(`http://localhost/api/page/${id}`))
+    expect(res?.status).toBe(404)
+    expect(views).toEqual([])
+  })
+
+  test("counts a published doc fetched by slug too", async () => {
+    const views: Array<{ collection: string; documentId: string }> = []
+    const publicHandler = createRestHandler(
+      collections,
+      versioning,
+      undefined,
+      undefined,
+      undefined,
+      {
+        pageviews: { record: (collection, documentId) => views.push({ collection, documentId }) },
+      },
+    )
+    const id = await publishPage("By Slug")
+
+    const res = await publicHandler(new Request("http://localhost/api/page/slug/by-slug"))
+    expect(res?.status).toBe(200)
+    expect(views).toEqual([{ collection: "page", documentId: id }])
+  })
 })

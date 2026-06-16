@@ -1,9 +1,14 @@
+import type { PageviewSummary } from "@not-a-cms/core"
 import { Archive, CheckCircle2, Download, Send, Trash2, X } from "lucide-react"
 import type { ReactNode } from "react"
 import { useEffect, useMemo, useState } from "react"
 import { adminApiFetch, messageForAdminResponse } from "../lib/api"
 import { confirmDelete } from "../lib/confirm-copy"
+import type { PresenceRoomView } from "../lib/desk/live"
+import { presenceByDocument } from "../lib/pulse/list"
+import type { SpinePerson } from "../lib/pulse/presence"
 import { EmptyState, ErrorState } from "./AdminState"
+import { ContentRow } from "./ContentRow"
 import { ContentListSkeleton } from "./LoadingSkeleton"
 import { SearchBar } from "./SearchBar"
 
@@ -33,6 +38,9 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
   const [order, setOrder] = useState<"asc" | "desc">("desc")
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [bulkBusy, setBulkBusy] = useState("")
+  const [presence, setPresence] = useState<Record<string, SpinePerson[]>>({})
+  const [views, setViews] = useState<Record<string, PageviewSummary>>({})
+  const [now, setNow] = useState(() => Date.now())
   const pageSize = 20
 
   const fetchItems = async () => {
@@ -63,6 +71,60 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
   useEffect(() => {
     fetchItems()
   }, [collection, searchTerm, offset, sort, order])
+
+  // Presence: who is editing each document in this collection (poll, skip when hidden).
+  useEffect(() => {
+    let cancelled = false
+    async function fetchPresence() {
+      if (typeof document !== "undefined" && document.hidden) return
+      try {
+        const res = await adminApiFetch(apiBase, "/api/_presence")
+        if (!res.ok) return
+        const body = (await res.json()) as { rooms?: PresenceRoomView[] }
+        if (!cancelled) setPresence(presenceByDocument(body.rooms ?? [], collection))
+      } catch {
+        if (!cancelled) setPresence({})
+      }
+    }
+    fetchPresence()
+    const timer = setInterval(fetchPresence, 8_000)
+    return () => {
+      cancelled = true
+      clearInterval(timer)
+    }
+  }, [apiBase, collection])
+
+  // Momentum: batch-fetch view summaries for the visible items.
+  useEffect(() => {
+    const ids = items.map((i) => i.id)
+    if (ids.length === 0) {
+      setViews({})
+      return
+    }
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await adminApiFetch(
+          apiBase,
+          `/api/_pageviews?collection=${encodeURIComponent(collection)}&ids=${ids.map(encodeURIComponent).join(",")}`,
+        )
+        if (!res.ok) return
+        const body = (await res.json()) as { summaries?: Record<string, PageviewSummary> }
+        if (!cancelled) setViews(body.summaries ?? {})
+      } catch {
+        if (!cancelled) setViews({})
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [apiBase, collection, items])
+
+  // Advance `now` slowly so scheduled countdowns stay fresh without per-second churn.
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 15_000)
+    return () => clearInterval(timer)
+  }, [])
 
   const handleSearch = (term: string) => {
     setOffset(0)
@@ -179,26 +241,6 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
     } catch (err: any) {
       setError(err.message)
     }
-  }
-
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return "–"
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    })
-  }
-
-  const statusBadge = (status?: string) => {
-    const colors: Record<string, string> = {
-      draft: "bg-[rgba(255,255,255,0.05)] text-[#909099]",
-      published: "bg-[rgba(34,197,94,0.1)] text-[#22c55e]",
-      archived: "bg-[rgba(245,158,11,0.1)] text-[#f59e0b]",
-      in_review: "bg-[rgba(255,255,255,0.08)] text-[#a1a1aa]",
-      scheduled: "bg-[rgba(245,158,11,0.1)] text-[#f59e0b]",
-    }
-    return colors[status || ""] || "bg-[rgba(255,255,255,0.05)] text-[#909099]"
   }
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
@@ -361,6 +403,9 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
                 </th>
                 {sortableHeader("title", "Title")}
                 {sortableHeader("status", "Status")}
+                <th className="text-left px-6 py-3 text-xs font-medium text-[#838389] uppercase tracking-wider">
+                  Momentum
+                </th>
                 {sortableHeader("updated_at", "Updated")}
                 <th className="text-right px-6 py-3 text-xs font-medium text-[#838389] uppercase tracking-wider">
                   Actions
@@ -369,49 +414,17 @@ export function ContentList({ collection, collectionLabel, apiBase = "" }: Props
             </thead>
             <tbody className="divide-y divide-[rgba(255,255,255,0.06)]">
               {items.map((item) => (
-                <tr key={item.id} className="hover:bg-[rgba(255,255,255,0.02)] transition-colors">
-                  <td className="px-4 py-4">
-                    <input
-                      type="checkbox"
-                      aria-label={`Select ${String(item.title || item.id)}`}
-                      checked={selectedIds.includes(item.id)}
-                      onChange={(event) => toggleSelected(item.id, event.target.checked)}
-                    />
-                  </td>
-                  <td className="px-6 py-4">
-                    <a
-                      href={`/content/${collection}/${item.id}`}
-                      className="text-sm font-medium text-[#fafafa] hover:text-[#c6ff3d] transition-colors"
-                    >
-                      {String(item.title || item.id)}
-                    </a>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${statusBadge(item.status as string)}`}
-                    >
-                      {String(item.status || "draft")}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-[#838389]">
-                    {formatDate(item.updated_at as string)}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <a
-                      href={`/content/${collection}/${item.id}`}
-                      className="text-sm text-[#909099] hover:text-[#c6ff3d] mr-3 transition-colors"
-                    >
-                      Edit
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(item.id, String(item.title || item.id))}
-                      className="text-sm text-[#ef4444] hover:text-[#f87171] transition-colors"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
+                <ContentRow
+                  key={item.id}
+                  collection={collection}
+                  item={item}
+                  presence={presence[item.id] ?? []}
+                  views={views[item.id] ?? null}
+                  now={now}
+                  selected={selectedIds.includes(item.id)}
+                  onToggleSelect={toggleSelected}
+                  onDelete={handleDelete}
+                />
               ))}
             </tbody>
           </table>

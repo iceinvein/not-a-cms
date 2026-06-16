@@ -3238,3 +3238,13 @@ a.crumb:hover {
 .pulse-wire-ticker .pulse-wire-dot {
   top: 0;
 }
+
+/* Living content list */
+.pulse-list-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.pulse-list-empty {
+  color: var(--text-subtle);
+}

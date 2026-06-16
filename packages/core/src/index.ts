@@ -143,6 +143,7 @@ export {
 } from "./extensions/manifest"
 // Import
 export { createWordPressImportPlan, htmlToPortableText, parseWXR } from "./import/wordpress"
+export { createPageviewStore, type PageviewStore, type PageviewSummary } from "./pageviews/store"
 // Preview
 export { createPreviewTokenService, type PreviewTokenService } from "./preview/tokens"
 // Roles
